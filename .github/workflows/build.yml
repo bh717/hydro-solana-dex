@@ -24,7 +24,7 @@ jobs:
 
       - id: install-os-deps
         if: steps.cache-cli-deps.outputs.cache-hit != 'true'
-        run: sudo apt-get update && sudo apt-get install -y pkg-config build-essential libudev-dev
+        run: sudo apt-get update && sudo apt-get install -y pkg-config build-essential libudev-dev tree
 
       - id: install-rust-toolchain
         if: steps.cache-cli-deps.outputs.cache-hit != 'true'
@@ -57,7 +57,7 @@ jobs:
             ~/.cargo/bin/anchor
 
       - id: install-os-deps
-        run: sudo apt-get update && sudo apt-get install -y pkg-config build-essential libudev-dev
+        run: sudo apt-get update && sudo apt-get install -y pkg-config build-essential libudev-dev tree
 
       - run: echo "PATH=$HOME/.local/share/solana/install/active_release/bin:$HOME/.cargo/bin:$PATH" >> $GITHUB_ENV
 
@@ -69,9 +69,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - run: pwd
       - run: npm install
       - run: solana-keygen new --no-bip39-passphrase
       - run: cargo test
       - run: anchor build
+      - run: tree /home/runner/work/hydra-protocol
       - run: anchor test
       - run: cargo fmt -- --check
