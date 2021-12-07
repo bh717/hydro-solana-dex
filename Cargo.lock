@@ -548,6 +548,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "hydra-multisig"
+version = "0.1.0"
+dependencies = [
+ "anchor-lang",
+]
+
+[[package]]
 name = "hydra-pools"
 version = "0.1.0"
 dependencies = [
