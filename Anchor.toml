@@ -1,5 +1,6 @@
 [programs.localnet]
-hydra_protocol = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+hydra_pools = "FbUHYAyFEYYTMuc4JnvmGAtR1pHG5FiPoXnxSyxmuAWW"
+hydra_staking = "BKGiwMZ6cv4QB95WAxS7roXZigYqMFJAiGTFMrgrwWWG"
 
 [registry]
 url = "https://anchor.projectserum.com"

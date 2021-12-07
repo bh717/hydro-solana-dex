@@ -1,13 +1,13 @@
 import * as anchor from '@project-serum/anchor';
 import { Program } from '@project-serum/anchor';
-import { HydraProtocol } from '../target/types/hydra_protocol';
+import { HydraPools } from '../../target/types/hydra_pools';
 
-describe('hydra-protocol', () => {
+describe('hydra-pools', () => {
 
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.Provider.env());
 
-  const program = anchor.workspace.HydraProtocol as Program<HydraProtocol>;
+  const program = anchor.workspace.HydraPools as Program<HydraPools>;
 
   it('Is initialized!', async () => {
     // Add your test here.
