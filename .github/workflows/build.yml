@@ -40,7 +40,7 @@ jobs:
 
       - id: install-anchor-cli
         if: steps.cache-cli-deps.outputs.cache-hit != 'true'
-        run: cargo install --git https://github.com/jet-lab/anchor anchor-cli --locked
+        run: cargo install --git https://github.com/hydraswap-io/anchor anchor-cli --locked
 
   build:
     runs-on: ubuntu-latest
@@ -70,7 +70,6 @@ jobs:
           fetch-depth: 0
 
       - run: npm install
-      - run: npm install @project-serum/anchor -g
       - run: solana-keygen new --no-bip39-passphrase
       - run: cargo test
       - run: anchor build
