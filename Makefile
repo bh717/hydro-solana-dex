@@ -4,7 +4,7 @@ _ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 # install our fork of anchor
 install_anchor:
-	cargo install --git https://github.com/hydraswap-io/anchor anchor-cli --locked
+	cargo install --git https://github.com/hydraswap-io/anchor anchor-cli --locked --force
 
 list:
 	@awk -F: '/^[A-z]/ {print $$1}' Makefile | sort
