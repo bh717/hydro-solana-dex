@@ -1,4 +1,7 @@
 [workspace]
 members = [
-    "programs/*"
+    "programs/*",
+    "libs/hmm",
+    "libs/sim",
+    "libs/sandbox/natural-log"
 ]
