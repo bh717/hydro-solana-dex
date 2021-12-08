@@ -22,10 +22,40 @@ All programs can be found in `./programs` and all integration tests can be found
 
 ## Contributing
 
-### Install Anchor
+### Install dependencies 
+
+#### Installing rust:
+
+Direction can be found [here](https://www.rust-lang.org/tools/install)
+
+``` 
+$ rustc --version 
+rustc 1.57.0 (f1edd0429 2021-11-29)
+```
+
+#### Installing solana cli tools:
+
+Directions can be found [here](https://docs.solana.com/cli/install-solana-cli-tools)
+
+``` 
+$ solana --version
+solana-cli 1.8.5 (src:76c5c94a; feat:52865992)
+```
+
+#### Installing NodeJs 
+
+Direction can be found [here](https://nodejs.org/en/)
+
+``` 
+$ node --version
+v17.1.0
+```
+
+#### Installing Anchor:
 
 Directions can be found [here](https://project-serum.github.io/anchor/getting-started/installation.html).
 
+You can also use our own fork by running `make install_anchor`
 ``` 
 $ anchor --version
 anchor-cli 0.18.2
