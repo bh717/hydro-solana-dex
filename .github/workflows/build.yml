@@ -57,7 +57,7 @@ jobs:
             ~/.cargo/bin/anchor
 
       - id: install-os-deps
-        run: sudo apt-get update && sudo apt-get install -y pkg-config build-essential libudev-dev tree
+        run: sudo apt-get update && sudo apt-get install -y pkg-config build-essential libudev-dev tree cat
 
       - run: echo "PATH=$HOME/.local/share/solana/install/active_release/bin:$HOME/.cargo/bin:$PATH" >> $GITHUB_ENV
 
@@ -74,6 +74,7 @@ jobs:
       - run: solana-keygen new --no-bip39-passphrase
       - run: cargo test
       - run: anchor build
-      - run: tree /home/runner/work/hydra-protocol/hydra-protocol/target
+      - run: tree /home/runner/work/hydra-protocol/hydra-protocol/target/deploy
+      - run: cat /home/runner/work/hydra-protocol/hydra-protocol/target/deploy/hydra_staking-keypair.json
       - run: anchor test
       - run: cargo fmt -- --check
