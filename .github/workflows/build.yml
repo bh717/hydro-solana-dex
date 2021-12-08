@@ -79,7 +79,7 @@ jobs:
         with:
           channel: gitops
           status: SUCCESS
-          colour: good
+          color: good
 
       - name: Notify slack failure
         if: failure()
@@ -89,5 +89,5 @@ jobs:
         with:
           channel: gitops
           status: FAILED
-          colour: danger
+          color: danger
 
