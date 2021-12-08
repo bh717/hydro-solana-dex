@@ -72,6 +72,8 @@ jobs:
       - run: pwd
       - run: npm install
       - run: solana-keygen new --no-bip39-passphrase
+      - run: cargo clean
+      - run: tree /home/runner/work/hydra-protocol/hydra-protocol/target/deploy
       - run: cargo test
       - run: anchor build
       - run: tree /home/runner/work/hydra-protocol/hydra-protocol/target/deploy
