@@ -69,7 +69,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Run ci
       - run: make ci
 
       - name: Notify slask success
