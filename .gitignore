@@ -7,3 +7,5 @@ node_modules
 .idea
 test-ledger/
 .keys
+.vscode
+__pycache__
