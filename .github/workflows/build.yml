@@ -69,4 +69,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - run: make ci
+#      - run: make ci
+      - run: npm install
+      - run: solana-keygen new --no-bip39-passphrase
+      - run: cargo clean
+      - run: cargo test # Broke with anchor
+      - run: anchor build
+      - run: cat /home/runner/work/hydra-protocol/hydra-protocol/target/deploy/hydra_staking-keypair.json
+      - run: anchor test
+      - run: cargo fmt -- --check
