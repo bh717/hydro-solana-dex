@@ -33,12 +33,7 @@ pub struct SwapCalculator {
 
 impl SwapCalculator {
     /// Create a new token swap calculator
-    pub fn new(
-        x0: u128,
-        y0: u128,
-        c: u128,
-        i: u128,
-    ) -> Self {
+    pub fn new(x0: u128, y0: u128, c: u128, i: u128) -> Self {
         Self {
             x0: PreciseNumber::new(x0).unwrap(),
             y0: PreciseNumber::new(y0).unwrap(),
@@ -100,8 +95,7 @@ impl SwapCalculator {
 
         k.checked_div(&x_new)
             .expect("k/(self.x0 + delta_x)")
-            .unsigned_sub(&(k.checked_div(&self.x0))
-                .expect("k/self.x0"))
+            .unsigned_sub(&(k.checked_div(&self.x0)).expect("k/self.x0"))
     }
 
     /// Compute delta x using a constant product curve given delta y
@@ -113,8 +107,7 @@ impl SwapCalculator {
 
         k.checked_div(&y_new)
             .expect("k/(sef.y0 + delta_y)")
-            .unsigned_sub(&(k.checked_div(&self.y0))
-                .expect("k/self.y0"))
+            .unsigned_sub(&(k.checked_div(&self.y0)).expect("k/self.y0"))
     }
 
     /// Compute delta y using a baseline curve given delta y
@@ -123,8 +116,7 @@ impl SwapCalculator {
         let xi = self.compute_xi();
         let k = self.compute_k();
 
-        if x_new.greater_than(&self.x0) && self.x0.greater_than_or_equal(&xi)
-        {
+        if x_new.greater_than(&self.x0) && self.x0.greater_than_or_equal(&xi) {
             // Condition 1
             // (Δx > 0 AND X₀ >= Xᵢ) [OR (Δx < 0 AND X₀ <= Xᵢ)] <= redundant because delta x always > 0
             // Oracle price is better than the constant product price.
@@ -138,18 +130,15 @@ impl SwapCalculator {
             // Condition 3
             // Constant product price is better than the oracle price at the start of the trade.
             // delta_y = compute_integral(k, x0, xi, xi, c) + (k/x_new - k/xi)
-            let (integral, integral_signed) = self.compute_integral(
-                &k, &self.x0, &xi, &xi, &self.c);
+            let (integral, integral_signed) =
+                self.compute_integral(&k, &self.x0, &xi, &xi, &self.c);
 
             // rhs = (k/x_new - k/xi)
             let k_div_x_new = k.checked_div(&x_new).unwrap();
             let k_div_xi = k.checked_div(&xi).unwrap();
             let (rhs, rhs_signed) = k_div_x_new.unsigned_sub(&k_div_xi);
 
-            signed_addition(&integral,
-                            integral_signed,
-                            &rhs,
-                            rhs_signed)
+            signed_addition(&integral, integral_signed, &rhs, rhs_signed)
         }
     }
 
@@ -159,8 +148,7 @@ impl SwapCalculator {
         let yi = self.compute_yi();
         let k = self.compute_k();
 
-        if y_new.greater_than(&self.y0) && self.y0.greater_than_or_equal(&yi)
-        {
+        if y_new.greater_than(&self.y0) && self.y0.greater_than_or_equal(&yi) {
             // Condition 1
             // (Δy > 0 AND Y₀ >= Yᵢ) [OR (Δy < 0 AND Y₀ <= Yᵢ)] <= redundant because delta y always > 0
             // Oracle price is better than the constant product price.
@@ -174,19 +162,15 @@ impl SwapCalculator {
             // Condition 3
             // Constant product price is better than the oracle price at the start of the trade.
             // delta_x = compute_integral(k, y0, yi, yi, c) + (k/x_new - k/xi)
-            let (integral, integral_signed) = self.compute_integral(
-                &k, &self.y0, &yi, &yi, &self.c);
+            let (integral, integral_signed) =
+                self.compute_integral(&k, &self.y0, &yi, &yi, &self.c);
 
             // rhs = (k/x_new - k/xi)
             let k_div_y_new = k.checked_div(&y_new).unwrap();
             let k_div_yi = k.checked_div(&yi).unwrap();
-            let (rhs, rhs_signed) = k_div_y_new
-                .unsigned_sub(&k_div_yi);
+            let (rhs, rhs_signed) = k_div_y_new.unsigned_sub(&k_div_yi);
 
-            signed_addition(&integral,
-                            integral_signed,
-                            &rhs,
-                            rhs_signed)
+            signed_addition(&integral, integral_signed, &rhs, rhs_signed)
         }
     }
 
@@ -201,8 +185,7 @@ impl SwapCalculator {
     ) -> (PreciseNumber, bool) {
         if c == &one() {
             // k/qi * (q0/q_new).ln()
-            let k_div_qi = k.checked_div(&qi)
-                .expect("k_div_qi");
+            let k_div_qi = k.checked_div(&qi).expect("k_div_qi");
 
             // log(q0) - log(q_new) is the alternate form of log(q0/q_new)
             // TODO: this is really inaccurate as we lose the decimal precision
@@ -220,12 +203,13 @@ impl SwapCalculator {
             let q0_div_q_new = q0.checked_div(q_new).expect("q0_div_q_new");
             let factor = PreciseNumber::new(1000u128).expect("factor");
             let q0_div_q_new_bumped = q0_div_q_new
-                .checked_mul(&factor).expect("q0_div_q_new_bumped");
+                .checked_mul(&factor)
+                .expect("q0_div_q_new_bumped");
             let log_q0_div_q_new_bumped = log(q0_div_q_new_bumped
-                .to_imprecise().expect("log_q0_div_q_new_bumped"));
+                .to_imprecise()
+                .expect("log_q0_div_q_new_bumped"));
             let log_factor = log(factor.to_imprecise().expect("log_factor"));
-            let (log_q0_div_q_new, is_signed) = log_q0_div_q_new_bumped
-                .unsigned_sub(&log_factor);
+            let (log_q0_div_q_new, is_signed) = log_q0_div_q_new_bumped.unsigned_sub(&log_factor);
             signed_mul(&k_div_qi, false, &log_q0_div_q_new, is_signed)
         } else {
             // k/((qi**c)*(c-1)) * (q0**(c-1)-q_new**(c-1))
@@ -245,19 +229,26 @@ impl SwapCalculator {
                 let k_div_q0_pow_c_sub_one: PreciseNumber;
                 // b = k*q_new**(c-1)
                 let k_div_q_new_pow_c_sub_one: PreciseNumber;
-                k_div_q0_pow_c_sub_one = k.checked_div(
-                    &(checked_pow_fraction(&q0, &c_sub_one))
-                ).expect("q0_pow_c_sub_one");
-                k_div_q_new_pow_c_sub_one = k.checked_div(
-                    &(checked_pow_fraction(&q_new, &c_sub_one))
-                ).expect("q_new_pow_c_sub_one");
+                k_div_q0_pow_c_sub_one = k
+                    .checked_div(&(checked_pow_fraction(&q0, &c_sub_one)))
+                    .expect("q0_pow_c_sub_one");
+                k_div_q_new_pow_c_sub_one = k
+                    .checked_div(&(checked_pow_fraction(&q_new, &c_sub_one)))
+                    .expect("q_new_pow_c_sub_one");
 
                 let (a_sub_b, _negative) = signed_addition(
-                    &k_div_q0_pow_c_sub_one, false,
-                    &k_div_q_new_pow_c_sub_one, true);
+                    &k_div_q0_pow_c_sub_one,
+                    false,
+                    &k_div_q_new_pow_c_sub_one,
+                    true,
+                );
 
                 // (a - b) / (qi**c) / (c-1)
-                let result = a_sub_b.checked_div(&qi_pow_c).unwrap().checked_div(&c_sub_one).unwrap();
+                let result = a_sub_b
+                    .checked_div(&qi_pow_c)
+                    .unwrap()
+                    .checked_div(&c_sub_one)
+                    .unwrap();
                 (result, c_sub_one_signed)
             } else {
                 // a = k*q0**(c-1)
@@ -266,11 +257,8 @@ impl SwapCalculator {
                 let q_new_pow_c_sub_one: PreciseNumber;
                 // lhs = k/((qi**c)*(c-1))
                 // (qi**c)*(c-1)
-                let (lhs_den, lhs_signed) = signed_mul(
-                    &qi_pow_c,
-                    false,
-                    &c_sub_one,
-                    c_sub_one_signed);
+                let (lhs_den, lhs_signed) =
+                    signed_mul(&qi_pow_c, false, &c_sub_one, c_sub_one_signed);
                 let lhs = k.checked_div(&lhs_den).expect("lhs");
 
                 // q0**(c-1)
@@ -279,8 +267,7 @@ impl SwapCalculator {
                 q_new_pow_c_sub_one = checked_pow_fraction(q_new, &c_sub_one);
 
                 // rhs = q0**(c-1) - q_new**(c-1)
-                let (rhs, rhs_signed) = q0_pow_c_sub_one
-                    .unsigned_sub(&q_new_pow_c_sub_one);
+                let (rhs, rhs_signed) = q0_pow_c_sub_one.unsigned_sub(&q_new_pow_c_sub_one);
 
                 // lhs * rhs
                 signed_mul(&lhs, lhs_signed, &rhs, rhs_signed)
@@ -333,9 +320,9 @@ impl SwapCalculator {
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
-    use std::collections::HashMap;
     use proptest::prelude::*;
     use spl_math::precise_number::PreciseNumber;
+    use std::collections::HashMap;
 
     use sim::Model;
 
@@ -353,39 +340,54 @@ mod tests {
         HashMap::from([
             ("0.0", (0, 0, PreciseNumber::new(0).unwrap())),
             ("1.0", (1, 1, PreciseNumber::new(1).unwrap())),
-            ("1.25", (5, 4, PreciseNumber::new(5).unwrap()
-                .checked_div(&PreciseNumber::new(4).unwrap()).unwrap())),
-            ("1.5", (3, 2, PreciseNumber::new(3).unwrap()
-                .checked_div(&PreciseNumber::new(2).unwrap()).unwrap())),
+            (
+                "1.25",
+                (
+                    5,
+                    4,
+                    PreciseNumber::new(5)
+                        .unwrap()
+                        .checked_div(&PreciseNumber::new(4).unwrap())
+                        .unwrap(),
+                ),
+            ),
+            (
+                "1.5",
+                (
+                    3,
+                    2,
+                    PreciseNumber::new(3)
+                        .unwrap()
+                        .checked_div(&PreciseNumber::new(2).unwrap())
+                        .unwrap(),
+                ),
+            ),
         ])
     }
 
-    fn check_k(
-        model: &Model,
-        x0: u128,
-        y0: u128,
-    ) {
+    fn check_k(model: &Model, x0: u128, y0: u128) {
         let swap = SwapCalculator {
             x0: PreciseNumber::new(x0).unwrap(),
             y0: PreciseNumber::new(y0).unwrap(),
-            c: PreciseNumber { value: Default::default() },
-            i: PreciseNumber { value: Default::default() },
+            c: PreciseNumber {
+                value: Default::default(),
+            },
+            i: PreciseNumber {
+                value: Default::default(),
+            },
         };
         let result = swap.compute_k();
         let expected = model.sim_k();
         assert_eq!(result, expected, "check_k");
     }
 
-    fn check_xi(
-        model: &Model,
-        x0: u128,
-        y0: u128,
-        i: u128,
-    ) {
+    fn check_xi(model: &Model, x0: u128, y0: u128, i: u128) {
         let swap = SwapCalculator {
             x0: PreciseNumber::new(x0).unwrap(),
             y0: PreciseNumber::new(y0).unwrap(),
-            c: PreciseNumber { value: Default::default() },
+            c: PreciseNumber {
+                value: Default::default(),
+            },
             i: PreciseNumber::new(i).unwrap(),
         };
         let result = swap.compute_xi();
@@ -393,43 +395,66 @@ mod tests {
         assert_eq!(result, expected.0, "check_xi");
     }
 
-    fn check_delta_y_amm(
-        model: &Model,
-        x0: u128,
-        y0: u128,
-        delta_x: u128,
-    ) {
+    fn check_delta_y_amm(model: &Model, x0: u128, y0: u128, delta_x: u128) {
         let swap = SwapCalculator {
             x0: PreciseNumber::new(x0).unwrap(),
             y0: PreciseNumber::new(y0).unwrap(),
-            c: PreciseNumber { value: Default::default() },
-            i: PreciseNumber { value: Default::default() },
+            c: PreciseNumber {
+                value: Default::default(),
+            },
+            i: PreciseNumber {
+                value: Default::default(),
+            },
         };
-        let result = swap
-            .compute_delta_y_amm(&PreciseNumber::new(delta_x).unwrap());
+        let result = swap.compute_delta_y_amm(&PreciseNumber::new(delta_x).unwrap());
         let expected = model.sim_delta_y_amm(delta_x);
         assert_eq!(result.0, expected.0, "check_delta_y_amm");
         assert_eq!(result.1, expected.1, "check_delta_y_amm signed")
     }
 
-    fn check_swap_x_to_y_amm(
-        model: &Model,
-        x0: u128,
-        y0: u128,
-        delta_x: u128,
-    ) {
+    fn check_swap_x_to_y_amm(model: &Model, x0: u128, y0: u128, delta_x: u128) {
         let swap = SwapCalculator {
             x0: PreciseNumber::new(x0).unwrap(),
             y0: PreciseNumber::new(y0).unwrap(),
-            c: PreciseNumber { value: Default::default() },
-            i: PreciseNumber { value: Default::default() },
+            c: PreciseNumber {
+                value: Default::default(),
+            },
+            i: PreciseNumber {
+                value: Default::default(),
+            },
         };
         let swap_x_to_y_amm = swap.swap_x_to_y_amm(delta_x);
         let expected = model.sim_swap_x_to_y_amm(delta_x);
-        assert_eq!(swap_x_to_y_amm.x_new.to_imprecise().unwrap(), expected.0, "x_new");
-        assert_eq!(swap_x_to_y_amm.delta_x.to_imprecise().unwrap(), expected.1, "delta_x");
-        assert_eq!(swap_x_to_y_amm.y_new.floor().unwrap().to_imprecise().unwrap(), expected.2, "y_new");
-        assert_eq!(swap_x_to_y_amm.delta_y.floor().unwrap().to_imprecise().unwrap(), expected.3, "delta_y");
+        assert_eq!(
+            swap_x_to_y_amm.x_new.to_imprecise().unwrap(),
+            expected.0,
+            "x_new"
+        );
+        assert_eq!(
+            swap_x_to_y_amm.delta_x.to_imprecise().unwrap(),
+            expected.1,
+            "delta_x"
+        );
+        assert_eq!(
+            swap_x_to_y_amm
+                .y_new
+                .floor()
+                .unwrap()
+                .to_imprecise()
+                .unwrap(),
+            expected.2,
+            "y_new"
+        );
+        assert_eq!(
+            swap_x_to_y_amm
+                .delta_y
+                .floor()
+                .unwrap()
+                .to_imprecise()
+                .unwrap(),
+            expected.3,
+            "delta_y"
+        );
     }
 
     fn check_delta_y_hmm(
@@ -446,15 +471,16 @@ mod tests {
             c,
             i: PreciseNumber::new(i).unwrap(),
         };
-        let result = swap
-            .compute_delta_y_hmm(&PreciseNumber::new(delta_x).unwrap());
+        let result = swap.compute_delta_y_hmm(&PreciseNumber::new(delta_x).unwrap());
         let expected = model.sim_delta_y_hmm(delta_x);
 
-        assert!(result.0.almost_eq(&expected.0, desired_precision(&swap.c)),
-                "check_delta_y_hmm result: {}, expected: {}, diff: {:?}",
-                result.0.value,
-                &expected.0.value,
-                &expected.0.unsigned_sub(&result.0));
+        assert!(
+            result.0.almost_eq(&expected.0, desired_precision(&swap.c)),
+            "check_delta_y_hmm result: {}, expected: {}, diff: {:?}",
+            result.0.value,
+            &expected.0.value,
+            &expected.0.unsigned_sub(&result.0)
+        );
         assert_eq!(result.1, expected.1, "check_delta_y_hmm signed")
     }
 
@@ -472,15 +498,16 @@ mod tests {
             c,
             i: PreciseNumber::new(i).unwrap(),
         };
-        let result = swap
-            .compute_delta_x_hmm(&PreciseNumber::new(delta_y).unwrap());
+        let result = swap.compute_delta_x_hmm(&PreciseNumber::new(delta_y).unwrap());
         let expected = model.sim_delta_x_hmm(delta_y);
 
-        assert!(result.0.almost_eq(&expected.0, desired_precision(&swap.c)),
-                "check_delta_x_hmm result: {}, expected: {}, diff: {:?}",
-                result.0.value,
-                &expected.0.value,
-                &expected.0.unsigned_sub(&result.0));
+        assert!(
+            result.0.almost_eq(&expected.0, desired_precision(&swap.c)),
+            "check_delta_x_hmm result: {}, expected: {}, diff: {:?}",
+            result.0.value,
+            &expected.0.value,
+            &expected.0.unsigned_sub(&result.0)
+        );
         assert_eq!(result.1, expected.1, "check_delta_x_hmm signed")
     }
 
@@ -533,9 +560,15 @@ mod tests {
         let delta_x = PreciseNumber::new(3).unwrap();
         let (result, result_signed) = swap.compute_delta_y_hmm(&delta_x);
 
-        let expected = PreciseNumber { value: InnerUint::from(9_207_401_794_786u128) };
-        assert!(result.almost_eq(&expected, desired_precision(&swap.c)),
-                "compute_delta_y_hmm {}, {}", result.value, &expected.value);
+        let expected = PreciseNumber {
+            value: InnerUint::from(9_207_401_794_786u128),
+        };
+        assert!(
+            result.almost_eq(&expected, desired_precision(&swap.c)),
+            "compute_delta_y_hmm {}, {}",
+            result.value,
+            &expected.value
+        );
         assert_eq!(result_signed, true);
 
         // compute_delta_x_hmm when c == 0
@@ -548,9 +581,15 @@ mod tests {
         let delta_y = PreciseNumber::new(4).unwrap();
         let (result, result_signed) = swap.compute_delta_x_hmm(&delta_y);
 
-        let expected = PreciseNumber { value: InnerUint::from(4_385_786_802_030u128) };
-        assert!(result.almost_eq(&expected, desired_precision(&swap.c)),
-                "compute_delta_x_hmm {}, {}", result.value, &expected.value);
+        let expected = PreciseNumber {
+            value: InnerUint::from(4_385_786_802_030u128),
+        };
+        assert!(
+            result.almost_eq(&expected, desired_precision(&swap.c)),
+            "compute_delta_x_hmm {}, {}",
+            result.value,
+            &expected.value
+        );
         assert_eq!(result_signed, true);
 
         // compute_delta_y_hmm when c == 1
@@ -563,9 +602,15 @@ mod tests {
         let delta_x = PreciseNumber::new(1).unwrap();
         let (result, result_signed) = swap.compute_delta_y_hmm(&delta_x);
 
-        let expected = PreciseNumber { value: InnerUint::from(1_000_000_000_000u128) };
-        assert!(result.almost_eq(&expected, desired_precision(&swap.c)),
-                "compute_delta_y_hmm {}, {}", result.value, &expected.value);
+        let expected = PreciseNumber {
+            value: InnerUint::from(1_000_000_000_000u128),
+        };
+        assert!(
+            result.almost_eq(&expected, desired_precision(&swap.c)),
+            "compute_delta_y_hmm {}, {}",
+            result.value,
+            &expected.value
+        );
         assert_eq!(result_signed, true);
 
         // compute_delta_x_hmm when c == 0
@@ -578,9 +623,15 @@ mod tests {
         let delta_y = PreciseNumber::new(1).unwrap();
         let (result, result_signed) = swap.compute_delta_x_hmm(&delta_y);
 
-        let expected = PreciseNumber { value: InnerUint::from(250_000_000_000u128) };
-        assert!(result.almost_eq(&expected, desired_precision(&swap.c)),
-                "compute_delta_x_hmm {}, {}", result.value, &expected.value);
+        let expected = PreciseNumber {
+            value: InnerUint::from(250_000_000_000u128),
+        };
+        assert!(
+            result.almost_eq(&expected, desired_precision(&swap.c)),
+            "compute_delta_x_hmm {}, {}",
+            result.value,
+            &expected.value
+        );
         assert_eq!(result_signed, true);
 
         // compute_delta_y_hmm when c == 1
@@ -593,9 +644,15 @@ mod tests {
         let delta_x = PreciseNumber::new(1).unwrap();
         let (result, result_signed) = swap.compute_delta_y_hmm(&delta_x);
 
-        let expected = PreciseNumber { value: InnerUint::from(500_000_000_000u128) };
-        assert!(result.almost_eq(&expected, desired_precision(&swap.c)),
-                "compute_delta_y_hmm {}, {}", result.value, &expected.value);
+        let expected = PreciseNumber {
+            value: InnerUint::from(500_000_000_000u128),
+        };
+        assert!(
+            result.almost_eq(&expected, desired_precision(&swap.c)),
+            "compute_delta_y_hmm {}, {}",
+            result.value,
+            &expected.value
+        );
         assert_eq!(result_signed, true);
 
         // compute_delta_y_hmm when c == 0
@@ -608,7 +665,9 @@ mod tests {
         let delta_x = PreciseNumber::new(1).unwrap();
         let (result, result_signed) = swap.compute_delta_y_hmm(&delta_x);
 
-        let expected = PreciseNumber { value: InnerUint::from(1_000_000_000_000u128) };
+        let expected = PreciseNumber {
+            value: InnerUint::from(1_000_000_000_000u128),
+        };
         assert!(result.almost_eq(&expected, desired_precision(&swap.c)));
         assert_eq!(result_signed, true);
 
@@ -616,12 +675,16 @@ mod tests {
         let swap = SwapCalculator {
             x0: PreciseNumber::new(1000u128).unwrap(),
             y0: PreciseNumber::new(1000u128).unwrap(),
-            c: PreciseNumber { value: Default::default() },
+            c: PreciseNumber {
+                value: Default::default(),
+            },
             i: PreciseNumber::new(200u128).unwrap(),
         };
         // ((1000*1000)/200)**0.5 = 70.710678118654752
         // https://www.wolframalpha.com/input/?i=%28%281000*1000%29%2F200%29**0.5
-        let expected = PreciseNumber { value: InnerUint::from(70_710_678_118_654u128) };
+        let expected = PreciseNumber {
+            value: InnerUint::from(70_710_678_118_654u128),
+        };
         assert_eq!(swap.compute_xi(), expected, "xi specific");
     }
 }

@@ -6,12 +6,8 @@ pub struct Calculator {
 }
 
 impl Calculator {
-    pub fn new(
-        value: u128,
-    ) -> Self {
-        Self {
-            value,
-        }
+    pub fn new(value: u128) -> Self {
+        Self { value }
     }
 
     pub fn most_signficant_bit(&self) -> u128 {
@@ -53,7 +49,8 @@ impl Calculator {
 
     pub fn log(&self, s: u128) -> PreciseNumber {
         let log_arr_1: [u32; 10] = [
-            0, 9531017, 18232155, 26236426, 33647223, 40546510, 47000362, 53062825, 58778666, 64185388,
+            0, 9531017, 18232155, 26236426, 33647223, 40546510, 47000362, 53062825, 58778666,
+            64185388,
         ];
         let log_arr_2: [u32; 10] = [
             0, 995033, 1980262, 2955880, 3922071, 4879016, 5826890, 6765864, 7696104, 8617769,
@@ -108,7 +105,9 @@ mod tests {
     #[test]
     fn test_log() {
         let calculator = Calculator::new(9u128);
-        let expected = PreciseNumber { value: InnerUint::from(2197224130000u128) };
+        let expected = PreciseNumber {
+            value: InnerUint::from(2197224130000u128),
+        };
         assert_eq!(calculator.log(calculator.value), expected);
     }
 

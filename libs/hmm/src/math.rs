@@ -103,11 +103,16 @@ pub fn log(s: u128) -> PreciseNumber {
 
 /// Compute power of base given exponent in 0.25 increments
 pub fn checked_pow_fraction(base: &PreciseNumber, exp: &PreciseNumber) -> PreciseNumber {
-    let divisor = PreciseNumber::new(1).unwrap()
-        .checked_div(&PreciseNumber::new(4).unwrap()).unwrap();
+    let divisor = PreciseNumber::new(1)
+        .unwrap()
+        .checked_div(&PreciseNumber::new(4).unwrap())
+        .unwrap();
 
-    let quotient = exp.checked_div(&divisor).expect("quotient")
-        .to_imprecise().unwrap() as i32;
+    let quotient = exp
+        .checked_div(&divisor)
+        .expect("quotient")
+        .to_imprecise()
+        .unwrap() as i32;
 
     // index of exponent/0.25
     match quotient {
@@ -133,15 +138,12 @@ pub fn checked_pow_fraction(base: &PreciseNumber, exp: &PreciseNumber) -> Precis
         }
         5 => {
             // x^5/4 = x^1.25 = x(√(√x)) = x(sqrt(sqrt(x)))
-            base.checked_mul(
-                &(base.sqrt().unwrap()).sqrt().unwrap()
-            ).unwrap()
+            base.checked_mul(&(base.sqrt().unwrap()).sqrt().unwrap())
+                .unwrap()
         }
         6 => {
             // x^3/2 = x^1.50 = x(√x) = x(sqrt(x))
-            base.checked_mul(
-                &base.sqrt().unwrap()
-            ).unwrap()
+            base.checked_mul(&base.sqrt().unwrap()).unwrap()
         }
         8 => {
             // x^2 = 2x
@@ -151,8 +153,7 @@ pub fn checked_pow_fraction(base: &PreciseNumber, exp: &PreciseNumber) -> Precis
             assert!(
                 false,
                 "compute_pow not implemented for base: {} exponent: {}",
-                base.value,
-                exp.value
+                base.value, exp.value
             );
             PreciseNumber::new(0u128).unwrap()
         }
@@ -160,7 +161,12 @@ pub fn checked_pow_fraction(base: &PreciseNumber, exp: &PreciseNumber) -> Precis
 }
 
 /// Signed addition
-pub fn signed_addition(lhs: &PreciseNumber, lhs_signed: bool, rhs: &PreciseNumber, rhs_signed: bool) -> (PreciseNumber, bool) {
+pub fn signed_addition(
+    lhs: &PreciseNumber,
+    lhs_signed: bool,
+    rhs: &PreciseNumber,
+    rhs_signed: bool,
+) -> (PreciseNumber, bool) {
     if lhs_signed && rhs_signed {
         (lhs.checked_add(&rhs).expect("double_negative"), true)
     } else if lhs_signed && !rhs_signed {
@@ -172,7 +178,12 @@ pub fn signed_addition(lhs: &PreciseNumber, lhs_signed: bool, rhs: &PreciseNumbe
     }
 }
 
-pub fn signed_mul(lhs: &PreciseNumber, lhs_signed: bool, rhs: &PreciseNumber, rhs_signed: bool) -> (PreciseNumber, bool) {
+pub fn signed_mul(
+    lhs: &PreciseNumber,
+    lhs_signed: bool,
+    rhs: &PreciseNumber,
+    rhs_signed: bool,
+) -> (PreciseNumber, bool) {
     let result = lhs.checked_mul(&rhs).unwrap();
     let result_signed = !(lhs_signed == rhs_signed);
     (result, result_signed)

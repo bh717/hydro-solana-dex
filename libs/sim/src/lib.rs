@@ -1,9 +1,9 @@
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
-use std::fs::File;
-use std::io::prelude::*;
 use spl_math::precise_number::PreciseNumber;
 use spl_math::uint::U256;
+use std::fs::File;
+use std::io::prelude::*;
 
 type InnerUint = U256;
 
@@ -50,7 +50,7 @@ impl Model {
             .extract(gil.python())
             .unwrap();
         let precise_number = PreciseNumber::new(result).unwrap();
-        return precise_number
+        return precise_number;
     }
 
     pub fn sim_xi(&self) -> (PreciseNumber, bool) {
@@ -60,9 +60,11 @@ impl Model {
             .unwrap()
             .extract(gil.python())
             .unwrap();
-        let precise_number = PreciseNumber { value: InnerUint::from(result.0)};
+        let precise_number = PreciseNumber {
+            value: InnerUint::from(result.0),
+        };
         let is_signed = result.1;
-        return (precise_number, is_signed)
+        return (precise_number, is_signed);
     }
 
     pub fn sim_delta_y_amm(&self, delta_x: u128) -> (PreciseNumber, bool) {
@@ -72,9 +74,11 @@ impl Model {
             .unwrap()
             .extract(gil.python())
             .unwrap();
-        let precise_number = PreciseNumber { value: InnerUint::from(result.0)};
+        let precise_number = PreciseNumber {
+            value: InnerUint::from(result.0),
+        };
         let is_signed = result.1;
-        return (precise_number, is_signed)
+        return (precise_number, is_signed);
     }
 
     pub fn sim_swap_x_to_y_amm(&self, delta_x: u128) -> (u128, u128, u128, u128) {
@@ -93,9 +97,11 @@ impl Model {
             .unwrap()
             .extract(gil.python())
             .unwrap();
-        let precise_number = PreciseNumber { value: InnerUint::from(result.0)};
+        let precise_number = PreciseNumber {
+            value: InnerUint::from(result.0),
+        };
         let is_signed = result.1;
-        return (precise_number, is_signed)
+        return (precise_number, is_signed);
     }
 
     pub fn sim_delta_x_hmm(&self, delta_y: u128) -> (PreciseNumber, bool) {
@@ -105,9 +111,11 @@ impl Model {
             .unwrap()
             .extract(gil.python())
             .unwrap();
-        let precise_number = PreciseNumber { value: InnerUint::from(result.0)};
+        let precise_number = PreciseNumber {
+            value: InnerUint::from(result.0),
+        };
         let is_signed = result.1;
-        return (precise_number, is_signed)
+        return (precise_number, is_signed);
     }
 
     fn call0(&self, py: Python, method_name: &str) -> Result<PyObject, PyErr> {
@@ -115,13 +123,7 @@ impl Model {
         let model = sim
             .call1(
                 "Curve",
-                (
-                    self.x0,
-                    self.y0,
-                    self.c_numer,
-                    self.c_denom,
-                    self.i,
-                ),
+                (self.x0, self.y0, self.c_numer, self.c_denom, self.i),
             )
             .unwrap()
             .to_object(py);
@@ -139,13 +141,7 @@ impl Model {
         let model = sim
             .call1(
                 "Curve",
-                (
-                    self.x0,
-                    self.y0,
-                    self.c_numer,
-                    self.c_denom,
-                    self.i,
-                ),
+                (self.x0, self.y0, self.c_numer, self.c_denom, self.i),
             )
             .unwrap()
             .to_object(py);

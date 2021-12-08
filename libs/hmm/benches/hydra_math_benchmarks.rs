@@ -1,16 +1,17 @@
-use criterion::{criterion_group, criterion_main};
 use criterion::BenchmarkId;
 use criterion::Criterion;
+use criterion::{criterion_group, criterion_main};
 use spl_math::precise_number::PreciseNumber;
 use uint::construct_uint;
 
-use hydra_math::math::{sqrt, log, checked_pow_fraction};
+use hydra_math::math::{checked_pow_fraction, log, sqrt};
 
 construct_uint! {
-	pub struct U256(4);
+    pub struct U256(4);
 }
 
-criterion_group!(benches,
+criterion_group!(
+    benches,
     bench_u128_integer_sqrt,
     bench_u128_natural_log,
     bench_checked_pow_fraction,
@@ -26,17 +27,29 @@ fn bench_u128_integer_sqrt(c: &mut Criterion) {
         let i_u256 = U256::from(*i);
         let parameter = "MAX";
 
-        group.bench_with_input(BenchmarkId::new("u128_Legacy", parameter), &i_u128, |b, &s| {
-            b.iter(|| sqrt(*s));
-        });
+        group.bench_with_input(
+            BenchmarkId::new("u128_Legacy", parameter),
+            &i_u128,
+            |b, &s| {
+                b.iter(|| sqrt(*s));
+            },
+        );
 
-        group.bench_with_input(BenchmarkId::new("u128_PreciseNumber", parameter), &i_precise, |b, s| {
-            b.iter(|| s.sqrt().expect("precise_number"));
-        });
+        group.bench_with_input(
+            BenchmarkId::new("u128_PreciseNumber", parameter),
+            &i_precise,
+            |b, s| {
+                b.iter(|| s.sqrt().expect("precise_number"));
+            },
+        );
 
-        group.bench_with_input(BenchmarkId::new("u128_U256", parameter), &i_u256, |b, &s| {
-            b.iter(|| s.integer_sqrt().0);
-        });
+        group.bench_with_input(
+            BenchmarkId::new("u128_U256", parameter),
+            &i_u256,
+            |b, &s| {
+                b.iter(|| s.integer_sqrt().0);
+            },
+        );
     }
     group.finish();
 }
@@ -50,9 +63,13 @@ fn bench_u128_natural_log(c: &mut Criterion) {
         // let i_precise = PreciseNumber::new(*i).unwrap();
         let parameter = "MAX";
 
-        group.bench_with_input(BenchmarkId::new("u128_Legacy", parameter), &i_u128, |b, &s| {
-            b.iter(|| log(*s));
-        });
+        group.bench_with_input(
+            BenchmarkId::new("u128_Legacy", parameter),
+            &i_u128,
+            |b, &s| {
+                b.iter(|| log(*s));
+            },
+        );
     }
     group.finish();
 }
@@ -76,20 +93,28 @@ fn bench_checked_pow_fraction(c: &mut Criterion) {
         let exp_1_25 = five.checked_div(&four).unwrap();
         let exp_1_5 = three.checked_div(&two).unwrap();
 
-        group.bench_with_input(BenchmarkId::new("exp_0_25", parameter), &exp_0_25, |b, s| {
-            b.iter(|| checked_pow_fraction(&base, &s),);
-        });
+        group.bench_with_input(
+            BenchmarkId::new("exp_0_25", parameter),
+            &exp_0_25,
+            |b, s| {
+                b.iter(|| checked_pow_fraction(&base, &s));
+            },
+        );
 
         group.bench_with_input(BenchmarkId::new("exp_0_5", parameter), &exp_0_5, |b, s| {
-            b.iter(|| checked_pow_fraction(&base, &s),);
+            b.iter(|| checked_pow_fraction(&base, &s));
         });
 
-        group.bench_with_input(BenchmarkId::new("exp_1_25", parameter), &exp_1_25, |b, s| {
-            b.iter(|| checked_pow_fraction(&base, &s),);
-        });
+        group.bench_with_input(
+            BenchmarkId::new("exp_1_25", parameter),
+            &exp_1_25,
+            |b, s| {
+                b.iter(|| checked_pow_fraction(&base, &s));
+            },
+        );
 
         group.bench_with_input(BenchmarkId::new("exp_1_5", parameter), &exp_1_5, |b, s| {
-            b.iter(|| checked_pow_fraction(&base, &s),);
+            b.iter(|| checked_pow_fraction(&base, &s));
         });
     }
     group.finish();
