@@ -26,7 +26,7 @@ fn bit_length(s: u128) -> u32 {
     }
 }
 
-/// sqrt num
+/// Return the square root of a number
 pub fn sqrt(s: u128) -> u128 {
     if s == 0u128 || s == 1 {
         return s;
@@ -54,7 +54,7 @@ pub fn sqrt(s: u128) -> u128 {
     return y;
 }
 
-/// ln(x)
+/// Return the natural log of a number
 pub fn log(s: u128) -> PreciseNumber {
     let log_arr_1: [u32; 10] = [
         0, 9531017, 18232155, 26236426, 33647223, 40546510, 47000362, 53062825, 58778666, 64185388,
@@ -160,7 +160,7 @@ pub fn checked_pow_fraction(base: &PreciseNumber, exp: &PreciseNumber) -> Precis
     }
 }
 
-/// Signed addition
+/// Signed addition of precise numbers
 pub fn signed_addition(
     lhs: &PreciseNumber,
     lhs_signed: bool,
@@ -178,6 +178,7 @@ pub fn signed_addition(
     }
 }
 
+/// Signed multiplication of precise numbers
 pub fn signed_mul(
     lhs: &PreciseNumber,
     lhs_signed: bool,

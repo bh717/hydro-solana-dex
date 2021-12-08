@@ -4,7 +4,7 @@ use num_derive::FromPrimitive;
 use solana_program::{decode_error::DecodeError, program_error::ProgramError};
 use thiserror::Error;
 
-/// Errors that may be returned by the math
+/// Errors that may be returned by the math libraries
 #[derive(Clone, Debug, Eq, Error, FromPrimitive, PartialEq)]
 pub enum MathError {
     /// Calculation overflowed

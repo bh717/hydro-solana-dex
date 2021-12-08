@@ -7,14 +7,17 @@ use crate::swap_result::SwapResult;
 
 type InnerUint = U256;
 
+/// The number 1 as a precise number
 fn one() -> PreciseNumber {
     PreciseNumber::new(1).expect("one")
 }
 
+/// The number 2 as a precise number
 fn two() -> PreciseNumber {
     PreciseNumber::new(2).expect("two")
 }
 
+/// The decimal number 0.5 as a precise number
 fn half() -> PreciseNumber {
     one().checked_div(&two()).expect("half")
 }
@@ -25,7 +28,7 @@ pub struct SwapCalculator {
     x0: PreciseNumber,
     /// Number of tokens y currently in liquidity pool
     y0: PreciseNumber,
-    /// Compensation parameter c [0,2]
+    /// Compensation parameter c
     c: PreciseNumber,
     /// Oracle price relative to x
     i: PreciseNumber,
