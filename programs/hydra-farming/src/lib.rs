@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+declare_id!("9fKWriR43ZH5ZrPyi7Cj5nDKDN4DEyZjgUYmigAS7Rzr");
 
 #[program]
 pub mod hydra_farming {
