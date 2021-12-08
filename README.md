@@ -1,5 +1,7 @@
 # Hydra Protocol
 
+[![build](https://github.com/hydraswap-io/hydra-protocol/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/hydraswap-io/hydra-protocol/actions/workflows/build.yml)
+
 ## Overview
 
 Hydra Protocol, formally known as [HydraSwap](https://www.hydraswap.io) is a Solana-based decentralized exchange that is dedicated to providing users with a CEX-level trading experience. Empowered by its game-changing Hydra Market Maker (HMM) core, it is a high-performance AMM focused on maximizing the returns for liquidity providers.
