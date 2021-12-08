@@ -34,3 +34,11 @@ validator-logs:
 watch:
 	cargo watch -c
 
+ci:
+	npm install
+	#solana-keygen new --no-bip39-passphrase
+	cargo clean
+	cargo test
+	anchor build
+	anchor test
+	cargo fmt -- --check
