@@ -69,4 +69,4 @@ jobs:
         with:
           fetch-depth: 0
 
-       - run: make ci
+      - run: make ci
