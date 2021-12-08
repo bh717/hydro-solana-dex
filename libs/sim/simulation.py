@@ -110,13 +110,10 @@ class Curve:
     x_new = self.x0 + Decimal(delta_x)
 
     if (delta_x > 0 and self.x0 >= xi) or (delta_x < 0 and self.x0 <= xi):
-      print("condition 1")
       return self.delta_y_amm(delta_x)
     elif (delta_x > 0 and x_new <= xi) or (delta_x < 0 and x_new >= xi):
-      print("condition 2")
       return self.integ(k, self.x0, x_new, xi, self.c)
     else:
-      print("condition 3")
       lhs = self.integ(k, self.x0, xi, xi, self.c)
       rhs = (k/x_new - k/xi)
       return lhs + rhs
