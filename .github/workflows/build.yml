@@ -73,7 +73,6 @@ jobs:
       - run: npm install
       - run: solana-keygen new --no-bip39-passphrase
       - run: cargo clean
-      - run: cargo test # Broke with anchor
       - run: anchor build
       - run: cat /home/runner/work/hydra-protocol/hydra-protocol/target/deploy/hydra_staking-keypair.json
       - run: anchor test
