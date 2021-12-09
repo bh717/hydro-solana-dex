@@ -47,3 +47,4 @@ react-ci:
 	cd app
 	yarn install
 	yarn test
+	yarn build
