@@ -11,14 +11,17 @@ impl Calculator {
     }
 
     pub fn most_signficant_bit(&self) -> u128 {
-        println!("msb {}", self.value.leading_zeros());
+        println!("msb leading zeros {}", self.value.leading_zeros());
         127u128 - self.value.leading_zeros() as u128
     }
 
     pub fn most_signficant_bit_precise(&self) -> u128 {
         // testing a more efficient way of calculating bit_length
         let precise_value = PreciseNumber::new(self.value).unwrap();
-        println!("msb_p {}", precise_value.value.leading_zeros());
+        println!(
+            "msb_p leading zeros {}",
+            precise_value.value.leading_zeros()
+        );
         255u128 - precise_value.value.leading_zeros() as u128
     }
 
@@ -47,6 +50,7 @@ impl Calculator {
         }
     }
 
+    /// Legacy natural log function
     pub fn log(&self, s: u128) -> PreciseNumber {
         let log_arr_1: [u32; 10] = [
             0, 9531017, 18232155, 26236426, 33647223, 40546510, 47000362, 53062825, 58778666,
@@ -93,6 +97,126 @@ impl Calculator {
             .unwrap();
         return result;
     }
+
+    /// Replacement natural log function
+    pub fn ln(&self, s: PreciseNumber) -> PreciseNumber {
+        // bit length
+        let bit_length = 127u128 - s.to_imprecise().unwrap().leading_zeros() as u128;
+        // approx = highest 2^x < s
+        let approx = 2u128.checked_pow(bit_length as u32).unwrap();
+        let approx_p = PreciseNumber::new(approx).unwrap();
+        // i0 = s/2^x
+        let i0 = s.checked_div(&approx_p).unwrap();
+
+        let i1 = i0
+            .checked_mul(&PreciseNumber::new(10u128).unwrap())
+            .unwrap()
+            .checked_sub(&PreciseNumber::new(10u128).unwrap())
+            .unwrap()
+            .floor()
+            .unwrap()
+            .checked_div(&PreciseNumber::new(10u128).unwrap())
+            .unwrap()
+            .checked_add(&PreciseNumber::new(1u128).unwrap())
+            .unwrap();
+        let i1_tmp = i0.checked_div(&i1).unwrap();
+
+        let i2 = i1_tmp
+            .checked_mul(&PreciseNumber::new(100u128).unwrap())
+            .unwrap()
+            .checked_sub(&PreciseNumber::new(100u128).unwrap())
+            .unwrap()
+            .floor()
+            .unwrap()
+            .checked_div(&PreciseNumber::new(100u128).unwrap())
+            .unwrap()
+            .checked_add(&PreciseNumber::new(1u128).unwrap())
+            .unwrap();
+        let i2_tmp = i1_tmp.checked_div(&i2).unwrap();
+
+        let i3 = i2_tmp
+            .checked_mul(&PreciseNumber::new(1000u128).unwrap())
+            .unwrap()
+            .checked_sub(&PreciseNumber::new(1000u128).unwrap())
+            .unwrap()
+            .floor()
+            .unwrap()
+            .checked_div(&PreciseNumber::new(1000u128).unwrap())
+            .unwrap()
+            .checked_add(&PreciseNumber::new(1u128).unwrap())
+            .unwrap();
+        let i3_tmp = i2_tmp.checked_div(&i3).unwrap();
+
+        let i4 = i3_tmp
+            .checked_mul(&PreciseNumber::new(10000u128).unwrap())
+            .unwrap()
+            .checked_sub(&PreciseNumber::new(10000u128).unwrap())
+            .unwrap()
+            .floor()
+            .unwrap()
+            .checked_div(&PreciseNumber::new(10000u128).unwrap())
+            .unwrap()
+            .checked_add(&PreciseNumber::new(1u128).unwrap())
+            .unwrap();
+        let i4_tmp = i3_tmp.checked_div(&i4).unwrap();
+
+        let i5 = i4_tmp
+            .checked_mul(&PreciseNumber::new(100000u128).unwrap())
+            .unwrap()
+            .checked_sub(&PreciseNumber::new(100000u128).unwrap())
+            .unwrap()
+            .floor()
+            .unwrap()
+            .checked_div(&PreciseNumber::new(100000u128).unwrap())
+            .unwrap()
+            .checked_add(&PreciseNumber::new(1u128).unwrap())
+            .unwrap();
+        let i5_tmp = i4_tmp.checked_div(&i5).unwrap();
+
+        let i6 = i5_tmp
+            .checked_mul(&PreciseNumber::new(1000000u128).unwrap())
+            .unwrap()
+            .checked_sub(&PreciseNumber::new(1000000u128).unwrap())
+            .unwrap()
+            .floor()
+            .unwrap()
+            .checked_div(&PreciseNumber::new(1000000u128).unwrap())
+            .unwrap()
+            .checked_add(&PreciseNumber::new(1u128).unwrap())
+            .unwrap();
+        let i6_tmp = i5_tmp.checked_div(&i6).unwrap();
+
+        let i7 = i6_tmp
+            .checked_mul(&PreciseNumber::new(1000000u128).unwrap())
+            .unwrap()
+            .checked_sub(&PreciseNumber::new(1000000u128).unwrap())
+            .unwrap()
+            .floor()
+            .unwrap()
+            .checked_div(&PreciseNumber::new(1000000u128).unwrap())
+            .unwrap()
+            .checked_add(&PreciseNumber::new(1u128).unwrap())
+            .unwrap();
+
+        let re_approx_p = i7
+            .checked_mul(&i6)
+            .unwrap()
+            .checked_mul(&i5)
+            .unwrap()
+            .checked_mul(&i4)
+            .unwrap()
+            .checked_mul(&i3)
+            .unwrap()
+            .checked_mul(&i2)
+            .unwrap()
+            .checked_mul(&i1)
+            .unwrap()
+            .checked_mul(&approx_p)
+            .unwrap();
+
+        println!("here {:?}", re_approx_p);
+        re_approx_p
+    }
 }
 
 #[cfg(test)]
@@ -101,6 +225,18 @@ mod tests {
     type InnerUint = U256;
 
     use super::*;
+
+    #[test]
+    fn test_ln() {
+        let calculator = Calculator::new(10u128);
+        let expected = PreciseNumber {
+            value: InnerUint::from(9999990390384u128),
+        };
+        assert_eq!(
+            calculator.ln(PreciseNumber::new(calculator.value).unwrap()),
+            expected
+        );
+    }
 
     #[test]
     fn test_log() {
@@ -113,13 +249,13 @@ mod tests {
 
     #[test]
     fn test_msb() {
-        let calculator = Calculator::new(8u128);
+        let calculator = Calculator::new(10u128);
         assert_eq!(calculator.most_signficant_bit(), 3u128);
     }
 
     #[test]
     fn test_msb_precise() {
-        let calculator = Calculator::new(8u128);
-        assert_eq!(calculator.most_signficant_bit_precise(), 42u128);
+        let calculator = Calculator::new(10u128);
+        assert_eq!(calculator.most_signficant_bit_precise(), 43u128);
     }
 }
