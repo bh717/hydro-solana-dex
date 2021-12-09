@@ -115,7 +115,6 @@ impl Calculator {
         let log_arr_5: [u32; 10] = [0, 999, 1999, 2999, 3999, 4999, 5999, 6999, 7999, 8999];
         let log_arr_6: [u32; 10] = [0, 99, 199, 299, 399, 499, 599, 699, 799, 899];
 
-
         let multiply = PreciseNumber::new(100_000_000u128).unwrap();
 
         // 'approx' is the closest multiple of 2, that is below our number s
@@ -124,7 +123,7 @@ impl Calculator {
 
         // * --------ORIGINAL START--------------
         // let s_mul_100_000_000 = s * 100_000_000u128;
-        // let s0 = s_mul_100_000_000 / approx; // 
+        // let s0 = s_mul_100_000_000 / approx; //
         // let s1 = s0 * 10 / (s0 / 10000000);
         // let index_1 = (s0 / 10000000 - 10) as usize;
         // let s2 = s1 * 100 / (s1 / 1000000);
@@ -141,21 +140,21 @@ impl Calculator {
         // we are breaking down s into s = approx * easy_1 * easy_2 * easy_3 * easy_4 * ....
         // so the log(s) = log(approx) + log(easy1) + log(easy2) + log(easy3) + log(easy4) * ...
         // we choose all these approx, and easy_i so that their logs are easy to compute
-        // first: approx = 2^a with x chosen so approx is closest possible to s 
-        // hence in s = = approx * s0 = approx * (easy1 * easy2 * ...) 
-        // the s0 bit is going to be a number like 1.xxxx  
+        // first: approx = 2^a with x chosen so approx is closest possible to s
+        // hence in s = = approx * s0 = approx * (easy1 * easy2 * ...)
+        // the s0 bit is going to be a number like 1.xxxx
         // Note: s = approx * s0  ( exactly in float world, in int world it is close enough )
 
         // we know that log(2^a) = a * log(2) so log(approx) is solved easily if we know constant log(2)
 
-        // now we break s0 into pieces (easy1 * easy2 * easy4 ....) 
+        // now we break s0 into pieces (easy1 * easy2 * easy4 ....)
         // we choose these easy_i so that they all numbers (in float word) like:
-        // i=1 --> 1.?000000 
-        // i=2 --> 1.0?00000 
-        // i=3 --> 1.00?0000 
-        // i=4 --> 1.000?000 
-        // i=5 --> 1.0000?00 
-        // i=6 --> 1.00000?0 
+        // i=1 --> 1.?000000
+        // i=2 --> 1.0?00000
+        // i=3 --> 1.00?0000
+        // i=4 --> 1.000?000
+        // i=5 --> 1.0000?00
+        // i=6 --> 1.00000?0
         // i=7 --> 1.000000? and so on  where ? is always a digit 1..9
 
         // Why? because we have log tables that give us these results. in other words:
@@ -165,23 +164,22 @@ impl Calculator {
         // that digit is what index_3 is !!!
 
         // all the lines of codes:
-        // 'let index_i = ( easy_(i-1) / 10000000 - 10) as usize;'  etc 
-        // are just a trick to isolate that ? digit for each level 
-        
-        // Note: index_i depends on  easy_(i-1)
-        // so index_1 is chosen so that 
+        // 'let index_i = ( easy_(i-1) / 10000000 - 10) as usize;'  etc
+        // are just a trick to isolate that ? digit for each level
 
+        // Note: index_i depends on  easy_(i-1)
+        // so index_1 is chosen so that
 
         let N = 1E8 as u128; // blow-up factor
-        let s_blown = s * N ;
-        let start = s_blown / approx; 
-        // so start = s/approx i.e 9/8 =1.125..... blown up to 8 digits and truncated 
-        // now we look for easy_1 s.t. start = easy_1 * (extra_1) and easy_1 is start rounded to 1 digit (1.1) and blown up 
+        let s_blown = s * N;
+        let start = s_blown / approx;
+        // so start = s/approx i.e 9/8 =1.125..... blown up to 8 digits and truncated
+        // now we look for easy_1 s.t. start = easy_1 * (extra_1) and easy_1 is start rounded to 1 digit (1.1) and blown up
 
-        // then we break extra_1 into extra_1 = easy_2 * (extra_2) where easy_2 is extra_1 round to 2 digits (1.02) and blown up 
-        // then we break extra_2 into extra_2 = easy_3 * (extra_3) where easy_3 is extra_2 round to 2 digits (1.002) and blown up 
+        // then we break extra_1 into extra_1 = easy_2 * (extra_2) where easy_2 is extra_1 round to 2 digits (1.02) and blown up
+        // then we break extra_2 into extra_2 = easy_3 * (extra_3) where easy_3 is extra_2 round to 2 digits (1.002) and blown up
         // and so on... we could re-write this process of getting easy_(n+1) and extra_(n+1) from easy_(n) as a function break_with_n_digits()
-        
+
         // so we can change this : ---->
         let easy_1 = start * 10 / (start / 10000000);
         let easy_2 = easy_1 * 100 / (easy_1 / 1000000);
@@ -198,10 +196,9 @@ impl Calculator {
         // easy_6, _       = break_with_n_digits(easy_5, n=6)
         // and so on... till max_depth ( here max_depth is 6)
         //
-        // where break_with_n_digits(x, n) --->  x * 10^n  / ( x / 10^(N-n) ) 
+        // where break_with_n_digits(x, n) --->  x * 10^n  / ( x / 10^(N-n) )
         // where N is the blow-up factor ( precision) at the beginning (here N = 8)
-        
-        
+
         // from each of the easy_(i-1), we get index_i [ you can change the susbscript so more intuitive]
         // rewriting this also as a function of n, say find_index(easy_sth, n)
 
@@ -222,7 +219,7 @@ impl Calculator {
         // index_6 = find_index_n( easy_5, n=6)
         // and so on... till max_depth ( here max_depth is 6)
 
-        // where find_index_n(x, n) --->  (x * 10^(N-n) - 10^n ) as usize 
+        // where find_index_n(x, n) --->  (x * 10^(N-n) - 10^n ) as usize
         // where N is the blow-up factor ( precision) at the beginning (here N = 8)
 
         // finally use index_1..index_max_depth to lookup the log(easy_i)
@@ -244,16 +241,16 @@ impl Calculator {
 
         // so you can imagine we can write the whole function as log(x , N, max_depth)
         // IMPORTANT: if u change N, you'd need to change the precison (the number of digits)
-        // in the log tables. i.e if N is 9, then all the logs in log_array_i[] have to be 9-digit precisions, as well as 'log_of_2' and alse 'multiply' (which is N i think) 
+        // in the log tables. i.e if N is 9, then all the logs in log_array_i[] have to be 9-digit precisions, as well as 'log_of_2' and alse 'multiply' (which is N i think)
         // to increase max_depth, u need to add extra lines in log tables
 
-        // I think a rewrite would make it clearer to build intuition and good documenting 
+        // I think a rewrite would make it clearer to build intuition and good documenting
         // and take ownership of the function
-        // from there we could also test the accuracy of this function in Rust 
-        // vs normal Rust float-world log() 
-        // and finally test the boundaries in vs Solana Compute 
-        // for example you could stick this log function alone in a Anchor smart contract and 
-        // check the compute it consumes at different levels of N and/or max_depth  
+        // from there we could also test the accuracy of this function in Rust
+        // vs normal Rust float-world log()
+        // and finally test the boundaries in vs Solana Compute
+        // for example you could stick this log function alone in a Anchor smart contract and
+        // check the compute it consumes at different levels of N and/or max_depth
 
         return result;
     }
