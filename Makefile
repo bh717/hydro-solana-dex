@@ -34,7 +34,7 @@ validator-logs:
 watch:
 	cargo watch -c
 
-ci:
+anchor-ci:
 	npm install
 	solana-keygen new --no-bip39-passphrase || true
 	cargo clean
@@ -42,3 +42,8 @@ ci:
 	anchor build
 	anchor test
 	cargo fmt -- --check
+
+react-ci:
+	cd app
+	yarn install
+	yarn test
