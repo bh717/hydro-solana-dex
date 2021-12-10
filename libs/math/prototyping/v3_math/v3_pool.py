@@ -35,6 +35,13 @@ class TickState:
     liq_gross: float = 0.0  # LiquidityGross
     f0_x: float = 0.0  # feegrowth outside
     f0_y: float = 0.0  # feegrowth outside
+    # TODO : implem s0, i0, sl0 in Tick-state
+    s0_x: float = 0.0  # seconds (time) outside
+    s0_y: float = 0.0  # seconds (time) outside
+    i0_x: float = 0.0  # tickCumulative outside
+    i0_y: float = 0.0  # tickCumulative outside
+    sl0_x: float = 0.0  # secondsPerLiqudity outside
+    sl0_y: float = 0.0  # secondsPerLiqudity outside
 
 
 @dataclass
@@ -55,7 +62,10 @@ class Pool:
     def __init__(self, x_name, x_decimals, y_name, y_decimals):
         self.token_x = Token(x_name, x_decimals)
         self.token_y = Token(y_name, y_decimals)
+
         self.global_state = GlobalState()
+        # TODO: set price and current tick at creation, from param
+
         # * initialized ticks, keys are the tick i itself
         self.active_ticks = {}  # {i: TickState() for i in range(5)}
         # * positions are indexed by ( user_id, lower_tick, upper_tick):
@@ -201,9 +211,11 @@ class Pool:
         # set f0 of tick based on convention [6.21]
         f0_x = self.global_state.fg_x if self.global_state.tick >= tick else 0
         f0_y = self.global_state.fg_y if self.global_state.tick >= tick else 0
-        ts = TickState(f0_x=f0_x, f0_y=f0_y)
+        # TODO : to the same to s0, i0 and sl0 of tick state
 
+        ts = TickState(f0_x=f0_x, f0_y=f0_y)
         self.active_ticks[tick] = ts
+
         return ts
 
     def unset_tick(self, tick):
@@ -223,16 +235,43 @@ class Pool:
             # de-initialize tick when no longer ref'ed by a position
             self.unset_tick(tick)
 
-    def cross_tick(self, tick):
+    def get_next_tick_left(self, starting_rP):
+        """get next available active stick from a starting point going left"""
+        # case when  starting_rP equals exactly tick_torP(current tick)
+
+        # case when  starting_rP not exactly tick_torP(current tick)
+
+        pass
+
+    def get_next_tick_right(self, starting_rP):
+        """get next available active stick from a starting point going right"""
+        pass
+
+    def cross_tick(self, provided_tick, left_to_right=True):
         """Handle update of global state and tick state when
         initialized tick is crossed while performing swap"""
-        pass
+
+        # TODO check if provided tick matches curr tick
+        # Get the liquidity delta from tick
+        ts: TickState = self.active_ticks.get(provided_tick, None)
+        if ts is None:
+            raise Exception("cannot find tick for crossing")
+
+        # add/substract to glabal liq depending on direction of crossing
+        liq_to_apply = ts.liq_net if left_to_right else -ts.liq_net
+        self.global_state.L += liq_to_apply
+
+        # update tick state by flipping fee growth outside f0_X_Y [6.26]
+        ts.f0_x = self.global_state.fg_x - ts.f0_x
+        ts.f0_y = self.global_state.fg_y - ts.f0_y
+
+        # TODO: do the same for s0, i0, sl0 in Tick-state
 
     def set_position(self, user_id, lower_tick, upper_tick, liq_delta):
         """handles all facets for updates a position for in the pool,
         used for deposits (l>0), withdrawals (l<0)"""
         # TODO :compute the uncollected fees f_u the poz is entitled to
-        new_fr_x, new_fr_y = 0, 0
+        new_fr_x, new_fr_y = 0.0, 0.0
 
         # find position if exists
         # positions are uniquely identitfied by the (sender, lower, upper)
@@ -240,18 +279,21 @@ class Pool:
         poz: PositionState = self.positions.get(key, None)
 
         if poz is None:
+            if liq_delta < 0.0:
+                # abort if withdrawal liq exceeds position liquidity
+                raise Exception("cannot newly provide negative liquidity")
             # creates a new position
             self.positions[key] = PositionState(
                 liq=liq_delta, fr_x=0.0, fr_y=0.0
             )
         else:
             # update existing position
-            if liq_delta < 0 and poz.liq + liq_delta < 0:
+            if liq_delta < 0.0 and poz.liq + liq_delta < 0.0:
                 # abort if withdrawal liq exceeds position liquidity
                 raise Exception("liquidity is position insufficient")
 
-            if poz.liq + liq_delta == 0:
-                # if position liq becomes 0 after operation, remove
+            if poz.liq + liq_delta == 0.0:
+                # if position liq becomes 0 after operation remove from pool
                 del self.positions[key]
             else:
                 self.positions[key] = PositionState(
@@ -275,8 +317,92 @@ class Pool:
     def withdraw(self, *args):
         pass
 
-    def swap_without_crossing(self, *args):
+    def swap_within_tick_from_X(self, start_rP, next_tick, L, dX):
+        done_dX, done_dY, end_rP = 0.0, 0.0, 0.0
+        cross: bool = False
+
+        if dX <= 0.0:
+            raise Exception("can only handle X being supplied to pool, dX>0")
+
+        # root-price at next tick
+        rP_next = self.tick_to_rP(next_tick)
+        if rP_next > start_rP:
+            raise Exception("expect price to go down when X supplied to pool")
+
+        # chg of reserve X possible if we go all the way to next tick
+        doable_dX = Pool.dX_from_L_drP(L=L, rP_old=start_rP, rP_new=rP_next)
+        if doable_dX < 0.0:  # expect a positive number
+            raise Exception("doable_dX > 0 when X supplied to pool")
+
+        if doable_dX < dX:
+            # we'll have leftover to swap. do what we can. done_X = doableX
+            done_dX = doable_dX
+            cross = True
+            end_rP = rP_next
+            done_dY = Pool.dX_from_L_drP(L=L, rP_old=start_rP, rP_new=rP_next)
+            if done_dY > 0.0:
+                raise Exception("expect done_dY > 0 when X supplied to pool")
+
+            return done_dX, done_dY, end_rP, cross
+
+        else:
+            # we have enough, make all dX done, dY, end_rP
+            done_dX = dX
+            cross = False
+            end_rP = Pool.rP_new_from_L_dX(L, start_rP, done_dX)
+            if end_rP > start_rP:
+                raise Exception(" want end_rP < start_rP when pool given X")
+            if end_rP < rP_next:
+                raise Exception(
+                    "dont expect end_rP go beyond rP_next when filling all dX"
+                )
+            done_dY = Pool.dY_from_L_drP(L, rP_old=start_rP, rP_new=end_rP)
+            if done_dY > 0.0:
+                raise Exception("done_dY > 0 when X supplied to pool")
+
+            return done_dX, done_dY, end_rP, cross
+
+    def execute_swap_from_X(self, dX):
+        """Swap algo when provided with dX>0
+        We go from right to left on the curve and manage crossings as needed.
+        within initialized tick we use swap_within_tick_from_X"""
+        if dX <= 0.0:
+            raise Exception("can only handle X being supplied to pool, dX>0")
+
+        left_to_right = False
+
+        # get current tick, current root price, and liquidity in range
+        # i_c = self.global_state.tick #+ not needed?
+        curr_rP = self.global_state.rP
+        L_in_range = self.global_state.L
+
+        # TODO case wheh no liqudity in range
+
+        # main case where L>0 in range , call swap_within_tick_from_X
+        swapped_dX = 0.0
+        swapped_dY = 0.0
+        while swapped_dX < dX:
+            next_tick = self.get_next_tick_left(starting_rP=curr_rP)
+            (done_dX, done_dY, end_rP, cross,) = self.swap_within_tick_from_X(
+                start_rP=curr_rP,
+                next_tick=next_tick,
+                L=L_in_range,
+                dX=dX - swapped_dX,
+            )
+            swapped_dX += done_dX
+            swapped_dY += done_dY
+            curr_rP = end_rP
+
+            self.global_state.tick = self.rP_to_current_tick(curr_rP)
+            self.global_state.rP = curr_rP
+            if cross is True:
+                self.cross_tick(
+                    provided_tick=self.global_state.tick,
+                    left_to_right=left_to_right,
+                )
+
+    def swap_within_tick_from_Y(self, *args):
         pass
 
-    def execute_swap(self, *args):
+    def execute_swap_from_Y(self, dY):
         pass
