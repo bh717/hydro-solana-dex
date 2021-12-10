@@ -45,5 +45,5 @@ anchor-ci:
 
 react-ci:
 	cd app; yarn install
-	# cd app; yarn test # Broke
 	cd app; yarn build
+	cd app; CI=true yarn test
