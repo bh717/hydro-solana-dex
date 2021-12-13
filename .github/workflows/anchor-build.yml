@@ -65,6 +65,9 @@ jobs:
         with:
           node-version: '16'
 
+      - id: install-yarn
+        run: npm install -g yarn
+
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
