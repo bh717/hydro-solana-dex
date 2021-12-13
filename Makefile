@@ -35,7 +35,7 @@ watch:
 	cargo watch -c
 
 anchor-ci:
-	npm install
+	yarn install
 	solana-keygen new --no-bip39-passphrase || true
 	cargo clean
 	#cargo test # Broke with anchor
@@ -43,7 +43,8 @@ anchor-ci:
 	anchor test
 	cargo fmt -- --check
 
-react-ci:
+react-ci-cd:
 	cd app; yarn install
 	cd app; yarn build
 	cd app; CI=true yarn test
+	cd app; ipd -C build/
