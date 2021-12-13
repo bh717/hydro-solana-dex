@@ -43,7 +43,7 @@ anchor-ci:
 	anchor test
 	cargo fmt -- --check
 
-react-ci:
+react-ci-cd:
 	cd app; yarn install
 	cd app; yarn build
 	cd app; CI=true yarn test

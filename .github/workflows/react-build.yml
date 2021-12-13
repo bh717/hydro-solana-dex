@@ -64,7 +64,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - run: make react-ci
+      - run: make react-ci-cd
 
       - name: Notify slask success
         if: success()
