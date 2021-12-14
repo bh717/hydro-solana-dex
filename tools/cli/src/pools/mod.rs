@@ -9,7 +9,7 @@ pub enum PoolsSubCommand {
 }
 
 pub fn run_init(connection: &anchor_client::Program) -> anyhow::Result<()> {
-    println!("running init");
+    println!("running init: {:?}", connection);
     Ok(())
 }
 

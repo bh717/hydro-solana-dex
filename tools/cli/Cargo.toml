@@ -10,10 +10,16 @@ anyhow = "1.0"
 structopt = "0.3.25"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-anchor-lang = "0.19.0"
-anchor-client = "0.19.0"
-anchor-spl = "0.19.0"
+anchor-lang = { git = "https://github.com/hydraswap-io/anchor" }
+anchor-spl = { git = "https://github.com/hydraswap-io/anchor" }
+anchor-client = { git = "https://github.com/hydraswap-io/anchor" }
 shellexpand = "2.1"
 hydra-farming = { path = "../../programs/hydra-farming" }
 hydra-staking = { path = "../../programs/hydra-staking" }
 hydra-pools = { path = "../../programs/hydra-pools" }
+static-pubkey = "1.0.2"
+dotenv = "0.15.0"
+solana-program = "1.9.0"
+
+[build-dependencies]
+dotenv = "0.15.0"
