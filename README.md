@@ -41,7 +41,7 @@ Directions can be found [here](https://docs.solana.com/cli/install-solana-cli-to
 
 ``` 
 $ solana --version
-solana-cli 1.8.5 (src:76c5c94a; feat:52865992)
+solana-cli 1.8.10 (src:f97d28ca; feat:52865992)
 ```
 
 #### Installing NodeJs 
@@ -60,7 +60,7 @@ Directions can be found [here](https://project-serum.github.io/anchor/getting-st
 You can also use our own fork by running `make install_anchor`
 ``` 
 $ anchor --version
-anchor-cli 0.18.2
+anchor-cli 0.19.0
 ```
 
 ### Build
