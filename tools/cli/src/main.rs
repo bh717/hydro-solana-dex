@@ -3,7 +3,12 @@ mod pools;
 mod staking;
 mod utils;
 
+use std::env;
 use anchor_client::Cluster;
+use anchor_client::solana_sdk::signature::Keypair;
+use dotenv::dotenv;
+use solana_program::pubkey::Pubkey;
+use static_pubkey::static_pubkey;
 use structopt::StructOpt;
 use crate::farming::{FarmingSubCommand, run_stake_lp_tokens, run_unstake_lp_tokens};
 use crate::pools::{PoolsSubCommand, run_deposit, run_init, run_swap, run_withdraw};
@@ -34,24 +39,17 @@ pub enum SubCommand {
     }
 }
 
+// Programs ids (hack) that get imported via a dotenv setup. See build.rs
+include!(concat!(env!("OUT_DIR"), "/program_ids.rs"));
 
 fn main() -> anyhow::Result<()> {
     let exe = Opt::from_args();
-    println!("output: {:?}",exe);
     let keypair = load_keypair(DEFAULT_KEYPAIR)?;
     let cluster = Cluster::default();
 
-    let program_id = match exe.cmd {
-        SubCommand::Pools { .. } => hydra_pools::ID,
-        SubCommand::Farming { .. } => hydra_farming::ID,
-        SubCommand::Staking { .. } => hydra_staking::ID,
-    };
-
     match exe.cmd {
         SubCommand::Pools { cmd } => {
-            println!("run pool cmds: {:?}", cmd);
-
-            let connection = load_connection(program_id, keypair, cluster)?;
+            let connection = load_connection(PROGRAM_ID_POOLS, keypair, cluster)?;
             match cmd {
                 PoolsSubCommand::Init => {
                     run_init(&connection)?;
@@ -68,25 +66,21 @@ fn main() -> anyhow::Result<()> {
             }
         },
         SubCommand::Farming { cmd } => {
-            println!("run farming cmds: {:?}", cmd);
-
-            // let connection = load_connection(hydra_farming::ID, keypair,cluster)?;
+            let connection = load_connection(PROGRAM_ID_FARMING, keypair,cluster)?;
             match cmd {
                 FarmingSubCommand::StakeLpTokens => {
-                    // run_stake_lp_tokens(&connection)?;
+                    run_stake_lp_tokens(&connection)?;
                 }
                 FarmingSubCommand::UnStakeLpTokens => {
-                    // run_unstake_lp_tokens(&connection)?;
+                    run_unstake_lp_tokens(&connection)?;
                 }
             }
         },
         SubCommand::Staking { cmd } => {
-            println!("run staking cmds: {:?}", cmd);
-
-            // let connection = load_connection(hydra_staking::ID, keypair,cluster)?;
+            let connection = load_connection(PROGRAM_ID_STAKING, keypair,cluster)?;
             match cmd {
                 StakingSubCommand::StakeTokens => {
-                    // run_stake_tokens(&connection)?;
+                    run_stake_tokens(&connection)?;
                 }
             }
         },
