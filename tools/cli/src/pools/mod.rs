@@ -8,19 +8,19 @@ pub enum PoolsSubCommand {
     Swap,
 }
 
-pub fn run_init(connection: &anchor_client::Program) -> anyhow::Result<()> {
+pub fn execute_init_tx(connection: &anchor_client::Program) -> anyhow::Result<()> {
     println!("running init: {:?}", connection);
     Ok(())
 }
 
-pub fn run_deposit(connection: &anchor_client::Program) -> anyhow::Result<()> {
+pub fn execute_deposit_tx(connection: &anchor_client::Program) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn run_withdraw(connection: &anchor_client::Program) -> anyhow::Result<()> {
+pub fn execute_withdraw_tx(connection: &anchor_client::Program) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn run_swap(connection: &anchor_client::Program) -> anyhow::Result<()> {
+pub fn execute_swap_tx(connection: &anchor_client::Program) -> anyhow::Result<()> {
     Ok(())
 }

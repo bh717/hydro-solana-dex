@@ -5,6 +5,6 @@ pub enum StakingSubCommand {
     StakeTokens
 }
 
-pub fn run_stake_tokens(connection: &anchor_client::Program) -> anyhow::Result<()> {
+pub fn execute_stake_tokens_tx(connection: &anchor_client::Program) -> anyhow::Result<()> {
     Ok(())
 }

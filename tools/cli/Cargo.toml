@@ -14,9 +14,9 @@ anchor-lang = { git = "https://github.com/hydraswap-io/anchor" }
 anchor-spl = { git = "https://github.com/hydraswap-io/anchor" }
 anchor-client= { git = "https://github.com/hydraswap-io/anchor" }
 shellexpand = "2.1"
-hydra-farming = { path = "../../programs/hydra-farming" }
-hydra-staking = { path = "../../programs/hydra-staking" }
-hydra-pools = { path = "../../programs/hydra-pools" }
+hydra-farming = { path = "../../programs/hydra-farming", features = ["no-entrypoint"] }
+hydra-staking = { path = "../../programs/hydra-staking", features = ["no-entrypoint"] }
+hydra-pools = { path = "../../programs/hydra-pools", features = ["no-entrypoint"] }
 static-pubkey = "1.0.2"
 dotenv = "0.15.0"
 solana-program = "1.9.0"
