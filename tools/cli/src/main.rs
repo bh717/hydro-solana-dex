@@ -11,36 +11,38 @@ use crate::staking::{execute_stake_tokens_tx, StakingSubCommand};
 use crate::utils::{load_connection, load_keypair};
 use anchor_client::solana_sdk::signature::Keypair;
 use anchor_client::Cluster;
+use anyhow::anyhow;
 use dotenv::dotenv;
 use solana_program::pubkey::Pubkey;
 use static_pubkey::static_pubkey;
 use std::env;
 use std::path::PathBuf;
+use std::str::FromStr;
 use structopt::StructOpt;
 use strum::VariantNames;
+use strum_macros::Display;
 use strum_macros::EnumString;
 use strum_macros::EnumVariantNames;
 
 const DEFAULT_KEYPAIR: &str = "~/.config/solana/id.json";
+const DEFAULT_MONIKER: &str = "localnet";
 
 #[derive(Debug, StructOpt)]
 pub struct Opt {
     #[structopt(short = "m", long, case_insensitive = true,possible_values = Moniker::VARIANTS, default_value = DEFAULT_MONIKER)]
     moniker: Moniker,
 
-    #[structopt(short = "k", long, parse(from_os_str))]
+    #[structopt(short = "k", long, parse(from_os_str), default_value = DEFAULT_KEYPAIR )]
     keypair: PathBuf,
 
     #[structopt(subcommand)]
     pub cmd: SubCommand,
 }
 
-const DEFAULT_MONIKER: &str = "localhost";
-
-#[derive(EnumString, EnumVariantNames, Debug)]
+#[derive(EnumString, EnumVariantNames, Debug, Display)]
 #[strum(serialize_all = "kebab_case")]
 pub enum Moniker {
-    Localhost,
+    Localnet,
     Devnet,
     Testnet,
     Mainnet,
@@ -64,8 +66,9 @@ pub enum SubCommand {
 
 fn main() -> anyhow::Result<()> {
     let exe = Opt::from_args();
-    let keypair = load_keypair(DEFAULT_KEYPAIR)?;
-    let cluster = Cluster::default();
+    let keypath = exe.keypair.into_os_string().into_string().unwrap(); // TODO maybe fix this unwrap someday...
+    let keypair = load_keypair(keypath.as_str())?;
+    let cluster = Cluster::from_str(exe.moniker.to_string().as_str())?;
 
     match exe.cmd {
         SubCommand::Pools { cmd } => {
