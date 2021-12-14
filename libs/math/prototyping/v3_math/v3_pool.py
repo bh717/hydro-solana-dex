@@ -58,6 +58,8 @@ class Pool:
     tokens X and Y, prices expressed with Y as numeraire"""
 
     TICK_BASE = 1.0001
+    ADJ_PARTIAL_FILL = 0.1 * 1e-4  # in basis points
+    ADJ_WHOLE_FILL = 0.1 * 1e-4
 
     def __init__(
         self,
@@ -225,6 +227,13 @@ class Pool:
         else:
             return math.floor(math.log(rP, d))
 
+    # TODO add memo() method which saves states b4 swap/deposit etc
+    # + and reinstates them if exception raised at any point during op
+    # + OR create memo b4 op, work only on memo till very end and no errors
+    # + then update real state with memo contents.
+    def memo():
+        pass
+
     def tick_to_possible_tick(self, tick, left_to_right=False):
         # use self.tick_spacing to find allowable tick that is <= tick_lower
         #  unchanged if self.tick_spacing is 1
@@ -390,26 +399,64 @@ class Pool:
 
     def deposit(self, user_id, x, y, rPa, rPb):
         """interface to deposit liquidity in pool & give change if necessary"""
+        assert x >= 0.0
+        assert y >= 0.0
+
+        # calculate ticks that will be used to track position
+        # TODO check which side to round on (up/down) to stay conservative
+        lower_tick = self.rP_to_possible_tick(rPa, left_to_right=False)
+        upper_tick = self.rP_to_possible_tick(rPb, left_to_right=False)
+
+        # + avoid errors due to rounding by using new price bounds exactly
+        # + corresponding to the ticks that will be used to track the position
+        rPa_used = Pool.tick_to_rP(lower_tick)
+        rPb_used = Pool.tick_to_rP(upper_tick)
+
         rP = self.global_state.rP
-        liq = Pool.liq_from_x_y_rP_rng(x, y, rP, rPa, rPb)
+        liq = Pool.liq_from_x_y_rP_rng(x, y, rP, rPa_used, rPb_used)
         # round down to avoid float rounding vulnerabilities
+        # TODO choose what precision to round down to.
         liq = math.floor(liq)
 
-        x_dep = Pool.x_from_L_rP_rng(liq, rP, rPa, rPb)
-        y_dep = Pool.y_from_L_rP_rng(liq, rP, rPa, rPb)
+        x_dep = Pool.x_from_L_rP_rng(liq, rP, rPa_used, rPb_used)
+        y_dep = Pool.y_from_L_rP_rng(liq, rP, rPa_used, rPb_used)
         # TODO round up amount deposited
         assert x_dep <= x, "used x amt cannot excess provided amount"
         assert y_dep <= y, "used y amt cannot excess provided amount"
 
+        self._set_position(user_id, lower_tick, upper_tick, liq_delta=liq)
+        self.X += x_dep
+        self.Y += y_dep
+        print(f"{x_dep=} {y_dep=} X returned {x-x_dep} Y returned {y-y_dep}")
+
+    def withdraw(self, user_id, liq, rPa, rPb):
+        """interface to withdraw liquidity from pool"""
+        assert liq >= 0.0
+
+        # calculate ticks that will be used to track position
+        # TODO check which side to round on (up/down) to stay conservative
         lower_tick = self.rP_to_possible_tick(rPa, left_to_right=False)
         upper_tick = self.rP_to_possible_tick(rPb, left_to_right=False)
 
-        self._set_position(user_id, lower_tick, upper_tick, liq_delta=liq)
-        self.X, self.Y = x_dep, y_dep
-        print(f"{x_dep=} {y_dep=} X returned {x-x_dep} Y returned {y-y_dep}")
+        # + avoid errors due to rounding by using new price bounds exactly
+        # + corresponding to the ticks that will be used to track the position
+        rPa_used = Pool.tick_to_rP(lower_tick)
+        rPb_used = Pool.tick_to_rP(upper_tick)
 
-    def withdraw(self, user_id, x, y, rPa, rPb):
-        pass
+        self._set_position(user_id, lower_tick, upper_tick, liq_delta=-liq)
+
+        rP = self.global_state.rP
+        # # round down to avoid float rounding vulnerabilities
+        # # TODO choose what precision to round down to.
+        # liq = math.floor(liq)
+
+        x_out = Pool.x_from_L_rP_rng(liq, rP, rPa_used, rPb_used)
+        y_out = Pool.y_from_L_rP_rng(liq, rP, rPa_used, rPb_used)
+        # TODO round down amount withdrawn
+
+        self.X -= x_out
+        self.Y -= y_out
+        print(f"{x_out=} {y_out=}")
 
     def swap_within_tick_from_X(self, start_rP, next_tick, L, dX):
         # + no writing to state to occurs here, just calc and return to caller
@@ -420,7 +467,7 @@ class Pool:
             raise Exception("can only handle X being supplied to pool, dX>0")
 
         # root-price at next tick
-        rP_next = self.tick_to_rP(next_tick)
+        rP_next = Pool.tick_to_rP(next_tick)
         if rP_next > start_rP:
             raise Exception("expect price to go down when X supplied to pool")
             # we allow case when price exactly on the current tick
@@ -438,18 +485,25 @@ class Pool:
             cross = True  # because we'll need to cross and do extra swaps
             end_rP = rP_next  # swap so far moves price to level at this tick
             done_dY = Pool.dY_from_L_drP(L=L, rP_old=start_rP, rP_new=end_rP)
-            if done_dY > 0.0:
-                raise Exception("expect done_dY > 0 when X supplied to pool")
-                # again we allow 0-qty swap, just in case price was already
-                # exactly on the tick we started with
-
-            return done_dX, done_dY, end_rP, cross
+            done_dY *= 1 - Pool.ADJ_PARTIAL_FILL
 
         else:
             # we have enough, make all dX done, dY, end_rP
             done_dX = dX
             cross = False
             end_rP = Pool.rP_new_from_L_dX(L, start_rP, done_dX)
+
+            # + we use to tick above to be conservative and give out less Y!!
+            # + use conserv_rP to calculate dY
+            # TODO but do we chose end_rP (theo) or conserv_rP as state price??
+            # + for now use end_rP (theo) as consistent with hmm mission of
+            # + choosing LP over arbitrageurs. (less volume to get to price)
+            # + Also avoids pbs with tmp_tick tests in execute_swap_()
+            # TODO consider adjusting qty instead of price. big impact 4 big L
+            # consrv_tick = Pool.rP_to_tick(end_rP, left_to_right=True)
+            # consrv_rP = Pool.tick_to_rP(consrv_tick)
+            # done_dY = Pool.dY_from_L_drP(L, rP_old=start_rP,rP_new=consrv_rP)
+
             if end_rP > start_rP:
                 raise Exception("expect end_rP < start_rP when pool given X")
             if end_rP < rP_next:
@@ -457,10 +511,15 @@ class Pool:
                     "dont expect end_rP go beyond rP_next when filling all dX"
                 )
             done_dY = Pool.dY_from_L_drP(L, rP_old=start_rP, rP_new=end_rP)
-            if done_dY > 0.0:
-                raise Exception("done_dY > 0 when X supplied to pool")
+            done_dY *= 1 - Pool.ADJ_WHOLE_FILL
 
-            return done_dX, done_dY, end_rP, cross
+        if done_dY > 0.0:
+            raise Exception("expect done_dY > 0 when X supplied to pool")
+            # again we allow 0-qty swap, just in case price was already
+            # exactly on the tick we started with
+        if self.Y + done_dY < 0.0:
+            raise Exception("cannot swap out more Y than present in pool")
+        return done_dX, done_dY, end_rP, cross
 
     def execute_swap_from_X(self, dX):
         """Swap algo when provided with dX>0
@@ -482,10 +541,19 @@ class Pool:
                 next_tick = self.get_next_active_tick_left(starting_rP=curr_rP)
             else:
                 # try move into range, if cannot break out to end swap
+                print("Gap in liquidity... trying to get in range...")
                 next_tick, curr_rP = self.try_get_in_range(left_to_right=False)
+                # * after getting in range, because of crossing, next_tick is
+                # * slightly under the price, not necesarily an active_tick
+                # * so 1st swap broken in 2 swaps. Alternatively, we can
+                # * run self.get_next_active_tick_left() again first.
 
             if next_tick is None:
                 # there are no more active ticks on the left, terminate swap
+                print("no more active ticks (liquidity) in this direction")
+                print(
+                    f"{swapped_dX=} {swapped_dY=} pool_X={self.X} _Y={self.Y}"
+                )
                 return swapped_dX, swapped_dY
 
             (done_dX, done_dY, end_rP, cross,) = self.swap_within_tick_from_X(
@@ -494,6 +562,8 @@ class Pool:
                 L=self.global_state.L,
                 dX=dX - swapped_dX,
             )
+            assert self.Y + done_dY >= 0.0
+
             swapped_dX += done_dX
             swapped_dY += done_dY
             curr_rP = end_rP
@@ -501,17 +571,24 @@ class Pool:
             # assess where we are on curve post_swap
             tmp_tick = self.rP_to_possible_tick(curr_rP, left_to_right)
             # we shouldn't have changed tick yet before crossing is required
-            assert tmp_tick == next_tick
+            assert tmp_tick >= next_tick
 
-            # update global state to reflect price change (if any)
+            # update global state to reflect price change (if any) & reserves
             self.global_state.rP = curr_rP
-            self.global_state.tick = next_tick
+            self.global_state.tick = tmp_tick
+            self.X += done_dX
+            self.Y += done_dY
 
             if cross is True:
-                self.cross_tick(
-                    provided_tick=next_tick,
-                    left_to_right=left_to_right,
-                )
+                assert tmp_tick == next_tick
+                if tmp_tick in self.active_ticks:
+                    self.cross_tick(
+                        provided_tick=next_tick,
+                        left_to_right=left_to_right,
+                    )
+
+        print(f"{swapped_dX=} {swapped_dY=} pool_X={self.X} pool_Y={self.Y}")
+        return swapped_dX, swapped_dY
 
     def swap_within_tick_from_Y(self, *args):
         pass
