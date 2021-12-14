@@ -18,7 +18,4 @@ default = []
 
 [dependencies]
 anchor-lang = { git = "https://github.com/hydraswap-io/anchor" }
-anchor-spl = { git = "https://github.com/hydraswap-io/anchor" }
-anchor-client = { git = "https://github.com/hydraswap-io/anchor" }
-solana-program = "1.9.0"
 hydra-math = { version = "0.1.0", path = "../../libs/math/hmm", features = ["no-entrypoint"] }
