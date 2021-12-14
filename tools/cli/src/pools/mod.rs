@@ -1,6 +1,6 @@
 use structopt::StructOpt;
 
-#[derive(Debug,StructOpt)]
+#[derive(Debug, StructOpt)]
 pub enum PoolsSubCommand {
     Init,
     Deposit,
