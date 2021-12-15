@@ -1,6 +1,6 @@
 # Hydra Protocol
 
-[![build](https://github.com/hydraswap-io/hydra-protocol/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/hydraswap-io/hydra-protocol/actions/workflows/build.yml)
+[![anchor-build](https://github.com/hydraswap-io/hydra-protocol/actions/workflows/anchor-build.yml/badge.svg)](https://github.com/hydraswap-io/hydra-protocol/actions/workflows/anchor-build.yml)
 
 ## Overview
 
