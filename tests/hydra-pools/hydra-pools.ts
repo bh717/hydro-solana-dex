@@ -68,3 +68,30 @@ describe('hydra-pools', () => {
     // assert.ok(swapResult.deltaY.eq(new anchor.BN(56)));
   });
 });
+
+
+
+describe ("hydra-poolz", () => {
+  // Configure the client to use the local cluster.
+  anchor.setProvider(anchor.Provider.env());
+
+  const { SystemProgram } = anchor.web3;
+  const program = anchor.workspace.HydraPools as Program<HydraPools>;
+  const provider = anchor.Provider.env();
+
+  it('Is initialized!', async () => {
+    const newPool = anchor.web3.Keypair.generate();
+    await program.rpc.initPool(new anchor.BN(42),{
+      accounts: {
+        pool: newPool.publicKey,
+        user: provider.wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      },
+      signers: [newPool],
+    });
+
+    const pool = await program.account.pool.fetch(newPool.publicKey);
+
+    assert.ok(pool.data.eq(new anchor.BN(42)));
+  });
+});
