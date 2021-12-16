@@ -1,13 +1,31 @@
-import React from 'react';
+import { Suspense, lazy } from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
-import App from './App';
+import { BrowserRouter } from 'react-router-dom';
+
+// ** Toast
+import { ToastContainer } from 'react-toastify';
+
+// ** Spinner (Splash Screen)
+import FallbackSpinner from './components/spinner/fallback-spinner';
+
+// ** React Toastify
+import 'react-toastify/scss/main.scss';
+
+// ** Core styles
+import './assets/styles/style.scss';
+
 import reportWebVitals from './reportWebVitals';
 
+// ** Lazy load app
+const LazyApp = lazy(() => import('./App'))
+
 ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
+  <BrowserRouter>
+    <Suspense fallback={<FallbackSpinner />}>
+      <LazyApp />
+      <ToastContainer newestOnTop />
+    </Suspense>
+  </BrowserRouter>,
   document.getElementById('root')
 );
 
