@@ -10,12 +10,11 @@ pub fn load_keypair(private_keypair_path: &str) -> anyhow::Result<Keypair> {
     Ok(keypair)
 }
 
-pub fn load_connection(
+pub fn load_program(
     program_id: Pubkey,
     keypair: Keypair,
     cluster: Cluster,
 ) -> anyhow::Result<anchor_client::Program> {
-    let connection = anchor_client::Client::new(cluster, keypair);
-    let client = connection.program(program_id);
-    Ok(client)
+    let client = anchor_client::Client::new(cluster, keypair);
+    Ok(client.program(program_id))
 }
