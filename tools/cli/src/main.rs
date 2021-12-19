@@ -3,110 +3,137 @@ mod pools;
 mod staking;
 mod utils;
 
-use crate::farming::{execute_stake_lp_tokens_tx, execute_unstake_lp_tokens_tx, FarmingSubCommand};
-use crate::pools::{
-    execute_deposit_tx, execute_init_tx, execute_swap_tx, execute_withdraw_tx, PoolsSubCommand,
-};
-use crate::staking::{execute_stake_tokens_tx, StakingSubCommand};
-use crate::utils::{load_connection, load_keypair};
-use anchor_client::solana_sdk::signature::Keypair;
+use crate::farming::{execute_stake_lp_tokens_tx, execute_unstake_lp_tokens_tx};
+use crate::pools::{execute_deposit_tx, execute_init_tx, execute_swap_tx, execute_withdraw_tx};
+use crate::staking::execute_stake_tokens_tx;
+use crate::utils::{load_keypair, load_program};
+use anchor_client::solana_client::rpc_client::RpcClient;
+use anchor_client::solana_sdk::commitment_config::CommitmentConfig;
+use anchor_client::solana_sdk::signature::{read_keypair_file, Keypair, Signer};
 use anchor_client::Cluster;
-use anyhow::anyhow;
-use dotenv::dotenv;
-use solana_program::pubkey::Pubkey;
-use static_pubkey::static_pubkey;
-use std::env;
-use std::path::PathBuf;
-use std::str::FromStr;
-use structopt::StructOpt;
-use strum::VariantNames;
-use strum_macros::Display;
-use strum_macros::EnumString;
-use strum_macros::EnumVariantNames;
+use clap::{
+    crate_description, crate_name, crate_version, App, AppSettings, Arg, ArgMatches, SubCommand,
+};
+use solana_clap_utils::input_validators::{is_keypair, is_url};
 
-const DEFAULT_KEYPAIR: &str = "~/.config/solana/id.json";
-const DEFAULT_MONIKER: &str = "localnet";
-
-#[derive(Debug, StructOpt)]
-pub struct Opt {
-    #[structopt(short = "m", long, case_insensitive = true,possible_values = Moniker::VARIANTS, default_value = DEFAULT_MONIKER)]
-    moniker: Moniker,
-
-    #[structopt(short = "k", long, parse(from_os_str), default_value = DEFAULT_KEYPAIR )]
-    keypair: PathBuf,
-
-    #[structopt(subcommand)]
-    pub cmd: SubCommand,
+#[derive(Debug)]
+pub struct Config {
+    keypair: Keypair,
+    json_rpc_url: String,
+    verbose: bool,
 }
 
-#[derive(EnumString, EnumVariantNames, Debug, Display)]
-#[strum(serialize_all = "kebab_case")]
-pub enum Moniker {
-    Localnet,
-    Devnet,
-    Testnet,
-    Mainnet,
-}
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let app_matches = App::new(crate_name!())
+        .about(crate_description!())
+        .version(crate_version!())
+        .setting(AppSettings::SubcommandRequiredElseHelp)
+        .arg({
+            let arg = Arg::with_name("config_file")
+                .short("c")
+                .long("config")
+                .value_name("PATH")
+                .takes_value(true)
+                .global(true)
+                .help("Configuration file to use");
+            if let Some(ref config_file) = *solana_cli_config::CONFIG_FILE {
+                arg.default_value(config_file)
+            } else {
+                arg
+            }
+        })
+        .arg(
+            Arg::with_name("keypair")
+                .long("keypair")
+                .value_name("KEYPAIR")
+                .validator(is_keypair)
+                .takes_value(true)
+                .global(true)
+                .help("Filepath or url to a Keypair [default: client keypair]"),
+        )
+        .arg(
+            Arg::with_name("verbose")
+                .long("verbose")
+                .short("v")
+                .takes_value(false)
+                .global(true)
+                .help("Show additional information"),
+        )
+        .arg(
+            Arg::with_name("json_rpc_url")
+                .long("url")
+                .value_name("URL")
+                .takes_value(true)
+                .global(true)
+                .validator(is_url)
+                .help("JSON RPC URL for the cluster [default: value from configuration file]"),
+        )
+        .subcommand(
+            SubCommand::with_name("pools")
+                .about("For working with the hydra-pools program")
+                .subcommand(SubCommand::with_name("init").about("init a pool"))
+                .subcommand(SubCommand::with_name("deposit").about("deposit into a pool"))
+                .subcommand(SubCommand::with_name("withdraw").about("withdraw from a pool"))
+                .setting(AppSettings::SubcommandRequiredElseHelp),
+        )
+        .subcommand(
+            SubCommand::with_name("farming").about("For working with the hydra-farming program"),
+        )
+        .subcommand(
+            SubCommand::with_name("staking").about("For working with the hydra-staking program"),
+        )
+        .get_matches();
 
-#[derive(Debug, StructOpt)]
-pub enum SubCommand {
-    Pools {
-        #[structopt(subcommand)]
-        cmd: PoolsSubCommand,
-    },
-    Farming {
-        #[structopt(subcommand)]
-        cmd: FarmingSubCommand,
-    },
-    Staking {
-        #[structopt(subcommand)]
-        cmd: StakingSubCommand,
-    },
-}
+    let (sub_command, sub_matches) = app_matches.subcommand();
+    let matches = sub_matches.unwrap();
 
-fn main() -> anyhow::Result<()> {
-    let exe = Opt::from_args();
-    let keypath = exe.keypair.into_os_string().into_string().unwrap(); // TODO maybe fix this unwrap someday...
-    let keypair = load_keypair(keypath.as_str())?;
-    let cluster = Cluster::from_str(exe.moniker.to_string().as_str())?;
+    let config = {
+        let cli_config = if let Some(config_file) = matches.value_of("config_file") {
+            solana_cli_config::Config::load(config_file).unwrap_or_default()
+        } else {
+            solana_cli_config::Config::default()
+        };
 
-    match exe.cmd {
-        SubCommand::Pools { cmd } => {
-            let connection = load_connection(hydra_pools::ID, keypair, cluster)?;
-            match cmd {
-                PoolsSubCommand::Init => {
-                    execute_init_tx(&connection)?;
+        Config {
+            json_rpc_url: matches
+                .value_of("json_rpc_url")
+                .unwrap_or(&cli_config.json_rpc_url)
+                .to_string(),
+            keypair: read_keypair_file(
+                matches
+                    .value_of("keypair")
+                    .unwrap_or(&cli_config.keypair_path),
+            )?,
+            verbose: matches.is_present("verbose"),
+        }
+    };
+
+    solana_logger::setup_with_default("solana=info");
+
+    let rpc_client =
+        RpcClient::new_with_commitment(config.json_rpc_url.clone(), CommitmentConfig::confirmed());
+
+    match (sub_command, sub_matches) {
+        ("pools", Some(pool_matches)) => {
+            let (sub_command, sub_matches) = pool_matches.subcommand();
+
+            match (sub_command, sub_matches) {
+                ("init", Some(init_matches)) => {
+                    println!("init ... ");
+                    execute_init_tx(rpc_client, config);
                 }
-                PoolsSubCommand::Deposit => {
-                    execute_deposit_tx(&connection)?;
+                ("deposit", Some(deposit_matches)) => {
+                    println!("deposit ...");
                 }
-                PoolsSubCommand::Withdraw => {
-                    execute_withdraw_tx(&connection)?;
+                ("withdraw", Some(withdra_matches)) => {
+                    println!("withdraw ...");
                 }
-                PoolsSubCommand::Swap => {
-                    execute_swap_tx(&connection)?;
-                }
+                _ => unreachable!(),
             }
         }
-        SubCommand::Farming { cmd } => {
-            let connection = load_connection(hydra_farming::ID, keypair, cluster)?;
-            match cmd {
-                FarmingSubCommand::StakeLpTokens => {
-                    execute_stake_lp_tokens_tx(&connection)?;
-                }
-                FarmingSubCommand::UnStakeLpTokens => {
-                    execute_unstake_lp_tokens_tx(&connection)?;
-                }
-            }
-        }
-        SubCommand::Staking { cmd } => {
-            let connection = load_connection(hydra_staking::ID, keypair, cluster)?;
-            match cmd {
-                StakingSubCommand::StakeTokens => {
-                    execute_stake_tokens_tx(&connection)?;
-                }
-            }
-        }
+        ("farming", Some(farming_matches)) => {}
+        ("staking", Some(staking_matches)) => {}
+        _ => unreachable!(),
     }
     Ok(())
 }

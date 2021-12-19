@@ -20,8 +20,10 @@ hydra-pools = { path = "../../programs/hydra-pools", features = ["no-entrypoint"
 static-pubkey = "1.0.2"
 dotenv = "0.15.0"
 solana-program = "1.9.0"
-strum = "0.23.0"
-strum_macros = "0.23.1"
+solana-cli-config = "1.9.1"
+solana-clap-utils = "1.9.1"
+solana-logger = "1.9.1"
+clap = "2.34.0"
 
 [build-dependencies]
 dotenv = "0.15.0"
