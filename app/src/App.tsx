@@ -43,6 +43,10 @@ const useStyles = makeStyles({
         height: '24px',
         marginRight: '8px'
       }
+    },
+    '@media (max-width:600px)': {
+      order: 1,
+      justifyContent: 'center'
     }
   },
   contentWrapper: {
