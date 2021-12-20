@@ -15,9 +15,9 @@ pub mod hydra_pools {
     use super::*;
 
     /// initialise a new empty pool
-    pub fn init_pool(ctx: Context<InitialisePool>) -> ProgramResult {
+    pub fn init_pool(ctx: Context<InitialisePool>, data: i64) -> ProgramResult {
         msg!("init_poll called!!!");
-        instructions::init_pool::handle(ctx);
+        instructions::init_pool::handle(ctx, data);
         Ok(())
     }
 
