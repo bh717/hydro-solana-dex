@@ -81,7 +81,7 @@ describe ("hydra-poolz", () => {
 
   it('Is initialized!', async () => {
     const newPool = anchor.web3.Keypair.generate();
-    await program.rpc.initPool({
+    await program.rpc.initPool(new anchor.BN(42),{
       accounts: {
         pool: newPool.publicKey,
         user: provider.wallet.publicKey,
