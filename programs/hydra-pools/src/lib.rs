@@ -8,15 +8,16 @@ use anchor_lang::prelude::*;
 use anchor_lang::solana_program::log::sol_log_compute_units;
 use hydra_math::swap_calculator::SwapCalculator;
 
-declare_id!("9d7KF9TdQK8w1K5jHw5HyTFGtZWRHPPG22Q9Ng75C3tv");
+declare_id!("GNMrGgDoMnYTJy7nGnKMBQz48KYKtigpoBgun6SgWGpB");
 
 #[program]
 pub mod hydra_pools {
     use super::*;
 
     /// initialise a new empty pool
-    pub fn init_pool(ctx: Context<InitialisePool>, data: u64) -> ProgramResult {
-        instructions::init_pool::handle(ctx, data);
+    pub fn init_pool(ctx: Context<InitialisePool>) -> ProgramResult {
+        msg!("init_poll called!!!");
+        instructions::init_pool::handle(ctx);
         Ok(())
     }
 

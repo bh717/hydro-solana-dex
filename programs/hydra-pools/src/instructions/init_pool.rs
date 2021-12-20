@@ -14,9 +14,9 @@ pub struct InitialisePool<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn handle(ctx: Context<InitialisePool>, data: u64) -> ProgramResult {
-    msg!("init_pool called");
+pub fn handle(ctx: Context<InitialisePool>) -> ProgramResult {
+    msg!("init_pool handle called");
     let pool = &mut ctx.accounts.pool;
-    pool.data = data;
+    pool.data = 42;
     Ok(())
 }
