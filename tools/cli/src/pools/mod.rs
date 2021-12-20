@@ -4,6 +4,7 @@ use anchor_client::solana_sdk::signature::{Keypair, Signature};
 use anchor_client::solana_sdk::signer::Signer;
 use anchor_client::solana_sdk::transaction::Transaction;
 use anchor_lang::prelude::*;
+use anchor_lang::{InstructionData, ToAccountMetas};
 use solana_program::system_program;
 
 use crate::Config;
@@ -18,8 +19,13 @@ pub fn execute_init_tx<'a>(rpc_client: RpcClient, config: Config) -> anyhow::Res
 
     let ix = Instruction {
         program_id: program_id,
-        accounts: hydra_pools::accounts::InitialisePool {}.to_account_metas(None),
-        data: hydra_pools::instruction::InitPool {}.try_to_vec()?,
+        accounts: hydra_pools::accounts::InitialisePool {
+            pool: pool.pubkey(),
+            user: config.keypair.pubkey(),
+            system_program: solana_program::system_program::ID,
+        }
+        .to_account_metas(Some(true)),
+        data: hydra_pools::instruction::InitPool { data: 64 }.data(),
     };
 
     println!("config: {:?}", config);
