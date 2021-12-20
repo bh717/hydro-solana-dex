@@ -44,9 +44,22 @@ const useStyles = makeStyles({
         marginRight: '8px'
       }
     },
+    '& .wallet-adapter-dropdown-list': {
+      '& .wallet-adapter-dropdown-list-item': {
+        padding: '0 15px',
+        height: '32px',
+        fontSize: '13px'
+      }
+    },
     '@media (max-width:600px)': {
       order: 1,
-      justifyContent: 'center'
+      justifyContent: 'center',
+      '& .wallet-adapter-dropdown-list': {
+        top: 0,
+        right: '50%',
+        transform: 'translate(50%, -146px)',
+        transition: 'opacity 200ms ease, visibility 200ms'
+      }
     }
   },
   contentWrapper: {
@@ -84,7 +97,6 @@ function App() {
             <Sidebar />
             <Box component="main" className="container">
               <Paper className={classes.walletWrapper} elevation={0}>
-                {/* <WalletMultiButton><Wallet /> Connect</WalletMultiButton> */}
                 <WalletMultiButton />
               </Paper>
               <Paper className={classes.contentWrapper} elevation={0}>
