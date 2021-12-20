@@ -16,8 +16,7 @@ pub mod hydra_pools {
 
     /// initialise a new empty pool
     pub fn init_pool(ctx: Context<InitialisePool>, data: i64) -> ProgramResult {
-        instructions::init_pool::handle(ctx, data);
-        Ok(())
+        instructions::init_pool::handle(ctx, data)
     }
 
     pub fn initialize(ctx: Context<Initialize>, authority: Pubkey) -> ProgramResult {

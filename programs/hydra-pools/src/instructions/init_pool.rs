@@ -1,10 +1,6 @@
-use crate::Pubkey;
+use crate::state::*;
 use anchor_lang::prelude::*;
 use anchor_lang::{Context, Program, Signer, System};
-
-use std::io::Write;
-
-use crate::state::*;
 
 #[derive(Accounts)]
 pub struct InitialisePool<'info> {

@@ -1,5 +1,3 @@
-use structopt::StructOpt;
-
 pub fn execute_stake_lp_tokens_tx(program: &anchor_client::Program) -> anyhow::Result<()> {
     Ok(())
 }

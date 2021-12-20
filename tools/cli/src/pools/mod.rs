@@ -1,9 +1,8 @@
 use anchor_client::solana_client::rpc_client::RpcClient;
 use anchor_client::solana_sdk::instruction::Instruction;
-use anchor_client::solana_sdk::signature::{Keypair, Signature};
+use anchor_client::solana_sdk::signature::Keypair;
 use anchor_client::solana_sdk::signer::Signer;
 use anchor_client::solana_sdk::transaction::Transaction;
-use anchor_lang::prelude::*;
 use anchor_lang::{InstructionData, ToAccountMetas};
 use solana_program::system_program;
 
@@ -22,7 +21,7 @@ pub fn execute_init_tx<'a>(rpc_client: RpcClient, config: Config) -> anyhow::Res
         accounts: hydra_pools::accounts::InitialisePool {
             pool: pool.pubkey(),
             user: config.keypair.pubkey(),
-            system_program: solana_program::system_program::ID,
+            system_program: system_program::ID,
         }
         .to_account_metas(Some(true)),
         data: hydra_pools::instruction::InitPool { data: 64 }.data(),

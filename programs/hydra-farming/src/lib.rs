@@ -5,7 +5,7 @@ declare_id!("9fKWriR43ZH5ZrPyi7Cj5nDKDN4DEyZjgUYmigAS7Rzr");
 #[program]
 pub mod hydra_farming {
     use super::*;
-    pub fn initialize(ctx: Context<Initialize>) -> ProgramResult {
+    pub fn initialize(_ctx: Context<Initialize>) -> ProgramResult {
         Ok(())
     }
 }
