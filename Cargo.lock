@@ -1498,13 +1498,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "hydra-multisig"
-version = "0.1.0"
-dependencies = [
- "anchor-lang",
-]
-
-[[package]]
 name = "hydra-pools"
 version = "0.1.0"
 dependencies = [
@@ -1514,13 +1507,6 @@ dependencies = [
 
 [[package]]
 name = "hydra-staking"
-version = "0.1.0"
-dependencies = [
- "anchor-lang",
-]
-
-[[package]]
-name = "hydra-vesting"
 version = "0.1.0"
 dependencies = [
  "anchor-lang",
