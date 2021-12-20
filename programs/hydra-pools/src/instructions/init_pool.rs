@@ -13,5 +13,6 @@ pub struct InitialisePool<'info> {
 pub fn handle(ctx: Context<InitialisePool>, data: i64) -> ProgramResult {
     let pool = &mut ctx.accounts.pool;
     pool.data = data;
+    msg!("data: {}", pool.data);
     Ok(())
 }

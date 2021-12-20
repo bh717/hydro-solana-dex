@@ -97,14 +97,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             match (sub_command, sub_matches) {
                 ("init", Some(init_matches)) => {
-                    println!("init ... ");
-                    execute_init_tx(rpc_client, config);
+                    execute_init_tx(rpc_client, config)?;
                 }
                 ("deposit", Some(deposit_matches)) => {
-                    println!("deposit ...");
+                    execute_deposit_tx(rpc_client, config)?;
                 }
                 ("withdraw", Some(withdra_matches)) => {
-                    println!("withdraw ...");
+                    execute_withdraw_tx(rpc_client, config)?;
                 }
                 _ => unreachable!(),
             }

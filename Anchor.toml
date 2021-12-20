@@ -1,7 +1,7 @@
 [programs.localnet]
-hydra_staking = "Ffdqfz1BCj7mvQh4VvUtra4aHNyUaPkmbZLwPpW4CcCQ"
-hydra_pools = "GNMrGgDoMnYTJy7nGnKMBQz48KYKtigpoBgun6SgWGpB"
-hydra_farming = "C2XYLUW563JYDn3qjHzciJh4BUoVie81hNR39HcdYdp2"
+hydra_staking = "DBCBgzzZWTucUAjcAjktEjtucVPhyUpZFYKmWtvR8vHe"
+hydra_pools = "4rr8xm9bVQcF2qSdBYUrHrbtk9CCcSb9zJWkX96zZmc3"
+hydra_farming = "69mopwXnfh5QrWUfFbMYdvzD6CMKMqSqjqWnrXFw6NEQ"
 
 [registry]
 url = "https://anchor.projectserum.com"

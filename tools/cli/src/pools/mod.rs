@@ -10,7 +10,7 @@ use crate::Config;
 use hydra_pools::state::Pool;
 
 pub fn execute_init_tx<'a>(rpc_client: RpcClient, config: Config) -> anyhow::Result<()> {
-    println!("running init");
+    println!("running pool init");
     let program_id = hydra_pools::ID;
     let pool = Keypair::new();
 
@@ -29,7 +29,7 @@ pub fn execute_init_tx<'a>(rpc_client: RpcClient, config: Config) -> anyhow::Res
 
     let mut transaction = Transaction::new_with_payer(&[ix], Some(&config.keypair.pubkey()));
     let blockhash = rpc_client.get_latest_blockhash()?;
-    transaction.try_sign(&[&config.keypair, &pool], blockhash);
+    transaction.try_sign(&[&config.keypair, &pool], blockhash)?;
 
     println!("JSON RPC URL: {}", config.json_rpc_url);
 
@@ -41,14 +41,14 @@ pub fn execute_init_tx<'a>(rpc_client: RpcClient, config: Config) -> anyhow::Res
     Ok(())
 }
 
-pub fn execute_deposit_tx(program: &anchor_client::Program) -> anyhow::Result<()> {
+pub fn execute_deposit_tx(rpc_client: RpcClient, config: Config) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn execute_withdraw_tx(program: &anchor_client::Program) -> anyhow::Result<()> {
+pub fn execute_withdraw_tx(rpc_client: RpcClient, config: Config) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn execute_swap_tx(program: &anchor_client::Program) -> anyhow::Result<()> {
+pub fn execute_swap_tx(rpc_client: RpcClient, config: Config) -> anyhow::Result<()> {
     Ok(())
 }
