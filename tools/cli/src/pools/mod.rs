@@ -28,8 +28,6 @@ pub fn execute_init_tx<'a>(rpc_client: RpcClient, config: Config) -> anyhow::Res
         data: hydra_pools::instruction::InitPool { data: 64 }.data(),
     };
 
-    println!("config: {:?}", config);
-
     let mut transaction = Transaction::new_with_payer(&[ix], Some(&config.keypair.pubkey()));
     let blockhash = rpc_client.get_latest_blockhash()?;
     transaction.try_sign(&[&config.keypair, &pool], blockhash);
