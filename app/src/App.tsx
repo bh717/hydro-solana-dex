@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { makeStyles } from '@mui/styles';
-import { Box, Paper } from '@mui/material';
+import { Box } from '@mui/material';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import {
@@ -28,7 +28,6 @@ require('@solana/wallet-adapter-react-ui/styles.css');
 
 const useStyles = makeStyles({
   walletWrapper: {
-    backgroundColor: 'transparent !important',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'flex-end',
@@ -63,8 +62,17 @@ const useStyles = makeStyles({
     }
   },
   contentWrapper: {
-    backgroundColor: 'transparent !important',
-    flexGrow: 1
+    flexGrow: 1,
+    display: 'flex',
+    justifyContent: 'center',
+    margin: '0 0 20px',
+    height: 'calc(100vh - 104px)',
+    overflow: 'auto',
+    '@media (max-width:600px)': {
+      alignItems: 'flex-start',
+      margin: '20px 0 0',
+      height: 'calc(100vh - 164px)'
+    }
   }
 })
 
@@ -96,15 +104,15 @@ function App() {
           <div className="layout">
             <Sidebar />
             <Box component="main" className="container">
-              <Paper className={classes.walletWrapper} elevation={0}>
+              <Box className={classes.walletWrapper}>
                 <WalletMultiButton />
-              </Paper>
-              <Paper className={classes.contentWrapper} elevation={0}>
+              </Box>
+              <Box className={classes.contentWrapper}>
                 <Routes>
                   <Route path="/swap" element={<Swap />} />
                   <Route path="*" element={<Navigate replace to="/swap" />} />
                 </Routes>
-              </Paper>
+              </Box>
             </Box>
           </div>
         </WalletModalProvider>

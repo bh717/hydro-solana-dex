@@ -9,6 +9,7 @@
     "@mui/material": "^5.2.4",
     "@mui/styles": "^5.2.3",
     "@project-serum/anchor": "^0.18.2",
+    "@solana/spl-token-registry": "^0.2.819",
     "@solana/wallet-adapter-base": "^0.8.1",
     "@solana/wallet-adapter-react": "^0.14.1",
     "@solana/wallet-adapter-react-ui": "^0.7.0",
@@ -22,6 +23,7 @@
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
     "classnames": "^2.3.1",
+    "lodash.debounce": "^4.0.8",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-router-dom": "^6.0.2",
@@ -55,6 +57,7 @@
     ]
   },
   "devDependencies": {
+    "@types/lodash.debounce": "^4.0.6",
     "sass": "^1.45.0"
   }
 }

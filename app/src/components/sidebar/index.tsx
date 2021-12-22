@@ -4,7 +4,7 @@ import MuiDrawer from '@mui/material/Drawer';
 import {
     List,
     ListSubheader,
-    Paper,
+    Box,
     IconButton,
     Link
 } from '@mui/material';
@@ -132,7 +132,6 @@ const useStyles = makeStyles({
         }
     },
     links: {
-        backgroundColor: 'transparent !important',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -163,7 +162,6 @@ const useStyles = makeStyles({
         }
     },
     linkWrapper: {
-        backgroundColor: 'transparent !important',
         position: 'relative',
         height: '51px',
         width: '142px',
@@ -198,7 +196,6 @@ const useStyles = makeStyles({
         }
     },
     socialWrapper: {
-        backgroundColor: 'transparent !important',
         position: 'relative',
         height: '50px',
         width: '210px',
@@ -207,14 +204,13 @@ const useStyles = makeStyles({
             overflow: 'hidden',
             '&:hover': {
                 overflow: 'visible',
-                '& .MuiPaper-root': {
+                '& .MuiBox-root': {
                     width: 'initial'
                 }
             }
         }
     },
     social: {
-        backgroundColor: 'transparent !important',
         display: 'flex',
         margin: '10px 0',
         padding: '5px 10px',
@@ -292,6 +288,7 @@ const Sidebar = () => {
     useEffect(() => {
         // Windows Resize Handler
         function handleResize() {
+            setOpen(window.innerWidth > 900 || window.innerWidth <= 600);
             setMobile(window.innerWidth <= 600);
         }
 
@@ -339,28 +336,28 @@ const Sidebar = () => {
                     </>
                 )}
             </List>
-            <Paper className={cn(classes.links, {'collapsed': !open && !mobile, 'expanded': !open && mobile})} elevation={0}>
+            <Box className={cn(classes.links, {'collapsed': !open && !mobile, 'expanded': !open && mobile})}>
                 {!mobile && (
                     <IconButton className={classes.handler} onClick={handleDrawer}>
                         {open ? <img src={Collapse} alt="Menu" /> : <img src={Expand} alt="Menu" />}
                     </IconButton>
                 )}
                 {!mobile && (
-                    <Paper className={cn(classes.linkWrapper, {'collapsed': !open && !mobile})} elevation={0}>
+                    <Box className={cn(classes.linkWrapper, {'collapsed': !open && !mobile})}>
                         <Link href="https://hydraswap.gitbook.io/hydra-beta-testing-guide" underline="none">
                             <Doc /><span>Test Guide</span>
                         </Link>
-                    </Paper>
+                    </Box>
                 )}
                 {!mobile && (
-                    <Paper className={cn(classes.linkWrapper, {'collapsed': !open && !mobile})} elevation={0}>
+                    <Box className={cn(classes.linkWrapper, {'collapsed': !open && !mobile})}>
                         <Link href="https://hydraswap.gitbook.io/hydraswap-gitbook/" underline="none">
                             <Menu /><span>Docs</span>
                         </Link>
-                    </Paper>
+                    </Box>
                 )}
-                <Paper className={cn(classes.socialWrapper, {'collapsed': !open && !mobile})} elevation={0}>
-                    <Paper className={cn(classes.social, {'collapsed': !open && !mobile})} elevation={0}>
+                <Box className={cn(classes.socialWrapper, {'collapsed': !open && !mobile})}>
+                    <Box className={cn(classes.social, {'collapsed': !open && !mobile})}>
                         {(!open && !mobile) && <Share />}
                         <Link href="https://twitter.com/HydraSwap_io" underline="none">
                             <Twitter />
@@ -377,9 +374,9 @@ const Sidebar = () => {
                         <Link href="https://discord.gg/AA26dw6Hpm" underline="none">
                             <Discord />
                         </Link>
-                    </Paper>
-                </Paper>
-            </Paper>
+                    </Box>
+                </Box>
+            </Box>
         </MuiDrawer>
     )
 }
