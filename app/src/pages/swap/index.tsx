@@ -11,6 +11,7 @@ import { Asset } from '../../interfaces';
 import SelectAsset from './selectAsset';
 import SwapAsset from './swapAsset';
 import SwapSettingModal from './setting';
+import TokenListModal from './tokens';
 import usePages from '../usePages';
 
 const useStyles = makeStyles({
@@ -122,15 +123,17 @@ const Swap = () => {
 
     const [fromAsset, setFromAsset] = useState<Asset>(initialAsset);
     const [toAsset, setToAsset] = useState<Asset>(initialAsset);
+    const [activeAsset, setActiveAsset] = useState('');
     const [slippage, setSlippage] = useState('1.0');
     const [openSettingModal, setOpenSettingModal] = useState(false);
+    const [openAssetModal, setOpenAssetModal] = useState(false);
 
     useEffect(() => {
         if(assets.length)
             setFromAsset(assets[0]);
     }, [setFromAsset, assets]);
 
-    const handleHideSettingModal = () => {
+    const handleSettingModal = () => {
         if(parseFloat(slippage) > 0)
             setOpenSettingModal(false)
     }
@@ -139,6 +142,28 @@ const Swap = () => {
         const tempAsset = JSON.parse(JSON.stringify(fromAsset));
         setFromAsset(toAsset);
         setToAsset(tempAsset);
+    }
+
+    const handleAssetModal = (type: string) => {
+        setActiveAsset(type);
+        setOpenAssetModal(true);
+    }
+
+    const changeAsset = (asset: Asset) => {
+        const tempAsset = JSON.parse(JSON.stringify(asset));
+
+        if(activeAsset === 'From') {
+            if(toAsset.symbol === tempAsset.symbol)
+                setToAsset(initialAsset);
+            setFromAsset(tempAsset);
+        } else {
+            if(fromAsset.symbol === tempAsset.symbol)
+                setFromAsset(initialAsset);
+            setToAsset(tempAsset);
+        }
+
+        setActiveAsset('');
+        setOpenAssetModal(false);
     }
 
     return (
@@ -156,14 +181,19 @@ const Swap = () => {
                     </div>
                 </Box>
                 <Box className={classes.selectAssets}>
-                    <SelectAsset type="From" asset={fromAsset} />
+                    <SelectAsset type="From" asset={fromAsset} changeAsset={() => handleAssetModal('From')} />
                     <IconButton className={classes.exchangeButton} onClick={exchangeAssets}>
                         <Exchange />
                     </IconButton>
-                    <SelectAsset type="To" asset={toAsset} />
+                    <SelectAsset type="To" asset={toAsset} changeAsset={() => handleAssetModal('To')} />
                 </Box>
                 <Box className={classes.swapAssets}>
-                    <SwapAsset from={fromAsset} to={toAsset} exchange={exchangeAssets} />
+                    <SwapAsset
+                        from={fromAsset}
+                        to={toAsset}
+                        changeAsset={handleAssetModal}
+                        exchange={exchangeAssets}
+                    />
                     <Box className={classes.slippage}>
                         <Typography>Slippage Tolerance</Typography>
                         <Typography>{Number(slippage)}%</Typography>
@@ -172,9 +202,15 @@ const Swap = () => {
             </Box>
             <SwapSettingModal
                 open={openSettingModal}
-                onClose={() => handleHideSettingModal()}
+                onClose={() => handleSettingModal()}
                 slippage={slippage}
                 setSlippage={(value) => setSlippage(value)}
+            />
+            <TokenListModal
+                open={openAssetModal}
+                onClose={() => setOpenAssetModal(false)}
+                assetList={assets}
+                setAsset={changeAsset}
             />
         </Fragment>
     )

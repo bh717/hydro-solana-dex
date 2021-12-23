@@ -69,9 +69,10 @@ const useStyles = makeStyles({
 interface SelectAssetProps {
     type?: string;
     asset: Asset;
+    changeAsset(): void;
 }
 
-const SelectAsset: FC<SelectAssetProps> = ({ type, asset }) => {
+const SelectAsset: FC<SelectAssetProps> = ({ type, asset, changeAsset }) => {
     const classes = useStyles();
 
     return (
@@ -83,7 +84,7 @@ const SelectAsset: FC<SelectAssetProps> = ({ type, asset }) => {
                 </Typography>
             </Box>
             <Box className={classes.buttonWrapper}>
-                <Button className={classes.assetButton} disableRipple={true}>
+                <Button className={classes.assetButton} disableRipple={true} onClick={changeAsset}>
                     {asset.icon !== '' && <img src={asset.icon} alt="Asset" />}
                     <span>{asset.symbol || 'Select'}</span>
                     <Down />

@@ -36,7 +36,7 @@ const useStyles = makeStyles({
         }
     },
     dialogContent: {
-        padding: '40px 0 !important'
+        padding: '20px 0 0 !important'
     }
 })
 

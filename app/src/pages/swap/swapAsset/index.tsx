@@ -90,24 +90,25 @@ const useStyles = makeStyles({
 interface SwapAssetProps {
     from: Asset;
     to: Asset;
+    changeAsset(type: string): void;
     exchange(): void;
 }
 
-const SwapAsset: FC<SwapAssetProps> = ({ from, to, exchange }) => {
+const SwapAsset: FC<SwapAssetProps> = ({ from, to, changeAsset, exchange }) => {
     const classes = useStyles();
 
     return (
         <Box className={classes.swapContainer}>
             <Box className={classes.assetContainer}>
                 <Box className={classes.assetRow}>
-                    <SelectAsset asset={from} />
+                    <SelectAsset asset={from} changeAsset={() => changeAsset('From')} />
                     <TextInput />
                 </Box>
                 <IconButton className={classes.exchangeButton} onClick={exchange}>
                     <Exchange />
                 </IconButton>
                 <Box className={classes.assetRow}>
-                    <SelectAsset asset={to} />
+                    <SelectAsset asset={to} changeAsset={() => changeAsset('To')} />
                     <TextInput />
                 </Box>
             </Box>
