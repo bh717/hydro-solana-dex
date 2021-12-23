@@ -1,5 +1,5 @@
 export interface Asset {
-    icon: JSX.Element;
+    icon: string;
     symbol: string;
     balance: number;
 }

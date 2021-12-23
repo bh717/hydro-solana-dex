@@ -89,10 +89,11 @@ const useStyles = makeStyles({
 
 interface SwapAssetProps {
     from: Asset;
-    to: Asset
+    to: Asset;
+    exchange(): void;
 }
 
-const SwapAsset: FC<SwapAssetProps> = ({ from, to }) => {
+const SwapAsset: FC<SwapAssetProps> = ({ from, to, exchange }) => {
     const classes = useStyles();
 
     return (
@@ -102,7 +103,7 @@ const SwapAsset: FC<SwapAssetProps> = ({ from, to }) => {
                     <SelectAsset asset={from} />
                     <TextInput />
                 </Box>
-                <IconButton className={classes.exchangeButton}>
+                <IconButton className={classes.exchangeButton} onClick={exchange}>
                     <Exchange />
                 </IconButton>
                 <Box className={classes.assetRow}>

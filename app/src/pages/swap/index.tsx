@@ -8,11 +8,10 @@ import {
 
 import { Info, Gear, Exchange } from '../../components/icons';
 import { Asset } from '../../interfaces';
-import HYSD from '../../assets/images/symbols/hysd.png';
-import SOL from '../../assets/images/symbols/sol.png';
 import SelectAsset from './selectAsset';
 import SwapAsset from './swapAsset';
 import SwapSettingModal from './setting';
+import usePages from '../usePages';
 
 const useStyles = makeStyles({
     swapContent: {
@@ -112,13 +111,14 @@ const useStyles = makeStyles({
 })
 
 const initialAsset = {
-    icon: <></>,
+    icon: '',
     symbol: '',
     balance: 0
 }
 
 const Swap = () => {
     const classes = useStyles();
+    const { assets } = usePages();
 
     const [fromAsset, setFromAsset] = useState<Asset>(initialAsset);
     const [toAsset, setToAsset] = useState<Asset>(initialAsset);
@@ -126,21 +126,19 @@ const Swap = () => {
     const [openSettingModal, setOpenSettingModal] = useState(false);
 
     useEffect(() => {
-        setFromAsset({
-            icon: <img src={HYSD} alt="Asset" />,
-            symbol: 'HYSD',
-            balance: 0
-        });
-        setToAsset({
-            icon: <img src={SOL} alt="Asset" />,
-            symbol: 'SOL',
-            balance: 0
-        })
-    }, []);
+        if(assets.length)
+            setFromAsset(assets[0]);
+    }, [setFromAsset, assets]);
 
     const handleHideSettingModal = () => {
         if(parseFloat(slippage) > 0)
             setOpenSettingModal(false)
+    }
+
+    const exchangeAssets = () => {
+        const tempAsset = JSON.parse(JSON.stringify(fromAsset));
+        setFromAsset(toAsset);
+        setToAsset(tempAsset);
     }
 
     return (
@@ -159,13 +157,13 @@ const Swap = () => {
                 </Box>
                 <Box className={classes.selectAssets}>
                     <SelectAsset type="From" asset={fromAsset} />
-                    <IconButton className={classes.exchangeButton}>
+                    <IconButton className={classes.exchangeButton} onClick={exchangeAssets}>
                         <Exchange />
                     </IconButton>
                     <SelectAsset type="To" asset={toAsset} />
                 </Box>
                 <Box className={classes.swapAssets}>
-                    <SwapAsset from={fromAsset} to={toAsset} />
+                    <SwapAsset from={fromAsset} to={toAsset} exchange={exchangeAssets} />
                     <Box className={classes.slippage}>
                         <Typography>Slippage Tolerance</Typography>
                         <Typography>{Number(slippage)}%</Typography>

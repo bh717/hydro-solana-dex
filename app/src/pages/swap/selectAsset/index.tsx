@@ -11,7 +11,7 @@ const useStyles = makeStyles({
         borderRadius: '10px',
         position: 'relative',
         padding: '20px 10px',
-        width: '130px',
+        width: '110px',
         '@media (max-width: 600px)': {
             background: '#292535',
             padding: '0 10px 10px',
@@ -46,13 +46,14 @@ const useStyles = makeStyles({
         '& img': {
             width: '30px',
             height: '30px',
+            marginRight: '10px'
         },
         '& span': {
             color: '#FFF',
             fontFamily: 'Rubik, sans-serif',
             fontSize: '16px',
-            lineHeight:' 24px',
-            margin: '0 10px'
+            lineHeight:' 30px',
+            marginRight: '10px'
         },
         '& svg': {
             width: '12px',
@@ -83,8 +84,8 @@ const SelectAsset: FC<SelectAssetProps> = ({ type, asset }) => {
             </Box>
             <Box className={classes.buttonWrapper}>
                 <Button className={classes.assetButton} disableRipple={true}>
-                    {asset.icon}
-                    <span>{asset.symbol}</span>
+                    {asset.icon !== '' && <img src={asset.icon} alt="Asset" />}
+                    <span>{asset.symbol || 'Select'}</span>
                     <Down />
                 </Button>
             </Box>
