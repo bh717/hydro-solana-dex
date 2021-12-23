@@ -62,16 +62,16 @@ const useStyles = makeStyles({
     }
   },
   contentWrapper: {
-    flexGrow: 1,
     display: 'flex',
+    alignItems: 'flex-start',
     justifyContent: 'center',
-    margin: '0 0 20px',
+    margin: '0 10px 20px',
     height: 'calc(100vh - 104px)',
     overflow: 'auto',
     '@media (max-width:600px)': {
-      alignItems: 'flex-start',
-      margin: '20px 0 0',
-      height: 'calc(100vh - 164px)'
+      margin: '20px 10px 0',
+      height: 'calc(100vh - 164px)',
+      maxHeight: 'initial'
     }
   }
 })

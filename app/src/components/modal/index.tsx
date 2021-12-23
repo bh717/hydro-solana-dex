@@ -12,21 +12,7 @@ const useStyles = makeStyles({
             backgroundColor: '#191a24',
             position: 'relative',
             padding: '20px',
-            borderRadius: '30px',
-            '&::before': {
-                content: "''",
-                position: 'absolute',
-                top: 0,
-                right: 0,
-                bottom: 0,
-                left: 0,
-                borderRadius: '30px',
-                padding: '2px',
-                background: 'linear-gradient(137.26deg, rgba(255, 34, 146, 0.395187) 3.65%, rgba(0, 255, 246, 0.692881) 100%)',
-                '-webkit-mask': 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-                '-webkit-mask-composite': 'destination-out',
-                pointerEvents: 'none'
-            }
+            borderRadius: '30px'
         }
     },
     dialogTitle: {
