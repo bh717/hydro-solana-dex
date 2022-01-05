@@ -8,7 +8,7 @@ use anchor_lang::prelude::*;
 use anchor_lang::solana_program::log::sol_log_compute_units;
 use hydra_math::swap_calculator::SwapCalculator;
 
-declare_id!("4rr8xm9bVQcF2qSdBYUrHrbtk9CCcSb9zJWkX96zZmc3");
+declare_id!("9waTtNnGG8GB1z4o42VByPpJ1biaKeadVJa3MupGUeDL");
 
 #[program]
 pub mod hydra_pools {
