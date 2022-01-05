@@ -1,11 +1,11 @@
 use anchor_lang::prelude::*;
 
-declare_id!("CEHs5pSDff4RHjPqMJZAkYqaLSaeX9BfY5iyyH6PmKf7");
+declare_id!("F1y1FTP91nwxbNUW3nXY6mKQzWawihwVYGwMsi7oKGyg");
 
 #[program]
 pub mod hydra_staking {
     use super::*;
-    pub fn initialize(ctx: Context<Initialize>) -> ProgramResult {
+    pub fn initialize(_ctx: Context<Initialize>) -> ProgramResult {
         Ok(())
     }
 }

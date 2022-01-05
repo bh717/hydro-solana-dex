@@ -3,5 +3,6 @@ members = [
     "programs/*",
     "libs/math/hmm",
     "libs/math/sim",
-    "libs/math/sandbox/natural-log"
+    "libs/math/sandbox/natural-log",
+    "tools/*"
 ]

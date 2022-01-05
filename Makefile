@@ -2,12 +2,12 @@
 SHELL := /bin/bash
 _ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
+list:
+	@awk -F: '/^[A-z]/ {print $$1}' Makefile | sort
+
 # install our fork of anchor
 install_anchor:
 	cargo install --git https://github.com/hydraswap-io/anchor anchor-cli --locked --force
-
-list:
-	@awk -F: '/^[A-z]/ {print $$1}' Makefile | sort
 
 # COMMON
 check:
@@ -37,7 +37,8 @@ watch:
 anchor-ci:
 	yarn install
 	solana-keygen new --no-bip39-passphrase || true
-	cargo clean
+	#cargo clean
+	cargo check
 	#cargo test # Broke with anchor
 	anchor build
 	anchor test
