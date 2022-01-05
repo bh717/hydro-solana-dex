@@ -17,6 +17,5 @@ cpi = ["no-entrypoint"]
 default = []
 
 [dependencies]
-anchor-lang = "0.18.2"
-solana-program = "=1.8.1"
+anchor-lang = { git = "https://github.com/hydraswap-io/anchor" }
 hydra-math = { version = "0.1.0", path = "../../libs/math/hmm", features = ["no-entrypoint"] }

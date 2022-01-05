@@ -17,4 +17,4 @@ cpi = ["no-entrypoint"]
 default = []
 
 [dependencies]
-anchor-lang = "0.18.2"
+anchor-lang = { git = "https://github.com/hydraswap-io/anchor" }

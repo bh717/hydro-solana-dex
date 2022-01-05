@@ -1,12 +1,23 @@
-use anchor_lang::prelude::*;
-use hydra_math::swap_calculator::SwapCalculator;
-use solana_program::log::sol_log_compute_units;
+pub mod instructions;
+pub mod state;
 
-declare_id!("GZEvUuDxVfqs7WobzZgyg7YiWkXccPdUQjeku4A7bzLz");
+use instructions::*;
+use state::*;
+
+use anchor_lang::prelude::*;
+use anchor_lang::solana_program::log::sol_log_compute_units;
+use hydra_math::swap_calculator::SwapCalculator;
+
+declare_id!("4rr8xm9bVQcF2qSdBYUrHrbtk9CCcSb9zJWkX96zZmc3");
 
 #[program]
 pub mod hydra_pools {
     use super::*;
+
+    /// initialise a new empty pool
+    pub fn init_pool(ctx: Context<InitialisePool>, data: i64) -> ProgramResult {
+        instructions::init_pool::handle(ctx, data)
+    }
 
     pub fn initialize(ctx: Context<Initialize>, authority: Pubkey) -> ProgramResult {
         let swap_result = &mut ctx.accounts.swap_result;
