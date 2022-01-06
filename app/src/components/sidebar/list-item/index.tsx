@@ -6,11 +6,11 @@ import {
 } from '@mui/material';
 
 interface ListItemProps {
-    icon: JSX.Element;
     name: string;
+    icon: JSX.Element;
 }
 
-const ListItem: FC<ListItemProps> = ({ icon, name }) => {
+const ListItem: FC<ListItemProps> = ({ name, icon }) => {
     return (
         <ListItemButton>
             <ListItemIcon>

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { makeStyles } from '@mui/styles';
-import { Box, Paper } from '@mui/material';
+import { Box } from '@mui/material';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import {
@@ -28,7 +28,6 @@ require('@solana/wallet-adapter-react-ui/styles.css');
 
 const useStyles = makeStyles({
   walletWrapper: {
-    backgroundColor: 'transparent !important',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'flex-end',
@@ -44,14 +43,36 @@ const useStyles = makeStyles({
         marginRight: '8px'
       }
     },
+    '& .wallet-adapter-dropdown-list': {
+      '& .wallet-adapter-dropdown-list-item': {
+        padding: '0 15px',
+        height: '32px',
+        fontSize: '13px'
+      }
+    },
     '@media (max-width:600px)': {
       order: 1,
-      justifyContent: 'center'
+      justifyContent: 'center',
+      '& .wallet-adapter-dropdown-list': {
+        top: 0,
+        right: '50%',
+        transform: 'translate(50%, -146px)',
+        transition: 'opacity 200ms ease, visibility 200ms'
+      }
     }
   },
   contentWrapper: {
-    backgroundColor: 'transparent !important',
-    flexGrow: 1
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+    margin: '0 10px 20px',
+    height: 'calc(100vh - 104px)',
+    overflow: 'auto',
+    '@media (max-width:600px)': {
+      margin: '20px 10px 0',
+      height: 'calc(100vh - 164px)',
+      maxHeight: 'initial'
+    }
   }
 })
 
@@ -83,16 +104,15 @@ function App() {
           <div className="layout">
             <Sidebar />
             <Box component="main" className="container">
-              <Paper className={classes.walletWrapper} elevation={0}>
-                {/* <WalletMultiButton><Wallet /> Connect</WalletMultiButton> */}
+              <Box className={classes.walletWrapper}>
                 <WalletMultiButton />
-              </Paper>
-              <Paper className={classes.contentWrapper} elevation={0}>
+              </Box>
+              <Box className={classes.contentWrapper}>
                 <Routes>
                   <Route path="/swap" element={<Swap />} />
                   <Route path="*" element={<Navigate replace to="/swap" />} />
                 </Routes>
-              </Paper>
+              </Box>
             </Box>
           </div>
         </WalletModalProvider>

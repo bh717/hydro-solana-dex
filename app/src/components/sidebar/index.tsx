@@ -4,9 +4,10 @@ import MuiDrawer from '@mui/material/Drawer';
 import {
     List,
     ListSubheader,
-    Paper,
+    Box,
     IconButton,
-    Link
+    Link,
+    Typography
 } from '@mui/material';
 import cn from 'classnames';
 
@@ -18,9 +19,13 @@ import {
     MenuOpen,
     MenuClose,
     Trading,
+    ActiveTrading,
     Swap,
-    Liquidity,
-    Farms,
+    ActiveSwap,
+    Pools,
+    ActivePools,
+    Stake,
+    ActiveStake,
     Doc,
     List as Menu,
     Share,
@@ -31,14 +36,13 @@ import {
     Discord
 } from '../icons';
 import ListItem from './list-item';
-import ListItemCollapsible from './list-item-collapsible';
 
 const useStyles = makeStyles({
     drawer: {
         height: '100%',
         width: '240px',
         '& .MuiDrawer-paper': {
-            background: '#171524',
+            background: '#262936',
             borderRight: 'none',
             width: '100%',
             height: '100vh',
@@ -62,13 +66,15 @@ const useStyles = makeStyles({
     },
     drawerHeader: {
         backgroundColor: 'transparent !important',
+        borderBottom: '1px solid #FFFFFF0A',
         lineHeight: 'initial !important',
-        padding: '24px 32px !important',
+        padding: '24px !important',
         display: 'flex',
         '& img': {
-            width: '100%'
+            height: '36px'
         },
         '&.collapsed': {
+            justifyContent: 'center',
             padding: '12px 16px !important',
         },
         '@media (max-width:600px)': {
@@ -87,22 +93,25 @@ const useStyles = makeStyles({
     list: {
         '& *': {
             transition: 'width .3s !important',
-            color: 'hsla(0,0%,100%,.5)',
+            color: '#FFFFFF73'
         },
         '& .MuiListItemButton-root': {
+            padding: '12px 24px',
             '& .MuiListItemIcon-root': {
-                minWidth: '40px'
-            },
-            '& .MuiListItemText-root': {
-                marginTop: '5px',
-                marginBottom: '4px',
-                '& span': {
-                    fontSize: '16px'
+                minWidth: 'initial',
+                '& svg': {
+                    width: '28px',
+                    height: '28px',
+                    marginRight: '8px'
                 }
             },
-            '& > svg': {
-                width: '18px',
-                height: '18px'
+            '& .MuiListItemText-root': {
+                marginTop: 0,
+                marginBottom: 0,
+                '& span': {
+                    fontSize: '16px',
+                    lineHeight: '28px'
+                }
             },
             '&:hover': {
                 '& *': {
@@ -114,45 +123,33 @@ const useStyles = makeStyles({
             '& .MuiListItemButton-root': {
                 flexDirection: 'column',
                 '& .MuiListItemIcon-root': {
-                    minWidth: 'initial',
                     '& svg': {
-                        height: '28px',
-                        width: '28px'
+                        marginRight: 0,
+                        marginBottom: '8px'
                     }
-                },
-                '& .MuiListItemText-root': {
-                    '& span': {
-                        fontSize: '14px'
-                    }
-                },
-                '& > svg': {
-                    display: 'none'
                 }
             }
         }
     },
     links: {
-        backgroundColor: 'transparent !important',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        padding: '24px 16px',
+        padding: '24px 24px',
         position: 'relative',
         '& .MuiLink-root': {
-            color: 'hsla(0,0%,100%,.5)',
+            color: '#FFFFFF73',
             display: 'flex',
             alignItems: 'center',
             fontSize: '14px',
-            border: '1px solid hsla(0,0%,100%,.5)',
-            borderRadius: '15px',
-            padding: '5px 10px',
+            padding: '5px 6px',
             margin: '10px 0',
-            width: 'calc(100% - 22px)',
+            width: 'calc(100% - 14px)',
             justifyContent: 'center',
             '& svg': {
-                width: '18px',
-                height: '18px',
-                marginRight: '10px'
+                width: '20px',
+                height: '20px',
+                margin: '0 10px 0 0'
             },
             '&:hover': {
                 color: '#FFF'
@@ -163,26 +160,32 @@ const useStyles = makeStyles({
         }
     },
     linkWrapper: {
-        backgroundColor: 'transparent !important',
         position: 'relative',
         height: '51px',
-        width: '142px',
+        width: '192px',
         '& .MuiLink-root': {
-            position: 'absolute'
+            position: 'absolute',
+            justifyContent: 'flex-start'
         },
         '&.collapsed': {
             width: '38.5px',
             overflow: 'hidden',
             '& .MuiLink-root': {
+                border: '1px solid hsla(0,0%,100%,.5)',
+                borderRadius: '15px',
                 justifyContent: 'flex-start',
+                '& svg': {
+                    marginLeft: '2.5px'
+                },
                 '& span': {
-                    whiteSpace: 'nowrap'
+                    whiteSpace: 'nowrap',
+                    marginRight: '2.5px'
                 }
             },
             '&:hover': {
                 overflow: 'visible',
                 '& .MuiLink-root': {
-                    minWidth: '100px'
+                    width: 'initial'
                 }
             }
         }
@@ -192,34 +195,33 @@ const useStyles = makeStyles({
         position: 'absolute !important' as any,
         width: '12px',
         left: 0,
-        top: '-42px',
+        top: '50%',
+        transform: 'translateY(-50%)',
         '& img': {
             width: '100%'
         }
     },
     socialWrapper: {
-        backgroundColor: 'transparent !important',
         position: 'relative',
         height: '50px',
-        width: '210px',
+        width: '192px',
         '&.collapsed': {
             width: '39px',
             overflow: 'hidden',
             '&:hover': {
                 overflow: 'visible',
-                '& .MuiPaper-root': {
+                '& .MuiBox-root': {
                     width: 'initial'
                 }
             }
         }
     },
     social: {
-        backgroundColor: 'transparent !important',
         display: 'flex',
         margin: '10px 0',
-        padding: '5px 10px',
+        padding: '5px 6px',
         position: 'absolute',
-        width: 'calc(100% - 22px)',
+        width: 'calc(100% - 14px)',
         '& .MuiLink-root': {
             border: 'none',
             width: 'initial',
@@ -227,6 +229,11 @@ const useStyles = makeStyles({
             margin: '0',
             '& svg': {
                 margin: '0 10px',
+            },
+            '&:first-of-type': {
+                '& svg': {
+                    marginLeft: 0
+                }
             },
             '&:last-of-type': {
                 '& svg': {
@@ -236,14 +243,30 @@ const useStyles = makeStyles({
         },
         '& > svg': {
             color: 'hsla(0,0%,100%,.5)',
-            marginRight: '10px',
-            width: '18px',
-            height: '18px',
+            marginRight: '20px',
+            width: '20px',
+            height: '20px',
             cursor: 'pointer'
         },
         '&.collapsed': {
             border: '1px solid hsla(0,0%,100%,.5)',
-            borderRadius: '15px'
+            borderRadius: '15px',
+            '& > svg': {
+                marginLeft: '2.5px',
+                marginRight: '10px'
+            },
+            '& .MuiLink-root': {
+                '&:first-of-type': {
+                    '& svg': {
+                        marginLeft: '10px'
+                    }
+                },
+                '&:last-of-type': {
+                    '& svg': {
+                        marginRight: '2.5px'
+                    }
+                }
+            }
         }
     }
 })
@@ -251,36 +274,23 @@ const useStyles = makeStyles({
 const SidebarItems = [
     {
         name: 'Trading',
-        icon: <Trading />
+        icon: <Trading />,
+        activeIcon: <ActiveTrading />
     },
     {
         name: 'Swap',
-        icon: <Swap />
+        icon: <Swap />,
+        activeIcon: <ActiveSwap />
     },
     {
-        name: 'Liquidity',
-        icon: <Liquidity />,
-        childs: [
-            {
-                name: 'Add Liquidity'
-            },
-            {
-                name: 'Add C-Liquidity',
-                preview: true
-            }
-        ]
+        name: 'Pools',
+        icon: <Pools />,
+        activeIcon: <ActivePools />
     },
     {
-        name: 'Farms',
-        icon: <Farms />,
-        childs: [
-            {
-                name: 'LP Farming'
-            },
-            {
-                name: 'Staking'
-            }
-        ]
+        name: 'Stake',
+        icon: <Stake />,
+        activeIicon: <ActiveStake />,
     }
 ]
 
@@ -292,6 +302,7 @@ const Sidebar = () => {
     useEffect(() => {
         // Windows Resize Handler
         function handleResize() {
+            setOpen(window.innerWidth > 900 || window.innerWidth <= 600);
             setMobile(window.innerWidth <= 600);
         }
 
@@ -325,13 +336,9 @@ const Sidebar = () => {
                     </ListSubheader>
                 }
             >
-                {SidebarItems.map((item, index) => {
-                    if(item.childs) {
-                        return <ListItemCollapsible icon={item.icon} name={item.name} childs={item.childs} isCollapsed={!open} isMobile={mobile} key={index} />
-                    } else {
-                        return <ListItem icon={item.icon} name={item.name} key={index} />
-                    }
-                })}
+                {SidebarItems.map((item, index) => (
+                    <ListItem icon={item.icon} name={item.name} key={index} />
+                ))}
                 {mobile && (
                     <>
                         <ListItem icon={<Doc />} name="Test Guide" />
@@ -339,28 +346,28 @@ const Sidebar = () => {
                     </>
                 )}
             </List>
-            <Paper className={cn(classes.links, {'collapsed': !open && !mobile, 'expanded': !open && mobile})} elevation={0}>
+            {!mobile && (
+                <IconButton className={classes.handler} onClick={handleDrawer}>
+                    {open ? <img src={Collapse} alt="Menu" /> : <img src={Expand} alt="Menu" />}
+                </IconButton>
+            )}
+            <Box className={cn(classes.links, {'collapsed': !open && !mobile, 'expanded': !open && mobile})}>
                 {!mobile && (
-                    <IconButton className={classes.handler} onClick={handleDrawer}>
-                        {open ? <img src={Collapse} alt="Menu" /> : <img src={Expand} alt="Menu" />}
-                    </IconButton>
-                )}
-                {!mobile && (
-                    <Paper className={cn(classes.linkWrapper, {'collapsed': !open && !mobile})} elevation={0}>
+                    <Box className={cn(classes.linkWrapper, {'collapsed': !open && !mobile})}>
                         <Link href="https://hydraswap.gitbook.io/hydra-beta-testing-guide" underline="none">
-                            <Doc /><span>Test Guide</span>
+                            <Doc /><Typography variant="body2" component="span">Test Guide</Typography>
                         </Link>
-                    </Paper>
+                    </Box>
                 )}
                 {!mobile && (
-                    <Paper className={cn(classes.linkWrapper, {'collapsed': !open && !mobile})} elevation={0}>
+                    <Box className={cn(classes.linkWrapper, {'collapsed': !open && !mobile})}>
                         <Link href="https://hydraswap.gitbook.io/hydraswap-gitbook/" underline="none">
-                            <Menu /><span>Docs</span>
+                            <Menu /><Typography variant="body2" component="span">Paper & Docs</Typography>
                         </Link>
-                    </Paper>
+                    </Box>
                 )}
-                <Paper className={cn(classes.socialWrapper, {'collapsed': !open && !mobile})} elevation={0}>
-                    <Paper className={cn(classes.social, {'collapsed': !open && !mobile})} elevation={0}>
+                <Box className={cn(classes.socialWrapper, {'collapsed': !open && !mobile})}>
+                    <Box className={cn(classes.social, {'collapsed': !open && !mobile})}>
                         {(!open && !mobile) && <Share />}
                         <Link href="https://twitter.com/HydraSwap_io" underline="none">
                             <Twitter />
@@ -377,9 +384,9 @@ const Sidebar = () => {
                         <Link href="https://discord.gg/AA26dw6Hpm" underline="none">
                             <Discord />
                         </Link>
-                    </Paper>
-                </Paper>
-            </Paper>
+                    </Box>
+                </Box>
+            </Box>
         </MuiDrawer>
     )
 }
