@@ -1,68 +1,45 @@
 import { FC } from 'react';
 import { makeStyles } from '@mui/styles';
-import { Box, Button, Typography } from '@mui/material';
+import { Box, Button } from '@mui/material';
+import cn from 'classnames';
 
 import { Down } from '../../../components/icons';
 import { Asset } from '../../../interfaces';
 
 const useStyles = makeStyles({
     assetContainer: {
-        background: 'rgba(0, 0, 0, 0.1)',
-        borderRadius: '10px',
+        background: '#424550',
+        borderRadius: '6px',
         position: 'relative',
-        padding: '20px 10px',
-        width: '110px',
-        '@media (max-width: 600px)': {
-            background: '#292535',
-            padding: '0 10px 10px',
-            width: 'calc((100% - 44px) / 2)',
-        }
-    },
-    assetDetail: {
-        display: 'none',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '8px 8px 2px',
-        '@media (max-width: 600px)': {
-            display: 'flex'
-        }
-    },
-    typography: {
-        color: '#FFF',
-        fontFamily: 'Rubik, sans-serif !important',
-        fontSize: '12px !important',
-        lineHeight: '18px !important',
-        letterSpacing: 'normal'
-    },
-    buttonWrapper: {
-        display: 'flex',
-        justifyContent: 'flex-start',
-        '@media (max-width: 600px)': {
-            justifyContent: 'center',
-        }
+        padding: '8px 10px',
+        minWidth: '100px'
     },
     assetButton: {
         padding: '0 !important',
+        width: '100%',
         '& img': {
-            width: '30px',
-            height: '30px',
-            marginRight: '10px'
+            width: '24px',
+            height: '24px',
+            marginRight: '4px'
         },
         '& span': {
             color: '#FFF',
-            fontFamily: 'Rubik, sans-serif',
-            fontSize: '16px',
-            lineHeight:' 30px',
-            marginRight: '10px'
+            fontWeight: '400',
+            lineHeight: '24px',
+            flexGrow: 1,
+            textAlign: 'left'
         },
         '& svg': {
             width: '12px',
-            height: '12px',
-            color: '#FFF'
+            height: '8px',
+            color: '#FFFFFF73'
         },
         '&:hover': {
             backgroundColor: 'transparent !important'
         }
+    },
+    noAsset: {
+        background: 'linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%)'
     }
 });
 
@@ -76,20 +53,12 @@ const SelectAsset: FC<SelectAssetProps> = ({ type, asset, changeAsset }) => {
     const classes = useStyles();
 
     return (
-        <Box className={classes.assetContainer}>
-            <Box className={classes.assetDetail}>
-                <Typography className={classes.typography}>{type}</Typography>
-                <Typography className={classes.typography}>
-                    {asset.balance.toFixed(2)}
-                </Typography>
-            </Box>
-            <Box className={classes.buttonWrapper}>
-                <Button className={classes.assetButton} disableRipple={true} onClick={changeAsset}>
-                    {asset.icon !== '' && <img src={asset.icon} alt="Asset" />}
-                    <span>{asset.symbol || 'Select'}</span>
-                    <Down />
-                </Button>
-            </Box>
+        <Box className={cn(classes.assetContainer, {[classes.noAsset]: !asset.symbol})}>
+            <Button className={classes.assetButton} disableRipple={true} onClick={changeAsset}>
+                {asset.icon !== '' && <img src={asset.icon} alt="Asset" />}
+                <span>{asset.symbol || 'Select'}</span>
+                <Down />
+            </Button>
         </Box>
     )
 }

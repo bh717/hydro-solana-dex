@@ -1,89 +1,89 @@
 import { FC } from 'react';
 import { makeStyles } from '@mui/styles';
-import { Box, Button, IconButton } from '@mui/material';
+import {
+    Box,
+    Button,
+    IconButton,
+    InputBase,
+    Typography
+} from '@mui/material';
 
 import { Exchange } from '../../../components/icons';
 import SelectAsset from '../selectAsset';
-import TextInput from '../../../components/input';
 import { Asset } from '../../../interfaces';
 
 const useStyles = makeStyles({
     swapContainer: {
-        borderRadius: '12px',
-        border: '1px solid rgba(7, 235, 173, 0.3)',
+        background: '#2a2d3a',
+        borderRadius: '6px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '8px'
+        padding: '32px'
     },
     assetContainer: {
         display: 'flex',
         flexDirection: 'column',
-        position: 'relative',
         width: '100%'
     },
-    assetRow: {
-        background: '#292535',
-        borderRadius: '10px',
+    assetDetail: {
+        color: '#FFFFFFD9',
         display: 'flex',
-        alignItems: 'flex-start',
-        padding: '8px',
-        position: 'relative',
-        marginBottom: '8px',
-        width: 'calc(100% - 16px)',
-        '&:last-of-type': {
-            marginBottom: 0
-        },
-        '@media (max-width: 600px)': {
-            '& > .MuiBox-root': {
-                '&:first-child': {
-                    display: 'none'
-                }
-            }
+        justifyContent: 'space-between',
+        marginBottom: '10px',
+        '& .MuiTypography-root': {
+            lineHeight: '19px'
         }
     },
+    assetInput: {
+        background: '#373944',
+        borderRadius: '10px',
+        display: 'flex',
+        alignItems: 'center',
+        padding: '8px'
+    },
+    baseInput: {
+        flexGrow: 1,
+        padding: '0 8px',
+        '& input': {
+            color: '#FFF',
+            padding: 0,
+            fontSize: '16px',
+            fontWeight: '500'
+        }
+    },
+    maxButton: {
+        color: '#FFFFFFA6',
+        cursor: 'pointer',
+        fontSize: '14px',
+        lineHeight: '17px',
+        marginRight: '8px'
+    },
     exchangeButton: {
-        background: '#514C99 !important',
-        border: '3px solid #161720 !important',
-        borderRadius: '9px !important',
-        padding: '7px !important',
-        position: 'absolute !important' as any,
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        zIndex: 1,
+        alignSelf: 'center',
+        background: '#373944 !important',
+        borderRadius: '4px !important',
+        width: '32px',
+        height: '32px',
+        margin: '24px 0 !important',
         '& svg': {
-            width: '12px',
-            height: '12px',
+            width: '20px',
+            height: '20px',
             transform: 'rotate(90deg)'
-        },
-        '&::before': {
-            background: 'linear-gradient(226deg, #2FE4C9 15.08%, #39B5F1 29.84%, #6C83E1 56.57%, #CF489D 86.03%)',
-            borderRadius: '6px',
-            content: "''",
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            bottom: 0,
-            left: 0,
-            opacity: '0.2'
         }
     },
     swapButton: {
-        backgroundColor: '#07ebad !important',
-        borderRadius: '12px !important',
-        color: '#292535 !important',
-        fontFamily: 'Rubik, sans-serif !important',
+        background: 'linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%) !important',
+        borderRadius: '6px !important',
+        color: '#FFF !important',
         fontSize: '16px !important',
         fontWeight: '500 !important',
-        marginTop: '10px !important',
-        textTransform: 'capitalize !important' as any,
-        height: '56px',
+        marginTop: '43px !important',
+        lineHeight: '24px',
+        textTransform: 'initial !important' as any,
+        padding: '16px !important',
         width: '100%',
-        '@media (max-width:600px)': {
-            height: '44px'
-        }
     }
 })
 
@@ -100,16 +100,29 @@ const SwapAsset: FC<SwapAssetProps> = ({ from, to, changeAsset, exchange }) => {
     return (
         <Box className={classes.swapContainer}>
             <Box className={classes.assetContainer}>
-                <Box className={classes.assetRow}>
-                    <SelectAsset asset={from} changeAsset={() => changeAsset('From')} />
-                    <TextInput />
+                <Box>
+                    <Box className={classes.assetDetail}>
+                        <Typography>From</Typography>
+                        <Typography>Balance: 240,467,123</Typography>
+                    </Box>
+                    <Box className={classes.assetInput}>
+                        <InputBase className={classes.baseInput} placeholder='0' />
+                        <span className={classes.maxButton}>Max</span>
+                        <SelectAsset asset={from} changeAsset={() => changeAsset('From')} />
+                    </Box>
                 </Box>
                 <IconButton className={classes.exchangeButton} onClick={exchange}>
                     <Exchange />
                 </IconButton>
-                <Box className={classes.assetRow}>
-                    <SelectAsset asset={to} changeAsset={() => changeAsset('To')} />
-                    <TextInput />
+                <Box>
+                    <Box className={classes.assetDetail}>
+                        <Typography>To</Typography>
+                        <Typography>Balance: --</Typography>
+                    </Box>
+                    <Box className={classes.assetInput}>
+                        <InputBase className={classes.baseInput} placeholder='0' />
+                        <SelectAsset asset={to} changeAsset={() => changeAsset('To')} />
+                    </Box>
                 </Box>
             </Box>
             <Button className={classes.swapButton}>

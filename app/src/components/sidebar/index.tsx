@@ -42,7 +42,7 @@ const useStyles = makeStyles({
         height: '100%',
         width: '240px',
         '& .MuiDrawer-paper': {
-            background: '#FFFFFF0A',
+            background: '#262936',
             borderRight: 'none',
             width: '100%',
             height: '100vh',
@@ -61,10 +61,7 @@ const useStyles = makeStyles({
         '@media (max-width:600px)': {
             width: '100%',
             height: '60px',
-            overflow: 'hidden',
-            '& .MuiDrawer-paper': {
-                background: '#1D202D',
-            }
+            overflow: 'hidden'
         }
     },
     drawerHeader: {

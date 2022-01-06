@@ -1,43 +1,10 @@
-@font-face {
-    font-family: HelveticaNeue;
-    src: url(../fonts/helveticaneue/HelveticaNeue.ttf) format("opentype");
-}
-
-@font-face {
-    font-family: HelveticaNeue;
-    src: url(../fonts/helveticaneue/HelveticaNeueBd.ttf) format("opentype");
-    font-weight: 700;
-}
-
-@font-face {
-    font-family: HelveticaNeue;
-    src: url(../fonts/helveticaneue/HelveticaNeueIt.ttf) format("opentype");
-    font-style: italic;
-}
-
-@font-face {
-    font-family: HelveticaNeue;
-    src: url(../fonts/helveticaneue/HelveticaNeueLt.ttf) format("opentype");
-    font-weight: 300;
-}
-
-@font-face {
-    font-family: HelveticaNeue;
-    src: url(../fonts/helveticaneue/HelveticaNeueMed.ttf) format("opentype");
-    font-weight: 500
-}
-
-@font-face {
-    font-family: HelveticaNeue;
-    src: url(../fonts/helveticaneue/HelveticaNeueThin.ttf) format("opentype");
-    font-weight: 100
-}
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;1,500&display=swap');
 
 html, body {
     height: 100%;
     width: 100%;
     margin: 0;
-    font-family: 'HelveticaNeue';
+    font-family: 'Inter', 'Roboto', Helvetica, Arial, sans-serif;
 }
 
 #root {
@@ -64,8 +31,8 @@ html, body {
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        width: 1000px;
-        height: 600px;
+        width: 50%;
+        height: 50%;
         pointer-events: none;
     }
 

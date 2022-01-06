@@ -12,96 +12,105 @@ import debounce from 'lodash.debounce';
 
 const useStyles = makeStyles({
     typography: {
-        color: 'rgba(255, 255, 255, 0.6)',
-        fontFamily: 'Rubik, sans-serif !important',
+        color: '#FFF',
         fontSize: '14px !important',
-        lineHeight: '17px !important'
+        lineHeight: '16px !important',
+        opacity: '0.6'
     },
     optionWrapper: {
         display: 'flex',
-        marginTop: '26px',
+        marginTop: '13px',
         '& button': {
-            border: '1px solid #07EBAD',
-            borderRadius: '10px',
+            border: '1px solid #FFFFFF40',
+            borderRadius: '4px',
             color: '#FFF',
-            fontFamily: 'Rubik, sans-serif !important',
             fontSize: '18px',
-            lineHeight: '21px',
+            fontWeight: '400',
+            height: '48px',
             padding: '14px 6px !important',
             width: '70px',
-            marginTop: '8px',
-            marginRight: '8px'
+            marginTop: '12px',
+            marginRight: '12px',
+            '&:last-of-type': {
+                marginRight: '24px'
+            }
         },
         '@media (max-width: 600px)': {
             flexWrap: 'wrap'
         }
     },
     optionActive: {
-        backgroundColor: '#07EBAD !important',
-        color: '#1A4E3F !important'
+        background: 'linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%) !important',
+        border: 'none !important'
     },
     optionInput: {
-        marginTop: '8px !important',
+        marginTop: '12px !important',
         '& .MuiInputBase-root': {
-            padding: '0 12px 0 0',
+            padding: '0 16px 0 0',
+            height: '48px',
             '&:hover': {
                 '& fieldset': {
-                    borderColor: '#07EBAD'
+                    background: 'linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%)',
                 }
             }
         },
         '& .Mui-focused': {
             '& fieldset': {
-                borderColor: '#07EBAD !important'
+                background: 'linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%)',
             }
         },
         '& input': {
             color: '#FFF',
-            fontFamily: 'Rubik, sans-serif !important',
             fontSize: '18px',
-            fontWeight: '500',
-            lineHeight: '21px',
-            textAlign: 'right',
-            padding: '14px 0 14px 12px',
+            fontWeight: '400',
+            padding: '14px 8px 14px 16px',
             width: '50px'
         },
         '& .MuiInputAdornment-root': {
             marginLeft: '4px',
             '& p': {
                 color: '#FFF',
-                fontFamily: 'Rubik, sans-serif !important',
                 fontSize: '18px',
-                fontWeight: '500',
+                fontWeight: '400',
                 lineHeight: '21px'
             }
         },
         '& fieldset': {
-            borderColor: 'rgba(255, 255, 255, 0.6)',
-            borderRadius: '10px'
+            border: 'none',
+            borderRadius: '4px',
+            padding: '1px',
+            background: '#FFFFFF40',
+            '-webkit-mask': 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+            '-webkit-mask-composite': 'destination-out',
+            pointerEvents: 'none'
         }
     },
     inputError: {
         '& fieldset': {
-            borderColor: '#FF0032B3',
+            background: '#F74949'
         },
         '& .MuiInputBase-root': {
             '&:hover': {
                 '& fieldset': {
-                    borderColor: '#FF0032B3 !important'
+                    background: '#F74949'
                 }
             }
         },
         '& .Mui-focused': {
             '& fieldset': {
-                borderColor: '#FF0032B3 !important'
+                background: '#F74949'
             }
         }
     },
+    inputActive: {
+        '& fieldset': {
+            background: 'linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%)'
+        }
+    },
     error: {
-        color: '#FF0032B3',
-        fontFamily: 'Rubik, sans-serif !important',
-        fontSize: '14px',
-        lineHeight: '17px',
+        color: '#F74949',
+        fontSize: '14px !important',
+        lineHeight: '16px !important',
         marginTop: '16px !important'
     }
 })
@@ -116,7 +125,7 @@ const Content: FC<ContentProps> = ({ slippage, setSlippage }) => {
     const [tempSlippage, setTempSlippage] = useState('');
 
     useEffect(() => {
-        if([0.01, 0.05, 1, 2].indexOf(parseFloat(slippage)) < 0)
+        if([0.1, 0.5, 1].indexOf(parseFloat(slippage)) < 0)
             setTempSlippage(slippage);
         else
             setTempSlippage('');
@@ -137,16 +146,16 @@ const Content: FC<ContentProps> = ({ slippage, setSlippage }) => {
             </Typography>
             <Box className={classes.optionWrapper}>
                 <Button
-                    className={cn({[classes.optionActive]: parseFloat(slippage) === 0.01})}
-                    onClick={() => setSlippage('0.01')}
+                    className={cn({[classes.optionActive]: parseFloat(slippage) === 0.1})}
+                    onClick={() => setSlippage('0.1')}
                 >
-                    0.01%
+                    0.1%
                 </Button>
                 <Button
-                    className={cn({[classes.optionActive]: parseFloat(slippage) === 0.05})}
-                    onClick={() => setSlippage('0.05')}
+                    className={cn({[classes.optionActive]: parseFloat(slippage) === 0.5})}
+                    onClick={() => setSlippage('0.5')}
                 >
-                    0.05%
+                    0.5%
                 </Button>
                 <Button
                     className={cn({[classes.optionActive]: parseFloat(slippage) === 1})}
@@ -154,14 +163,8 @@ const Content: FC<ContentProps> = ({ slippage, setSlippage }) => {
                 >
                     1.0%
                 </Button>
-                <Button
-                    className={cn({[classes.optionActive]: parseFloat(slippage) === 2})}
-                    onClick={() => setSlippage('2')}
-                >
-                    2.0%
-                </Button>
                 <TextField
-                    className={cn(classes.optionInput, {[classes.inputError]: parseFloat(slippage) <= 0})}
+                    className={cn(classes.optionInput, {[classes.inputError]: parseFloat(slippage) < 0.01, [classes.inputActive]: parseFloat(tempSlippage) >= 0.01})}
                     hiddenLabel
                     InputProps={{
                         endAdornment: <InputAdornment position="end">%</InputAdornment>
@@ -172,7 +175,7 @@ const Content: FC<ContentProps> = ({ slippage, setSlippage }) => {
                     ) => handleChangeValue(event.target.value)}
                 />
             </Box>
-            {parseFloat(slippage) <= 0 && (
+            {parseFloat(slippage) <= 0.01 && (
                 <Typography className={classes.error}>
                     Enter a valid slippage percentage
                 </Typography>

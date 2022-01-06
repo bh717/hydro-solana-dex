@@ -19,7 +19,6 @@ const useStyles = makeStyles({
             background: '#000',
             borderRadius: '24px',
             color: '#f1f1f2',
-            fontFamily: 'Rubik, sans-serif',
             padding: '8px 16px',
             width: '300px',
             '@media (max-width: 600px)': {
@@ -29,7 +28,6 @@ const useStyles = makeStyles({
     },
     typography: {
         color: 'rgba(255, 255, 255, 0.6)',
-        fontFamily: 'Rubik, sans-serif !important',
         fontSize: '14px !important',
         lineHeight: '17px !important',
         padding: '20px 0'
@@ -43,7 +41,6 @@ const useStyles = makeStyles({
     iconButton: {
         padding: '8px 0 !important',
         color: '#FFF !important',
-        fontFamily: 'Rubik, sans-serif !important',
         fontSize: '16px !important',
         fontWeight: '500',
         letterSpacing: '2px',
@@ -70,7 +67,6 @@ const useStyles = makeStyles({
         },
         '& p': {
             color: '#FFF !important',
-            fontFamily: 'Rubik, sans-serif !important',
             fontSize: '16px !important',
             fontWeight: '500',
         }
