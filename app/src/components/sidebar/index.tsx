@@ -135,21 +135,21 @@ const useStyles = makeStyles({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        padding: '24px 16px',
+        padding: '24px 24px',
         position: 'relative',
         '& .MuiLink-root': {
             color: '#FFFFFF73',
             display: 'flex',
             alignItems: 'center',
             fontSize: '14px',
-            padding: '5px 10px',
+            padding: '5px 6px',
             margin: '10px 0',
-            width: 'calc(100% - 22px)',
+            width: 'calc(100% - 14px)',
             justifyContent: 'center',
             '& svg': {
                 width: '20px',
                 height: '20px',
-                margin: '0 10px'
+                margin: '0 10px 0 0'
             },
             '&:hover': {
                 color: '#FFF'
@@ -162,7 +162,7 @@ const useStyles = makeStyles({
     linkWrapper: {
         position: 'relative',
         height: '51px',
-        width: '210px',
+        width: '192px',
         '& .MuiLink-root': {
             position: 'absolute',
             justifyContent: 'flex-start'
@@ -175,10 +175,11 @@ const useStyles = makeStyles({
                 borderRadius: '15px',
                 justifyContent: 'flex-start',
                 '& svg': {
-                    marginLeft: '-1px'
+                    marginLeft: '2.5px'
                 },
                 '& span': {
-                    whiteSpace: 'nowrap'
+                    whiteSpace: 'nowrap',
+                    marginRight: '2.5px'
                 }
             },
             '&:hover': {
@@ -203,7 +204,7 @@ const useStyles = makeStyles({
     socialWrapper: {
         position: 'relative',
         height: '50px',
-        width: '210px',
+        width: '192px',
         '&.collapsed': {
             width: '39px',
             overflow: 'hidden',
@@ -218,9 +219,9 @@ const useStyles = makeStyles({
     social: {
         display: 'flex',
         margin: '10px 0',
-        padding: '5px 10px',
+        padding: '5px 6px',
         position: 'absolute',
-        width: 'calc(100% - 22px)',
+        width: 'calc(100% - 14px)',
         '& .MuiLink-root': {
             border: 'none',
             width: 'initial',
@@ -228,6 +229,11 @@ const useStyles = makeStyles({
             margin: '0',
             '& svg': {
                 margin: '0 10px',
+            },
+            '&:first-of-type': {
+                '& svg': {
+                    marginLeft: 0
+                }
             },
             '&:last-of-type': {
                 '& svg': {
@@ -246,8 +252,20 @@ const useStyles = makeStyles({
             border: '1px solid hsla(0,0%,100%,.5)',
             borderRadius: '15px',
             '& > svg': {
-                marginLeft: '-1px',
+                marginLeft: '2.5px',
                 marginRight: '10px'
+            },
+            '& .MuiLink-root': {
+                '&:first-of-type': {
+                    '& svg': {
+                        marginLeft: '10px'
+                    }
+                },
+                '&:last-of-type': {
+                    '& svg': {
+                        marginRight: '2.5px'
+                    }
+                }
             }
         }
     }
