@@ -1,14 +1,47 @@
-@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500&display=swap');
+@font-face {
+    font-family: HelveticaNeue;
+    src: url(../fonts/helveticaneue/HelveticaNeue.ttf) format("opentype");
+}
+
+@font-face {
+    font-family: HelveticaNeue;
+    src: url(../fonts/helveticaneue/HelveticaNeueBd.ttf) format("opentype");
+    font-weight: 700;
+}
+
+@font-face {
+    font-family: HelveticaNeue;
+    src: url(../fonts/helveticaneue/HelveticaNeueIt.ttf) format("opentype");
+    font-style: italic;
+}
+
+@font-face {
+    font-family: HelveticaNeue;
+    src: url(../fonts/helveticaneue/HelveticaNeueLt.ttf) format("opentype");
+    font-weight: 300;
+}
+
+@font-face {
+    font-family: HelveticaNeue;
+    src: url(../fonts/helveticaneue/HelveticaNeueMed.ttf) format("opentype");
+    font-weight: 500
+}
+
+@font-face {
+    font-family: HelveticaNeue;
+    src: url(../fonts/helveticaneue/HelveticaNeueThin.ttf) format("opentype");
+    font-weight: 100
+}
 
 html, body {
     height: 100%;
     width: 100%;
     margin: 0;
-    font-family: 'Rubik', sans-serif;
+    font-family: 'HelveticaNeue';
 }
 
 #root {
-    background: #000;
+    background: #1D202D;
     display: flex;
     width: 100%;
     height: 100%;
@@ -18,16 +51,34 @@ html, body {
 
 .layout {
     display: flex;
+    position: relative;
     width: 100%;
     height: 100%;
+
+    &::before {
+        content: '';
+        background: linear-gradient(88.14deg, #9E8EFF 16.49%, #49A6EC 86.39%);
+        opacity: 0.2;
+        filter: blur(500px);
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 1000px;
+        height: 600px;
+        pointer-events: none;
+    }
+
     @media screen and (max-width: 600px) {
         flex-direction: column;
+
+        &::before {
+            display: none;
+        }
     }
 }
 
 .container {
-    background: #1d1b2d url(../images/background.png) 100% 100% no-repeat;
-    background-size: auto 100%;
     display: flex;
     flex-direction: column;
     flex-grow: 1;

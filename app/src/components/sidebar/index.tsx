@@ -6,7 +6,8 @@ import {
     ListSubheader,
     Box,
     IconButton,
-    Link
+    Link,
+    Typography
 } from '@mui/material';
 import cn from 'classnames';
 
@@ -18,9 +19,13 @@ import {
     MenuOpen,
     MenuClose,
     Trading,
+    ActiveTrading,
     Swap,
-    Liquidity,
-    Farms,
+    ActiveSwap,
+    Pools,
+    ActivePools,
+    Stake,
+    ActiveStake,
     Doc,
     List as Menu,
     Share,
@@ -31,14 +36,13 @@ import {
     Discord
 } from '../icons';
 import ListItem from './list-item';
-import ListItemCollapsible from './list-item-collapsible';
 
 const useStyles = makeStyles({
     drawer: {
         height: '100%',
         width: '240px',
         '& .MuiDrawer-paper': {
-            background: '#171524',
+            background: '#FFFFFF0A',
             borderRight: 'none',
             width: '100%',
             height: '100vh',
@@ -57,18 +61,23 @@ const useStyles = makeStyles({
         '@media (max-width:600px)': {
             width: '100%',
             height: '60px',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            '& .MuiDrawer-paper': {
+                background: '#1D202D',
+            }
         }
     },
     drawerHeader: {
         backgroundColor: 'transparent !important',
+        borderBottom: '1px solid #FFFFFF0A',
         lineHeight: 'initial !important',
-        padding: '24px 32px !important',
+        padding: '24px !important',
         display: 'flex',
         '& img': {
-            width: '100%'
+            height: '36px'
         },
         '&.collapsed': {
+            justifyContent: 'center',
             padding: '12px 16px !important',
         },
         '@media (max-width:600px)': {
@@ -87,22 +96,25 @@ const useStyles = makeStyles({
     list: {
         '& *': {
             transition: 'width .3s !important',
-            color: 'hsla(0,0%,100%,.5)',
+            color: '#FFFFFF73'
         },
         '& .MuiListItemButton-root': {
+            padding: '12px 24px',
             '& .MuiListItemIcon-root': {
-                minWidth: '40px'
-            },
-            '& .MuiListItemText-root': {
-                marginTop: '5px',
-                marginBottom: '4px',
-                '& span': {
-                    fontSize: '16px'
+                minWidth: 'initial',
+                '& svg': {
+                    width: '28px',
+                    height: '28px',
+                    marginRight: '8px'
                 }
             },
-            '& > svg': {
-                width: '18px',
-                height: '18px'
+            '& .MuiListItemText-root': {
+                marginTop: 0,
+                marginBottom: 0,
+                '& span': {
+                    fontSize: '16px',
+                    lineHeight: '28px'
+                }
             },
             '&:hover': {
                 '& *': {
@@ -114,19 +126,10 @@ const useStyles = makeStyles({
             '& .MuiListItemButton-root': {
                 flexDirection: 'column',
                 '& .MuiListItemIcon-root': {
-                    minWidth: 'initial',
                     '& svg': {
-                        height: '28px',
-                        width: '28px'
+                        marginRight: 0,
+                        marginBottom: '8px'
                     }
-                },
-                '& .MuiListItemText-root': {
-                    '& span': {
-                        fontSize: '14px'
-                    }
-                },
-                '& > svg': {
-                    display: 'none'
                 }
             }
         }
@@ -138,20 +141,18 @@ const useStyles = makeStyles({
         padding: '24px 16px',
         position: 'relative',
         '& .MuiLink-root': {
-            color: 'hsla(0,0%,100%,.5)',
+            color: '#FFFFFF73',
             display: 'flex',
             alignItems: 'center',
             fontSize: '14px',
-            border: '1px solid hsla(0,0%,100%,.5)',
-            borderRadius: '15px',
             padding: '5px 10px',
             margin: '10px 0',
             width: 'calc(100% - 22px)',
             justifyContent: 'center',
             '& svg': {
-                width: '18px',
-                height: '18px',
-                marginRight: '10px'
+                width: '20px',
+                height: '20px',
+                margin: '0 10px'
             },
             '&:hover': {
                 color: '#FFF'
@@ -164,15 +165,21 @@ const useStyles = makeStyles({
     linkWrapper: {
         position: 'relative',
         height: '51px',
-        width: '142px',
+        width: '210px',
         '& .MuiLink-root': {
-            position: 'absolute'
+            position: 'absolute',
+            justifyContent: 'flex-start'
         },
         '&.collapsed': {
             width: '38.5px',
             overflow: 'hidden',
             '& .MuiLink-root': {
+                border: '1px solid hsla(0,0%,100%,.5)',
+                borderRadius: '15px',
                 justifyContent: 'flex-start',
+                '& svg': {
+                    marginLeft: '-1px'
+                },
                 '& span': {
                     whiteSpace: 'nowrap'
                 }
@@ -180,7 +187,7 @@ const useStyles = makeStyles({
             '&:hover': {
                 overflow: 'visible',
                 '& .MuiLink-root': {
-                    minWidth: '100px'
+                    width: 'initial'
                 }
             }
         }
@@ -190,7 +197,8 @@ const useStyles = makeStyles({
         position: 'absolute !important' as any,
         width: '12px',
         left: 0,
-        top: '-42px',
+        top: '50%',
+        transform: 'translateY(-50%)',
         '& img': {
             width: '100%'
         }
@@ -232,14 +240,18 @@ const useStyles = makeStyles({
         },
         '& > svg': {
             color: 'hsla(0,0%,100%,.5)',
-            marginRight: '10px',
-            width: '18px',
-            height: '18px',
+            marginRight: '20px',
+            width: '20px',
+            height: '20px',
             cursor: 'pointer'
         },
         '&.collapsed': {
             border: '1px solid hsla(0,0%,100%,.5)',
-            borderRadius: '15px'
+            borderRadius: '15px',
+            '& > svg': {
+                marginLeft: '-1px',
+                marginRight: '10px'
+            }
         }
     }
 })
@@ -247,36 +259,23 @@ const useStyles = makeStyles({
 const SidebarItems = [
     {
         name: 'Trading',
-        icon: <Trading />
+        icon: <Trading />,
+        activeIcon: <ActiveTrading />
     },
     {
         name: 'Swap',
-        icon: <Swap />
+        icon: <Swap />,
+        activeIcon: <ActiveSwap />
     },
     {
-        name: 'Liquidity',
-        icon: <Liquidity />,
-        childs: [
-            {
-                name: 'Add Liquidity'
-            },
-            {
-                name: 'Add C-Liquidity',
-                preview: true
-            }
-        ]
+        name: 'Pools',
+        icon: <Pools />,
+        activeIcon: <ActivePools />
     },
     {
-        name: 'Farms',
-        icon: <Farms />,
-        childs: [
-            {
-                name: 'LP Farming'
-            },
-            {
-                name: 'Staking'
-            }
-        ]
+        name: 'Stake',
+        icon: <Stake />,
+        activeIicon: <ActiveStake />,
     }
 ]
 
@@ -322,13 +321,9 @@ const Sidebar = () => {
                     </ListSubheader>
                 }
             >
-                {SidebarItems.map((item, index) => {
-                    if(item.childs) {
-                        return <ListItemCollapsible icon={item.icon} name={item.name} childs={item.childs} isCollapsed={!open} isMobile={mobile} key={index} />
-                    } else {
-                        return <ListItem icon={item.icon} name={item.name} key={index} />
-                    }
-                })}
+                {SidebarItems.map((item, index) => (
+                    <ListItem icon={item.icon} name={item.name} key={index} />
+                ))}
                 {mobile && (
                     <>
                         <ListItem icon={<Doc />} name="Test Guide" />
@@ -336,23 +331,23 @@ const Sidebar = () => {
                     </>
                 )}
             </List>
+            {!mobile && (
+                <IconButton className={classes.handler} onClick={handleDrawer}>
+                    {open ? <img src={Collapse} alt="Menu" /> : <img src={Expand} alt="Menu" />}
+                </IconButton>
+            )}
             <Box className={cn(classes.links, {'collapsed': !open && !mobile, 'expanded': !open && mobile})}>
-                {!mobile && (
-                    <IconButton className={classes.handler} onClick={handleDrawer}>
-                        {open ? <img src={Collapse} alt="Menu" /> : <img src={Expand} alt="Menu" />}
-                    </IconButton>
-                )}
                 {!mobile && (
                     <Box className={cn(classes.linkWrapper, {'collapsed': !open && !mobile})}>
                         <Link href="https://hydraswap.gitbook.io/hydra-beta-testing-guide" underline="none">
-                            <Doc /><span>Test Guide</span>
+                            <Doc /><Typography variant="body2" component="span">Test Guide</Typography>
                         </Link>
                     </Box>
                 )}
                 {!mobile && (
                     <Box className={cn(classes.linkWrapper, {'collapsed': !open && !mobile})}>
                         <Link href="https://hydraswap.gitbook.io/hydraswap-gitbook/" underline="none">
-                            <Menu /><span>Docs</span>
+                            <Menu /><Typography variant="body2" component="span">Paper & Docs</Typography>
                         </Link>
                     </Box>
                 )}
