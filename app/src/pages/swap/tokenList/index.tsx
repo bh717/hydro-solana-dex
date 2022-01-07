@@ -4,7 +4,6 @@ import Modal from '../../../components/modal';
 import Content from './content';
 import { Asset } from '../../../interfaces';
 
-
 interface TokenListModalProps {
     open: boolean;
     onClose(): void;

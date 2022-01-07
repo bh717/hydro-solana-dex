@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 
 import { Asset } from '../interfaces';
+import USDC from '../assets/images/symbols/usdc.png';
+import BNB from '../assets/images/symbols/bnb.png';
 import HYSD from '../assets/images/symbols/hysd.png';
-import SOL from '../assets/images/symbols/sol.png';
-import USDD from '../assets/images/symbols/usdd.png';
 
 const usePages = () => {
     const [assets, setAssets] = useState<Asset[]>([]);
@@ -11,19 +11,19 @@ const usePages = () => {
     useEffect(() => {
         const tempAssets = [
             {
+                icon: USDC,
+                symbol: 'USDC',
+                balance: 21567.2401
+            },
+            {
+                icon: BNB,
+                symbol: 'BNB',
+                balance: 1567980.2401
+            },
+            {
                 icon: HYSD,
                 symbol: 'HYSD',
-                balance: 0
-            },
-            {
-                icon: SOL,
-                symbol: 'SOL',
-                balance: 0
-            },
-            {
-                icon: USDD,
-                symbol: 'USDD',
-                balance: 0
+                balance: 2012115.2401
             }
         ];
 

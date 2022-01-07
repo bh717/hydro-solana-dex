@@ -11,11 +11,12 @@ import {
 import { Exchange } from '../../../components/icons';
 import SelectAsset from '../selectAsset';
 import { Asset } from '../../../interfaces';
+import normalizeBalance from '../../../helpers/normalizeBalance';
 
 const useStyles = makeStyles({
     swapContainer: {
         background: '#2a2d3a',
-        borderRadius: '6px',
+        borderRadius: '4px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -78,9 +79,8 @@ const useStyles = makeStyles({
         borderRadius: '6px !important',
         color: '#FFF !important',
         fontSize: '16px !important',
-        fontWeight: '500 !important',
         marginTop: '43px !important',
-        lineHeight: '24px',
+        lineHeight: '24px !important',
         textTransform: 'initial !important' as any,
         padding: '16px !important',
         width: '100%',
@@ -103,7 +103,7 @@ const SwapAsset: FC<SwapAssetProps> = ({ from, to, changeAsset, exchange }) => {
                 <Box>
                     <Box className={classes.assetDetail}>
                         <Typography>From</Typography>
-                        <Typography>Balance: 240,467,123</Typography>
+                        <Typography>Balance: {normalizeBalance(from.balance)}</Typography>
                     </Box>
                     <Box className={classes.assetInput}>
                         <InputBase className={classes.baseInput} placeholder='0' />
@@ -117,7 +117,7 @@ const SwapAsset: FC<SwapAssetProps> = ({ from, to, changeAsset, exchange }) => {
                 <Box>
                     <Box className={classes.assetDetail}>
                         <Typography>To</Typography>
-                        <Typography>Balance: --</Typography>
+                        <Typography>Balance: {normalizeBalance(to.balance)}</Typography>
                     </Box>
                     <Box className={classes.assetInput}>
                         <InputBase className={classes.baseInput} placeholder='0' />

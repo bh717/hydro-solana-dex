@@ -1,4 +1,4 @@
-import { Fragment, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { makeStyles } from '@mui/styles';
 import { Box, IconButton } from '@mui/material';
 
@@ -6,7 +6,7 @@ import { Gear } from '../../components/icons';
 import { Asset } from '../../interfaces';
 import SwapAsset from './swapAsset';
 import SwapSettingModal from './setting';
-import TokenListModal from './tokens';
+import TokenListModal from './tokenList';
 import usePages from '../usePages';
 
 const useStyles = makeStyles({
@@ -105,7 +105,7 @@ const Swap = () => {
     }
 
     return (
-        <Fragment>
+        <>
             <Box className={classes.swapContent}>
                 <Box className={classes.actionRow}>
                     <span className={classes.title}>Swap</span>
@@ -136,7 +136,7 @@ const Swap = () => {
                 assetList={assets}
                 setAsset={changeAsset}
             />
-        </Fragment>
+        </>
     )
 }
 
