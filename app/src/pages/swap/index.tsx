@@ -1,13 +1,14 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@mui/styles';
-import { Box, IconButton } from '@mui/material';
+import {Box, IconButton, Typography} from '@mui/material';
 
 import { Gear } from '../../components/icons';
 import { Asset } from '../../interfaces';
 import SwapAsset from './swapAsset';
-import SwapSettingModal from './setting';
-import TokenListModal from './tokenList';
+import SwapSettingModal from './modals/setting';
+import TokenListModal from './modals/tokenList';
 import usePages from '../usePages';
+import USDT from '../../assets/images/symbols/usdt.png';
 
 const useStyles = makeStyles({
     swapContent: {
@@ -46,6 +47,40 @@ const useStyles = makeStyles({
         display: 'flex',
         flexDirection: 'column',
         padding: '2px'
+    },
+    routeContainer: {
+        background: '#262936',
+        borderRadius: '6px',
+        padding: '20px 32px',
+        margin: '2px'
+    },
+    routeTitle: {
+        color: '#FFFFFFA6 !important',
+        fontSize: '14px !important',
+        lineHeight: '17px !important',
+        textDecoration: 'underline',
+        marginBottom: '16px !important'
+    },
+    routeDetail: {
+        display: 'flex'
+    },
+    assetItem: {
+        color: '#FFFFFFD9',
+        display: 'flex',
+        alignItems: 'center',
+        marginRight: '12px',
+        '& img': {
+            marginRight: '4px',
+            width: '20px',
+            height: '20px'
+        },
+        '& span': {
+            fontSize: '14px',
+            lineHeight: '17px'
+        },
+        '&:last-of-type': {
+            marginRight: '0'
+        }
     }
 })
 
@@ -123,6 +158,27 @@ const Swap = () => {
                         exchange={exchangeAssets}
                     />
                 </Box>
+                {fromAsset.symbol !== '' && toAsset.symbol !== '' && (
+                    <Box className={classes.routeContainer}>
+                        <Typography className={classes.routeTitle}>
+                            Route
+                        </Typography>
+                        <Box className={classes.routeDetail}>
+                            <Box className={classes.assetItem}>
+                                <img src={fromAsset.icon} alt="Asset" />
+                                <span>{`${fromAsset.symbol} >`}</span>
+                            </Box>
+                            <Box className={classes.assetItem}>
+                                <img src={USDT} alt="Asset" />
+                                <span>{'USDT >'}</span>
+                            </Box>
+                            <Box className={classes.assetItem}>
+                                <img src={toAsset.icon} alt="Asset" />
+                                <span>{toAsset.symbol}</span>
+                            </Box>
+                        </Box>
+                    </Box>
+                )}
             </Box>
             <SwapSettingModal
                 open={openSettingModal}

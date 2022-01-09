@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import Modal from '../../../components/modal';
+import Modal from '../../../../components/modal';
 import Content from './content';
 
 interface SwapSettingModalProps {

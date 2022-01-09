@@ -7,8 +7,8 @@ import {
     IconButton
 } from '@mui/material';
 
-import { Asset } from '../../../interfaces';
-import normalizeBalance from '../../../helpers/normalizeBalance';
+import { Asset } from '../../../../interfaces';
+import normalizeBalance from '../../../../helpers/normalizeBalance';
 
 const useStyles = makeStyles({
     title: {
