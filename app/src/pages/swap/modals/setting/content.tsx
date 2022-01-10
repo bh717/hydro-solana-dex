@@ -17,10 +17,11 @@ const useStyles = makeStyles({
         fontSize: '18px !important',
         fontWeight: '500 !important',
         lineHeight: '22px !important',
-        padding: '24px 22px'
+        padding: '23px 20px',
+        margin: '0 3px'
     },
     contentWrapper: {
-        padding: '32px 22px'
+        padding: '32px 23px'
     },
     typography: {
         color: '#FFF',

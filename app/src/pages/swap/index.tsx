@@ -3,12 +3,13 @@ import { makeStyles } from '@mui/styles';
 import {Box, IconButton, Typography} from '@mui/material';
 
 import { Gear } from '../../components/icons';
+import USDT from '../../assets/images/symbols/usdt.png';
 import { Asset } from '../../interfaces';
 import SwapAsset from './swapAsset';
 import SwapSettingModal from './modals/setting';
-import TokenListModal from './modals/tokenList';
+import AssetListModal from './modals/assetList';
+import ConfirmSwapModal from './modals/confirmSwap';
 import usePages from '../usePages';
-import USDT from '../../assets/images/symbols/usdt.png';
 
 const useStyles = makeStyles({
     swapContent: {
@@ -95,15 +96,21 @@ const Swap = () => {
     const { assets } = usePages();
 
     const [fromAsset, setFromAsset] = useState<Asset>(initialAsset);
+    const [fromAmount, setFromAmount] = useState(0);
     const [toAsset, setToAsset] = useState<Asset>(initialAsset);
+    const [toAmount, setToAmount] = useState(0);
+    const [swapRate, setSwapRate] = useState(0);
     const [activeAsset, setActiveAsset] = useState('');
     const [slippage, setSlippage] = useState('1.0');
     const [openSettingModal, setOpenSettingModal] = useState(false);
-    const [openAssetModal, setOpenAssetModal] = useState(false);
+    const [openAssetListModal, setOpenAssetListModal] = useState(false);
+    const [openConfirmSwapModal, setOpenConfirmSwapModal] = useState(false);
 
     useEffect(() => {
         if(assets.length)
             setFromAsset(assets[0]);
+
+        setSwapRate(1);
     }, [setFromAsset, assets]);
 
     const handleSettingModal = () => {
@@ -117,9 +124,17 @@ const Swap = () => {
         setToAsset(tempAsset);
     }
 
-    const handleAssetModal = (type: string) => {
+    const handleChangeAsset = (type: string) => {
         setActiveAsset(type);
-        setOpenAssetModal(true);
+        setOpenAssetListModal(true);
+    }
+
+    const handleChangeAmount = (type: string, amount: number) => {
+        if(type === 'From')
+            setFromAmount(amount);
+
+        if(type === 'To')
+            setToAmount(amount);
     }
 
     const changeAsset = (asset: Asset) => {
@@ -136,7 +151,7 @@ const Swap = () => {
         }
 
         setActiveAsset('');
-        setOpenAssetModal(false);
+        setOpenAssetListModal(false);
     }
 
     return (
@@ -152,10 +167,15 @@ const Swap = () => {
                 </Box>
                 <Box className={classes.swapAssets}>
                     <SwapAsset
-                        from={fromAsset}
-                        to={toAsset}
-                        changeAsset={handleAssetModal}
+                        fromAsset={fromAsset}
+                        fromAmount={fromAmount}
+                        toAsset={toAsset}
+                        toAmount={toAmount}
+                        changeAsset={handleChangeAsset}
+                        changeAmount={handleChangeAmount}
+                        swapRate={swapRate}
                         exchange={exchangeAssets}
+                        confirmSwap={() => setOpenConfirmSwapModal(true)}
                     />
                 </Box>
                 {fromAsset.symbol !== '' && toAsset.symbol !== '' && (
@@ -186,11 +206,21 @@ const Swap = () => {
                 slippage={slippage}
                 setSlippage={(value) => setSlippage(value)}
             />
-            <TokenListModal
-                open={openAssetModal}
-                onClose={() => setOpenAssetModal(false)}
+            <AssetListModal
+                open={openAssetListModal}
+                onClose={() => setOpenAssetListModal(false)}
                 assetList={assets}
                 setAsset={changeAsset}
+            />
+            <ConfirmSwapModal
+                open={openConfirmSwapModal}
+                onClose={() => setOpenConfirmSwapModal(false)}
+                fromAsset={fromAsset}
+                fromAmount={fromAmount}
+                toAsset={toAsset}
+                toAmount={toAmount}
+                swapRate={swapRate}
+                slippage={slippage}
             />
         </>
     )

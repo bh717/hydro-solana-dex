@@ -11,7 +11,6 @@ interface SwapSettingModalProps {
 
 const SwapSettingModal: FC<SwapSettingModalProps> = ({ open, onClose, slippage, setSlippage }) => (
     <Modal
-        title="Settings"
         content={<Content slippage={slippage} setSlippage={setSlippage} />}
         open={open}
         onClose={onClose}

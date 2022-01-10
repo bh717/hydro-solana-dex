@@ -154,53 +154,55 @@ const useStyles = makeStyles({
 })
 
 interface SwapAssetProps {
-    from: Asset;
-    to: Asset;
+    fromAsset: Asset;
+    fromAmount: number;
+    toAsset: Asset;
+    toAmount: number;
     changeAsset(type: string): void;
+    changeAmount(type: string, amount: number): void;
+    swapRate: number;
     exchange(): void;
+    confirmSwap(): void;
 }
 
-const SwapAsset: FC<SwapAssetProps> = ({ from, to, changeAsset, exchange }) => {
+const SwapAsset: FC<SwapAssetProps> = ({ fromAsset, fromAmount, toAsset, toAmount, changeAsset, changeAmount, swapRate, exchange, confirmSwap }) => {
     const classes = useStyles();
 
-    const [fromAmount, setFromAmount] = useState('0');
-    const [toAmount, setToAmount] = useState('0');
-    const rate = 1;
     const [showPriceDetail, setShowPriceDetail] = useState(true);
 
     useEffect(() => {
-        if(Number(fromAmount) && Number(toAmount))
+        if(fromAmount && toAmount)
             setShowPriceDetail(true);
         else
             setShowPriceDetail(false);
     }, [fromAmount, toAmount]);
 
     const handleFromAmountChange = (value: string) => {
-        if(from.symbol)
-            setFromAmount(value);
+        if(fromAsset.symbol)
+            changeAmount('From', Number(value))
 
-        if(to.symbol) {
-            const tempToAmount = Number(value) * rate;
-            setToAmount(tempToAmount.toString());
+        if(toAsset.symbol) {
+            const tempToAmount = Number(value) * swapRate;
+            changeAmount('To', tempToAmount);
         } else {
-            setToAmount('0');
+            changeAmount('To', 0);
         }
     }
 
     const handleToAmountChange = (value: string) => {
-        if(to.symbol)
-            setToAmount(value);
+        if(toAsset.symbol)
+            changeAmount('To', Number(value));
 
-        if(from.symbol) {
-            const tempFromAmount = Number(value) / rate;
-            setFromAmount(tempFromAmount.toString());
+        if(fromAsset.symbol) {
+            const tempFromAmount = Number(value) / swapRate;
+            changeAmount('From', tempFromAmount);
         } else {
-            setFromAmount('0');
+            changeAmount('From', 0);
         }
     }
 
     const SwapButtonContent = () => {
-        if(!from.symbol || !to.symbol)
+        if(!fromAsset.symbol || !toAsset.symbol)
             return 'Select a token';
         return 'Approve';
     }
@@ -212,7 +214,7 @@ const SwapAsset: FC<SwapAssetProps> = ({ from, to, changeAsset, exchange }) => {
                     <Box>
                         <Box className={classes.assetDetail}>
                             <Typography>From</Typography>
-                            <Typography>Balance: {normalizeBalance(from.balance)}</Typography>
+                            <Typography>Balance: {normalizeBalance(fromAsset.balance)}</Typography>
                         </Box>
                         <Box className={classes.assetInput}>
                             <InputBase
@@ -224,7 +226,7 @@ const SwapAsset: FC<SwapAssetProps> = ({ from, to, changeAsset, exchange }) => {
                                 ) => handleFromAmountChange(event.target.value)}
                             />
                             <span className={classes.maxButton}>Max</span>
-                            <SelectAsset asset={from} changeAsset={() => changeAsset('From')} />
+                            <SelectAsset asset={fromAsset} changeAsset={() => changeAsset('From')} />
                         </Box>
                     </Box>
                     <IconButton className={classes.exchangeButton} onClick={exchange}>
@@ -233,7 +235,7 @@ const SwapAsset: FC<SwapAssetProps> = ({ from, to, changeAsset, exchange }) => {
                     <Box>
                         <Box className={classes.assetDetail}>
                             <Typography>To</Typography>
-                            <Typography>Balance: {normalizeBalance(to.balance)}</Typography>
+                            <Typography>Balance: {normalizeBalance(toAsset.balance)}</Typography>
                         </Box>
                         <Box className={classes.assetInput}>
                             <InputBase
@@ -244,7 +246,7 @@ const SwapAsset: FC<SwapAssetProps> = ({ from, to, changeAsset, exchange }) => {
                                     event: React.ChangeEvent<HTMLInputElement>
                                 ) => handleToAmountChange(event.target.value)}
                             />
-                            <SelectAsset asset={to} changeAsset={() => changeAsset('To')} />
+                            <SelectAsset asset={toAsset} changeAsset={() => changeAsset('To')} />
                         </Box>
                     </Box>
                 </Box>
@@ -256,7 +258,7 @@ const SwapAsset: FC<SwapAssetProps> = ({ from, to, changeAsset, exchange }) => {
                             </Typography>
                             <Typography className={classes.statusInfo} component="div">
                                 <Box>
-                                    <span>1 {from.symbol} = 2 {to.symbol}</span> <Compare />
+                                    <span>1 {fromAsset.symbol} = 2 {toAsset.symbol}</span> <Compare />
                                 </Box>
                                 <span className={classes.goodPrice}>1.5% Better than market</span>
                             </Typography>
@@ -265,7 +267,7 @@ const SwapAsset: FC<SwapAssetProps> = ({ from, to, changeAsset, exchange }) => {
                             <Typography className={classes.impactTitle}>
                                 Price Impact
                             </Typography>
-                            <Box className={classes.impactLine}></Box>
+                            <Box className={classes.impactLine} />
                             <Typography className={cn(classes.impactInfo, classes.goodPrice)}>
                                 {'< 0.01%'}
                             </Typography>
@@ -275,7 +277,11 @@ const SwapAsset: FC<SwapAssetProps> = ({ from, to, changeAsset, exchange }) => {
                 {/*<Button className={classes.swapButton}>
                     Connect Wallet
                 </Button>*/}
-                <Button className={classes.swapButton} disabled={!from.symbol || !to.symbol || Number(fromAmount) <= 0 || Number(toAmount) <= 0}>
+                <Button
+                    className={classes.swapButton}
+                    disabled={!fromAsset.symbol || !toAsset.symbol || fromAmount <= 0 || toAmount <= 0}
+                    onClick={confirmSwap}
+                >
                     {SwapButtonContent()}
                 </Button>
             </Box>

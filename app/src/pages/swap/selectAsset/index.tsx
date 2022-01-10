@@ -3,7 +3,7 @@ import { makeStyles } from '@mui/styles';
 import { Box, Button } from '@mui/material';
 import cn from 'classnames';
 
-import { Down } from '../../../components/icons';
+import { CaretDown } from '../../../components/icons';
 import { Asset } from '../../../interfaces';
 
 const useStyles = makeStyles({
@@ -73,7 +73,7 @@ const SelectAsset: FC<SelectAssetProps> = ({ type, asset, changeAsset }) => {
             <Button className={classes.assetButton} disableRipple={true} onClick={changeAsset}>
                 {asset.icon !== '' && <img src={asset.icon} alt="Asset" />}
                 <span>{asset.symbol || 'Select'}</span>
-                <Down />
+                <CaretDown />
             </Button>
         </Box>
     )

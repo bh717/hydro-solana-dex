@@ -17,6 +17,7 @@ const useStyles = makeStyles({
             padding: '1px',
             marginTop: '84px',
             marginBottom: '84px',
+            width: '420px',
             '@media (max-width:600px)': {
                 width: '100%',
                 marginTop: '80px',
@@ -27,7 +28,6 @@ const useStyles = makeStyles({
     contentWrapper: {
         background: '#313C4E',
         borderRadius: '6px',
-        padding: '1px',
         position: 'relative'
     },
     closeButton: {
@@ -42,18 +42,17 @@ const useStyles = makeStyles({
         }
     },
     dialogContent: {
-        padding: '0 2px !important'
+        padding: '0px !important'
     }
 })
 
 interface ModalProps {
-    title: string;
     content: JSX.Element;
     open: boolean;
     onClose(): void;
 }
 
-const Modal: FC<ModalProps> = ({ title, content, open, onClose }) => {
+const Modal: FC<ModalProps> = ({ content, open, onClose }) => {
     const classes = useStyles();
 
     return (

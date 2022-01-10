@@ -16,36 +16,34 @@ const useStyles = makeStyles({
         fontSize: '18px !important',
         fontWeight: '500 !important',
         lineHeight: '22px !important',
-        padding: '24px 22px'
+        padding: '23px 23px'
     },
     inputBase: {
         border: '1px solid #FFFFFF0A',
         borderRadius: '6px',
-        margin: '0 22px',
-        width: '350px',
+        margin: '0 23px',
+        width: 'calc(100% - 46px)',
         '& input': {
             color: '#FFFFFFA6',
             fontSize: '14px',
             lineHeight: '17px',
             height: '17px',
             padding: '20px 16px',
-        },
-        '@media (max-width: 600px)': {
-            width: 'calc(100% - 44px)'
         }
     },
     typography: {
         color: '#FFFFFFA6',
         fontSize: '14px !important',
         lineHeight: '17px !important',
-        padding: '16px 22px'
+        padding: '16px 23px'
     },
     tokenWrapper: {
         borderTop: '1px solid #FFFFFF0F',
         display: 'flex',
         alignItems: 'flex-start',
         flexDirection: 'column',
-        padding: '0 22px',
+        padding: '0 20px',
+        margin: '0 3px',
         height: '300px',
         overflowY: 'auto'
     },
