@@ -23,5 +23,5 @@ default = ["localnet"]
 
 [dependencies]
 # anchor-lang = { git = "https://github.com/hydraswap-io/anchor" }
-anchor-spl = "0.19.0"
-anchor-lang = "0.19.0"
+anchor-spl = "0.20.1"
+anchor-lang = "0.20.1"
