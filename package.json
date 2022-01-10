@@ -1,4 +1,11 @@
 {
+    "name": "hydra-protocol",
+    "scripts": {
+        "build:localnet": "anchor build -- --features \"localnet\"",
+        "build:devnet": "anchor build -- --features \"devnet\"",
+        "build:testnet": "anchor build -- --features \"testnet\"",
+        "build:mainnet": "anchor build -- --features \"mainnet\""
+    },
     "license": "UNLICENSED",
     "dependencies": {
         "@project-serum/anchor": "^0.18.2"

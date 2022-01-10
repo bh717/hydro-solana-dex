@@ -32,7 +32,7 @@ validator-logs:
 	solana logs
 
 watch:
-	cargo watch -c
+	cargo watch -- anchor build -- --features "localnet"
 
 anchor-ci:
 	yarn install
