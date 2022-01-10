@@ -14,7 +14,13 @@ name = "hydra_farming"
 no-entrypoint = []
 no-idl = []
 cpi = ["no-entrypoint"]
-default = []
+mainnet = []
+testnet = []
+devnet = []
+localnet = []
+
+default = ["localnet"]
 
 [dependencies]
-anchor-lang = { git = "https://github.com/hydraswap-io/anchor" }
+#anchor-lang = { git = "https://github.com/hydraswap-io/anchor" }
+anchor-lang = "0.19.0"
