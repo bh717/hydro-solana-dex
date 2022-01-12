@@ -92,6 +92,6 @@ describe ("hydra-poolz", () => {
 
     const pool = await program.account.pool.fetch(newPool.publicKey);
 
-    assert.ok(pool.data.eq(new anchor.BN(42)));
+    assert.ok(pool.num.eq(new anchor.BN(42)));
   });
 });

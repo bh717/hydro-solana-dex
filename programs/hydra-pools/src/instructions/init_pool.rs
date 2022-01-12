@@ -1,6 +1,5 @@
 use crate::state::*;
 use anchor_lang::prelude::*;
-use anchor_lang::{Context, Program, Signer, System};
 
 #[derive(Accounts)]
 pub struct InitialisePool<'info> {
@@ -10,9 +9,9 @@ pub struct InitialisePool<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn handle(ctx: Context<InitialisePool>, data: i64) -> ProgramResult {
+pub fn handle(ctx: Context<InitialisePool>, num: i64) -> ProgramResult {
     let pool = &mut ctx.accounts.pool;
-    pool.data = data;
-    msg!("data: {}", pool.data);
+    pool.num = num;
+    msg!("data: {}", pool.num);
     Ok(())
 }
