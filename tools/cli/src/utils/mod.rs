@@ -3,6 +3,7 @@ pub mod config;
 use anchor_client::solana_sdk::pubkey::Pubkey;
 use anchor_client::solana_sdk::signature::Keypair;
 use anchor_client::Cluster;
+use std::rc::Rc;
 
 pub fn load_keypair(private_keypair_path: &str) -> anyhow::Result<Keypair> {
     let keypair_path = shellexpand::tilde(private_keypair_path);
@@ -17,6 +18,7 @@ pub fn load_program(
     keypair: Keypair,
     cluster: Cluster,
 ) -> anyhow::Result<anchor_client::Program> {
-    let client = anchor_client::Client::new(cluster, keypair);
+    let rc = Rc::new(keypair);
+    let client = anchor_client::Client::new(cluster, rc);
     Ok(client.program(program_id))
 }
