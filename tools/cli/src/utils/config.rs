@@ -1,10 +1,7 @@
 use crate::{read_keypair_file, Config};
-use clap::{
-    crate_description, crate_name, crate_version, App, AppSettings, Arg, ArgMatches, SubCommand,
-};
-use solana_clap_utils::input_validators::{is_keypair, is_url};
+use clap::ArgMatches;
 
-pub fn load_config(matches: &ArgMatches) -> Result<(Config), Box<dyn std::error::Error>> {
+pub fn load_config(matches: &ArgMatches) -> Result<Config, Box<dyn std::error::Error>> {
     let cli_config = if let Some(config_file) = matches.value_of("config_file") {
         solana_cli_config::Config::load(config_file).unwrap_or_default()
     } else {
