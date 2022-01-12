@@ -12,11 +12,12 @@ interface ConfirmSwapModalProps {
     toAmount: number;
     swapRate: number;
     slippage: string;
+    onApprove(): void;
 }
 
-const ConfirmSwapModal: FC<ConfirmSwapModalProps> = ({ open, onClose, fromAsset, fromAmount, toAsset, toAmount, swapRate, slippage }) => (
+const ConfirmSwapModal: FC<ConfirmSwapModalProps> = ({ open, onClose, fromAsset, fromAmount, toAsset, toAmount, swapRate, slippage, onApprove }) => (
     <Modal
-        content={<Content fromAsset={fromAsset} fromAmount={fromAmount} toAsset={toAsset} toAmount={toAmount} swapRate={swapRate} slippage={slippage} />}
+        content={<Content fromAsset={fromAsset} fromAmount={fromAmount} toAsset={toAsset} toAmount={toAmount} swapRate={swapRate} slippage={slippage} onApprove={onApprove} />}
         open={open}
         onClose={onClose}
     />

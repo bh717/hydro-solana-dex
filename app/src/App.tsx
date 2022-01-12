@@ -18,6 +18,7 @@ import {
   WalletMultiButton
 } from '@solana/wallet-adapter-react-ui';
 import { clusterApiUrl } from '@solana/web3.js';
+import { Toaster } from 'react-hot-toast';
 
 import Sidebar from './components/sidebar';
 import Swap from './pages/swap';
@@ -102,6 +103,7 @@ function App() {
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
           <div className="layout">
+            <Toaster position="bottom-right" />
             <Sidebar />
             <Box component="main" className="container">
               <Box className={classes.walletWrapper}>

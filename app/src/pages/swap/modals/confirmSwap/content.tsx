@@ -156,9 +156,10 @@ interface ContentProps {
     toAmount: number;
     swapRate: number;
     slippage: string;
+    onApprove(): void;
 }
 
-const Content: FC<ContentProps> = ({ fromAsset, fromAmount, toAsset, toAmount, swapRate, slippage }) => {
+const Content: FC<ContentProps> = ({ fromAsset, fromAmount, toAsset, toAmount, swapRate, slippage, onApprove }) => {
     const classes = useStyles();
 
     const [rateUpdated, setRateUpdated] = useState(false);
@@ -242,6 +243,7 @@ const Content: FC<ContentProps> = ({ fromAsset, fromAmount, toAsset, toAmount, s
             <Button
                 className={classes.confirmButton}
                 disabled={rateUpdated}
+                onClick={onApprove}
             >
                 Confirm Swap
             </Button>

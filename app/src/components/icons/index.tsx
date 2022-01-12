@@ -192,7 +192,31 @@ export const ArrowDown = (props: any) => (
 )
 
 export const Warning = (props: any) => (
-    <SvgIcon viewBox="0 0 24 24" {...props}>
-        <path d="M12.5 4L22 20H3L12.5 4ZM6.5 18H18.5L12.5 7.5L6.5 18ZM11.5 11H13.5V14H11.5V11ZM11.5 15H13.5V17H11.5V15Z"></path>
+    <SvgIcon viewBox="0 0 19 16" {...props}>
+        <path d="M9.5 0L19 16H0L9.5 0V0ZM3.5 14H15.5L9.5 3.5L3.5 14ZM8.5 7H10.5V10H8.5V7V7ZM8.5 11H10.5V13H8.5V11V11Z"></path>
+    </SvgIcon>
+)
+
+export const Submitted = (props: any) => (
+    <SvgIcon viewBox="0 0 96 96" {...props}>
+        <circle cx="48" cy="48" r="44" stroke="url(#paint_linear)" strokeWidth="8"/>
+        <path d="M42.3865 48.8111L31.451 48.8111L48.9379 68.125L65.25 48.8111L55.9586 48.8111L55.9586 30.75L42.3865 30.75L42.3865 48.8111Z" fill="url(#paint_linear)"/>
+        <linearGradient id="paint_linear" x1="18.9838" y1="92" x2="83.3007" y2="89.9092" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#918EFF"/>
+            <stop offset="0.98645" stopColor="#19CE9D"/>
+        </linearGradient>
+    </SvgIcon>
+)
+
+export const CheckMark = (props: any) => (
+    <SvgIcon viewBox="0 0 32 33" {...props}>
+        <rect x="1" y="1.5" width="30" height="30" rx="3" stroke="url(#paint_linear)" strokeWidth="2"/>
+        <path d="M14.1056 20.6178L9.66368 16.1234L6.7373 18.9208C8.86611 20.0657 11.8507 22.1596 14.4055 25.4003C16.2102 22.0063 21.7738 15.0639 24.4799 14.4458C24.0433 12.6954 23.7959 9.41199 24.4799 7.65771C18.9299 11.3176 14.1056 20.6178 14.1056 20.6178Z" fill="url(#paint_linear)" />
+        <defs>
+            <linearGradient id="paint_linear" x1="5.44865" y1="32.5" x2="28.8366" y2="31.7397" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#918EFF" />
+                <stop offset="0.98645" stopColor="#19CE9D" />
+            </linearGradient>
+        </defs>
     </SvgIcon>
 )
