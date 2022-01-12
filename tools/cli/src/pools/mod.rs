@@ -7,7 +7,6 @@ use anchor_lang::{InstructionData, ToAccountMetas};
 use solana_program::system_program;
 
 use crate::Config;
-use hydra_pools::state::Pool;
 
 pub fn execute_init_tx<'a>(rpc_client: RpcClient, config: Config) -> anyhow::Result<()> {
     println!("running pool init");
