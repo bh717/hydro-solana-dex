@@ -1,6 +1,6 @@
 import * as anchor from '@project-serum/anchor';
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import {Program, web3} from '@project-serum/anchor';
+import {BN, Program, web3} from '@project-serum/anchor';
 import { HydraStaking } from '../../target/types/hydra_staking';
 // import {createMint,  getMintInfo} from "@project-serum/common";
 import { loadKey, createMintAndVault } from "../utils/utils"
@@ -9,35 +9,36 @@ import {getMintInfo} from "@project-serum/common";
 
 describe('hydra-staking',  () => {
   // Configure the client to use the local cluster.
-  const provider = anchor.Provider.env();
-  anchor.setProvider(provider);
+  anchor.setProvider(anchor.Provider.env());
   const program = anchor.workspace.HydraStaking as Program<HydraStaking>;
 
-  it('Is initialized!', async () => {
+  let hydMint
+  let hydVault
 
-    // load mint from key file
-    let mint = await loadKey("tests/keys/hyd3VthE9YPGBeg9HEgZsrM5qPniC6VoaEFeTGkVsJR.json")
-    let hydVault = web3.Keypair.generate();
+  it('should mint Hyd', async () => {
+    hydMint = await loadKey("tests/keys/hyd3VthE9YPGBeg9HEgZsrM5qPniC6VoaEFeTGkVsJR.json")
+    hydVault = web3.Keypair.generate();
 
-    // @ts-ignore
-    await createMintAndVault(provider, mint, hydVault, 100_000_0000)
+    await createMintAndVault(program.provider, hydMint, hydVault, new BN(100_000_0000))
+  });
+
+  it('should initialized stake PDA vault', async () => {
     let [vaultPubkey, vaultBump] = await anchor.web3.PublicKey.findProgramAddress(
-        [mint.publicKey.toBuffer()],
+        [hydMint.publicKey.toBuffer()],
         program.programId
     )
 
-    const tx = await program.rpc.initialize(
+    await program.rpc.initialize(
         vaultBump,
         {
             accounts: {
-              tokenMint: mint.publicKey,
+              tokenMint: hydMint.publicKey,
               tokenVault: vaultPubkey,
-              initializer: provider.wallet.publicKey,
+              initializer: program.provider.wallet.publicKey,
               systemProgram: anchor.web3.SystemProgram.programId,
               tokenProgram: TOKEN_PROGRAM_ID,
               rent: anchor.web3.SYSVAR_RENT_PUBKEY,
             }
           });
-    console.log("Your transaction signature", tx);
   });
 });
