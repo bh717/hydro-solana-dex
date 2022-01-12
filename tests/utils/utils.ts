@@ -3,7 +3,7 @@ import { URL } from "url";
 import * as fs from "fs";
 import * as anchor from '@project-serum/anchor';
 import {BN, Provider} from "@project-serum/anchor";
-import { PublicKey, Account, Transaction, SystemProgram } from "@solana/web3.js";
+import { Keypair,PublicKey, Account, Transaction, SystemProgram } from "@solana/web3.js";
 import { TokenInstructions } from '@project-serum/serum';
 
 type PathLike = string | Buffer | URL;
@@ -16,8 +16,8 @@ export async function loadKey(path: PathLike) :Promise<anchor.web3.Keypair> {
 
 export async function createMintAndVault(
     provider: Provider,
-    mint: Account,
-    vault: Account,
+    mint: Keypair,
+    vault: Keypair,
     amount: BN,
     owner?: PublicKey,
     decimals?: number,
