@@ -18,6 +18,7 @@ const useStyles = makeStyles({
             marginTop: '84px',
             marginBottom: '84px',
             width: '420px',
+            maxHeight: 'calc(100% - 168px)',
             '@media (max-width:600px)': {
                 width: '100%',
                 marginTop: '80px',
@@ -28,7 +29,9 @@ const useStyles = makeStyles({
     contentWrapper: {
         background: '#313C4E',
         borderRadius: '6px',
-        position: 'relative'
+        position: 'relative',
+        height: '100%',
+        overflowY: 'auto'
     },
     closeButton: {
         padding: '0 !important',

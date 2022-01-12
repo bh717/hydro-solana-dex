@@ -9,7 +9,7 @@ import cn from 'classnames';
 
 import { ArrowDown, Compare, Warning } from '../../../../components/icons';
 import { Asset } from '../../../../interfaces';
-import normalizeBalance from '../../../../helpers/normalizeBalance';
+import { normalizeBalance } from '../../../../helpers/normalize';
 
 const useStyles = makeStyles({
     title: {

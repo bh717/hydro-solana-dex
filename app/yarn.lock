@@ -2021,11 +2021,6 @@
   resolved "https://registry.yarnpkg.com/@solana/wallet-adapter-phantom/-/wallet-adapter-phantom-0.8.0.tgz#c73f91d43f52d946a9dc6702130890902502642d"
   integrity sha512-+fXzl0LBtjs9cS6RjbNkoXafvxxlTKp5NdeKmpYm+ZrIXZkxXC4wfdwIdMlRtsznGcBKv5+yqfUATD9MvKkPNw==
 
-"@solana/wallet-adapter-react-ui@^0.7.0":
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/@solana/wallet-adapter-react-ui/-/wallet-adapter-react-ui-0.7.0.tgz#4481ee501bec14545ca5962c02fb782c00fc0426"
-  integrity sha512-jY9WFCjlPzedPrEzcc5xLD44q0VhVR9GYbJDcAYbZCfH/DpD+kv2I6FxT+kl7NqE5fa6GuokMW12a6+9J/FvNA==
-
 "@solana/wallet-adapter-react@^0.14.1":
   version "0.14.1"
   resolved "https://registry.yarnpkg.com/@solana/wallet-adapter-react/-/wallet-adapter-react-0.14.1.tgz#7061a98d36cc34ebf49f4cb5de4fb5deb4d7a1d7"

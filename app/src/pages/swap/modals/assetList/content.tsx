@@ -8,7 +8,7 @@ import {
 } from '@mui/material';
 
 import { Asset } from '../../../../interfaces';
-import normalizeBalance from '../../../../helpers/normalizeBalance';
+import { normalizeBalance } from '../../../../helpers/normalize';
 
 const useStyles = makeStyles({
     title: {

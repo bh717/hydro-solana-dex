@@ -11,7 +11,7 @@ import SwapSettingModal from './modals/swapSetting';
 import AssetListModal from './modals/assetList';
 import ConfirmSwapModal from './modals/confirmSwap';
 import SwapStatus from './modals/swapStatus';
-import usePages from '../usePages';
+import useSwap from './useSwap';
 
 const useStyles = makeStyles({
     swapContent: {
@@ -161,7 +161,7 @@ const initialAsset = {
 
 const Swap = () => {
     const classes = useStyles();
-    const { assets } = usePages();
+    const { assets } = useSwap();
 
     const [fromAsset, setFromAsset] = useState<Asset>(initialAsset);
     const [fromAmount, setFromAmount] = useState(0);
@@ -182,10 +182,10 @@ const Swap = () => {
         setSwapRate(1);
     }, [setFromAsset, assets]);
 
-    useEffect(() => {
-        toast.custom(<SwapSuccessToast />);
-        // eslint-disable-next-line
-    }, [])
+    // useEffect(() => {
+    //     toast.custom(<SwapSuccessToast />);
+    //     // eslint-disable-next-line
+    // }, [])
 
     const handleSettingModal = () => {
         if(parseFloat(slippage) > 0)
@@ -233,6 +233,7 @@ const Swap = () => {
         setOpenSwapStatusModal(true);
     }
 
+    // eslint-disable-next-line
     const SwapSuccessToast = () => (
         <Box className={classes.successToast}>
             <IconButton

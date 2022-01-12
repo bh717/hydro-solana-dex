@@ -94,6 +94,10 @@ html, body {
     flex-grow: 1;
 }
 
+.MuiModal-root {
+    z-index: 900 !important;
+}
+
 @media screen and (min-width: 601px) {
     ::-webkit-scrollbar {
         width: 10px;

@@ -12,7 +12,7 @@ import cn from 'classnames';
 import { Exchange, Compare } from '../../../components/icons';
 import SelectAsset from '../selectAsset';
 import { Asset } from '../../../interfaces';
-import normalizeBalance from '../../../helpers/normalizeBalance';
+import { normalizeBalance } from '../../../helpers/normalize';
 
 const useStyles = makeStyles({
     swapContainer: {

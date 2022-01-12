@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 
-import { Asset } from '../interfaces';
-import USDC from '../assets/images/symbols/usdc.png';
-import BNB from '../assets/images/symbols/bnb.png';
-import HYSD from '../assets/images/symbols/hysd.png';
+import { Asset } from '../../interfaces';
+import USDC from '../../assets/images/symbols/usdc.png';
+import BNB from '../../assets/images/symbols/bnb.png';
+import HYSD from '../../assets/images/symbols/hysd.png';
 
-const usePages = () => {
+const useSwap = () => {
     const [assets, setAssets] = useState<Asset[]>([]);
 
     useEffect(() => {
@@ -35,4 +35,4 @@ const usePages = () => {
     }
 }
 
-export default usePages;
+export default useSwap;
