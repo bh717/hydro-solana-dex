@@ -154,12 +154,6 @@ class Pool:
         return x * rPa * rPb / (rPb - rPa)
 
     @staticmethod
-    def _liq_x_only(y, ta, tb):
-        rPa = Pool.tick_to_rP(ta)
-        rPb = Pool.tick_to_rP(tb)
-        return Pool.liq_x_only(y, rPa, rPb)
-
-    @staticmethod
     def liq_y_only(y, rPa, rPb):
         """Ly : liquidity amount when liquidity fully composed of  token y
         e.g when price above upper bound of range, x=0. [9]
@@ -167,12 +161,6 @@ class Pool:
             rPa,rPb : range lower (upper) bound in root price
         """
         return y / (rPb - rPa)
-
-    @staticmethod
-    def _liq_y_only(y, ta, tb):
-        rPa = Pool.tick_to_rP(ta)
-        rPb = Pool.tick_to_rP(tb)
-        return Pool.liq_y_only(y, rPa, rPb)
 
     @staticmethod
     def liq_from_x_y_rP_rng(x, y, rP, rPa, rPb):
@@ -258,21 +246,9 @@ class Pool:
         return L * (1 / rP_new - 1 / rP_old)
 
     @staticmethod
-    def _dX_from_L_drP(L, t_old, t_new):
-        rP_old = Pool.tick_to_rP(t_old)
-        rP_new = Pool.tick_to_rP(t_new)
-        return Pool.dX_from_L_drP(L, rP_old, rP_new)
-
-    @staticmethod
     def dY_from_L_drP(L, rP_old, rP_new):
         """Change of reserve Y based of change of price"""
         return L * (rP_new - rP_old)
-
-    @staticmethod
-    def _dY_from_L_drP(L, t_old, t_new):
-        rP_old = Pool.tick_to_rP(t_old)
-        rP_new = Pool.tick_to_rP(t_new)
-        return Pool.dY_from_L_drP(L, rP_old, rP_new)
 
     @staticmethod
     def dX_from_L_drP_hmm(L, rP_old, rP_new, C, rP_oracle):
@@ -285,13 +261,6 @@ class Pool:
             return L / (rP_oracle ** C) * (rP_new ** cmo - rP_old ** cmo) / omc
 
     @staticmethod
-    def _dX_from_L_drP_hmm(L, t_old, t_new, C, t_oracle):
-        rP_old = Pool.tick_to_rP(t_old)
-        rP_new = Pool.tick_to_rP(t_new)
-        rP_oracle = Pool.tick_to_rP(t_oracle)
-        return Pool.dX_from_L_drP_hmm(L, rP_old, rP_new, C, rP_oracle)
-
-    @staticmethod
     def dY_from_L_drP_hmm(L, rP_old, rP_new, C, rP_oracle):
         """Chg of reserve Y based of chg of price with HMM adj"""
         if C == 1.0:
@@ -301,32 +270,15 @@ class Pool:
             return L * (rP_oracle ** C) * (rP_new ** omc - rP_old ** omc) / omc
 
     @staticmethod
-    def _dY_from_L_drP_hmm(L, t_old, t_new, C, t_oracle):
-        rP_old = Pool.tick_to_rP(t_old)
-        rP_new = Pool.tick_to_rP(t_new)
-        rP_oracle = Pool.tick_to_rP(t_oracle)
-        return Pool.dY_from_L_drP_hmm(L, rP_old, rP_new, C, rP_oracle)
-
-    @staticmethod
     def rP_new_from_L_dX(L, rP_old, dX):
         """new price based of change of reserve X"""
         drP_inv = dX / L
         return 1 / (drP_inv + 1 / rP_old)
 
     @staticmethod
-    def _rP_new_from_L_dX(L, t_old, dX):
-        rP_old = Pool.tick_to_rP(t_old)
-        return Pool.rP_new_from_L_dX(L, rP_old, dX)
-
-    @staticmethod
     def rP_new_from_L_dY(L, rP_old, dY):
         """new price based of change of reserve Y"""
         return dY / L + rP_old
-
-    @staticmethod
-    def _rP_new_from_L_dY(L, t_old, dY):
-        rP_old = Pool.tick_to_rP(t_old)
-        return Pool.rP_new_from_L_dY(L, rP_old, dY)
 
     @staticmethod
     def tick_to_rP(tick):
