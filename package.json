@@ -8,12 +8,10 @@
     },
     "license": "UNLICENSED",
     "dependencies": {
-        "@project-serum/serum": "^0.13.61",
         "@project-serum/anchor": "^0.20.1",
         "@project-serum/common": "^0.0.1-beta.3",
         "@project-serum/tokens": "^0.0.7",
-        "@solana/spl-token": "^0.2.0-alpha.1",
-        "@solana/buffer-layout": "^4.0.0"
+        "@project-serum/serum":  "^0.13.61"
     },
     "devDependencies": {
         "chai": "^4.3.4",
