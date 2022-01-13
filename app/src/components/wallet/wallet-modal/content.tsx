@@ -1,14 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { FC, useState, useEffect } from 'react';
 import { makeStyles } from '@mui/styles';
-import { Box, Typography, Button, IconButton } from '@mui/material';
+import { Box, Typography, Button, IconButton, Link } from '@mui/material';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { Wallet, WalletName } from '@solana/wallet-adapter-base';
+import { WalletName } from '@solana/wallet-adapter-base';
+import cn from 'classnames';
 
-import { Hydraswap } from '../../icons';
+import {
+    Hydraswap,
+    Copy,
+    ExternalLink,
+    TransactionPending,
+    TransactionDone
+} from '../../icons';
+import { Transaction } from '../../../interfaces';
+import { normalizeAddress } from "../../../helpers/normalize";
 
 const useStyles = makeStyles({
     content: {
         padding: '31px 23px'
+    },
+    accountContent: {
+        padding: '0 !important'
     },
     selectTitle: {
         color: '#FFF',
@@ -136,14 +148,152 @@ const useStyles = makeStyles({
             }
         }
     },
+    accountContainer: {
+        padding: '31px 23px'
+    },
+    accountTitle: {
+        color: '#FFF',
+        fontSize: '24px !important',
+        fontWeight: '500 !important',
+        lineHeight: '29px !important',
+        marginBottom: '5px !important',
+        textAlign: 'center'
+    },
+    accountSubTitle: {
+        color: '#FFFFFFA6',
+        lineHeight: '19px !important',
+        textAlign: 'center',
+        marginBottom: '24px !important'
+    },
+    accountWrapper: {
+        borderTop: '1px solid #FFFFFF0F',
+        padding: '32px 3px 0',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center'
+    },
+    accountAvatar: {
+        background: 'linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%)',
+        borderRadius: '50%',
+        width: '56px',
+        height: '56px',
+        marginBottom: '16px'
+    },
+    accountAddress: {
+        color: '#FFF',
+        fontSize: '24px !important',
+        lineHeight: '29px !important'
+    },
+    accountLinks: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-around',
+        marginTop: '20px',
+        width: '100%',
+        '& .MuiLink-root': {
+            color: '#FFFFFFA6',
+            display: 'flex',
+            alignItems: 'center',
+            textDecoration: 'none',
+            '& > span': {
+                fontSize: '14px',
+                lineHeight: '17px',
+                marginRight: '6px'
+            },
+            '& > svg': {
+                background: '#3f495a',
+                borderRadius: '50%',
+                padding: '4.5px',
+                width: '15px',
+                height: '15px'
+            }
+        }
+    },
+    accountActions: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginTop: '20px',
+        width: '100%',
+        '& .MuiButton-root': {
+            color: '#19CE9D',
+            padding: '12px 0 !important',
+            fontSize: '16px !important',
+            lineHeight: '24px !important',
+            textTransform: 'capitalize',
+            width: 'calc(50% - 8px)',
+            '&::before': {
+                content: "''",
+                position: 'absolute',
+                top: 0,
+                right: 0,
+                bottom: 0,
+                left: 0,
+                borderRadius: '6px',
+                padding: '1px',
+                background: 'linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%)',
+                '-webkit-mask': 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                '-webkit-mask-composite': 'destination-out',
+                pointerEvents: 'none'
+            }
+        }
+    },
+    transactionWrapper: {
+        background: '#394455',
+        borderRadius: '6px',
+        padding: '24px'
+    },
+    transactionLoading: {
+        color: '#FFFFFFD9',
+        fontSize: '14px !important',
+        lineHeight: '17px !important'
+    },
+    transactionItem: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: '16px',
+        '& > .MuiLink-root': {
+            color: '#17A27C',
+            textDecoration: 'none'
+        },
+        '& > p': {
+            color: '#FFFFFFD9',
+            fontSize: '13px !important',
+            lineHeight: '16px !important'
+        },
+        '& > svg': {
+            color: '#17A27C',
+            width: '16px !important',
+            height: '16px !important'
+        },
+        '&:last-of-type': {
+            marginBottom: 0
+        }
+    },
+    svgPending: {
+        animation: '$rotate 2s infinite linear'
+    },
+    '@keyframes rotate': {
+        'from': {
+            transform: 'rotate(0deg)'
+        },
+        'to': {
+            transform: 'rotate(359deg)'
+        }
+    }
 })
 
-const Content = () => {
+interface ContentProps {
+    address: string;
+}
+
+const Content: FC<ContentProps> = ({ address }) => {
     const classes = useStyles();
 
     const { wallets, select, wallet, connected } = useWallet();
     const [status, setStatus] = useState('');
-    const [activeWallet, setActiveWallet] = useState<Wallet | null>(null);
+    const [transactions, setTransactions] = useState<Transaction[]>([]);
 
     useEffect(() => {
         if(wallet && !connected) {
@@ -162,8 +312,23 @@ const Content = () => {
         }
 
         if(connected) {
-            setActiveWallet(wallet);
             setStatus('connected');
+
+            const tempTransactions = [
+                {
+                    title: 'Swap exactly 2 HYSD for 20.9120 SOL',
+                    status: 'pending'
+                },
+                {
+                    title: 'Approve HYSD',
+                    status: 'pending',
+                },
+                {
+                    title: 'Remove 2.9120 HYSD 20.9120 SOL',
+                    status: 'done'
+                }
+            ];
+            setTransactions(tempTransactions);
         }
     }, [wallet, connected])
 
@@ -178,8 +343,34 @@ const Content = () => {
         setStatus('');
     }
 
+    const copyAddress = () => {
+        navigator.clipboard.writeText(address);
+    }
+
+    const clearTransactions = () => {
+        setTransactions([]);
+    }
+
+    const disconnectWallet = () => {
+        if(wallet) {
+            const adapter = wallet.adapter;
+
+            adapter.disconnect()
+                .then(() => {
+                    setStatus('');
+                })
+                .catch(error => {
+                    console.log(error);
+                });
+        }
+    }
+
+    const changeWallet = () => {
+        setStatus('');
+    }
+
     return (
-        <Box className={classes.content}>
+        <Box className={cn(classes.content, {[classes.accountContent]: wallet && status === 'connected'})}>
             {status === '' && (
                 <>
                     <Typography className={classes.selectTitle}>
@@ -244,8 +435,72 @@ const Content = () => {
                     </Box>
                 </>
             )}
-            {activeWallet && status === 'connected' && (
+            {wallet && status === 'connected' && (
                 <>
+                    <Box className={classes.accountContainer}>
+                        <Typography className={classes.accountTitle}>
+                            Account
+                        </Typography>
+                        <Typography className={classes.accountSubTitle}>
+                            Connected with Phantom
+                        </Typography>
+                        <Box className={classes.accountWrapper}>
+                            <span className={classes.accountAvatar} />
+                            <Typography className={classes.accountAddress}>
+                                {normalizeAddress(address)}
+                            </Typography>
+                            <Box className={classes.accountLinks}>
+                                <Link
+                                    component="button"
+                                    onClick={copyAddress}
+                                >
+                                    <span>Copy Address</span> <Copy />
+                                </Link>
+                                <Link href={`https://solscan.io/${address}`} target="_blank">
+                                    <span>View on explorer</span> <ExternalLink />
+                                </Link>
+                            </Box>
+                            <Box className={classes.accountActions}>
+                                <Button onClick={disconnectWallet}>Disconnect</Button>
+                                <Button onClick={changeWallet}>Change wallet</Button>
+                            </Box>
+                        </Box>
+                    </Box>
+                    <Box className={classes.transactionWrapper}>
+                        {transactions.length === 0 && (
+                            <Typography className={classes.transactionLoading}>
+                                Your transactions will appear here...
+                            </Typography>
+                        )}
+                        {transactions.length > 0 && (
+                            <>
+                                <Box className={classes.transactionItem}>
+                                    <Typography>
+                                        Recent Transactions
+                                    </Typography>
+                                    <Link
+                                        component="button"
+                                        onClick={clearTransactions}
+                                    >
+                                        clear all
+                                    </Link>
+                                </Box>
+                                {transactions.map((transaction, index) => (
+                                    <Box className={classes.transactionItem} key={index}>
+                                        <Typography>
+                                            {transaction.title}
+                                        </Typography>
+                                        {transaction.status === 'pending' && (
+                                            <TransactionPending className={classes.svgPending} />
+                                        )}
+                                        {transaction.status === 'done' && (
+                                            <TransactionDone />
+                                        )}
+                                    </Box>
+                                ))}
+                            </>
+                        )}
+                    </Box>
                 </>
             )}
         </Box>

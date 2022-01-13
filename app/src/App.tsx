@@ -10,7 +10,7 @@ import {
     getSolletExtensionWallet,
     getSolletWallet,
     getSolongWallet,
-    getBloctoWallet,
+    getBloctoWallet
 } from '@solana/wallet-adapter-wallets';
 import { clusterApiUrl } from '@solana/web3.js';
 import { Toaster } from 'react-hot-toast';

@@ -9,7 +9,6 @@
     "@mui/material": "^5.2.4",
     "@mui/styles": "^5.2.3",
     "@project-serum/anchor": "^0.18.2",
-    "@solana/spl-token-registry": "^0.2.819",
     "@solana/wallet-adapter-base": "^0.8.1",
     "@solana/wallet-adapter-react": "^0.14.1",
     "@solana/wallet-adapter-wallets": "^0.13.0",

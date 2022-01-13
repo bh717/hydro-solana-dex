@@ -6,11 +6,12 @@ import Content from './content';
 interface WalletModalProps {
     open: boolean;
     onClose(): void;
+    address: string;
 }
 
-const WalletModal: FC<WalletModalProps> = ({ open, onClose }) => (
+const WalletModal: FC<WalletModalProps> = ({ open, onClose, address }) => (
     <Modal
-        content={<Content />}
+        content={<Content address={address} />}
         open={open}
         onClose={onClose}
     />
