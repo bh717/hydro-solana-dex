@@ -474,7 +474,7 @@ class Pool:
                     )
                 if self.global_state.L > 0.0:
                     # * return next goal (1 tick under tk) and tk just crossed
-                    return new_goal, tk
+                    return new_goal, tk, self.global_state.rP
         else:  # left to right, Y in X out
             for tk in sorted(self.active_ticks.keys()):  # ascending
                 if tk <= self.global_state.tick:
@@ -498,9 +498,9 @@ class Pool:
                 if self.global_state.L > 0.0:
                     # * return next goal and tk just crossed (==global_st tick)
 
-                    return new_goal, tk
+                    return new_goal, tk, self.global_state.rP
 
-        return None, self.global_state.tick
+        return None, self.global_state.tick, self.global_state.rP
 
     def cross_tick(self, provided_tick, left_to_right=True):
         """Handle update of global state and tick state when
@@ -723,7 +723,7 @@ class Pool:
         print(f"including {fees_x+adj_x=} & {fees_y+adj_y=}")
 
     def swap_within_tick_from_X(
-        self, start_t, goal_tick, L, dX, t_oracle=None
+        self, start_rP, goal_tick, L, dX, rP_oracle=None
     ):
         # + no writing to state to occurs here, just calc and return to caller
         done_dX, done_dY, end_t = 0.0, 0.0, 0.0
@@ -735,7 +735,8 @@ class Pool:
             raise Exception("can only handle X being supplied to pool, dX>0")
 
         # root-price at goal tick - here on the left
-        if goal_tick > start_t:
+        rP_goal = Pool.tick_to_rP(goal_tick)
+        if rP_goal > start_rP:
             raise Exception("expect price to go down when X supplied to pool")
             # we allow case when price exactly on the current tick
             # ( i.e. rP_goal = start_rP)
@@ -745,7 +746,7 @@ class Pool:
         dX_max = dX * (1.0 - self.fee_rate)
 
         # chg of reserve X possible if we go all the way to goal tick
-        doable_dX = Pool._dX_from_L_drP(L=L, t_old=start_t, t_new=goal_tick)
+        doable_dX = Pool.dX_from_L_drP(L=L, rP_old=start_rP, rP_new=rP_goal)
         if doable_dX < 0.0:  # expect a positive number
             raise Exception("doable_dX > 0 when X supplied to pool")
 
@@ -756,56 +757,56 @@ class Pool:
             fee_X = done_dX / (1.0 - self.fee_rate) * self.fee_rate
             cross = True  # because we'll need to cross and do extra swaps
             end_t = goal_tick  # swap so far moves price to level at this tick
+            end_rP = rP_goal  # ensure use same rP at tick borders, avoid log
 
         else:
             # we have enough. make all dX_max 'done', then calc end_rP
             done_dX = dX_max
             fee_X = dX - dX_max  # fee as expected
             cross = False
-            end_rootP = Pool._rP_new_from_L_dX(L, start_t, done_dX)
-            end_t = Pool.rP_to_tick(end_rootP, True)
-            # + pretend you did less dY to givout out lower (abs) dX
-            # + thats why u round up the tick ( go less far letfwards)
+            end_rP = Pool.rP_new_from_L_dX(L, start_rP, done_dX)
+            end_t = Pool.rP_to_tick(end_rP, False)
+            # * this log is take only once per trade if end between ticks
+            # * tick is always on the left (round down after log)
 
-            if end_t > start_t:
+            if end_rP > start_rP:
                 raise Exception("expect end_rP < start_rP when pool given X")
-            if end_t < goal_tick:
+            if end_rP < rP_goal:
                 raise Exception(
                     "dont expect end_rP go beyond rP_goal (tick on the left) "
                     + "when able to do a whole fill of dX"
                 )
 
         # now figure out how much done_dY and hmm_adj_Y
-        done_dY_amm = Pool._dY_from_L_drP(L=L, t_old=start_t, t_new=end_t)
-        if t_oracle is None or self.C == 0.0 or t_oracle >= start_t:
+        done_dY_amm = Pool.dY_from_L_drP(L=L, rP_old=start_rP, rP_new=end_rP)
+        if rP_oracle is None or self.C == 0.0 or rP_oracle >= start_rP:
             # 1st two cases cannot adjust so fall back to amm
             # * when trade will make pool price diverge more from oracle,
             # * then we don't adjust (hmm adjust on convergence only)
             done_dY = done_dY_amm
-        elif t_oracle < start_t and t_oracle >= end_t:
+        elif rP_oracle < start_rP and rP_oracle >= end_rP:
             # 1st term is redundant as implied from precious branch
             # we are adding for precision and readability
             # * when oracle is in between start_rP and end_rP prices, use hmm
             # * till we get to oracle then use unadjusted amm till end_rP
-            done_dY = Pool._dY_from_L_drP_hmm(
+            done_dY = Pool.dY_from_L_drP_hmm(
                 L=L,
-                t_old=start_t,
-                t_new=t_oracle,
+                rP_old=start_rP,
+                rP_new=rP_oracle,
                 C=self.C,
-                t_oracle=t_oracle,
+                rP_oracle=rP_oracle,
             )
-
-            done_dY += Pool._dY_from_L_drP(L=L, t_old=t_oracle, t_new=end_t)
-        elif t_oracle < end_t:
+            done_dY += Pool.dY_from_L_drP(L=L, rP_old=rP_oracle, rP_new=end_rP)
+        elif rP_oracle < end_rP:
             # * when trade will make pool price converge to oracle price
             # * and end_rP won't reach the oracle price
             # * then use hmm all the way
-            done_dY = Pool._dY_from_L_drP_hmm(
+            done_dY = Pool.dY_from_L_drP_hmm(
                 L=L,
-                t_old=start_t,
-                t_new=end_t,
+                rP_old=start_rP,
+                rP_new=end_rP,
                 C=self.C,
-                t_oracle=t_oracle,
+                rP_oracle=rP_oracle,
             )
         else:
             # we don't expect to hit this. raise error if we do hit
@@ -827,7 +828,7 @@ class Pool:
             raise Exception("hmm adj should be positive (conservative 4 pool)")
         if self.Y + done_dY_amm < 0.0:
             raise Exception("cannot swap out more Y than present in pool")
-        return done_dX, done_dY, end_t, cross, hmm_adj_Y, fee_X
+        return done_dX, done_dY, end_t, end_rP, cross, hmm_adj_Y, fee_X
 
     def execute_swap_from_X(self, dX, rP_oracle=None):
         """Swap algo when provided with dX>0
@@ -840,6 +841,7 @@ class Pool:
 
         # get current tick, current root price, and liquidity in range
         curr_t = self.global_state.tick
+        curr_rP = self.global_state.rP
 
         # main case where liq_in range > 0 , call swap_within_tick_from_X
         # otherwise try to get in range.
@@ -855,16 +857,18 @@ class Pool:
             else:
                 # try move into range, if cannot then break out to end swap
                 print("Gap in liquidity... trying to get in range...")
-                goal_tick, curr_t = self.try_get_in_range(left_to_right=False)
+                goal_tick, curr_t, curr_rP = self.try_get_in_range(
+                    left_to_right=False
+                )
 
             if goal_tick is None:
                 # there are no more active ticks on the left, terminate swap
                 print("no more active ticks (liquidity) in this direction")
-                avg_P = -swpd_dY / swpd_dX if swpd_dX != 0.0 else 0.0
+                avg_P = -swpd_dY / swpd_dX if swpd_dX != 0.0 else None
                 end_P = self.global_state.rP ** 2
                 print(
                     f"{swpd_dX=} {swpd_dY=} pool_X={self.X} pool_Y={self.Y} "
-                    + f"{avg_P=:.4f}, {end_P=:.4f}"
+                    + f"{avg_P=}, {end_P=:.4f}"
                 )
                 print(
                     f"{adjusted_dY=}  pool_cumul_Y_adj={self.Y_adj} "
@@ -876,15 +880,16 @@ class Pool:
                 done_dX,
                 done_dY,
                 end_t,
+                end_rP,
                 cross,
                 hmm_adj_Y,
                 fee_X,
             ) = self.swap_within_tick_from_X(
-                start_t=curr_t,
+                start_rP=curr_rP,
                 goal_tick=goal_tick,
                 L=self.global_state.L,
                 dX=dX - swpd_dX,
-                t_oracle=Pool.rP_to_tick(rP_oracle) if rP_oracle else None,
+                rP_oracle=rP_oracle,
             )
             assert self.Y + done_dY - hmm_adj_Y >= 0.0
             assert dX - swpd_dX >= done_dX + fee_X
@@ -894,10 +899,11 @@ class Pool:
             adjusted_dY += hmm_adj_Y
             total_fee_X += fee_X
             curr_t = end_t
+            curr_rP = end_rP
 
             # update global state to reflect price change (if any) & reserves
-            self.global_state.rP = self.tick_to_rP(curr_t)
             self.global_state.tick = curr_t
+            self.global_state.rP = curr_rP
             self.X += done_dX
             self.Y += done_dY - hmm_adj_Y  # adj out of reserves into fees
             self.X_fee += fee_X
@@ -920,7 +926,7 @@ class Pool:
         end_P = self.global_state.rP ** 2
         print(
             f"{swpd_dX=} {swpd_dY=} pool_X={self.X} pool_Y={self.Y} "
-            + f"{avg_P=:.4f}, {end_P=:.4f}"
+            + f"{avg_P=}, {end_P=:.4f}"
         )
         print(
             f"{adjusted_dY=}  pool_cumul_Y_adj={self.Y_adj} "
@@ -929,7 +935,7 @@ class Pool:
         return swpd_dX, swpd_dY, adjusted_dY, total_fee_X, avg_P, end_P
 
     def swap_within_tick_from_Y(
-        self, start_t, goal_tick, L, dY, t_oracle=None
+        self, start_rP, goal_tick, L, dY, rP_oracle=None
     ):
         # + no writing to state to occurs here, just calc and return to caller
         done_dX, done_dY, end_t = 0.0, 0.0, 0.0
@@ -941,7 +947,8 @@ class Pool:
             raise Exception("can only handle Y being supplied to pool, dY>0")
 
         # root-price at goal tick - here on the right
-        if goal_tick < start_t:
+        rP_goal = Pool.tick_to_rP(goal_tick)
+        if rP_goal < start_rP:
             raise Exception("expect price to go up when Y supplied to pool")
             # we allow case when price exactly on the current tick
             # ( i.e. rP_goal = start_rP)
@@ -951,7 +958,7 @@ class Pool:
         dY_max = dY * (1.0 - self.fee_rate)
 
         # chg of reserve Y possible if we go all the way to goal tick
-        doable_dY = Pool._dY_from_L_drP(L=L, t_old=start_t, t_new=goal_tick)
+        doable_dY = Pool.dY_from_L_drP(L=L, rP_old=start_rP, rP_new=rP_goal)
         if doable_dY < 0.0:  # expect a positive number
             raise Exception("doable_dY > 0 when Y supplied to pool")
 
@@ -962,55 +969,56 @@ class Pool:
             fee_Y = done_dY / (1.0 - self.fee_rate) * self.fee_rate
             cross = True  # because we'll need to cross and do extra swaps
             end_t = goal_tick  # swap so far moves price to level at this tick
+            end_rP = rP_goal  # ensure use same rP at tick borders, avoid log
 
         else:
             # we have enough, make all of dY_max 'done', then calc end_rP
             done_dY = dY_max
             fee_Y = dY - dY_max  # fee as expected
             cross = False
-            end_rootP = Pool._rP_new_from_L_dY(L, start_t, done_dY)
-            end_t = Pool.rP_to_tick(end_rootP, False)
-            # + pretend you did less dY to givout out lower (abs) dX
-            # + thats why u round down the tick (go less far rightwards)
+            end_rP = Pool.rP_new_from_L_dY(L, start_rP, done_dY)
+            end_t = Pool.rP_to_tick(end_rP, False)
+            # * this log is take only once per trade if end between ticks
+            # * tick is always on the left (round down after log)
 
-            if end_t < start_t:
+            if end_rP < start_rP:
                 raise Exception("expect end_rP > start_rP when pool given Y")
-            if end_t > goal_tick:
+            if end_rP > rP_goal:
                 raise Exception(
                     "dont expect end_rP go beyond rP_goal (tick on the right) "
                     + "when able to do a whole fill of dY"
                 )
 
         # now figure out how much done_dX and hmm_adj_X
-        done_dX_amm = Pool._dX_from_L_drP(L=L, t_old=start_t, t_new=end_t)
-        if t_oracle is None or self.C == 0.0 or t_oracle <= start_t:
+        done_dX_amm = Pool.dX_from_L_drP(L=L, rP_old=start_rP, rP_new=end_rP)
+        if rP_oracle is None or self.C == 0.0 or rP_oracle <= start_rP:
             # 1st two cases cannot adjust so fall back to amm
             # * when trade will make pool price diverge more from oracle,
             # * then we don't adjust (hmm adjust on convergence only)
             done_dX = done_dX_amm
-        elif t_oracle > start_t and t_oracle <= end_t:
+        elif rP_oracle > start_rP and rP_oracle <= end_rP:
             # 1st term is redundant as implied from precious branch
             # we are adding for precision and readability
             # * when oracle is in between start_rP and end_rP prices, use hmm
             # * till we get to oracle then use unadjusted amm till end_rP
-            done_dX = Pool._dX_from_L_drP_hmm(
+            done_dX = Pool.dX_from_L_drP_hmm(
                 L=L,
-                t_old=start_t,
-                t_new=t_oracle,
+                rP_old=start_rP,
+                rP_new=rP_oracle,
                 C=self.C,
-                t_oracle=t_oracle,
+                rP_oracle=rP_oracle,
             )
-            done_dX += Pool._dX_from_L_drP(L=L, t_old=t_oracle, t_new=end_t)
-        elif t_oracle > end_t:
+            done_dX += Pool.dX_from_L_drP(L=L, rP_old=rP_oracle, rP_new=end_rP)
+        elif rP_oracle > end_rP:
             # * when trade will make pool price converge to oracle price
             # * and end_rP won't reach the oracle price
             # * then use hmm all the way
-            done_dX = Pool._dX_from_L_drP_hmm(
+            done_dX = Pool.dX_from_L_drP_hmm(
                 L=L,
-                t_old=start_t,
-                t_new=end_t,
+                rP_old=start_rP,
+                rP_new=end_rP,
                 C=self.C,
-                t_oracle=t_oracle,
+                rP_oracle=rP_oracle,
             )
         else:
             # we don't expect to hit this. raise error if we do hit
@@ -1032,7 +1040,7 @@ class Pool:
             raise Exception("hmm adj should be positive (conservative 4 pool)")
         if self.X + done_dX_amm < 0.0:
             raise Exception("cannot swap out more X than present in pool")
-        return done_dX, done_dY, end_t, cross, hmm_adj_X, fee_Y
+        return done_dX, done_dY, end_t, end_rP, cross, hmm_adj_X, fee_Y
 
     def execute_swap_from_Y(self, dY, rP_oracle=None):
         """Swap algo when pool provided with dY > 0
@@ -1045,6 +1053,7 @@ class Pool:
 
         # get current tick, current root price, and liquidity in range
         curr_t = self.global_state.tick
+        curr_rP = self.global_state.rP
 
         # main case where liq_in range > 0 , call swap_within_tick_from_Y
         # otherwise try to get in range.
@@ -1063,16 +1072,18 @@ class Pool:
             else:
                 # try move into range, if cannot then break out to end swap
                 print("Gap in liquidity... trying to get in range...")
-                goal_tick, curr_t = self.try_get_in_range(left_to_right=True)
+                goal_tick, curr_t, curr_rP = self.try_get_in_range(
+                    left_to_right=True
+                )
 
             if goal_tick is None:
                 # there are no more active ticks on the left, terminate swap
                 print("no more active ticks (liquidity) in this direction")
-                avg_P = -swpd_dY / swpd_dX if swpd_dX != 0.0 else 0.0
+                avg_P = -swpd_dY / swpd_dX if swpd_dX != 0.0 else None
                 end_P = self.global_state.rP ** 2
                 print(
                     f"{swpd_dX=} {swpd_dY=} pool_X={self.X} pool_Y={self.Y} "
-                    + f"{avg_P=:.4f}, {end_P=:.4f}"
+                    + f"{avg_P=}, {end_P=:.4f}"
                 )
                 print(
                     f"{adjusted_dX=}  pool_cumul_X_adj={self.X_adj} "
@@ -1084,15 +1095,16 @@ class Pool:
                 done_dX,
                 done_dY,
                 end_t,
+                end_rP,
                 cross,
                 hmm_adj_X,
                 fee_Y,
             ) = self.swap_within_tick_from_Y(
-                start_t=curr_t,
+                start_rP=curr_rP,
                 goal_tick=goal_tick,
                 L=self.global_state.L,
                 dY=dY - swpd_dY,
-                t_oracle=Pool.rP_to_tick(rP_oracle) if rP_oracle else None,
+                rP_oracle=rP_oracle,
             )
             assert self.X + done_dX - hmm_adj_X >= 0.0
             assert dY - swpd_dY >= done_dY + fee_Y
@@ -1102,10 +1114,11 @@ class Pool:
             adjusted_dX += hmm_adj_X
             total_fee_Y += fee_Y
             curr_t = end_t
+            curr_rP = end_rP
 
             # update global state to reflect price change (if any) & reserves
-            self.global_state.rP = self.tick_to_rP(curr_t)
             self.global_state.tick = curr_t
+            self.global_state.rP = curr_rP
             self.X += done_dX - hmm_adj_X  # adj out of reserves into fees
             self.Y += done_dY
             self.X_adj += hmm_adj_X
@@ -1128,7 +1141,7 @@ class Pool:
         end_P = self.global_state.rP ** 2
         print(
             f"{swpd_dX=} {swpd_dY=} pool_X={self.X} pool_Y={self.Y} "
-            + f"{avg_P=:.4f}, {end_P=:.4f}"
+            + f"{avg_P=}, {end_P=:.4f}"
         )
         print(
             f"{adjusted_dX=}  pool_cumul_X_adj={self.X_adj} "
