@@ -66,7 +66,7 @@ class Pool:
     tokens X and Y, prices expressed with Y as numeraire"""
 
     TICK_BASE = 1.0001
-    ADJ_WHOLE_FILL = 1e-8
+    ADJ_WHOLE_FILL = 1e-12
     ADJ_WITHDRAWAL = 0e-8
 
     def __init__(
