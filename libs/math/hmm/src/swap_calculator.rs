@@ -99,7 +99,7 @@ impl SwapCalculator {
     }
 
     /// Compute delta x using a constant product curve given delta y
-    fn compute_delta_x_amm(&self, delta_y: &PreciseNumber) -> (PreciseNumber, bool) {
+    pub fn compute_delta_x_amm(&self, delta_y: &PreciseNumber) -> (PreciseNumber, bool) {
         // Δx = K/(Y₀ + Δy) - K/Y₀
         // delta_x = k/(sef.y0 + delta_y) - k/self.y0
         let k = self.compute_k();
@@ -143,7 +143,7 @@ impl SwapCalculator {
     }
 
     /// Compute delta x using a baseline curve given delta y
-    fn compute_delta_x_hmm(&self, delta_y: &PreciseNumber) -> (PreciseNumber, bool) {
+    pub fn compute_delta_x_hmm(&self, delta_y: &PreciseNumber) -> (PreciseNumber, bool) {
         let y_new = self.compute_y_new(delta_y);
         let yi = self.compute_yi();
         let k = self.compute_k();
