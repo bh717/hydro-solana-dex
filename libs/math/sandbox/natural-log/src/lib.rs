@@ -382,7 +382,7 @@ mod tests {
 
     use super::*;
 
-// type InnerUint = U256;
+    // type InnerUint = U256;
 
     #[test]
     fn test_log_vs_log_clearer() {
