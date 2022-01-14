@@ -67,9 +67,9 @@ describe('hydra-staking',  () => {
 
     it('should stake tokens into vault for the first time', async () => {
 
-        // program.addEventListener('StakeEvent', (e, s) => {
-        //    console.log(e)
-        // });
+        program.addEventListener('PriceChange', (e, s) => {
+           console.log(e)
+        });
         //
         // program.addEventListener('StakeDetails', (e,s) => {
         //     console.log(e)

@@ -1,4 +1,6 @@
 use crate::constants::*;
+use crate::events::*;
+use crate::utils::price::calc_price;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
 use anchor_spl::token::{Mint, Token, TokenAccount};
@@ -37,34 +39,11 @@ pub struct Stake<'info> {
     pub token_program: Program<'info, Token>,
 }
 
-#[event]
-pub struct StakeEvent {
-    pub token_mint_pubkey: String,
-    pub x_token_mint_pubkey: String,
-    pub token_from_pubkey: String,
-    pub token_from_authority_pubkey: String,
-    pub token_vault_pubkey: String,
-    pub x_token_to_pubkey: String,
-}
-
-#[event]
-pub struct StakeDetails {
-    pub x_token_mint_amount: u64,
-}
-
 pub fn handle(ctx: Context<Stake>, nonce: u8, amount: u64) -> ProgramResult {
-    emit!(StakeEvent {
-        token_mint_pubkey: ctx.accounts.token_mint.key().to_string(),
-        x_token_mint_pubkey: ctx.accounts.x_token_mint.key().to_string(),
-        token_from_pubkey: ctx.accounts.token_from.key().to_string(),
-        token_from_authority_pubkey: ctx.accounts.token_from_authority.key().to_string(),
-        token_vault_pubkey: ctx.accounts.token_vault.key().to_string(),
-        x_token_to_pubkey: ctx.accounts.x_token_to.key().to_string(),
-    });
-
     let total_token_vault = ctx.accounts.token_vault.amount;
     let total_x_token = ctx.accounts.x_token_mint.supply;
-    //
+    let old_price = calc_price(&ctx.accounts.token_vault, &ctx.accounts.x_token_mint);
+
     let token_mint_key = ctx.accounts.token_mint.key();
     let seeds = &[token_mint_key.as_ref(), &[nonce]];
     let signer = [&seeds[..]];
@@ -81,10 +60,6 @@ pub fn handle(ctx: Context<Stake>, nonce: u8, amount: u64) -> ProgramResult {
             &signer,
         );
         token::mint_to(cpi_ctx, amount)?;
-
-        emit!(StakeDetails {
-            x_token_mint_amount: amount
-        })
     } else {
         // (amount * total_x_token.supply) / total_token_vault
         let mint_x_amount: u64 = amount
@@ -103,10 +78,6 @@ pub fn handle(ctx: Context<Stake>, nonce: u8, amount: u64) -> ProgramResult {
             &signer,
         );
         token::mint_to(cpi_ctx, mint_x_amount)?;
-
-        emit!(StakeDetails {
-            x_token_mint_amount: mint_x_amount
-        })
     }
 
     // transfer the users token's to the vault
@@ -119,6 +90,18 @@ pub fn handle(ctx: Context<Stake>, nonce: u8, amount: u64) -> ProgramResult {
         },
     );
     token::transfer(cpi_ctx, amount)?;
+
+    (&mut ctx.accounts.token_vault).reload()?;
+    (&mut ctx.accounts.x_token_mint).reload()?;
+
+    let new_price = calc_price(&ctx.accounts.token_vault, &ctx.accounts.x_token_mint);
+
+    emit!(PriceChange {
+        old_hyd_per_xhyd_1e9: old_price.0,
+        old_hyd_per_xhyd: old_price.1,
+        new_hyd_per_xhyd_1e9: new_price.0,
+        new_hyd_per_xhyd: new_price.1,
+    });
 
     Ok(())
 }
