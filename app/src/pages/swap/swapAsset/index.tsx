@@ -7,6 +7,7 @@ import {
     InputBase,
     Typography
 } from '@mui/material';
+import { useWallet } from '@solana/wallet-adapter-react';
 import cn from 'classnames';
 
 import { Exchange, Compare } from '../../../components/icons';
@@ -163,11 +164,13 @@ interface SwapAssetProps {
     swapRate: number;
     exchange(): void;
     confirmSwap(): void;
+    walletConnect(): void;
 }
 
-const SwapAsset: FC<SwapAssetProps> = ({ fromAsset, fromAmount, toAsset, toAmount, changeAsset, changeAmount, swapRate, exchange, confirmSwap }) => {
+const SwapAsset: FC<SwapAssetProps> = ({ fromAsset, fromAmount, toAsset, toAmount, changeAsset, changeAmount, swapRate, exchange, confirmSwap, walletConnect }) => {
     const classes = useStyles();
 
+    const { connected } = useWallet();
     const [showPriceDetail, setShowPriceDetail] = useState(true);
 
     useEffect(() => {
@@ -274,16 +277,22 @@ const SwapAsset: FC<SwapAssetProps> = ({ fromAsset, fromAmount, toAsset, toAmoun
                         </Box>
                     </Box>
                 )}
-                {/*<Button className={classes.swapButton}>
-                    Connect Wallet
-                </Button>*/}
-                <Button
-                    className={classes.swapButton}
-                    disabled={!fromAsset.symbol || !toAsset.symbol || fromAmount <= 0 || toAmount <= 0}
-                    onClick={confirmSwap}
-                >
-                    {SwapButtonContent()}
-                </Button>
+                {connected ? (
+                    <Button
+                        className={classes.swapButton}
+                        disabled={!fromAsset.symbol || !toAsset.symbol || fromAmount <= 0 || toAmount <= 0}
+                        onClick={confirmSwap}
+                    >
+                        {SwapButtonContent()}
+                    </Button>
+                ) : (
+                    <Button
+                        className={classes.swapButton}
+                        onClick={walletConnect}
+                    >
+                        Connect Wallet
+                    </Button>
+                )}
             </Box>
         </>
     )

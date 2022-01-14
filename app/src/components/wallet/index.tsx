@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { FC, useState, useEffect } from 'react';
 import { Box, Menu, IconButton, Typography } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import { useWallet } from '@solana/wallet-adapter-react';
@@ -189,12 +189,16 @@ const useStyles = makeStyles({
     }
 })
 
-const Wallet = () => {
+interface WalletProps {
+    openModal: boolean;
+    handleModal(value: boolean): void;
+}
+
+const Wallet: FC<WalletProps> = ({ openModal, handleModal }) => {
     const classes = useStyles();
 
     const { connected, publicKey } = useWallet();
     const [address, setAddress] = useState('');
-    const [openWalletModal, setOpenWalletModal] = useState(false);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const tokenListOpen = Boolean(anchorEl);
     const [isMobile, setIsMobile] = useState(false);
@@ -309,7 +313,7 @@ const Wallet = () => {
                     </Menu>
                     <IconButton
                         className={classes.walletButton}
-                        onClick={() => setOpenWalletModal(true)}
+                        onClick={() => handleModal(true)}
                     >
                         <WalletSVG />
                         <Typography>Solana</Typography>
@@ -321,15 +325,15 @@ const Wallet = () => {
             {!connected && (
                 <IconButton
                     className={classes.connectButton}
-                    onClick={() => setOpenWalletModal(true)}
+                    onClick={() => handleModal(true)}
                 >
                     <WalletSVG />
                     <Typography>Connect Wallet</Typography>
                 </IconButton>
             )}
             <WalletModal
-                open={openWalletModal}
-                onClose={() => setOpenWalletModal(false)}
+                open={openModal}
+                onClose={() => handleModal(false)}
                 address={address}
             />
         </>

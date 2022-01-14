@@ -32,6 +32,7 @@ const useStyles = makeStyles({
     optionWrapper: {
         display: 'flex',
         marginTop: '13px',
+        justifyContent: 'space-between',
         '& button': {
             border: '1px solid #FFFFFF40',
             borderRadius: '4px',
@@ -48,7 +49,11 @@ const useStyles = makeStyles({
             }
         },
         '@media (max-width: 600px)': {
-            flexWrap: 'wrap'
+            flexWrap: 'wrap',
+            '& button': {
+                marginRight: '0 !important',
+                width: '30%'
+            }
         }
     },
     optionActive: {
@@ -76,7 +81,10 @@ const useStyles = makeStyles({
             fontSize: '18px',
             fontWeight: '400',
             padding: '14px 8px 14px 16px',
-            width: '50px'
+            '&::-webkit-outer-spin-button, &::-webkit-inner-spin-button': {
+                '-webkit-appearance': 'none',
+                margin: 0
+            }
         },
         '& .MuiInputAdornment-root': {
             marginLeft: '4px',
@@ -95,6 +103,10 @@ const useStyles = makeStyles({
             '-webkit-mask': 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
             '-webkit-mask-composite': 'destination-out',
             pointerEvents: 'none'
+        },
+        '@media (max-width: 600px)': {
+            order: '-1',
+            width: '100%'
         }
     },
     inputError: {
@@ -180,6 +192,7 @@ const Content: FC<ContentProps> = ({ slippage, setSlippage }) => {
                     <TextField
                         className={cn(classes.optionInput, {[classes.inputError]: parseFloat(slippage) < 0.01, [classes.inputActive]: parseFloat(tempSlippage) >= 0.01})}
                         hiddenLabel
+                        type="number"
                         InputProps={{
                             endAdornment: <InputAdornment position="end">%</InputAdornment>
                         }}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { FC, useState, useEffect } from 'react';
 import { makeStyles } from '@mui/styles';
 import { Box, IconButton, Typography } from '@mui/material';
 import toast from 'react-hot-toast';
@@ -159,7 +159,11 @@ const initialAsset = {
     balance: 0
 }
 
-const Swap = () => {
+interface SwapProps {
+    openWalletConnect(): void;
+}
+
+const Swap: FC<SwapProps> = ({ openWalletConnect }) => {
     const classes = useStyles();
     const { assets } = useSwap();
 
@@ -275,6 +279,7 @@ const Swap = () => {
                         swapRate={swapRate}
                         exchange={exchangeAssets}
                         confirmSwap={() => setOpenConfirmSwapModal(true)}
+                        walletConnect={openWalletConnect}
                     />
                 </Box>
                 {fromAsset.symbol !== '' && toAsset.symbol !== '' && (

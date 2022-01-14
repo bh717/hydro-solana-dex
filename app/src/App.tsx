@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { makeStyles } from '@mui/styles';
 import { Box } from '@mui/material';
@@ -89,6 +89,8 @@ function App() {
         getBloctoWallet()
     ], [network]);
 
+    const [openWalletModal, setOpenWalletModal] = useState(false);
+
     return (
         <ConnectionProvider endpoint={endpoint}>
             <WalletProvider wallets={wallets}>
@@ -97,11 +99,11 @@ function App() {
                     <Sidebar />
                     <Box component="main" className="container">
                         <Box className={classes.walletWrapper}>
-                            <Wallet />
+                            <Wallet openModal={openWalletModal} handleModal={setOpenWalletModal} />
                         </Box>
                         <Box className={classes.contentWrapper}>
                             <Routes>
-                                <Route path="/swap" element={<Swap />} />
+                                <Route path="/swap" element={<Swap openWalletConnect={() => setOpenWalletModal(true)} />} />
                                 <Route path="*" element={<Navigate replace to="/swap" />} />
                             </Routes>
                         </Box>
