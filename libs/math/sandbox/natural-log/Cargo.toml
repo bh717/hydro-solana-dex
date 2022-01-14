@@ -1,5 +1,3 @@
-cargo-features = ["edition2021"]
-
 [package]
 name = "natural-log-rs"
 version = "0.1.0"
