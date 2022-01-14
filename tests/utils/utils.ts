@@ -6,6 +6,7 @@ import {Provider} from "@project-serum/anchor";
 import { PublicKey, Keypair, Transaction, SystemProgram } from "@solana/web3.js"
 import * as BN from "bn.js"
 import { TokenInstructions } from "@project-serum/serum"
+import {createMintInstructions} from "@project-serum/common";
 
 type PathLike = string | Buffer | URL;
 
@@ -15,13 +16,37 @@ export async function loadKey(path: PathLike) :Promise<anchor.web3.Keypair> {
     return anchor.web3.Keypair.fromSecretKey(new Uint8Array(keydata))
 }
 
+export async function createMint(
+    provider: Provider,
+    mint = Keypair.generate(),
+    authority?: PublicKey,
+    decimals = 9,
+): Promise<PublicKey> {
+    if (authority === undefined) {
+        authority = provider.wallet.publicKey;
+    }
+    const instructions = await createMintInstructions(
+        provider,
+        authority,
+        mint.publicKey,
+        decimals,
+    );
+
+    const tx = new Transaction();
+    tx.add(...instructions);
+
+    await provider.send(tx, [mint]);
+
+    return mint.publicKey;
+}
+
 export async function createMintAndVault(
     provider: Provider,
     mint: Keypair,
     vault = Keypair.generate(),
     amount: BN,
     owner?: PublicKey,
-    decimals?: number,
+    decimals = 9,
 ): Promise<[PublicKey, PublicKey]> {
     if (owner === undefined) {
         owner = provider.wallet.publicKey;

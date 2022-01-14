@@ -1,75 +1,42 @@
 import * as anchor from '@project-serum/anchor';
-import {BN, Program, web3} from '@project-serum/anchor';
+import {    Program } from '@project-serum/anchor';
 import { HydraStaking } from '../../target/types/hydra_staking';
-import { loadKey } from "../utils/utils"
-import * as serumCommon from "@project-serum/common"
+import {loadKey, createMintAndVault, createMint} from "../utils/utils"
 import { TokenInstructions } from "@project-serum/serum"
+import {Keypair} from "@solana/web3.js";
+import {createTokenAccount, getMintInfo} from "@project-serum/common";
+import {TOKEN_PROGRAM_ID} from "@project-serum/serum/lib/token-instructions";
 
 describe('hydra-staking',  () => {
     anchor.setProvider(anchor.Provider.env());
     const program = anchor.workspace.HydraStaking as Program<HydraStaking>;
 
-    let signer = anchor.web3.Keypair.generate()
-
-    let hydMintKeyPair
     let hydMint
-
-    let xhysMintKeyPair
-    let xhysMint
+    let xhydMint
 
     let vaultPubkey
     let vaultBump
 
-    let assTokenAccount
-    let xAssTokenAccount
+    let hydTokenAccount = Keypair.generate()
+    let xHydAccount
 
     it('should mint Hyd', async () => {
-        // airdrop sol to signer account
-        await program.provider.connection.confirmTransaction(
-            await program.provider.connection.requestAirdrop(signer.publicKey, 10000000000),
-            "confirmed"
-        )
 
         // load keyPair
-        hydMintKeyPair = await loadKey("tests/keys/hyd3VthE9YPGBeg9HEgZsrM5qPniC6VoaEFeTGkVsJR.json")
+        hydMint = await loadKey("tests/keys/hyd3VthE9YPGBeg9HEgZsrM5qPniC6VoaEFeTGkVsJR.json")
+        await createMintAndVault(program.provider, hydMint, hydTokenAccount, new anchor.BN(100_000_000))
 
-        // // create mint with keyPair
-        // await createMint(
-        //     program.provider.connection,
-        //     signer,
-        //     program.provider.wallet.publicKey,
-        //     null,
-        //     9,
-        //     hydMintKeyPair,
-        // )
         //
-        // // create AssociatedTokenAccount for signer
-        // assTokenAccount = await getOrCreateAssociatedTokenAccount(
-        //     program.provider.connection,
-        //     signer,
-        //     hydMintKeyPair.publicKey,
-        //     program.provider.wallet.publicKey,
-        // )
+        // console.log(hydMint.publicKey)
+        // console.log(hydVault.publicKey)
+        // console.log(program.provider.wallet.publicKey)
         //
-        // let x = program.provider.wallet
-        //
-        // // mint to signer AssociatedTokenAccount
-        // await mintTo(
-        //     program.provider.connection,
-        //     signer,
-        //     hydMintKeyPair.publicKey,
-        //     assTokenAccount.address,
-        //     program.provider.wallet,
-        //     100000000,
-        // )
-
-        let [mint, vault] = await serumCommon.createMintAndVault(program.provider, new anchor.BN(100_000_000),program.provider.wallet.publicKey,9)
-
+        // console.log(await getMintInfo(program.provider, hydMint.publicKey))
     })
 
     it('should initialized stake PDA vault', async () => {
        [vaultPubkey, vaultBump] = await anchor.web3.PublicKey.findProgramAddress(
-            [mint.publicKey.toBuffer()],
+            [hydMint.publicKey.toBuffer()],
             program.programId
         )
 
@@ -77,7 +44,7 @@ describe('hydra-staking',  () => {
             vaultBump,
             {
                 accounts: {
-                    tokenMint: hydMintKeyPair.publicKey,
+                    tokenMint: hydMint.publicKey,
                     tokenVault: vaultPubkey,
                     initializer: program.provider.wallet.publicKey,
                     systemProgram: anchor.web3.SystemProgram.programId,
@@ -87,54 +54,55 @@ describe('hydra-staking',  () => {
             });
     });
 
-    // it('should create xhyd mint', async () => {
-    //     xhysMintKeyPair = await loadKey("tests/keys/xhy1rv75cEJahTbsKnv2TpNhdR7KNUoDPavKuQDwhDU.json")
-    //
-    //     await createMint(
-    //         program.provider.connection,
-    //         signer,
-    //         signer.publicKey,
-    //         null,
-    //         9,
-    //         xhysMintKeyPair,
-    //     )
-    //
-    //     // create xAssociatedTokenAccount for signer
-    //     xAssTokenAccount = await getOrCreateAssociatedTokenAccount(
-    //         program.provider.connection,
-    //         signer,
-    //         xhysMintKeyPair.publicKey,
-    //         signer.publicKey
-    //     )
-    //
-    // });
+    it('should create xhyd mint', async () => {
+        xhydMint = await loadKey("tests/keys/xhy1rv75cEJahTbsKnv2TpNhdR7KNUoDPavKuQDwhDU.json")
+        await createMint(program.provider, xhydMint, vaultPubkey)
 
-    // it('should stake tokens into vault', async () => {
-    //
-    //     program.addEventListener('StakeEvent', (e, s) => {
-    //        console.log(e)
-    //     });
-    //
-    //     console.log(await program.provider.connection.getTokenAccountBalance(assTokenAccount.address))
-    //     console.log(await program.provider.connection.getTokenAccountBalance(xAssTokenAccount.address))
-    //
-    //     await program.rpc.stake(
-    //         vaultBump,
-    //         new anchor.BN(1000),
-    //         {
-    //             accounts: {
-    //                 tokenMint: hydMintKeyPair.publicKey,
-    //                 xTokenMint: xhysMintKeyPair.publicKey,
-    //                 tokenFrom: assTokenAccount.address,
-    //                 tokenFromAuthority: program.provider.wallet.publicKey,
-    //                 tokenVault: vaultPubkey,
-    //                 xTokenTo: xAssTokenAccount.address,
-    //                 tokenProgram: TOKEN_PROGRAM_ID,
-    //             }
-    //         }
-    //     )
-    //
-    //     console.log(await program.provider.connection.getTokenAccountBalance(assTokenAccount.address))
-    //     console.log(await program.provider.connection.getTokenAccountBalance(xAssTokenAccount.address))
-    // });
+        // console.log(vaultPubkey)
+        // console.log(await getMintInfo(program.provider,xhysMint.publicKey))
+
+        xHydAccount = await createTokenAccount(program.provider, xhydMint.publicKey, program.provider.wallet.publicKey)
+    });
+
+    it('should stake tokens into vault', async () => {
+
+        program.addEventListener('StakeEvent', (e, s) => {
+           console.log(e)
+        });
+
+        program.addEventListener('StakeDetails', (e,s) => {
+            console.log(e)
+            }
+        )
+
+        console.log("hydTokenAccount: ", await program.provider.connection.getTokenAccountBalance(hydTokenAccount.publicKey))
+        console.log("xHydAccount: ", await program.provider.connection.getTokenAccountBalance(xHydAccount))
+
+        console.log("programId: ", program.programId.toString())
+        console.log("hydMint.publicKey: ", hydMint.publicKey.toString())
+        console.log("xhydMint.publicKey: ", xhydMint.publicKey.toString())
+        console.log("hydTokenAccount.publicKey: ",hydTokenAccount.publicKey.toString())
+        console.log("provider.wallet.publicKey: ", program.provider.wallet.publicKey.toString())
+        console.log("vaultPubkey: ",vaultPubkey.toString())
+
+
+        await program.rpc.stake(
+            vaultBump,
+            new anchor.BN(1000),
+            {
+                accounts: {
+                    tokenMint: hydMint.publicKey,
+                    xTokenMint: xhydMint.publicKey,
+                    tokenFrom: hydTokenAccount.publicKey,
+                    tokenFromAuthority: program.provider.wallet.publicKey,
+                    tokenVault: vaultPubkey,
+                    xTokenTo: xHydAccount,
+                    tokenProgram: TOKEN_PROGRAM_ID,
+                }
+            }
+        )
+
+        console.log("hydTokenAccount: ", await program.provider.connection.getTokenAccountBalance(hydTokenAccount.publicKey))
+        console.log("xHydAccount: ", await program.provider.connection.getTokenAccountBalance(xHydAccount))
+    });
 });
