@@ -5,8 +5,6 @@ use spl_math::uint::U256;
 use crate::math::{checked_pow_fraction, log, signed_addition, signed_mul};
 use crate::swap_result::SwapResult;
 
-type InnerUint = U256;
-
 /// The number 1 as a precise number
 fn one() -> PreciseNumber {
     PreciseNumber::new(1).expect("one")
@@ -328,6 +326,8 @@ mod tests {
     use std::collections::HashMap;
 
     use sim::Model;
+
+    type InnerUint = U256;
 
     use super::*;
 
