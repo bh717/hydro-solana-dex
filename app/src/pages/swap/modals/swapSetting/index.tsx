@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import Modal from '../../../components/modal';
+import Modal from '../../../../components/modal';
 import Content from './content';
 
 interface SwapSettingModalProps {
@@ -11,7 +11,6 @@ interface SwapSettingModalProps {
 
 const SwapSettingModal: FC<SwapSettingModalProps> = ({ open, onClose, slippage, setSlippage }) => (
     <Modal
-        title="Settings"
         content={<Content slippage={slippage} setSlippage={setSlippage} />}
         open={open}
         onClose={onClose}

@@ -1,10 +1,53 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;1,500&display=swap');
+@font-face {
+    font-family: 'Helvetica Neue';
+    src: url(../fonts/HelveticaNeue/HelveticaNeue.ttf) format("opentype");
+}
+
+@font-face {
+    font-family: 'Helvetica Neue';
+    src: url(../fonts/HelveticaNeue/HelveticaNeue-Thin.ttf) format("opentype");
+    font-weight: 100;
+}
+
+@font-face {
+    font-family: 'Helvetica Neue';
+    src: url(../fonts/HelveticaNeue/HelveticaNeue-UltraLight.ttf) format("opentype");
+    font-weight: 200;
+}
+
+@font-face {
+    font-family: 'Helvetica Neue';
+    src: url(../fonts/HelveticaNeue/HelveticaNeue-Light.ttf) format("opentype");
+    font-weight: 300;
+}
+
+@font-face {
+    font-family: 'Helvetica Neue';
+    src: url(../fonts/HelveticaNeue/HelveticaNeue-Medium.ttf) format("opentype");
+    font-weight: 500;
+}
+
+@font-face {
+    font-family: 'Helvetica Neue';
+    src: url(../fonts/HelveticaNeue/HelveticaNeue-MediumItalic.ttf) format("opentype");
+    font-weight: 500;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Helvetica Neue';
+    src: url(../fonts/HelveticaNeue/HelveticaNeue-Bold.ttf) format("opentype");
+    font-weight: 600;
+}
 
 html, body {
     height: 100%;
     width: 100%;
     margin: 0;
-    font-family: 'Inter', 'Roboto', Helvetica, Arial, sans-serif;
+}
+
+* {
+    font-family: 'Helvetica Neue', Arial, sans-serif !important;
 }
 
 #root {
@@ -49,4 +92,38 @@ html, body {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
+}
+
+.MuiModal-root {
+    z-index: 900 !important;
+}
+
+@media screen and (min-width: 601px) {
+    ::-webkit-scrollbar {
+        width: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background-color: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background-color: #FFFFFF40;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background-color: #FFFFFF40;
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background-color: #FFFFFF40;
+        border-radius: 10px;
+        border: 2px solid transparent;
+        background-clip: content-box;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background-color: #FFFFFF50;
+    }
 }

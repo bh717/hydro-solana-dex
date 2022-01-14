@@ -1,7 +1,6 @@
 import { FC } from 'react';
 import { makeStyles } from '@mui/styles';
-import { Dialog, Box, IconButton, Typography } from '@mui/material';
-import DialogTitle from '@mui/material/DialogTitle';
+import { Dialog, Box, IconButton } from '@mui/material';
 import DialogContent from '@mui/material/DialogContent';
 
 import { Close } from '../icons';
@@ -18,7 +17,10 @@ const useStyles = makeStyles({
             padding: '1px',
             marginTop: '84px',
             marginBottom: '84px',
+            width: '420px',
+            maxHeight: 'calc(100% - 168px)',
             '@media (max-width:600px)': {
+                width: '100%',
                 marginTop: '80px',
                 marginBottom: '80px'
             }
@@ -27,53 +29,41 @@ const useStyles = makeStyles({
     contentWrapper: {
         background: '#313C4E',
         borderRadius: '6px',
-        padding: '1px'
+        position: 'relative',
+        height: '100%',
+        overflowY: 'auto'
     },
-    dialogTitle: {
-        borderBottom: '1px solid #FFFFFF0F',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '20px 24px !important',
-        '& p': {
-            color: '#FFFFFFD9',
-            fontSize: '18px',
-            fontWeight: '500',
-            lineHeight: '21px'
-        },
-        '& button': {
-            padding: '0 !important',
-            '& svg': {
-                color: '#FFFFFF73',
-                width: '14px',
-                height: '14px'
-            }
+    closeButton: {
+        padding: '0 !important',
+        position: 'absolute !important' as any,
+        top: '29px',
+        right: '24px',
+        '& svg': {
+            color: '#FFFFFF73',
+            width: '14px',
+            height: '14px'
         }
     },
     dialogContent: {
-        padding: '32px 24px !important'
+        padding: '0px !important'
     }
 })
 
 interface ModalProps {
-    title: string;
     content: JSX.Element;
     open: boolean;
     onClose(): void;
 }
 
-const Modal: FC<ModalProps> = ({ title, content, open, onClose }) => {
+const Modal: FC<ModalProps> = ({ content, open, onClose }) => {
     const classes = useStyles();
 
     return (
         <Dialog className={classes.dialog} open={open}>
             <Box className={classes.contentWrapper}>
-                <DialogTitle className={classes.dialogTitle}>
-                    <Typography>{title}</Typography>
-                    <IconButton aria-label="close" onClick={onClose}>
-                        <Close />
-                    </IconButton>
-                </DialogTitle>
+                <IconButton className={classes.closeButton} aria-label="close" onClick={onClose}>
+                    <Close />
+                </IconButton>
                 <DialogContent className={classes.dialogContent}>
                     {content}
                 </DialogContent>

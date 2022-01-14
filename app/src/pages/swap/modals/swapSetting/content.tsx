@@ -11,6 +11,18 @@ import cn from 'classnames';
 import debounce from 'lodash.debounce';
 
 const useStyles = makeStyles({
+    contentTitle: {
+        borderBottom: '1px solid #FFFFFF0F',
+        color: '#FFF',
+        fontSize: '18px !important',
+        fontWeight: '500 !important',
+        lineHeight: '22px !important',
+        padding: '23px 20px',
+        margin: '0 3px'
+    },
+    contentWrapper: {
+        padding: '32px 23px'
+    },
     typography: {
         color: '#FFF',
         fontSize: '14px !important',
@@ -20,6 +32,7 @@ const useStyles = makeStyles({
     optionWrapper: {
         display: 'flex',
         marginTop: '13px',
+        justifyContent: 'space-between',
         '& button': {
             border: '1px solid #FFFFFF40',
             borderRadius: '4px',
@@ -36,7 +49,11 @@ const useStyles = makeStyles({
             }
         },
         '@media (max-width: 600px)': {
-            flexWrap: 'wrap'
+            flexWrap: 'wrap',
+            '& button': {
+                marginRight: '0 !important',
+                width: '30%'
+            }
         }
     },
     optionActive: {
@@ -64,7 +81,10 @@ const useStyles = makeStyles({
             fontSize: '18px',
             fontWeight: '400',
             padding: '14px 8px 14px 16px',
-            width: '50px'
+            '&::-webkit-outer-spin-button, &::-webkit-inner-spin-button': {
+                '-webkit-appearance': 'none',
+                margin: 0
+            }
         },
         '& .MuiInputAdornment-root': {
             marginLeft: '4px',
@@ -83,6 +103,10 @@ const useStyles = makeStyles({
             '-webkit-mask': 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
             '-webkit-mask-composite': 'destination-out',
             pointerEvents: 'none'
+        },
+        '@media (max-width: 600px)': {
+            order: '-1',
+            width: '100%'
         }
     },
     inputError: {
@@ -141,45 +165,49 @@ const Content: FC<ContentProps> = ({ slippage, setSlippage }) => {
 
     return (
         <>
-            <Typography className={classes.typography}>
-                Slippage Tolerance
-            </Typography>
-            <Box className={classes.optionWrapper}>
-                <Button
-                    className={cn({[classes.optionActive]: parseFloat(slippage) === 0.1})}
-                    onClick={() => setSlippage('0.1')}
-                >
-                    0.1%
-                </Button>
-                <Button
-                    className={cn({[classes.optionActive]: parseFloat(slippage) === 0.5})}
-                    onClick={() => setSlippage('0.5')}
-                >
-                    0.5%
-                </Button>
-                <Button
-                    className={cn({[classes.optionActive]: parseFloat(slippage) === 1})}
-                    onClick={() => setSlippage('1')}
-                >
-                    1.0%
-                </Button>
-                <TextField
-                    className={cn(classes.optionInput, {[classes.inputError]: parseFloat(slippage) < 0.01, [classes.inputActive]: parseFloat(tempSlippage) >= 0.01})}
-                    hiddenLabel
-                    InputProps={{
-                        endAdornment: <InputAdornment position="end">%</InputAdornment>
-                    }}
-                    value={tempSlippage}
-                    onChangeCapture={(
-                        event: React.ChangeEvent<HTMLInputElement>
-                    ) => handleChangeValue(event.target.value)}
-                />
-            </Box>
-            {parseFloat(slippage) <= 0.01 && (
-                <Typography className={classes.error}>
-                    Enter a valid slippage percentage
+            <Typography className={classes.contentTitle}>Settings</Typography>
+            <Box className={classes.contentWrapper}>
+                <Typography className={classes.typography}>
+                    Slippage Tolerance
                 </Typography>
-            )}
+                <Box className={classes.optionWrapper}>
+                    <Button
+                        className={cn({[classes.optionActive]: parseFloat(slippage) === 0.1})}
+                        onClick={() => setSlippage('0.1')}
+                    >
+                        0.1%
+                    </Button>
+                    <Button
+                        className={cn({[classes.optionActive]: parseFloat(slippage) === 0.5})}
+                        onClick={() => setSlippage('0.5')}
+                    >
+                        0.5%
+                    </Button>
+                    <Button
+                        className={cn({[classes.optionActive]: parseFloat(slippage) === 1})}
+                        onClick={() => setSlippage('1')}
+                    >
+                        1.0%
+                    </Button>
+                    <TextField
+                        className={cn(classes.optionInput, {[classes.inputError]: parseFloat(slippage) < 0.01, [classes.inputActive]: parseFloat(tempSlippage) >= 0.01})}
+                        hiddenLabel
+                        type="number"
+                        InputProps={{
+                            endAdornment: <InputAdornment position="end">%</InputAdornment>
+                        }}
+                        value={tempSlippage}
+                        onChangeCapture={(
+                            event: React.ChangeEvent<HTMLInputElement>
+                        ) => handleChangeValue(event.target.value)}
+                    />
+                </Box>
+                {parseFloat(slippage) <= 0.01 && (
+                    <Typography className={classes.error}>
+                        Enter a valid slippage percentage
+                    </Typography>
+                )}
+            </Box>
         </>
     )
 }

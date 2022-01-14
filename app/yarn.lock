@@ -1953,13 +1953,6 @@
   dependencies:
     buffer "~6.0.3"
 
-"@solana/spl-token-registry@^0.2.819":
-  version "0.2.819"
-  resolved "https://registry.yarnpkg.com/@solana/spl-token-registry/-/spl-token-registry-0.2.819.tgz#1bf967e60a98eb55161d95fed2b91aef4cf61745"
-  integrity sha512-gPXH4L692NoWzfJSe45S6rVD6ImMcirc9KrD+XuE1pYRM9bl6pD7czfmlEw+SwvPb76Sm26M0ikemVhmI6+ORg==
-  dependencies:
-    cross-fetch "3.0.6"
-
 "@solana/wallet-adapter-base@^0.8.1":
   version "0.8.1"
   resolved "https://registry.yarnpkg.com/@solana/wallet-adapter-base/-/wallet-adapter-base-0.8.1.tgz#df425abb5c14b93baefd449bbe62ebfb685803fe"
@@ -2020,11 +2013,6 @@
   version "0.8.0"
   resolved "https://registry.yarnpkg.com/@solana/wallet-adapter-phantom/-/wallet-adapter-phantom-0.8.0.tgz#c73f91d43f52d946a9dc6702130890902502642d"
   integrity sha512-+fXzl0LBtjs9cS6RjbNkoXafvxxlTKp5NdeKmpYm+ZrIXZkxXC4wfdwIdMlRtsznGcBKv5+yqfUATD9MvKkPNw==
-
-"@solana/wallet-adapter-react-ui@^0.7.0":
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/@solana/wallet-adapter-react-ui/-/wallet-adapter-react-ui-0.7.0.tgz#4481ee501bec14545ca5962c02fb782c00fc0426"
-  integrity sha512-jY9WFCjlPzedPrEzcc5xLD44q0VhVR9GYbJDcAYbZCfH/DpD+kv2I6FxT+kl7NqE5fa6GuokMW12a6+9J/FvNA==
 
 "@solana/wallet-adapter-react@^0.14.1":
   version "0.14.1"
@@ -4561,13 +4549,6 @@ create-hmac@^1.1.0, create-hmac@^1.1.4, create-hmac@^1.1.7:
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
 
-cross-fetch@3.0.6:
-  version "3.0.6"
-  resolved "https://registry.yarnpkg.com/cross-fetch/-/cross-fetch-3.0.6.tgz#3a4040bc8941e653e0e9cf17f29ebcd177d3365c"
-  integrity sha512-KBPUbqgFjzWlVcURG+Svp9TlhA5uliYtiNx/0r8nv0pdypeQCRJ9IaSIc3q/x3q8t3F75cHuwxVql1HFGHCNJQ==
-  dependencies:
-    node-fetch "2.6.1"
-
 cross-fetch@^3.1.4:
   version "3.1.4"
   resolved "https://registry.yarnpkg.com/cross-fetch/-/cross-fetch-3.1.4.tgz#9723f3a3a247bf8b89039f3a380a9244e8fa2f39"
@@ -6402,6 +6383,11 @@ globby@^6.1.0:
     object-assign "^4.0.1"
     pify "^2.0.0"
     pinkie-promise "^2.0.0"
+
+goober@^2.1.1:
+  version "2.1.6"
+  resolved "https://registry.yarnpkg.com/goober/-/goober-2.1.6.tgz#0677ce3fa0fe9a5c8d21cb41199eedb77695b45f"
+  integrity sha512-pagWKA1yFbrOVcRaU2VPmXHCBzLXuHQ0y//vHamaYm87zitahE7YpNC18aqnLvQvq6/VWkqVAYfU1+9rSogXAg==
 
 graceful-fs@^4.1.11, graceful-fs@^4.1.15, graceful-fs@^4.1.2, graceful-fs@^4.1.6, graceful-fs@^4.2.0, graceful-fs@^4.2.4:
   version "4.2.8"
@@ -10365,6 +10351,13 @@ react-error-overlay@^6.0.9:
   version "6.0.9"
   resolved "https://registry.yarnpkg.com/react-error-overlay/-/react-error-overlay-6.0.9.tgz#3c743010c9359608c375ecd6bc76f35d93995b0a"
   integrity sha512-nQTTcUu+ATDbrSD1BZHr5kgSD4oF8OFjxun8uAaL8RwPBacGBNPf/yAuVVdx17N8XNzRDMrZ9XcKZHCjPW+9ew==
+
+react-hot-toast@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/react-hot-toast/-/react-hot-toast-2.2.0.tgz#ab6f4caed4214b9534f94bb8cfaaf21b051e62b9"
+  integrity sha512-248rXw13uhf/6TNDVzagX+y7R8J183rp7MwUMNkcrBRyHj/jWOggfXTGlM8zAOuh701WyVW+eUaWG2LeSufX9g==
+  dependencies:
+    goober "^2.1.1"
 
 react-is@^16.7.0, react-is@^16.8.1:
   version "16.13.1"

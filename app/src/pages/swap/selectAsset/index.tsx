@@ -3,7 +3,7 @@ import { makeStyles } from '@mui/styles';
 import { Box, Button } from '@mui/material';
 import cn from 'classnames';
 
-import { Down } from '../../../components/icons';
+import { CaretDown } from '../../../components/icons';
 import { Asset } from '../../../interfaces';
 
 const useStyles = makeStyles({
@@ -12,7 +12,23 @@ const useStyles = makeStyles({
         borderRadius: '6px',
         position: 'relative',
         padding: '8px 10px',
-        minWidth: '100px'
+        minWidth: '100px',
+        '&:hover': {
+            '&::before': {
+                content: "''",
+                position: 'absolute',
+                top: 0,
+                right: 0,
+                bottom: 0,
+                left: 0,
+                borderRadius: '5px',
+                padding: '1px',
+                background: 'linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%)',
+                '-webkit-mask': 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                '-webkit-mask-composite': 'destination-out',
+                pointerEvents: 'none'
+            }
+        }
     },
     assetButton: {
         padding: '0 !important',
@@ -57,7 +73,7 @@ const SelectAsset: FC<SelectAssetProps> = ({ type, asset, changeAsset }) => {
             <Button className={classes.assetButton} disableRipple={true} onClick={changeAsset}>
                 {asset.icon !== '' && <img src={asset.icon} alt="Asset" />}
                 <span>{asset.symbol || 'Select'}</span>
-                <Down />
+                <CaretDown />
             </Button>
         </Box>
     )
