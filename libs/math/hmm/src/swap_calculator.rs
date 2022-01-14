@@ -1,6 +1,5 @@
 //! Swap calculator
 use spl_math::precise_number::PreciseNumber;
-use spl_math::uint::U256;
 
 use crate::math::{checked_pow_fraction, log, signed_addition, signed_mul};
 use crate::swap_result::SwapResult;
@@ -321,15 +320,17 @@ impl SwapCalculator {
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
+    use std::collections::HashMap;
+
     use proptest::prelude::*;
     use spl_math::precise_number::PreciseNumber;
-    use std::collections::HashMap;
+    use spl_math::uint::U256;
 
     use sim::Model;
 
-    type InnerUint = U256;
-
     use super::*;
+
+    type InnerUint = U256;
 
     fn desired_precision(c: &PreciseNumber) -> U256 {
         if c == &one() {
