@@ -89,3 +89,7 @@ export async function createMintAndVault(
     await provider.send(tx, [mint, vault]);
     return [mint.publicKey, vault.publicKey];
 }
+
+export async function getTokenBalance(provider: Provider, pubkey: PublicKey) {
+    return parseInt((await provider.connection.getTokenAccountBalance(pubkey)).value.amount);
+}
