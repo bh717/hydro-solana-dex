@@ -1,5 +1,4 @@
 use spl_math::precise_number::PreciseNumber;
-use spl_math::uint::U256;
 
 pub struct Calculator {
     value: u128,
@@ -170,8 +169,8 @@ impl Calculator {
         // Note: index_i depends on  easy_(i-1)
         // so index_1 is chosen so that
 
-        let N = 1E8 as u128; // blow-up factor
-        let s_blown = s * N;
+        let n = 1E8 as u128; // blow-up factor
+        let s_blown = s * n;
         let start = s_blown / approx;
         // so start = s/approx i.e 9/8 =1.125..... blown up to 8 digits and truncated
         // now we look for easy_1 s.t. start = easy_1 * (extra_1) and easy_1 is start rounded to 1 digit (1.1) and blown up
@@ -378,10 +377,12 @@ impl Calculator {
 
 #[cfg(test)]
 mod tests {
-    use spl_math::precise_number::PreciseNumber;
-    type InnerUint = U256;
+    // use spl_math::precise_number::PreciseNumber;
+    // use spl_math::uint::U256;
 
     use super::*;
+
+    // type InnerUint = U256;
 
     #[test]
     fn test_log_vs_log_clearer() {
