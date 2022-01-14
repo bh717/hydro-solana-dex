@@ -1,11 +1,8 @@
 //! Swap calculator
 use spl_math::precise_number::PreciseNumber;
-use spl_math::uint::U256;
 
 use crate::math::{checked_pow_fraction, log, signed_addition, signed_mul};
 use crate::swap_result::SwapResult;
-
-type InnerUint = U256;
 
 /// The number 1 as a precise number
 fn one() -> PreciseNumber {
@@ -102,7 +99,7 @@ impl SwapCalculator {
     }
 
     /// Compute delta x using a constant product curve given delta y
-    fn compute_delta_x_amm(&self, delta_y: &PreciseNumber) -> (PreciseNumber, bool) {
+    pub fn compute_delta_x_amm(&self, delta_y: &PreciseNumber) -> (PreciseNumber, bool) {
         // Δx = K/(Y₀ + Δy) - K/Y₀
         // delta_x = k/(sef.y0 + delta_y) - k/self.y0
         let k = self.compute_k();
@@ -146,7 +143,7 @@ impl SwapCalculator {
     }
 
     /// Compute delta x using a baseline curve given delta y
-    fn compute_delta_x_hmm(&self, delta_y: &PreciseNumber) -> (PreciseNumber, bool) {
+    pub fn compute_delta_x_hmm(&self, delta_y: &PreciseNumber) -> (PreciseNumber, bool) {
         let y_new = self.compute_y_new(delta_y);
         let yi = self.compute_yi();
         let k = self.compute_k();
@@ -323,13 +320,17 @@ impl SwapCalculator {
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
+    use std::collections::HashMap;
+
     use proptest::prelude::*;
     use spl_math::precise_number::PreciseNumber;
-    use std::collections::HashMap;
+    use spl_math::uint::U256;
 
     use sim::Model;
 
     use super::*;
+
+    type InnerUint = U256;
 
     fn desired_precision(c: &PreciseNumber) -> U256 {
         if c == &one() {
