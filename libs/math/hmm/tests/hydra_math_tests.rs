@@ -56,28 +56,28 @@ mod tests {
         // largest containing 1 to 9 once
         let x = PreciseNumber::new(923_187_456u128).unwrap();
         assert_eq!(
-            sqrt_precise(x).unwrap(),
+            sqrt_precise(&x).unwrap(),
             PreciseNumber::new(30_384u128).unwrap()
         );
 
         // largest containing 1 to 9 two times
         let x = PreciseNumber::new(998_781_235_573_146_624u128).unwrap();
         assert_eq!(
-            sqrt_precise(x).unwrap(),
+            sqrt_precise(&x).unwrap(),
             PreciseNumber::new(999_390_432u128).unwrap()
         );
 
         // largest containing 1 to 9 three times
         let x = PreciseNumber::new(999_888_767_225_363_175_346_145_124u128).unwrap();
         assert_eq!(
-            sqrt_precise(x).unwrap(),
+            sqrt_precise(&x).unwrap(),
             PreciseNumber::new(31_621_017_808_182u128).unwrap()
         );
 
         // max u128
         let x = PreciseNumber::new(u128::MAX).unwrap();
         assert_eq!(
-            sqrt_precise(x).unwrap(),
+            sqrt_precise(&x).unwrap(),
             PreciseNumber::new(18_446_744_073_709_551_616u128).unwrap()
         );
     }

@@ -31,7 +31,7 @@ fn bench_u128_integer_sqrt(c: &mut Criterion) {
             BenchmarkId::new("u128_Legacy", parameter),
             &i_u128,
             |b, &s| {
-                b.iter(|| sqrt(s.clone()));
+                b.iter(|| sqrt(*s));
             },
         );
 
@@ -39,7 +39,7 @@ fn bench_u128_integer_sqrt(c: &mut Criterion) {
             BenchmarkId::new("u128_LegacyPreciseNumber", parameter),
             &i_precise,
             |b, s| {
-                b.iter(|| sqrt_precise(s.clone()));
+                b.iter(|| sqrt_precise(s));
             },
         );
 

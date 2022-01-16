@@ -81,13 +81,13 @@ fn maximum_sqrt_base() -> PreciseNumber {
 }
 
 /// Return the square root of a precise number
-pub fn sqrt_precise(base: PreciseNumber) -> Option<PreciseNumber> {
+pub fn sqrt_precise(base: &PreciseNumber) -> Option<PreciseNumber> {
     if base.less_than(&minimum_sqrt_base()) || base.greater_than(&maximum_sqrt_base()) {
         return None;
     }
 
     if base.eq(&zero()) || base.eq(&one()) {
-        return Some(base);
+        return Some(base.clone());
     }
 
     let s = base.to_imprecise().unwrap();
@@ -179,19 +179,19 @@ pub fn checked_pow_fraction(base: &PreciseNumber, exp: &PreciseNumber) -> Precis
     match quotient {
         0 => {
             // x^0 = 1
-            PreciseNumber::new(1).unwrap()
+            one()
         }
         1 => {
             // x^1/4 = x^0.25 = ⁴√x = √(√x) = sqrt(sqrt(x))
-            // TODO: decide on using custom square root function, less compute but more inaccurate.
-            // PreciseNumber::new((sqrt(sqrt(base.to_imprecise().unwrap())))).unwrap()
-            (base.sqrt().unwrap()).sqrt().unwrap()
+            sqrt_precise(&sqrt_precise(base).unwrap()).unwrap()
+            // PreciseNumber.sqrt uses less efficient newtonian method
+            // (base.sqrt().unwrap()).sqrt().unwrap()
         }
         2 => {
             // x^1/2 = x^0.5 = √x = sqrt(x)
-            // TODO: decide on using custom square root function, less compute but more inaccurate.
-            // PreciseNumber::new(sqrt(base.to_imprecise().unwrap())).unwrap()
-            base.sqrt().unwrap()
+            sqrt_precise(base).unwrap()
+            // PreciseNumber.sqrt uses less efficient newtonian method
+            // base.sqrt().unwrap()
         }
         4 => {
             // x^1 = x
@@ -199,12 +199,14 @@ pub fn checked_pow_fraction(base: &PreciseNumber, exp: &PreciseNumber) -> Precis
         }
         5 => {
             // x^5/4 = x^1.25 = x(√(√x)) = x(sqrt(sqrt(x)))
-            base.checked_mul(&(base.sqrt().unwrap()).sqrt().unwrap())
+            base.checked_mul(&(sqrt_precise(&sqrt_precise(base).unwrap()).unwrap()))
                 .unwrap()
         }
         6 => {
             // x^3/2 = x^1.50 = x(√x) = x(sqrt(x))
-            base.checked_mul(&base.sqrt().unwrap()).unwrap()
+            base.checked_mul(&sqrt_precise(base).unwrap()).unwrap()
+            // PreciseNumber.sqrt uses less efficient newtonian method
+            // base.checked_mul(&base.sqrt().unwrap()).unwrap()
         }
         8 => {
             // x^2 = 2x
