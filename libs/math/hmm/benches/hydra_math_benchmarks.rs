@@ -4,7 +4,7 @@ use criterion::{criterion_group, criterion_main};
 use spl_math::precise_number::PreciseNumber;
 use uint::construct_uint;
 
-use hydra_math::math::{checked_pow_fraction, log, sqrt};
+use hydra_math::math::{checked_pow_fraction, log, sqrt, sqrt_precise};
 
 construct_uint! {
     pub struct U256(4);
@@ -32,6 +32,14 @@ fn bench_u128_integer_sqrt(c: &mut Criterion) {
             &i_u128,
             |b, &s| {
                 b.iter(|| sqrt(*s));
+            },
+        );
+
+        group.bench_with_input(
+            BenchmarkId::new("u128_LegacyPreciseNumber", parameter),
+            &i_precise,
+            |b, s| {
+                b.iter(|| sqrt_precise(s.clone()));
             },
         );
 
