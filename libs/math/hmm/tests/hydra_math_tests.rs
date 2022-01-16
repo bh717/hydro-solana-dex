@@ -109,7 +109,6 @@ mod tests {
     fn test_checked_pow_fraction() {
         let precision = InnerUint::from(ONE);
         let base = PreciseNumber::new(42u128).unwrap();
-        let exp: PreciseNumber;
         // 42^0 = 1
         let exp = PreciseNumber::new(0u128).unwrap();
         assert_eq!(
