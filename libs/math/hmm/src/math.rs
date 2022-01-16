@@ -1,6 +1,18 @@
 //! Math functions
 
 use spl_math::precise_number::PreciseNumber;
+use spl_math::uint::U256;
+type InnerUint = U256;
+
+/// The number 0 as a precise number
+fn zero() -> PreciseNumber {
+    PreciseNumber::new(0).expect("one")
+}
+
+/// The number 1 as a precise number
+fn one() -> PreciseNumber {
+    PreciseNumber::new(1).expect("one")
+}
 
 /// Return the number of bits necessary to represent the integer s in binary excluding
 /// the sign and leading zeroes.
@@ -52,6 +64,55 @@ pub fn sqrt(s: u128) -> u128 {
         }
     }
     return y;
+}
+
+/// Based on testing around the limits, this base is the smallest value that
+/// provides an epsilon 11 digits
+fn minimum_sqrt_base() -> PreciseNumber {
+    PreciseNumber {
+        value: InnerUint::from(0),
+    }
+}
+
+/// Based on testing around the limits, this base is the smallest value that
+/// provides an epsilon of 11 digits
+fn maximum_sqrt_base() -> PreciseNumber {
+    PreciseNumber::new(std::u128::MAX).unwrap()
+}
+
+/// Return the square root of a precise number
+pub fn sqrt_precise(base: PreciseNumber) -> Option<PreciseNumber> {
+    if base.less_than(&minimum_sqrt_base()) || base.greater_than(&maximum_sqrt_base()) {
+        return None;
+    }
+
+    if base.eq(&zero()) || base.eq(&one()) {
+        return Some(base);
+    }
+
+    let s = base.to_imprecise().unwrap();
+
+    let mid_length = bit_length(s) >> 1;
+    let approximate = 1u128 << mid_length;
+    let mut y = s.checked_div(approximate).unwrap();
+    let mut y_0 = 0u128;
+    let throld = 1u128;
+    loop {
+        if y.gt(&y_0) && y.checked_sub(y_0).unwrap().gt(&throld) {
+            let tmp_y = s.checked_div(y).unwrap();
+            y_0 = y;
+            y = y.checked_add(tmp_y).unwrap();
+            y = y >> 1;
+        } else if y.lt(&y_0) && y_0.checked_sub(y).unwrap().gt(&throld) {
+            let tmp_y = s.checked_div(y).unwrap();
+            y_0 = y;
+            y = y.checked_add(tmp_y).unwrap();
+            y = y >> 1;
+        } else {
+            break;
+        }
+    }
+    return Some(PreciseNumber::new(y).expect("sqrt"));
 }
 
 /// Return the natural log of a number
