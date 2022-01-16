@@ -53,6 +53,14 @@ mod tests {
 
     #[test]
     fn test_square_root_precise() {
+        // a result that has decimal values
+        // 5000**0.5 = 70.710_678_118_655
+        let x = PreciseNumber::new(5000u128).unwrap();
+        let expected = PreciseNumber {
+            value: InnerUint::from(70_710_678_118_655u128),
+        };
+        assert_eq!(sqrt_precise(&x).unwrap(), expected);
+
         // largest containing 1 to 9 once
         let x = PreciseNumber::new(923_187_456u128).unwrap();
         assert_eq!(

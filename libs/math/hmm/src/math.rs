@@ -14,6 +14,11 @@ fn one() -> PreciseNumber {
     PreciseNumber::new(1).expect("one")
 }
 
+/// The number 2 as a precise number
+fn two() -> PreciseNumber {
+    PreciseNumber::new(2).expect("two")
+}
+
 /// Return the number of bits necessary to represent the integer s in binary excluding
 /// the sign and leading zeroes.
 fn bit_length(s: u128) -> u32 {
@@ -81,38 +86,53 @@ fn maximum_sqrt_base() -> PreciseNumber {
 }
 
 /// Return the square root of a precise number
-pub fn sqrt_precise(base: &PreciseNumber) -> Option<PreciseNumber> {
-    if base.less_than(&minimum_sqrt_base()) || base.greater_than(&maximum_sqrt_base()) {
+pub fn sqrt_precise(s: &PreciseNumber) -> Option<PreciseNumber> {
+    if s.less_than_or_equal(&minimum_sqrt_base()) || s.greater_than_or_equal(&maximum_sqrt_base()) {
         return None;
     }
 
-    if base.eq(&zero()) || base.eq(&one()) {
-        return Some(base.clone());
+    if s.eq(&zero()) || s.eq(&one()) {
+        return Some(s.clone());
     }
 
-    let s = base.to_imprecise().unwrap();
+    let bit_length = 256u32 - s.value.leading_zeros();
+    let mid_length = bit_length.checked_div(2).unwrap();
+    let approx = 2u128.checked_pow(mid_length).unwrap();
+    let approx_precise = PreciseNumber::new(approx).unwrap();
+    let mut y = s.checked_div(&approx_precise).unwrap();
+    let mut y_0 = zero();
+    let threshold = PreciseNumber {
+        value: InnerUint::from(1_000u128),
+    };
 
-    let mid_length = bit_length(s) >> 1;
-    let approximate = 1u128 << mid_length;
-    let mut y = s.checked_div(approximate).unwrap();
-    let mut y_0 = 0u128;
-    let throld = 1u128;
     loop {
-        if y.gt(&y_0) && y.checked_sub(y_0).unwrap().gt(&throld) {
-            let tmp_y = s.checked_div(y).unwrap();
-            y_0 = y;
-            y = y.checked_add(tmp_y).unwrap();
-            y = y >> 1;
-        } else if y.lt(&y_0) && y_0.checked_sub(y).unwrap().gt(&throld) {
-            let tmp_y = s.checked_div(y).unwrap();
-            y_0 = y;
-            y = y.checked_add(tmp_y).unwrap();
-            y = y >> 1;
+        if y.greater_than(&y_0) && y.checked_sub(&y_0).unwrap().greater_than(&threshold) {
+            let tmp_y = PreciseNumber {
+                value: s.value.checked_div(y.value).unwrap(),
+            };
+            y_0 = y.clone();
+            y = y
+                .clone()
+                .checked_add(&tmp_y)
+                .unwrap()
+                .checked_div(&two())
+                .unwrap();
+        } else if y.less_than(&y_0) && y_0.checked_sub(&y).unwrap().greater_than(&threshold) {
+            let tmp_y = PreciseNumber {
+                value: s.value.checked_div(y.value).unwrap(),
+            };
+            y_0 = y.clone();
+            y = y
+                .clone()
+                .checked_add(&tmp_y)
+                .unwrap()
+                .checked_div(&two())
+                .unwrap();
         } else {
             break;
         }
     }
-    return Some(PreciseNumber::new(y).expect("sqrt"));
+    return Some(y);
 }
 
 /// Return the natural log of a number
