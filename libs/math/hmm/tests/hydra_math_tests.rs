@@ -53,11 +53,79 @@ mod tests {
 
     #[test]
     fn test_square_root_precise() {
+        // The square roots of the perfect squares (e.g., 0, 1, 4, 9, 16) are integers.
+        // In all other cases, the square roots of positive integers are irrational numbers,
+        // and hence have non-repeating decimals in their decimal representations.
+        // Decimal approximations of the square roots of the first few natural numbers
+        // are given in the following specs.
+        let x = PreciseNumber::new(0u128).unwrap();
+        let expected = PreciseNumber {
+            value: InnerUint::from(0u128),
+        };
+        assert_eq!(sqrt_precise(&x).unwrap(), expected);
+        let x = PreciseNumber::new(1u128).unwrap();
+        let expected = PreciseNumber {
+            value: InnerUint::from(1_000_000_000_000u128),
+        };
+        assert_eq!(sqrt_precise(&x).unwrap(), expected);
+        let x = PreciseNumber::new(2u128).unwrap();
+        let expected = PreciseNumber {
+            value: InnerUint::from(1_414_213_000_000u128),
+            // value: InnerUint::from(1_414_213_562_373u128),
+        };
+        assert_eq!(sqrt_precise(&x).unwrap(), expected);
+        let x = PreciseNumber::new(3u128).unwrap();
+        let expected = PreciseNumber {
+            value: InnerUint::from(1_732_050_000_000u128),
+            // value: InnerUint::from(1_732_050_807_568u128),
+        };
+        assert_eq!(sqrt_precise(&x).unwrap(), expected);
+        let x = PreciseNumber::new(4u128).unwrap();
+        let expected = PreciseNumber {
+            value: InnerUint::from(2_000_000_000_000u128),
+        };
+        assert_eq!(sqrt_precise(&x).unwrap(), expected);
+        let x = PreciseNumber::new(5u128).unwrap();
+        let expected = PreciseNumber {
+            value: InnerUint::from(2_236_067_000_000u128),
+            // value: InnerUint::from(2_236_067_977_499u128),
+        };
+        assert_eq!(sqrt_precise(&x).unwrap(), expected);
+        let x = PreciseNumber::new(6u128).unwrap();
+        let expected = PreciseNumber {
+            value: InnerUint::from(2_449_489_000_000u128),
+            // value: InnerUint::from(2_449_489_742_783u128),
+        };
+        assert_eq!(sqrt_precise(&x).unwrap(), expected);
+        let x = PreciseNumber::new(7u128).unwrap();
+        let expected = PreciseNumber {
+            value: InnerUint::from(2_645_751_000_000u128),
+            // value: InnerUint::from(2_645_751_311_064u128),
+        };
+        assert_eq!(sqrt_precise(&x).unwrap(), expected);
+        let x = PreciseNumber::new(8u128).unwrap();
+        let expected = PreciseNumber {
+            value: InnerUint::from(2_828_427_000_000u128),
+            // value: InnerUint::from(2_828_427_124_746u128),
+        };
+        assert_eq!(sqrt_precise(&x).unwrap(), expected);
+        let x = PreciseNumber::new(9u128).unwrap();
+        let expected = PreciseNumber {
+            value: InnerUint::from(3_000_000_000_000u128),
+        };
+        assert_eq!(sqrt_precise(&x).unwrap(), expected);
+        let x = PreciseNumber::new(10u128).unwrap();
+        let expected = PreciseNumber {
+            value: InnerUint::from(3_162_277_000_000u128),
+            // value: InnerUint::from(3_162_277_660_168u128),
+        };
+        assert_eq!(sqrt_precise(&x).unwrap(), expected);
+
         // a result that has decimal values
         // 5000**0.5 = 70.710_678_118_655
         let x = PreciseNumber::new(5000u128).unwrap();
         let expected = PreciseNumber {
-            value: InnerUint::from(70_710_678_118_655u128),
+            value: InnerUint::from(70_710_678_000_000u128),
         };
         assert_eq!(sqrt_precise(&x).unwrap(), expected);
 
@@ -86,7 +154,9 @@ mod tests {
         let x = PreciseNumber::new(u128::MAX).unwrap();
         assert_eq!(
             sqrt_precise(&x).unwrap(),
-            PreciseNumber::new(18_446_744_073_709_551_616u128).unwrap()
+            PreciseNumber {
+                value: InnerUint::from(18_446_744_073_709_551_615_999_999_000_000u128)
+            }
         );
     }
 

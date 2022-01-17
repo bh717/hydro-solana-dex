@@ -87,7 +87,7 @@ fn maximum_sqrt_base() -> PreciseNumber {
 
 /// Return the square root of a precise number
 pub fn sqrt_precise(s: &PreciseNumber) -> Option<PreciseNumber> {
-    if s.less_than_or_equal(&minimum_sqrt_base()) || s.greater_than_or_equal(&maximum_sqrt_base()) {
+    if s.less_than(&minimum_sqrt_base()) || s.greater_than(&maximum_sqrt_base()) {
         return None;
     }
 
@@ -104,6 +104,7 @@ pub fn sqrt_precise(s: &PreciseNumber) -> Option<PreciseNumber> {
     let threshold = PreciseNumber {
         value: InnerUint::from(1_000u128),
     };
+    let scale = PreciseNumber::new(1_000_000).unwrap();
 
     loop {
         if y.greater_than(&y_0) && y.checked_sub(&y_0).unwrap().greater_than(&threshold) {
@@ -132,7 +133,7 @@ pub fn sqrt_precise(s: &PreciseNumber) -> Option<PreciseNumber> {
             break;
         }
     }
-    return Some(y);
+    return Some(y.checked_mul(&scale).unwrap());
 }
 
 /// Return the natural log of a number
