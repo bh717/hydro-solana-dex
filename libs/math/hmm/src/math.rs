@@ -95,21 +95,22 @@ pub fn sqrt_precise(s: &PreciseNumber) -> Option<PreciseNumber> {
         return Some(s.clone());
     }
 
-    let bit_length = 256u32 - s.value.leading_zeros();
+    let scale_out = PreciseNumber::new(1_000_000_000_000).unwrap();
+    let s_scaled = s.checked_mul(&scale_out).unwrap();
+    let bit_length = 256u32 - s_scaled.value.leading_zeros();
     let mid_length = bit_length.checked_div(2).unwrap();
     let approx = 2u128.checked_pow(mid_length).unwrap();
     let approx_precise = PreciseNumber::new(approx).unwrap();
-    let mut y = s.checked_div(&approx_precise).unwrap();
+    let mut y = s_scaled.checked_div(&approx_precise).unwrap();
     let mut y_0 = zero();
     let threshold = PreciseNumber {
-        value: InnerUint::from(1_000u128),
+        value: InnerUint::from(1u128),
     };
-    let scale = PreciseNumber::new(1_000_000).unwrap();
 
     loop {
         if y.greater_than(&y_0) && y.checked_sub(&y_0).unwrap().greater_than(&threshold) {
             let tmp_y = PreciseNumber {
-                value: s.value.checked_div(y.value).unwrap(),
+                value: s_scaled.value.checked_div(y.value).unwrap(),
             };
             y_0 = y.clone();
             y = y
@@ -120,7 +121,7 @@ pub fn sqrt_precise(s: &PreciseNumber) -> Option<PreciseNumber> {
                 .unwrap();
         } else if y.less_than(&y_0) && y_0.checked_sub(&y).unwrap().greater_than(&threshold) {
             let tmp_y = PreciseNumber {
-                value: s.value.checked_div(y.value).unwrap(),
+                value: s_scaled.value.checked_div(y.value).unwrap(),
             };
             y_0 = y.clone();
             y = y
@@ -133,7 +134,7 @@ pub fn sqrt_precise(s: &PreciseNumber) -> Option<PreciseNumber> {
             break;
         }
     }
-    return Some(y.checked_mul(&scale).unwrap());
+    return Some(y);
 }
 
 /// Return the natural log of a number
