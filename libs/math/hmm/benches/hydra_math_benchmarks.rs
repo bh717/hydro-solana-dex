@@ -4,7 +4,7 @@ use criterion::{criterion_group, criterion_main};
 use spl_math::precise_number::PreciseNumber;
 use uint::construct_uint;
 
-use hydra_math::math::{checked_pow_fraction, log, sqrt, sqrt_precise};
+use hydra_math::math::{checked_pow_fraction, log, sqrt_precise};
 
 construct_uint! {
     pub struct U256(4);
@@ -17,6 +17,60 @@ criterion_group!(
     bench_checked_pow_fraction,
 );
 criterion_main!(benches);
+
+// Legacy math functions for benchmark comparisons only
+
+/// Return the number of bits necessary to represent the integer s in binary excluding
+/// the sign and leading zeroes.
+fn bit_length(s: u128) -> u32 {
+    let mut high = 128u32;
+    let mut low = 0u32;
+    let mut mid = (high + low) >> 1;
+    loop {
+        let remind = s >> mid;
+        if remind > 1 {
+            low = mid;
+            mid = (low + high) >> 1;
+            continue;
+        }
+        if remind == 1 {
+            return mid + 1;
+        }
+        if remind < 1 {
+            high = mid;
+            mid = (low + high) >> 1;
+            continue;
+        }
+    }
+}
+
+/// Return the square root of a number
+pub fn sqrt(s: u128) -> u128 {
+    if s == 0u128 || s == 1 {
+        return s;
+    }
+    let mid_length = bit_length(s) >> 1;
+    let approximate = 1u128 << mid_length;
+    let mut y = s.checked_div(approximate).unwrap();
+    let mut y_0 = 0u128;
+    let throld = 1u128;
+    loop {
+        if y.gt(&y_0) && y.checked_sub(y_0).unwrap().gt(&throld) {
+            let tmp_y = s.checked_div(y).unwrap();
+            y_0 = y;
+            y = y.checked_add(tmp_y).unwrap();
+            y = y >> 1;
+        } else if y.lt(&y_0) && y_0.checked_sub(y).unwrap().gt(&throld) {
+            let tmp_y = s.checked_div(y).unwrap();
+            y_0 = y;
+            y = y.checked_add(tmp_y).unwrap();
+            y = y >> 1;
+        } else {
+            break;
+        }
+    }
+    return y;
+}
 
 fn bench_u128_integer_sqrt(c: &mut Criterion) {
     let mut group = c.benchmark_group("u128 integer square root");

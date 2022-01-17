@@ -19,58 +19,6 @@ fn two() -> PreciseNumber {
     PreciseNumber::new(2).expect("two")
 }
 
-/// Return the number of bits necessary to represent the integer s in binary excluding
-/// the sign and leading zeroes.
-fn bit_length(s: u128) -> u32 {
-    let mut high = 128u32;
-    let mut low = 0u32;
-    let mut mid = (high + low) >> 1;
-    loop {
-        let remind = s >> mid;
-        if remind > 1 {
-            low = mid;
-            mid = (low + high) >> 1;
-            continue;
-        }
-        if remind == 1 {
-            return mid + 1;
-        }
-        if remind < 1 {
-            high = mid;
-            mid = (low + high) >> 1;
-            continue;
-        }
-    }
-}
-
-/// Return the square root of a number
-pub fn sqrt(s: u128) -> u128 {
-    if s == 0u128 || s == 1 {
-        return s;
-    }
-    let mid_length = bit_length(s) >> 1;
-    let approximate = 1u128 << mid_length;
-    let mut y = s.checked_div(approximate).unwrap();
-    let mut y_0 = 0u128;
-    let throld = 1u128;
-    loop {
-        if y.gt(&y_0) && y.checked_sub(y_0).unwrap().gt(&throld) {
-            let tmp_y = s.checked_div(y).unwrap();
-            y_0 = y;
-            y = y.checked_add(tmp_y).unwrap();
-            y = y >> 1;
-        } else if y.lt(&y_0) && y_0.checked_sub(y).unwrap().gt(&throld) {
-            let tmp_y = s.checked_div(y).unwrap();
-            y_0 = y;
-            y = y.checked_add(tmp_y).unwrap();
-            y = y >> 1;
-        } else {
-            break;
-        }
-    }
-    return y;
-}
-
 /// Based on testing around the limits, this base is the smallest value that
 /// provides an epsilon 11 digits
 fn minimum_sqrt_base() -> PreciseNumber {
@@ -162,7 +110,7 @@ pub fn log(s: u128) -> Option<PreciseNumber> {
     let log_arr_5: [u32; 10] = [0, 999, 1999, 2999, 3999, 4999, 5999, 6999, 7999, 8999];
     let log_arr_6: [u32; 10] = [0, 99, 199, 299, 399, 499, 599, 699, 799, 899];
     let multiply = PreciseNumber::new(100000000u128).unwrap();
-    let length = bit_length(s) - 1;
+    let length = (128u32 - s.leading_zeros()) - 1;
     let approximate = 1u128 << length;
     let s_mul_100000000 = s.checked_mul(100000000u128).expect("log_s_mul_100000000");
     let s0 = s_mul_100000000 / approximate;
