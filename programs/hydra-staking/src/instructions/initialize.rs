@@ -8,7 +8,7 @@ pub struct Initialize<'info> {
     #[account(
         address = HYDRA_TOKEN_MINT_PUBKEY.parse::<Pubkey>().unwrap(),
     )]
-    pub token_mint: Account<'info, Mint>,
+    pub token_mint: Box<Account<'info, Mint>>,
 
     #[account(
         init,
@@ -19,7 +19,7 @@ pub struct Initialize<'info> {
         bump = nonce,
     )]
     /// the not-yet-created, derived token vault pubkey. PDA
-    pub token_vault: Account<'info, TokenAccount>,
+    pub token_vault: Box<Account<'info, TokenAccount>>,
 
     // #[account(mut)] TODO Review if needed.
     pub initializer: Signer<'info>,

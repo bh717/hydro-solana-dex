@@ -4,7 +4,7 @@ import { HydraStaking } from '../../target/types/hydra_staking';
 import {loadKey, createMintAndVault, createMint, getTokenBalance, transfer} from "../utils/utils"
 import { TokenInstructions } from "@project-serum/serum"
 import {Keypair} from "@solana/web3.js";
-import {createTokenAccount, getMintInfo} from "@project-serum/common";
+import {createTokenAccount } from "@project-serum/common";
 import {TOKEN_PROGRAM_ID} from "@project-serum/serum/lib/token-instructions";
 import * as assert from "assert";
 
@@ -134,5 +134,30 @@ describe('hydra-staking',  () => {
                 tokenVault: vaultPubkey,
             }
         })
+    });
+
+    it('should unStake 100% of the vault', async () => {
+        program.addEventListener("PriceChange", (e,s) =>{
+            console.log(e)
+        });
+
+        await program.rpc.unStake (
+            vaultBump,
+            new anchor.BN(100000000),
+            {
+                accounts: {
+                    tokenMint: hydMint.publicKey,
+                    xTokenMint: xhydMint.publicKey,
+                    xTokenFrom: xHydAccount,
+                    xTokenFromAuthority: program.provider.wallet.publicKey,
+                    tokenVault: vaultPubkey,
+                    tokenTo: hydTokenAccount.publicKey,
+                    tokenProgram: TOKEN_PROGRAM_ID,
+                }
+            }
+        )
+        assert.strictEqual(await getTokenBalance(program.provider, xHydAccount), 0)
+        assert.strictEqual(await getTokenBalance(program.provider, vaultPubkey), 0)
+        assert.strictEqual(await getTokenBalance(program.provider, hydTokenAccount.publicKey), 100000000)
     });
 });

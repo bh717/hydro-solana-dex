@@ -8,6 +8,7 @@ use anchor_spl::token::{Mint, Token, TokenAccount};
 use instructions::emit_price::*;
 use instructions::initialize::*;
 use instructions::stake::*;
+use instructions::unstake::*;
 
 declare_id!("F1y1FTP91nwxbNUW3nXY6mKQzWawihwVYGwMsi7oKGyg");
 
@@ -25,7 +26,6 @@ pub mod constants {
 
 #[program]
 pub mod hydra_staking {
-
     use super::*;
 
     /// initialize token_vault
@@ -39,5 +39,10 @@ pub mod hydra_staking {
 
     pub fn emit_price(ctx: Context<EmitPrice>) -> ProgramResult {
         instructions::emit_price::handle(ctx)
+    }
+
+    pub fn unStake(ctx: Context<UnStake>, nonce: u8, amount: u64) -> ProgramResult {
+        instructions::unstake::handle(ctx, nonce, amount);
+        Ok(())
     }
 }
