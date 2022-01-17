@@ -96,10 +96,6 @@ describe('hydra-staking',  () => {
     });
 
     it('should emit the current price', async () => {
-        program.addEventListener('Price', (e, s) => {
-            console.log(e)
-        });
-
         await program.rpc.emitPrice({
             accounts: {
                tokenMint: hydMint.publicKey,
@@ -123,10 +119,6 @@ describe('hydra-staking',  () => {
     });
 
     it('should emit the next price', async () => {
-        program.addEventListener('Price', (e, s) => {
-            console.log(e)
-        });
-
         await program.rpc.emitPrice({
             accounts: {
                 tokenMint: hydMint.publicKey,
@@ -137,10 +129,6 @@ describe('hydra-staking',  () => {
     });
 
     it('should unStake 100% of the vault', async () => {
-        program.addEventListener("PriceChange", (e,s) =>{
-            console.log(e)
-        });
-
         await program.rpc.unstake (
             vaultBump,
             new anchor.BN(5000),
