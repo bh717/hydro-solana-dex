@@ -41,7 +41,7 @@ pub mod hydra_staking {
         instructions::emit_price::handle(ctx)
     }
 
-    pub fn unStake(ctx: Context<UnStake>, nonce: u8, amount: u64) -> ProgramResult {
+    pub fn unstake(ctx: Context<UnStake>, nonce: u8, amount: u64) -> ProgramResult {
         instructions::unstake::handle(ctx, nonce, amount);
         Ok(())
     }

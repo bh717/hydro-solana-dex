@@ -141,9 +141,9 @@ describe('hydra-staking',  () => {
             console.log(e)
         });
 
-        await program.rpc.unStake (
+        await program.rpc.unstake (
             vaultBump,
-            new anchor.BN(100000000),
+            new anchor.BN(5000),
             {
                 accounts: {
                     tokenMint: hydMint.publicKey,
