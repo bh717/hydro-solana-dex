@@ -1,3 +1,4 @@
+use crate::constants::*;
 use crate::events::*;
 use crate::utils::price::calc_price;
 use crate::ProgramResult;
@@ -20,7 +21,7 @@ pub struct EmitPrice<'info> {
     #[account(
         mut,
         seeds = [ token_mint.key().as_ref() ],
-        bump = nonce,
+        bump,
     )]
     pub token_vault: Account<'info, TokenAccount>,
 }
