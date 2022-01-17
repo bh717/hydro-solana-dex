@@ -96,12 +96,12 @@ pub fn sqrt_precise(s: &PreciseNumber) -> Option<PreciseNumber> {
     }
 
     let scale_out = PreciseNumber::new(1_000_000_000_000).unwrap();
-    let s_scaled = s.checked_mul(&scale_out).unwrap();
+    let s_scaled = s.checked_mul(&scale_out).expect("s_scaled");
     let bit_length = 256u32 - s_scaled.value.leading_zeros();
-    let mid_length = bit_length.checked_div(2).unwrap();
-    let approx = 2u128.checked_pow(mid_length).unwrap();
-    let approx_precise = PreciseNumber::new(approx).unwrap();
-    let mut y = s_scaled.checked_div(&approx_precise).unwrap();
+    let mid_length = bit_length.checked_div(2).expect("mid_length");
+    let approx = 2u128.checked_pow(mid_length).expect("approx");
+    let approx_precise = PreciseNumber::new(approx).expect("approx_precise");
+    let mut y = s_scaled.checked_div(&approx_precise).expect("y");
     let mut y_0 = zero();
     let threshold = PreciseNumber {
         value: InnerUint::from(1u128),
@@ -110,7 +110,7 @@ pub fn sqrt_precise(s: &PreciseNumber) -> Option<PreciseNumber> {
     loop {
         if y.greater_than(&y_0) && y.checked_sub(&y_0).unwrap().greater_than(&threshold) {
             let tmp_y = PreciseNumber {
-                value: s_scaled.value.checked_div(y.value).unwrap(),
+                value: s_scaled.value.checked_div(y.value).expect("tmp_y"),
             };
             y_0 = y.clone();
             y = y
@@ -118,7 +118,7 @@ pub fn sqrt_precise(s: &PreciseNumber) -> Option<PreciseNumber> {
                 .checked_add(&tmp_y)
                 .unwrap()
                 .checked_div(&two())
-                .unwrap();
+                .expect("y_condition_1");
         } else if y.less_than(&y_0) && y_0.checked_sub(&y).unwrap().greater_than(&threshold) {
             let tmp_y = PreciseNumber {
                 value: s_scaled.value.checked_div(y.value).unwrap(),
@@ -129,7 +129,7 @@ pub fn sqrt_precise(s: &PreciseNumber) -> Option<PreciseNumber> {
                 .checked_add(&tmp_y)
                 .unwrap()
                 .checked_div(&two())
-                .unwrap();
+                .expect("y_condition_2");
         } else {
             break;
         }
