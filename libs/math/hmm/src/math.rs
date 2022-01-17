@@ -214,14 +214,10 @@ pub fn checked_pow_fraction(base: &PreciseNumber, exp: &PreciseNumber) -> Precis
         1 => {
             // x^1/4 = x^0.25 = ⁴√x = √(√x) = sqrt(sqrt(x))
             sqrt_precise(&sqrt_precise(base).unwrap()).unwrap()
-            // PreciseNumber.sqrt uses less efficient newtonian method
-            // (base.sqrt().unwrap()).sqrt().unwrap()
         }
         2 => {
             // x^1/2 = x^0.5 = √x = sqrt(x)
             sqrt_precise(base).unwrap()
-            // PreciseNumber.sqrt uses less efficient newtonian method
-            // base.sqrt().unwrap()
         }
         4 => {
             // x^1 = x
@@ -235,8 +231,6 @@ pub fn checked_pow_fraction(base: &PreciseNumber, exp: &PreciseNumber) -> Precis
         6 => {
             // x^3/2 = x^1.50 = x(√x) = x(sqrt(x))
             base.checked_mul(&sqrt_precise(base).unwrap()).unwrap()
-            // PreciseNumber.sqrt uses less efficient newtonian method
-            // base.checked_mul(&base.sqrt().unwrap()).unwrap()
         }
         8 => {
             // x^2 = 2x
