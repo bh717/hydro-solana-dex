@@ -1,7 +1,7 @@
 import * as anchor from '@project-serum/anchor';
-import { Program } from '@project-serum/anchor';
+import {BN, Program} from '@project-serum/anchor';
 import { HydraStaking } from '../../target/types/hydra_staking';
-import {loadKey, createMintAndVault, createMint, getTokenBalance} from "../utils/utils"
+import {loadKey, createMintAndVault, createMint, getTokenBalance, transfer} from "../utils/utils"
 import { TokenInstructions } from "@project-serum/serum"
 import {Keypair} from "@solana/web3.js";
 import {createTokenAccount, getMintInfo} from "@project-serum/common";
@@ -22,17 +22,9 @@ describe('hydra-staking',  () => {
     let xHydAccount
 
     it('should mint Hyd', async () => {
-
         // load keyPair
         hydMint = await loadKey("tests/keys/hyd3VthE9YPGBeg9HEgZsrM5qPniC6VoaEFeTGkVsJR.json")
         await createMintAndVault(program.provider, hydMint, hydTokenAccount, new anchor.BN(100_000_000))
-
-        //
-        // console.log(hydMint.publicKey)
-        // console.log(hydVault.publicKey)
-        // console.log(program.provider.wallet.publicKey)
-        //
-        // console.log(await getMintInfo(program.provider, hydMint.publicKey))
     })
 
     it('should initialized stake PDA vault', async () => {
@@ -55,39 +47,13 @@ describe('hydra-staking',  () => {
             });
     });
 
-    it('should create xhyd mint', async () => {
+    it('should create xhyd mint and minto hydAccount', async () => {
         xhydMint = await loadKey("tests/keys/xhy1rv75cEJahTbsKnv2TpNhdR7KNUoDPavKuQDwhDU.json")
         await createMint(program.provider, xhydMint, vaultPubkey)
-
-        // console.log(vaultPubkey)
-        // console.log(await getMintInfo(program.provider,xhysMint.publicKey))
-
         xHydAccount = await createTokenAccount(program.provider, xhydMint.publicKey, program.provider.wallet.publicKey)
     });
 
     it('should stake tokens into vault for the first time', async () => {
-
-        program.addEventListener('PriceChange', (e, s) => {
-           console.log(e)
-        });
-        //
-        // program.addEventListener('StakeDetails', (e,s) => {
-        //     console.log(e)
-        //     }
-        // )
-        //
-        // console.log("hydTokenAccount: ", await program.provider.connection.getTokenAccountBalance(hydTokenAccount.publicKey))
-        // console.log("xHydAccount: ", await program.provider.connection.getTokenAccountBalance(xHydAccount))
-        // console.log("vaultPubkey: ", await program.provider.connection.getTokenAccountBalance(vaultPubkey))
-        //
-        // console.log("programId: ", program.programId.toString())
-        // console.log("hydMint.publicKey: ", hydMint.publicKey.toString())
-        // console.log("xhydMint.publicKey: ", xhydMint.publicKey.toString())
-        // console.log("hydTokenAccount.publicKey: ",hydTokenAccount.publicKey.toString())
-        // console.log("provider.wallet.publicKey: ", program.provider.wallet.publicKey.toString())
-        // console.log("vaultPubkey: ",vaultPubkey.toString())
-
-
         await program.rpc.stake(
             vaultBump,
             new anchor.BN(1000),
@@ -103,14 +69,9 @@ describe('hydra-staking',  () => {
                 }
             }
         )
-
         assert.strictEqual(await getTokenBalance(program.provider, xHydAccount), 1000)
         assert.strictEqual(await getTokenBalance(program.provider, vaultPubkey), 1000)
         assert.strictEqual(await getTokenBalance(program.provider, hydTokenAccount.publicKey), 99999000)
-
-        // console.log("hydTokenAccount: ", await program.provider.connection.getTokenAccountBalance(hydTokenAccount.publicKey))
-        // console.log("xHydAccount: ", await program.provider.connection.getTokenAccountBalance(xHydAccount))
-        // console.log("vaultPubkey: ", await program.provider.connection.getTokenAccountBalance(vaultPubkey))
     });
 
     it('should stake tokens into the vault for a second time', async () => {
@@ -129,9 +90,49 @@ describe('hydra-staking',  () => {
                 }
             }
         )
-
         assert.strictEqual(await getTokenBalance(program.provider, xHydAccount), 5000)
         assert.strictEqual(await getTokenBalance(program.provider, vaultPubkey), 5000)
         assert.strictEqual(await getTokenBalance(program.provider, hydTokenAccount.publicKey), 99995000)
+    });
+
+    it('should emit the current price', async () => {
+        program.addEventListener('Price', (e, s) => {
+            console.log(e)
+        });
+
+        await program.rpc.emitPrice({
+            accounts: {
+               tokenMint: hydMint.publicKey,
+               xTokenMint: xhydMint.publicKey,
+               tokenVault: vaultPubkey,
+            }
+        })
+
+    });
+
+    it('should transfer tokens into the vault directly', async () => {
+        await transfer(
+            program.provider,
+            hydTokenAccount.publicKey,
+            vaultPubkey,
+            99995000,
+        )
+        assert.strictEqual(await getTokenBalance(program.provider, vaultPubkey), 100000000)
+        assert.strictEqual(await getTokenBalance(program.provider, xHydAccount), 5000)
+        assert.strictEqual(await getTokenBalance(program.provider, hydTokenAccount.publicKey), 0)
+    });
+
+    it('should emit the next price', async () => {
+        program.addEventListener('Price', (e, s) => {
+            console.log(e)
+        });
+
+        await program.rpc.emitPrice({
+            accounts: {
+                tokenMint: hydMint.publicKey,
+                xTokenMint: xhydMint.publicKey,
+                tokenVault: vaultPubkey,
+            }
+        })
     });
 });

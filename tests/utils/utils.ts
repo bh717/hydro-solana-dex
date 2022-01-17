@@ -3,10 +3,10 @@ import { URL } from "url";
 import * as fs from "fs";
 import * as anchor from '@project-serum/anchor';
 import {Provider} from "@project-serum/anchor";
-import { PublicKey, Keypair, Transaction, SystemProgram } from "@solana/web3.js"
+import { PublicKey, Keypair, Transaction, SystemProgram, TransactionSignature } from "@solana/web3.js"
 import * as BN from "bn.js"
 import { TokenInstructions } from "@project-serum/serum"
-import {createMintInstructions} from "@project-serum/common";
+import {createMintInstructions, NodeWallet} from "@project-serum/common";
 
 type PathLike = string | Buffer | URL;
 
@@ -39,6 +39,26 @@ export async function createMint(
 
     return mint.publicKey;
 }
+
+export async function transfer(
+    provider: Provider,
+    source,
+    destination,
+    amount,
+): Promise<TransactionSignature> {
+    const tx = new Transaction();
+    tx.add(
+        TokenInstructions.transfer({
+            source: source,
+            destination: destination,
+            amount: amount,
+            owner: provider.wallet.publicKey,
+        })
+    );
+    let txhash = await provider.send(tx, [(provider.wallet as NodeWallet).payer])
+    return txhash
+}
+
 
 export async function createMintAndVault(
     provider: Provider,

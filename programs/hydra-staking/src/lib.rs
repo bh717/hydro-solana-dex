@@ -5,6 +5,7 @@ mod utils;
 
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
+use instructions::emit_price::*;
 use instructions::initialize::*;
 use instructions::stake::*;
 
@@ -24,6 +25,7 @@ pub mod constants {
 
 #[program]
 pub mod hydra_staking {
+
     use super::*;
 
     /// initialize token_vault
@@ -33,5 +35,9 @@ pub mod hydra_staking {
 
     pub fn stake(ctx: Context<Stake>, nonce: u8, amount: u64) -> ProgramResult {
         instructions::stake::handle(ctx, nonce, amount)
+    }
+
+    pub fn emit_price(ctx: Context<EmitPrice>) -> ProgramResult {
+        instructions::emit_price::handle(ctx)
     }
 }

@@ -7,3 +7,9 @@ pub struct PriceChange {
     pub new_hyd_per_xhyd_1e9: u64,
     pub new_hyd_per_xhyd: String,
 }
+
+#[event]
+pub struct Price {
+    pub hyd_per_xhyd_1e9: u64,
+    pub hyd_per_xhyd: String,
+}

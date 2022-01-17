@@ -1,0 +1,24 @@
+use crate::events::*;
+use crate::utils::price::calc_price;
+use crate::ProgramResult;
+use anchor_lang::prelude::*;
+use anchor_spl::token::{Mint, TokenAccount};
+
+#[derive(Accounts)]
+pub struct EmitPrice<'info> {
+    // TODO add constants
+    pub token_mint: Account<'info, Mint>,
+
+    pub x_token_mint: Account<'info, Mint>,
+
+    pub token_vault: Account<'info, TokenAccount>,
+}
+
+pub fn handle(ctx: Context<EmitPrice>) -> ProgramResult {
+    let price = calc_price(&ctx.accounts.token_vault, &ctx.accounts.x_token_mint);
+    emit!(Price {
+        hyd_per_xhyd_1e9: price.0,
+        hyd_per_xhyd: price.1,
+    });
+    Ok(())
+}
