@@ -1,10 +1,8 @@
 mod events;
 mod instructions;
-mod state;
 mod utils;
 
 use anchor_lang::prelude::*;
-use anchor_spl::token::{Mint, Token, TokenAccount};
 use instructions::emit_price::*;
 use instructions::initialize::*;
 use instructions::stake::*;
@@ -42,7 +40,6 @@ pub mod hydra_staking {
     }
 
     pub fn unstake(ctx: Context<UnStake>, nonce: u8, amount: u64) -> ProgramResult {
-        instructions::unstake::handle(ctx, nonce, amount);
-        Ok(())
+        instructions::unstake::handle(ctx, nonce, amount)
     }
 }

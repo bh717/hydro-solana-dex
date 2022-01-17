@@ -76,7 +76,7 @@ pub fn handle(ctx: Context<UnStake>, nonce: u8, amount: u64) -> ProgramResult {
         },
         signer,
     );
-    token::transfer(cpi_ctx, token_share);
+    token::transfer(cpi_ctx, token_share)?;
 
     (&mut ctx.accounts.token_vault).reload()?;
     (&mut ctx.accounts.x_token_mint).reload()?;

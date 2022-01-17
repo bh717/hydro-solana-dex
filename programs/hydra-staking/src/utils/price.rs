@@ -1,7 +1,5 @@
 use anchor_lang::prelude::Account;
 use anchor_spl::token::{Mint, TokenAccount};
-use std::cmp::min;
-
 const ONE_E9: u64 = 1000000000;
 
 /// calculate price
