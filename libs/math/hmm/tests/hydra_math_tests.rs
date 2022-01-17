@@ -156,24 +156,26 @@ mod tests {
     #[test]
     fn test_u128_natural_log() {
         // ln(1) = 0
-        assert_eq!(log(1u128), PreciseNumber::new(0u128).unwrap());
+        assert_eq!(log(1u128).unwrap(), PreciseNumber::new(0u128).unwrap());
 
         // ln(1000) = 6.907755278982137
         let precision = InnerUint::from(ONE);
         let expected = PreciseNumber {
             value: InnerUint::from(6_907_755_278_982u128),
         };
-        assert!(log(1_000u128).almost_eq(&expected, precision));
+        assert!(log(1_000u128).unwrap().almost_eq(&expected, precision));
 
         // ln(18446744073709551615) = 44.3614195558365
         let expected = PreciseNumber {
             value: InnerUint::from(44_361_419_555_836u128),
         };
-        assert!(log(u64::MAX as u128).almost_eq(&expected, precision));
+        assert!(log(u64::MAX as u128)
+            .unwrap()
+            .almost_eq(&expected, precision));
 
-        // TODO: this overflows
         // ln(340282366920938463463374607431768211455 = 88.722839111673
-        // assert_eq!(log(u128::MAX), PreciseNumber::new(0u128).unwrap());
+        // This should overflow so we handle gracefully with option None
+        assert_eq!(log(u128::MAX), None);
     }
 
     #[test]

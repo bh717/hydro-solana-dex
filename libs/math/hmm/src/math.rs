@@ -137,8 +137,16 @@ pub fn sqrt_precise(s: &PreciseNumber) -> Option<PreciseNumber> {
     return Some(y);
 }
 
+fn maximum_log() -> u128 {
+    std::u128::MAX.checked_div(100000000u128).unwrap()
+}
+
 /// Return the natural log of a number
-pub fn log(s: u128) -> PreciseNumber {
+pub fn log(s: u128) -> Option<PreciseNumber> {
+    if s.gt(&maximum_log()) {
+        return None;
+    }
+
     let log_arr_1: [u32; 10] = [
         0, 9531017, 18232155, 26236426, 33647223, 40546510, 47000362, 53062825, 58778666, 64185388,
     ];
@@ -181,7 +189,7 @@ pub fn log(s: u128) -> PreciseNumber {
         .unwrap()
         .checked_div(&multiply)
         .unwrap();
-    return result;
+    return Some(result);
 }
 
 /// Compute power of base given exponent in 0.25 increments
