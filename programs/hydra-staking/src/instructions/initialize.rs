@@ -12,7 +12,7 @@ pub struct Initialize<'info> {
 
     #[account(
         init,
-        payer = initializer,
+        payer = payer,
         token::mint = token_mint,
         token::authority = token_vault,
         seeds = [ HYDRA_TOKEN_MINT_PUBKEY.parse::<Pubkey>().unwrap().as_ref() ],
@@ -21,8 +21,8 @@ pub struct Initialize<'info> {
     /// the not-yet-created, derived token vault pubkey. PDA
     pub token_vault: Box<Account<'info, TokenAccount>>,
 
-    // #[account(mut)] TODO Review if needed.
-    pub initializer: Signer<'info>,
+    // #[account(mut)]
+    pub payer: Signer<'info>,
 
     /// required by anchor for init of the token_vault
     pub system_program: Program<'info, System>,
@@ -30,7 +30,7 @@ pub struct Initialize<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn handle(ctx: Context<Initialize>, nonce: u8) -> ProgramResult {
+pub fn handle(_ctx: Context<Initialize>, _nonce: u8) -> ProgramResult {
     msg!("Initialize!");
     Ok(())
 }

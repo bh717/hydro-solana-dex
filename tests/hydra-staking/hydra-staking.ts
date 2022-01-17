@@ -39,7 +39,7 @@ describe('hydra-staking',  () => {
                 accounts: {
                     tokenMint: hydMint.publicKey,
                     tokenVault: vaultPubkey,
-                    initializer: program.provider.wallet.publicKey,
+                    payer: program.provider.wallet.publicKey,
                     systemProgram: anchor.web3.SystemProgram.programId,
                     tokenProgram: TokenInstructions.TOKEN_PROGRAM_ID,
                     rent: anchor.web3.SYSVAR_RENT_PUBKEY,
