@@ -1,8 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use hydra_math::math::{
-        checked_pow_fraction, log, signed_addition, signed_mul, sqrt, sqrt_precise,
-    };
+    use hydra_math::math::{checked_pow_fraction, log, signed_addition, signed_mul, sqrt_precise};
     use hydra_math::swap_result::SwapResult;
     use spl_math::precise_number::{PreciseNumber, ONE};
     use spl_math::uint::U256;
