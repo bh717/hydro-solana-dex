@@ -32,24 +32,6 @@ mod tests {
     }
 
     #[test]
-    fn test_square_root_u128() {
-        // largest containing 1 to 9 once
-        let x = 923_187_456u128;
-        assert_eq!(sqrt(x), 30_384u128);
-
-        // largest containing 1 to 9 two times
-        let x = 998_781_235_573_146_624u128;
-        assert_eq!(sqrt(x), 999_390_432u128);
-
-        // largest containing 1 to 9 three times
-        let x = 999_888_767_225_363_175_346_145_124u128;
-        assert_eq!(sqrt(x), 31_621_017_808_182u128);
-
-        let x = u128::MAX;
-        assert_eq!(sqrt(x), 18_446_744_073_709_551_616u128);
-    }
-
-    #[test]
     fn test_square_root_precise() {
         // The square roots of the perfect squares (e.g., 0, 1, 4, 9, 16) are integers.
         // In all other cases, the square roots of positive integers are irrational numbers,
