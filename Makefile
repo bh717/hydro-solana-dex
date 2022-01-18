@@ -43,7 +43,7 @@ anchor-ci:
 	solana-keygen new --no-bip39-passphrase || true
 	#cargo clean
 	cargo check
-	#cargo test # Broke with anchor
+	cargo test
 	anchor build
 	anchor test
 	cargo fmt -- --check
