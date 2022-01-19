@@ -2253,6 +2253,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "proto"
+version = "0.1.0"
+dependencies = [
+ "hydra-math",
+ "spl-math",
+]
+
+[[package]]
 name = "pyo3"
 version = "0.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
