@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use hydra_math::math::{checked_pow_fraction, log, signed_addition, signed_mul, sqrt};
+    use hydra_math::math::{checked_pow_fraction, log, signed_addition, signed_mul, sqrt_precise};
     use hydra_math::swap_result::SwapResult;
     use spl_math::precise_number::{PreciseNumber, ONE};
     use spl_math::uint::U256;
@@ -32,51 +32,136 @@ mod tests {
     }
 
     #[test]
-    fn test_u128_square_root() {
+    fn test_square_root_precise() {
+        // The square roots of the perfect squares (e.g., 0, 1, 4, 9, 16) are integers.
+        // In all other cases, the square roots of positive integers are irrational numbers,
+        // and hence have non-repeating decimals in their decimal representations.
+        // Decimal approximations of the square roots of the first few natural numbers
+        // are given in the following specs.
+        let x = PreciseNumber::new(0u128).unwrap();
+        let expected = PreciseNumber {
+            value: InnerUint::from(0u128),
+        };
+        assert_eq!(sqrt_precise(&x).unwrap(), expected);
+        let x = PreciseNumber::new(1u128).unwrap();
+        let expected = PreciseNumber {
+            value: InnerUint::from(1_000_000_000_000u128),
+        };
+        assert_eq!(sqrt_precise(&x).unwrap(), expected);
+        let x = PreciseNumber::new(2u128).unwrap();
+        let expected = PreciseNumber {
+            value: InnerUint::from(1_414_213_562_373u128),
+        };
+        assert_eq!(sqrt_precise(&x).unwrap(), expected);
+        let x = PreciseNumber::new(3u128).unwrap();
+        let expected = PreciseNumber {
+            value: InnerUint::from(1_732_050_807_568u128),
+        };
+        assert_eq!(sqrt_precise(&x).unwrap(), expected);
+        let x = PreciseNumber::new(4u128).unwrap();
+        let expected = PreciseNumber {
+            value: InnerUint::from(2_000_000_000_000u128),
+        };
+        assert_eq!(sqrt_precise(&x).unwrap(), expected);
+        let x = PreciseNumber::new(5u128).unwrap();
+        let expected = PreciseNumber {
+            value: InnerUint::from(2_236_067_977_499u128),
+        };
+        assert_eq!(sqrt_precise(&x).unwrap(), expected);
+        let x = PreciseNumber::new(6u128).unwrap();
+        let expected = PreciseNumber {
+            value: InnerUint::from(2_449_489_742_783u128),
+        };
+        assert_eq!(sqrt_precise(&x).unwrap(), expected);
+        let x = PreciseNumber::new(7u128).unwrap();
+        let expected = PreciseNumber {
+            value: InnerUint::from(2_645_751_311_064u128),
+        };
+        assert_eq!(sqrt_precise(&x).unwrap(), expected);
+        let x = PreciseNumber::new(8u128).unwrap();
+        let expected = PreciseNumber {
+            value: InnerUint::from(2_828_427_124_746u128),
+        };
+        assert_eq!(sqrt_precise(&x).unwrap(), expected);
+        let x = PreciseNumber::new(9u128).unwrap();
+        let expected = PreciseNumber {
+            value: InnerUint::from(3_000_000_000_000u128),
+        };
+        assert_eq!(sqrt_precise(&x).unwrap(), expected);
+        let x = PreciseNumber::new(10u128).unwrap();
+        let expected = PreciseNumber {
+            value: InnerUint::from(3_162_277_660_168u128),
+        };
+        assert_eq!(sqrt_precise(&x).unwrap(), expected);
+
+        // a result that has decimal values
+        // 5000**0.5 = 70.710_678_118_654
+        let x = PreciseNumber::new(5000u128).unwrap();
+        let expected = PreciseNumber {
+            value: InnerUint::from(70_710_678_118_654u128),
+        };
+        assert_eq!(sqrt_precise(&x).unwrap(), expected);
+
         // largest containing 1 to 9 once
-        let x = 923_187_456u128;
-        assert_eq!(sqrt(x), 30_384u128);
+        let x = PreciseNumber::new(923_187_456u128).unwrap();
+        assert_eq!(
+            sqrt_precise(&x).unwrap(),
+            PreciseNumber::new(30_384u128).unwrap()
+        );
 
         // largest containing 1 to 9 two times
-        let x = 998_781_235_573_146_624u128;
-        assert_eq!(sqrt(x), 999_390_432u128);
+        let x = PreciseNumber::new(998_781_235_573_146_624u128).unwrap();
+        assert_eq!(
+            sqrt_precise(&x).unwrap(),
+            PreciseNumber::new(999_390_432u128).unwrap()
+        );
 
         // largest containing 1 to 9 three times
-        let x = 999_888_767_225_363_175_346_145_124u128;
-        assert_eq!(sqrt(x), 31_621_017_808_182u128);
+        let x = PreciseNumber::new(999_888_767_225_363_175_346_145_124u128).unwrap();
+        assert_eq!(
+            sqrt_precise(&x).unwrap(),
+            PreciseNumber::new(31_621_017_808_182u128).unwrap()
+        );
 
-        let x = u128::MAX;
-        assert_eq!(sqrt(x), 18_446_744_073_709_551_616u128);
+        // max u128
+        let x = PreciseNumber::new(u128::MAX).unwrap();
+        assert_eq!(
+            sqrt_precise(&x).unwrap(),
+            PreciseNumber {
+                value: InnerUint::from(18_446_744_073_709_551_615_999_999_999_999u128)
+            }
+        );
     }
 
     #[test]
     fn test_u128_natural_log() {
         // ln(1) = 0
-        assert_eq!(log(1u128), PreciseNumber::new(0u128).unwrap());
+        assert_eq!(log(1u128).unwrap(), PreciseNumber::new(0u128).unwrap());
 
         // ln(1000) = 6.907755278982137
         let precision = InnerUint::from(ONE);
         let expected = PreciseNumber {
             value: InnerUint::from(6_907_755_278_982u128),
         };
-        assert!(log(1_000u128).almost_eq(&expected, precision));
+        assert!(log(1_000u128).unwrap().almost_eq(&expected, precision));
 
         // ln(18446744073709551615) = 44.3614195558365
         let expected = PreciseNumber {
             value: InnerUint::from(44_361_419_555_836u128),
         };
-        assert!(log(u64::MAX as u128).almost_eq(&expected, precision));
+        assert!(log(u64::MAX as u128)
+            .unwrap()
+            .almost_eq(&expected, precision));
 
-        // TODO: this overflows
         // ln(340282366920938463463374607431768211455 = 88.722839111673
-        // assert_eq!(log(u128::MAX), PreciseNumber::new(0u128).unwrap());
+        // This should overflow so we handle gracefully with option None
+        assert_eq!(log(u128::MAX), None);
     }
 
     #[test]
     fn test_checked_pow_fraction() {
         let precision = InnerUint::from(ONE);
         let base = PreciseNumber::new(42u128).unwrap();
-        let exp: PreciseNumber;
         // 42^0 = 1
         let exp = PreciseNumber::new(0u128).unwrap();
         assert_eq!(

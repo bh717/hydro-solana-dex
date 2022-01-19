@@ -207,8 +207,9 @@ impl SwapCalculator {
                 .expect("q0_div_q_new_bumped");
             let log_q0_div_q_new_bumped = log(q0_div_q_new_bumped
                 .to_imprecise()
-                .expect("log_q0_div_q_new_bumped"));
-            let log_factor = log(factor.to_imprecise().expect("log_factor"));
+                .expect("q0_div_q_new_bumped"))
+            .expect("log_q0_div_q_new_bumped");
+            let log_factor = log(factor.to_imprecise().expect("factor")).expect("log_factor");
             let (log_q0_div_q_new, is_signed) = log_q0_div_q_new_bumped.unsigned_sub(&log_factor);
             signed_mul(&k_div_qi, false, &log_q0_div_q_new, is_signed)
         } else {
