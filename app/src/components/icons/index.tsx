@@ -277,3 +277,16 @@ export const ActiveTokens = (props: any) => (
         </defs>
     </SvgIcon>
 )
+
+export const Deposit = (props: any) => (
+    <SvgIcon viewBox="0 0 32 32" {...props}>
+        <path d="M16.0078 30.235L0.0192871 12.996L6.31319 1.58984H25.7024L31.998 12.996L16.0078 30.235ZM3.27912 12.6246L16.0078 26.3476L28.7365 12.6262L24.0613 4.1564H7.95431L3.27912 12.6262V12.6246Z" fill="url(#paint_linear)" />
+        <path d="M16.0078 22.6705L6.57251 12.7694L8.58348 11.0498L16.0078 18.8407L23.432 11.0498L25.443 12.7694L16.0078 22.6705Z" fill="url(#paint_linear)" />
+        <defs>
+            <linearGradient id="paint_linear" x1="5.4643" y1="30.235" x2="28.8306" y2="29.387" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#918EFF"/>
+                <stop offset="0.98645" stopColor="#19CE9D"/>
+            </linearGradient>
+        </defs>
+    </SvgIcon>
+)

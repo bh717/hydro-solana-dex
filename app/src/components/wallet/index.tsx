@@ -8,7 +8,7 @@ import { CaretDown, Wallet as WalletSVG, Tokens, ActiveTokens } from '../icons';
 import USDC from '../../assets/images/symbols/usdc.png';
 import HYSD from '../../assets/images/symbols/hysd.png';
 import BNB from '../../assets/images/symbols/bnb.png';
-import WalletModal from './wallet-modal';
+import WalletModal from './walletModal';
 import { normalizeAddress } from '../../helpers/normalize';
 
 const useStyles = makeStyles({
