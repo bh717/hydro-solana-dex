@@ -18,6 +18,7 @@ import { Toaster } from 'react-hot-toast';
 import Sidebar from './components/sidebar';
 import Wallet from './components/wallet';
 import Swap from './pages/swap';
+import Stake from './pages/stake';
 
 const useStyles = makeStyles({
     walletWrapper: {
@@ -104,6 +105,7 @@ function App() {
                         <Box className={classes.contentWrapper}>
                             <Routes>
                                 <Route path="/swap" element={<Swap openWalletConnect={() => setOpenWalletModal(true)} />} />
+                                <Route path="/stake" element={<Stake openWalletConnect={() => setOpenWalletModal(true)} />} />
                                 <Route path="*" element={<Navigate replace to="/swap" />} />
                             </Routes>
                         </Box>

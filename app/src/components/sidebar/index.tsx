@@ -35,7 +35,7 @@ import {
     Medium,
     Discord
 } from '../icons';
-import ListItem from './list-item';
+import ListItem from './listItem';
 
 const useStyles = makeStyles({
     drawer: {
@@ -111,6 +111,11 @@ const useStyles = makeStyles({
                 '& span': {
                     fontSize: '16px',
                     lineHeight: '28px'
+                },
+                '&.active': {
+                    '& span': {
+                        color: '#19CE9D'
+                    }
                 }
             },
             '&:hover': {
@@ -189,6 +194,9 @@ const useStyles = makeStyles({
                 }
             }
         }
+    },
+    linkActive: {
+
     },
     handler: {
         padding: '0 !important',
@@ -275,22 +283,26 @@ const SidebarItems = [
     {
         name: 'Trading',
         icon: <Trading />,
-        activeIcon: <ActiveTrading />
+        activeIcon: <ActiveTrading />,
+        link: '#'
     },
     {
         name: 'Swap',
         icon: <Swap />,
-        activeIcon: <ActiveSwap />
+        activeIcon: <ActiveSwap />,
+        link: '/swap'
     },
     {
         name: 'Pools',
         icon: <Pools />,
-        activeIcon: <ActivePools />
+        activeIcon: <ActivePools />,
+        link: '#'
     },
     {
         name: 'Stake',
         icon: <Stake />,
-        activeIicon: <ActiveStake />,
+        activeIcon: <ActiveStake />,
+        link: '/stake'
     }
 ]
 
@@ -337,7 +349,13 @@ const Sidebar = () => {
                 }
             >
                 {SidebarItems.map((item, index) => (
-                    <ListItem icon={item.icon} name={item.name} key={index} />
+                    <ListItem
+                        icon={item.icon}
+                        activeIcon={item.activeIcon}
+                        name={item.name}
+                        link={item.link}
+                        key={index}
+                    />
                 ))}
                 {mobile && (
                     <>

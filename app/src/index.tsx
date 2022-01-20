@@ -6,7 +6,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 
 // ** Spinner (Splash Screen)
-import FallbackSpinner from './components/spinner/fallback-spinner';
+import FallbackSpinner from './components/spinner/fallbackSpinner';
 
 // ** React Toastify
 import 'react-toastify/scss/main.scss';
