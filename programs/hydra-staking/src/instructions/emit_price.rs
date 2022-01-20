@@ -7,15 +7,8 @@ use anchor_spl::token::{Mint, TokenAccount};
 
 #[derive(Accounts)]
 pub struct EmitPrice<'info> {
-    #[account(
-        address = HYDRA_TOKEN_MINT_PUBKEY.parse::<Pubkey>().unwrap(),
-    )]
     pub token_mint: Account<'info, Mint>,
 
-    #[account(
-        mut,
-        address = X_HYDRA_TOKEN_MINT_PUBKEY.parse::<Pubkey>().unwrap(),
-    )]
     pub x_token_mint: Account<'info, Mint>,
 
     #[account(

@@ -1,36 +1,53 @@
 use crate::constants::*;
-use anchor_lang::prelude::*;
+use crate::state::pool_state::*;
+use anchor_lang::{prelude::*, solana_program::system_program};
 use anchor_spl::token::{Mint, Token, TokenAccount};
+use std::mem::size_of;
 
 #[derive(Accounts)]
-#[instruction(nonce: u8)]
+#[instruction(vault_bump: u8, state_bump: u8)]
 pub struct Initialize<'info> {
-    #[account(
-        address = HYDRA_TOKEN_MINT_PUBKEY.parse::<Pubkey>().unwrap(),
+    pub authority: AccountInfo<'info>,
+
+    #[account(mut)]
+    pub payer: Signer<'info>,
+
+    #[account(init,
+        payer = payer,
+        seeds = [STATE_SEED],
+        bump = state_bump,
+        rent_exempt = enforce,
+        space = 8 + size_of::<PoolState>()
     )]
+    pub state: Box<Account<'info, PoolState>>,
+
     pub token_mint: Box<Account<'info, Mint>>,
+    pub redeemable_mint: Box<Account<'info, Mint>>,
 
     #[account(
         init,
         payer = payer,
         token::mint = token_mint,
         token::authority = token_vault,
-        seeds = [ HYDRA_TOKEN_MINT_PUBKEY.parse::<Pubkey>().unwrap().as_ref() ],
-        bump = nonce,
+        seeds = [ token_mint.key().as_ref() ],
+        bump = vault_bump,
     )]
     /// the not-yet-created, derived token vault pubkey. PDA
     pub token_vault: Box<Account<'info, TokenAccount>>,
 
-    // #[account(mut)]
-    pub payer: Signer<'info>,
-
-    /// required by anchor for init of the token_vault
+    #[account(address = system_program::ID)]
     pub system_program: Program<'info, System>,
+    #[account(address = anchor_spl::token::ID)]
     pub token_program: Program<'info, Token>,
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn handle(_ctx: Context<Initialize>, _nonce: u8) -> ProgramResult {
-    msg!("Initialize!");
+pub fn handle(ctx: Context<Initialize>, vault_bump: u8, state_bump: u8) -> ProgramResult {
+    msg!("Initializing!");
+    ctx.accounts.state.authority = *ctx.accounts.authority.to_account_info().key;
+    ctx.accounts.state.vault_mint = *ctx.accounts.token_mint.to_account_info().key;
+    ctx.accounts.state.redeemable_mint = *ctx.accounts.redeemable_mint.to_account_info().key;
+    ctx.accounts.state.state_bump_seed = state_bump;
+    ctx.accounts.state.vault_bump_seed = vault_bump;
     Ok(())
 }

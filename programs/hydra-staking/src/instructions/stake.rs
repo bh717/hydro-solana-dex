@@ -8,15 +8,8 @@ use anchor_spl::token::{Mint, Token, TokenAccount};
 #[derive(Accounts)]
 #[instruction(nonce: u8)]
 pub struct Stake<'info> {
-    #[account(
-        address = HYDRA_TOKEN_MINT_PUBKEY.parse::<Pubkey>().unwrap(),
-    )]
     pub token_mint: Box<Account<'info, Mint>>,
 
-    #[account(
-        mut,
-        address = X_HYDRA_TOKEN_MINT_PUBKEY.parse::<Pubkey>().unwrap(),
-    )]
     pub x_token_mint: Box<Account<'info, Mint>>,
 
     #[account(mut)]
