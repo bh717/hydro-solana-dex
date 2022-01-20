@@ -1,18 +1,13 @@
-use hydra_math::math::sqrt_precise;
-use spl_math::precise_number::PreciseNumber;
+use proto::{cl_pool::*};
 
 fn main() {
-    println!("testing sqrt");
+    let sol = Token::new("SOL", 9) ;
+    println!("{:?}", sol);
+    
+    let pool = Pool::new("SOL", 9, "USDC",6,
+    140f64.sqrt(), 1, 0.0, 0.0) ;
+    println!("{:?}", pool);
 
-    println!(
-        "precise: {:?}",
-        sqrt_precise(&PreciseNumber::new(2).unwrap()).unwrap()
-    );
-    println!("float: {:?}", 2f64.sqrt());
-
-    println!("u128::MAX precise: {:?}", std::u128::MAX);
-    println!(
-        "u128::MAX float: {:?}",
-        sqrt_precise(&PreciseNumber::new(std::u128::MAX).unwrap()).unwrap()
-    );
+    let rez = Pool::liq_x_only(2.0, 2000f64.sqrt(), 2500f64.sqrt());
+    println!("{}", rez);
 }
