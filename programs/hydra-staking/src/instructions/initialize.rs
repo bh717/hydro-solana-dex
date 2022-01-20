@@ -1,5 +1,5 @@
 use crate::constants::*;
-use crate::state::pool_state::*;
+use crate::state::state::*;
 use anchor_lang::{prelude::*, solana_program::system_program};
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use std::mem::size_of;
@@ -17,11 +17,15 @@ pub struct Initialize<'info> {
         seeds = [STATE_SEED],
         bump = state_bump,
         rent_exempt = enforce,
-        space = 8 + size_of::<PoolState>()
+        space = 8 + size_of::<State>()
     )]
-    pub state: Box<Account<'info, PoolState>>,
+    pub state: Box<Account<'info, State>>,
 
     pub token_mint: Box<Account<'info, Mint>>,
+
+    #[account(
+        constraint = redeemable_mint.mint_authority.unwrap() == token_vault.key()
+    )]
     pub redeemable_mint: Box<Account<'info, Mint>>,
 
     #[account(
@@ -45,7 +49,7 @@ pub struct Initialize<'info> {
 pub fn handle(ctx: Context<Initialize>, vault_bump: u8, state_bump: u8) -> ProgramResult {
     msg!("Initializing!");
     ctx.accounts.state.authority = *ctx.accounts.authority.to_account_info().key;
-    ctx.accounts.state.vault_mint = *ctx.accounts.token_mint.to_account_info().key;
+    ctx.accounts.state.token_mint = *ctx.accounts.token_mint.to_account_info().key;
     ctx.accounts.state.redeemable_mint = *ctx.accounts.redeemable_mint.to_account_info().key;
     ctx.accounts.state.state_bump_seed = state_bump;
     ctx.accounts.state.vault_bump_seed = vault_bump;

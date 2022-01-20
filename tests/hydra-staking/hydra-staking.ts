@@ -21,12 +21,26 @@ describe('hydra-staking',  () => {
     let hydTokenAccount = Keypair.generate()
     let xHydAccount
 
+    let statePoolPubkey
+    let statePoolBump
+
     it('should mint Hyd', async () => {
         // load keyPair
         hydMint = await loadKey("tests/keys/hyd3VthE9YPGBeg9HEgZsrM5qPniC6VoaEFeTGkVsJR.json")
         await createMintAndVault(program.provider, hydMint, hydTokenAccount, new anchor.BN(100_000_000))
     })
 
+    it('should get PDA address details', async () => {
+        [vaultPubkey, vaultBump] = await anchor.web3.PublicKey.findProgramAddress(
+            [hydMint.publicKey.toBuffer()],
+            program.programId
+        );
+
+        [statePoolPubkey, statePoolBump] = await anchor.web3.PublicKey.findProgramAddress(
+            [Buffer.from("state_seed")],
+            program.programId
+        );
+    });
 
     it('should create xhyd mint and minto hydAccount', async () => {
         xhydMint = await loadKey("tests/keys/xhy1rv75cEJahTbsKnv2TpNhdR7KNUoDPavKuQDwhDU.json")
@@ -34,26 +48,16 @@ describe('hydra-staking',  () => {
         xHydAccount = await createTokenAccount(program.provider, xhydMint.publicKey, program.provider.wallet.publicKey)
     });
 
-    it('should initialized stake PDA vault', async () => {
-       [vaultPubkey, vaultBump] = await anchor.web3.PublicKey.findProgramAddress(
-            [hydMint.publicKey.toBuffer()],
-            program.programId
-        )
-
-        const [statePubkey, stateBump] = await anchor.web3.PublicKey.findProgramAddress(
-            [Buffer.from("state_seed")],
-            program.programId
-       )
-
+    it('should initialized Staking contract\'s PDA, state and token_vault', async () => {
         await program.rpc.initialize(
             vaultBump,
-            stateBump,
+            statePoolBump,
             {
                 accounts: {
                     authority: program.provider.wallet.publicKey,
                     tokenMint: hydMint.publicKey,
                     redeemableMint: xhydMint.publicKey,
-                    state: statePubkey,
+                    state: statePoolPubkey,
                     tokenVault: vaultPubkey,
                     payer: program.provider.wallet.publicKey,
                     systemProgram: anchor.web3.SystemProgram.programId,
@@ -65,26 +69,29 @@ describe('hydra-staking',  () => {
     });
 
 
-    // it('should stake tokens into vault for the first time', async () => {
-    //     await program.rpc.stake(
-    //         vaultBump,
-    //         new anchor.BN(1000),
-    //         {
-    //             accounts: {
-    //                 tokenMint: hydMint.publicKey,
-    //                 xTokenMint: xhydMint.publicKey,
-    //                 tokenFrom: hydTokenAccount.publicKey,
-    //                 tokenFromAuthority: program.provider.wallet.publicKey,
-    //                 tokenVault: vaultPubkey,
-    //                 xTokenTo: xHydAccount,
-    //                 tokenProgram: TOKEN_PROGRAM_ID,
-    //             }
-    //         }
-    //     )
-    //     assert.strictEqual(await getTokenBalance(program.provider, xHydAccount), 1000)
-    //     assert.strictEqual(await getTokenBalance(program.provider, vaultPubkey), 1000)
-    //     assert.strictEqual(await getTokenBalance(program.provider, hydTokenAccount.publicKey), 99999000)
-    // });
+    it('should stake tokens into vault for the first time', async () => {
+        await program.rpc.stake(
+            vaultBump,
+            statePoolBump,
+            new anchor.BN(1000),
+            {
+                accounts: {
+                    state: statePoolPubkey ,
+                    tokenMint: hydMint.publicKey,
+                    redeemableMint: xhydMint.publicKey,
+                    userFrom: hydTokenAccount.publicKey,
+                    userFromAuthority: program.provider.wallet.publicKey,
+                    tokenVault: vaultPubkey,
+                    redeemableTo: xHydAccount,
+                    tokenProgram: TOKEN_PROGRAM_ID,
+                },
+                signers: [(program.provider.wallet as NodeWallet).payer]
+            }
+        )
+        assert.strictEqual(await getTokenBalance(program.provider, xHydAccount), 1000)
+        assert.strictEqual(await getTokenBalance(program.provider, vaultPubkey), 1000)
+        assert.strictEqual(await getTokenBalance(program.provider, hydTokenAccount.publicKey), 99999000)
+    });
     //
     // it('should stake tokens into the vault for a second time', async () => {
     //     await program.rpc.stake(
