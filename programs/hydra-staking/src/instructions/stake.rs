@@ -112,10 +112,10 @@ pub fn handle(ctx: Context<Stake>, vault_bump: u8, state_bump: u8, amount: u64) 
     let new_price = calc_price(&ctx.accounts.token_vault, &ctx.accounts.redeemable_mint);
 
     emit!(PriceChange {
-        old_hyd_per_xhyd_1e9: old_price.0,
-        old_hyd_per_xhyd: old_price.1,
-        new_hyd_per_xhyd_1e9: new_price.0,
-        new_hyd_per_xhyd: new_price.1,
+        old_base_per_quote_native: old_price.0,
+        old_base_per_quote_ui: old_price.1,
+        new_base_per_quote_native: new_price.0,
+        new_base_per_quote_ui: new_price.1,
     });
 
     Ok(())

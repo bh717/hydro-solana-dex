@@ -22,8 +22,8 @@ pub struct EmitPrice<'info> {
 pub fn handle(ctx: Context<EmitPrice>) -> ProgramResult {
     let price = calc_price(&ctx.accounts.token_vault, &ctx.accounts.x_token_mint);
     emit!(Price {
-        hyd_per_xhyd_1e9: price.0,
-        hyd_per_xhyd: price.1,
+        base_per_quote_native: price.0,
+        base_per_quote_ui: price.1,
     });
     Ok(())
 }

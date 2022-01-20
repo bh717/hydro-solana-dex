@@ -2,14 +2,14 @@ use anchor_lang::prelude::*;
 
 #[event]
 pub struct PriceChange {
-    pub old_hyd_per_xhyd_1e9: u64,
-    pub old_hyd_per_xhyd: String,
-    pub new_hyd_per_xhyd_1e9: u64,
-    pub new_hyd_per_xhyd: String,
+    pub old_base_per_quote_native: u64,
+    pub old_base_per_quote_ui: String,
+    pub new_base_per_quote_native: u64,
+    pub new_base_per_quote_ui: String,
 }
 
 #[event]
 pub struct Price {
-    pub hyd_per_xhyd_1e9: u64,
-    pub hyd_per_xhyd: String,
+    pub base_per_quote_native: u64,
+    pub base_per_quote_ui: String,
 }
