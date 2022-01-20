@@ -1,62 +1,84 @@
 use crate::constants::*;
 use crate::events::*;
+use crate::state::state::State;
 use crate::utils::price::calc_price;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 
 #[derive(Accounts)]
-#[instruction(nonce: u8)]
+#[instruction(vault_bump: u8, state_bump: u8)]
 pub struct UnStake<'info> {
+    #[account(
+        seeds = [STATE_SEED],
+        bump = state_bump,
+    )]
+    pub state: Box<Account<'info, State>>,
+
+    #[account(
+        constraint = token_mint.key() == state.token_mint.key()
+    )]
     pub token_mint: Box<Account<'info, Mint>>,
-
-    pub x_token_mint: Box<Account<'info, Mint>>,
-
-    #[account(mut)]
-    // the token account to withdraw from
-    pub x_token_from: Box<Account<'info, TokenAccount>>,
-
-    pub x_token_from_authority: Signer<'info>,
 
     #[account(
         mut,
-        seeds = [ token_mint.key().as_ref() ],
-        bump = nonce,
+        constraint = redeemable_mint.key() == state.redeemable_mint.key()
+    )]
+    pub redeemable_mint: Box<Account<'info, Mint>>,
+
+    #[account(
+        mut,
+        constraint = user_to.mint == state.token_mint.key(),
+    )]
+    /// the token account to withdraw from
+    pub user_to: Box<Account<'info, TokenAccount>>,
+
+    #[account(
+        mut,
+        seeds = [ state.token_mint.key().as_ref() ],
+        bump = vault_bump,
     )]
     pub token_vault: Box<Account<'info, TokenAccount>>,
 
-    #[account(mut)]
-    pub token_to: Box<Account<'info, TokenAccount>>,
+    #[account(
+        mut,
+        constraint = redeemable_from.mint == state.redeemable_mint.key(),
+    )]
+    pub redeemable_from: Box<Account<'info, TokenAccount>>,
 
+    /// the authority allowed to transfer from token_from
+    pub redeemable_from_authority: Signer<'info>,
+
+    #[account(address = anchor_spl::token::ID)]
     pub token_program: Program<'info, Token>,
 }
 
-pub fn handle(ctx: Context<UnStake>, nonce: u8, amount: u64) -> ProgramResult {
-    let total_token = ctx.accounts.token_vault.amount;
-    let total_x_token = ctx.accounts.x_token_mint.supply;
-    let old_price = calc_price(&ctx.accounts.token_vault, &ctx.accounts.x_token_mint);
+pub fn handle(ctx: Context<UnStake>, vault_bump: u8, state_bump: u8, amount: u64) -> ProgramResult {
+    let total_tokens = ctx.accounts.token_vault.amount;
+    let total_redeemable_token_supply = ctx.accounts.redeemable_mint.supply;
+    let old_price = calc_price(&ctx.accounts.token_vault, &ctx.accounts.redeemable_mint);
 
     // burn incoming tokens
     let cpi_ctx = CpiContext::new(
         ctx.accounts.token_program.to_account_info(),
         token::Burn {
-            mint: ctx.accounts.x_token_mint.to_account_info(),
-            to: ctx.accounts.x_token_from.to_account_info(),
-            authority: ctx.accounts.x_token_from_authority.to_account_info(),
+            mint: ctx.accounts.redeemable_mint.to_account_info(),
+            to: ctx.accounts.redeemable_from.to_account_info(),
+            authority: ctx.accounts.redeemable_from_authority.to_account_info(),
         },
     );
     token::burn(cpi_ctx, amount)?;
 
     // determine user share of vault
-    // (amount * total_token) / token_x_token
+    // (amount * total_tokens) / total_redeemable_token_supply
     let token_share = amount
-        .checked_mul(total_token)
+        .checked_mul(total_tokens)
         .unwrap()
-        .checked_div(total_x_token)
+        .checked_div(total_redeemable_token_supply)
         .unwrap();
 
-    let token_mint_key = ctx.accounts.token_mint.key();
-    let seeds = &[token_mint_key.as_ref(), &[nonce]];
+    let token_mint_key = ctx.accounts.state.token_mint.key();
+    let seeds = &[token_mint_key.as_ref(), &[vault_bump]];
     let signer = &[&seeds[..]];
 
     // transfer from the vault to user
@@ -64,7 +86,7 @@ pub fn handle(ctx: Context<UnStake>, nonce: u8, amount: u64) -> ProgramResult {
         ctx.accounts.token_program.to_account_info(),
         token::Transfer {
             from: ctx.accounts.token_vault.to_account_info(),
-            to: ctx.accounts.token_to.to_account_info(),
+            to: ctx.accounts.user_to.to_account_info(),
             authority: ctx.accounts.token_vault.to_account_info(),
         },
         signer,
@@ -72,9 +94,9 @@ pub fn handle(ctx: Context<UnStake>, nonce: u8, amount: u64) -> ProgramResult {
     token::transfer(cpi_ctx, token_share)?;
 
     (&mut ctx.accounts.token_vault).reload()?;
-    (&mut ctx.accounts.x_token_mint).reload()?;
+    (&mut ctx.accounts.redeemable_mint).reload()?;
 
-    let new_price = calc_price(&ctx.accounts.token_vault, &ctx.accounts.x_token_mint);
+    let new_price = calc_price(&ctx.accounts.token_vault, &ctx.accounts.redeemable_mint);
 
     emit!(PriceChange {
         old_hyd_per_xhyd_1e9: old_price.0,

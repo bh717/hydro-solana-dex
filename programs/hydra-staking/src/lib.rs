@@ -37,7 +37,12 @@ pub mod hydra_staking {
         instructions::emit_price::handle(ctx)
     }
 
-    pub fn unstake(ctx: Context<UnStake>, nonce: u8, amount: u64) -> ProgramResult {
-        instructions::unstake::handle(ctx, nonce, amount)
+    pub fn unstake(
+        ctx: Context<UnStake>,
+        vault_bump: u8,
+        state_bump: u8,
+        amount: u64,
+    ) -> ProgramResult {
+        instructions::unstake::handle(ctx, vault_bump, state_bump, amount)
     }
 }
