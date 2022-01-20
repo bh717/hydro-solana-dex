@@ -11,15 +11,18 @@ interface ListItemProps {
     icon: JSX.Element;
     activeIcon?: JSX.Element;
     link?: string;
+    onClick?(): void;
 }
 
-const ListItem: FC<ListItemProps> = ({ name, icon, activeIcon, link }) => {
+const ListItem: FC<ListItemProps> = ({ name, icon, activeIcon, link, onClick }) => {
     let location = useLocation();
     let navigate = useNavigate();
 
     const navigatePage = () => {
         if (link) {
             navigate(link, { replace: true });
+        } else if(onClick) {
+            onClick();
         }
     }
 

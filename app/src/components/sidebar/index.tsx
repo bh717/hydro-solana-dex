@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { FC, useState, useEffect } from "react";
 import { makeStyles } from '@mui/styles';
 import MuiDrawer from '@mui/material/Drawer';
 import {
@@ -16,8 +16,7 @@ import LogoSM from '../../assets/images/logo_sm.png';
 import Collapse from '../../assets/images/collapse.png';
 import Expand from '../../assets/images/expand.png';
 import {
-    MenuOpen,
-    MenuClose,
+    Menu as MenuHandler,
     Trading,
     ActiveTrading,
     Swap,
@@ -26,6 +25,7 @@ import {
     ActivePools,
     Stake,
     ActiveStake,
+    Network,
     Doc,
     List as Menu,
     Share,
@@ -36,6 +36,9 @@ import {
     Discord
 } from '../icons';
 import ListItem from './listItem';
+import { WalletButton } from '../wallet';
+import SelectRPCModal from './modals/selectRPC';
+import { RPC } from '../../interfaces';
 
 const useStyles = makeStyles({
     drawer: {
@@ -87,8 +90,17 @@ const useStyles = makeStyles({
             }
         }
     },
-    mobileHandler: {
-        padding: '0 !important'
+    mobileActionWrapper: {
+
+    },
+    menuHandler: {
+        padding: '0 !important',
+        marginLeft: '16px !important',
+        '& svg': {
+            fill: '#FFFFFFD9',
+            width: '22px !important',
+            height: '17px !important'
+        }
     },
     list: {
         '& *': {
@@ -148,7 +160,7 @@ const useStyles = makeStyles({
             alignItems: 'center',
             fontSize: '14px',
             padding: '5px 6px',
-            margin: '10px 0',
+            margin: '5px 0',
             width: 'calc(100% - 14px)',
             justifyContent: 'center',
             '& svg': {
@@ -166,7 +178,7 @@ const useStyles = makeStyles({
     },
     linkWrapper: {
         position: 'relative',
-        height: '51px',
+        height: '41px',
         width: '192px',
         '& .MuiLink-root': {
             position: 'absolute',
@@ -178,6 +190,7 @@ const useStyles = makeStyles({
             '& .MuiLink-root': {
                 border: '1px solid hsla(0,0%,100%,.5)',
                 borderRadius: '15px',
+                boxSizing: 'content-box',
                 justifyContent: 'flex-start',
                 '& svg': {
                     marginLeft: '2.5px'
@@ -194,9 +207,6 @@ const useStyles = makeStyles({
                 }
             }
         }
-    },
-    linkActive: {
-
     },
     handler: {
         padding: '0 !important',
@@ -276,6 +286,16 @@ const useStyles = makeStyles({
                 }
             }
         }
+    },
+    bottomLinks: {
+        margin: '0 24px',
+        '& .MuiListItemButton-root': {
+            padding: '12px 0',
+            '&:first-of-type': {
+                borderTop: '1px solid #FFFFFF0A',
+                borderBottom: '1px solid #FFFFFF0A'
+            }
+        }
     }
 })
 
@@ -306,10 +326,18 @@ const SidebarItems = [
     }
 ]
 
-const Sidebar = () => {
+interface SidebarProps {
+    openWalletModal(): void;
+    address: string;
+    rpc: RPC;
+    changeRPC(value: RPC): void;
+}
+
+const Sidebar: FC<SidebarProps> = ({ openWalletModal, address, rpc, changeRPC }) => {
     const classes = useStyles();
     const [open, setOpen] = useState(true);
     const [mobile, setMobile] = useState(false);
+    const [openRPCModal, setOpenRPCModal] = useState(false);
 
     useEffect(() => {
         // Windows Resize Handler
@@ -332,80 +360,103 @@ const Sidebar = () => {
     }
 
     return (
-        <MuiDrawer className={cn(classes.drawer, {'collapsed': !open && !mobile, 'expanded': !open && mobile})} variant="permanent">
-            <List
-                className={cn(classes.list, {'collapsed': !open && !mobile, 'expanded': !open && mobile})}
-                component="nav"
-                subheader={
-                    <ListSubheader className={cn(classes.drawerHeader, {'collapsed': !open && !mobile, 'expanded': !open && mobile})} component="div">
-                        {(open || mobile) && <img src={Logo} alt="Hydraswap" />}
-                        {(!open && !mobile) && <img src={LogoSM} alt="Hydraswap" />}
-                        {mobile && (
-                            <IconButton className={classes.mobileHandler} onClick={handleDrawer}>
-                                {open ? <MenuClose /> : <MenuOpen />}
-                            </IconButton>
-                        )}
-                    </ListSubheader>
-                }
-            >
-                {SidebarItems.map((item, index) => (
-                    <ListItem
-                        icon={item.icon}
-                        activeIcon={item.activeIcon}
-                        name={item.name}
-                        link={item.link}
-                        key={index}
-                    />
-                ))}
-                {mobile && (
-                    <>
-                        <ListItem icon={<Doc />} name="Test Guide" />
-                        <ListItem icon={<Menu />} name="Docs" />
-                    </>
-                )}
-            </List>
-            {!mobile && (
-                <IconButton className={classes.handler} onClick={handleDrawer}>
-                    {open ? <img src={Collapse} alt="Menu" /> : <img src={Expand} alt="Menu" />}
-                </IconButton>
-            )}
-            <Box className={cn(classes.links, {'collapsed': !open && !mobile, 'expanded': !open && mobile})}>
+        <>
+            <MuiDrawer className={cn(classes.drawer, {'collapsed': !open && !mobile, 'expanded': !open && mobile})} variant="permanent">
+                <List
+                    className={cn(classes.list, {'collapsed': !open && !mobile, 'expanded': !open && mobile})}
+                    component="nav"
+                    subheader={
+                        <ListSubheader className={cn(classes.drawerHeader, {'collapsed': !open && !mobile, 'expanded': !open && mobile})} component="div">
+                            {(open || mobile) && <img src={Logo} alt="Hydraswap" />}
+                            {(!open && !mobile) && <img src={LogoSM} alt="Hydraswap" />}
+                            {mobile && (
+                                <Box className={classes.mobileActionWrapper}>
+                                    <WalletButton openWalletModal={openWalletModal} />
+                                    <IconButton className={classes.menuHandler} onClick={handleDrawer}>
+                                        <MenuHandler />
+                                    </IconButton>
+                                </Box>
+                            )}
+                        </ListSubheader>
+                    }
+                >
+                    {SidebarItems.map((item, index) => (
+                        <ListItem
+                            icon={item.icon}
+                            activeIcon={item.activeIcon}
+                            name={item.name}
+                            link={item.link}
+                            key={index}
+                        />
+                    ))}
+                    {mobile && (
+                        <Box className={classes.bottomLinks}>
+                            <ListItem
+                                icon={<Network />}
+                                name={rpc.name}
+                                onClick={() => setOpenRPCModal(true)}
+                            />
+                            <ListItem icon={<Doc />} name="Test Guide" />
+                            <ListItem icon={<Menu />} name="Docs" />
+                        </Box>
+                    )}
+                </List>
                 {!mobile && (
-                    <Box className={cn(classes.linkWrapper, {'collapsed': !open && !mobile})}>
-                        <Link href="https://hydraswap.gitbook.io/hydra-beta-testing-guide" underline="none">
-                            <Doc /><Typography variant="body2" component="span">Test Guide</Typography>
-                        </Link>
-                    </Box>
+                    <IconButton className={classes.handler} onClick={handleDrawer}>
+                        {open ? <img src={Collapse} alt="Menu" /> : <img src={Expand} alt="Menu" />}
+                    </IconButton>
                 )}
-                {!mobile && (
-                    <Box className={cn(classes.linkWrapper, {'collapsed': !open && !mobile})}>
-                        <Link href="https://hydraswap.gitbook.io/hydraswap-gitbook/" underline="none">
-                            <Menu /><Typography variant="body2" component="span">Paper & Docs</Typography>
-                        </Link>
-                    </Box>
-                )}
-                <Box className={cn(classes.socialWrapper, {'collapsed': !open && !mobile})}>
-                    <Box className={cn(classes.social, {'collapsed': !open && !mobile})}>
-                        {(!open && !mobile) && <Share />}
-                        <Link href="https://twitter.com/HydraSwap_io" underline="none">
-                            <Twitter />
-                        </Link>
-                        <Link href="https://t.me/hydraswap" underline="none">
-                            <Telegram />
-                        </Link>
-                        <Link href="https://t.me/hydraswap_ANN" underline="none">
-                            <Speaker />
-                        </Link>
-                        <Link href="https://medium.com/@HydraSwap" underline="none">
-                            <Medium />
-                        </Link>
-                        <Link href="https://discord.gg/AA26dw6Hpm" underline="none">
-                            <Discord />
-                        </Link>
+                <Box className={cn(classes.links, {'collapsed': !open && !mobile, 'expanded': !open && mobile})}>
+                    {!mobile && (
+                        <Box className={cn(classes.linkWrapper, {'collapsed': !open && !mobile})}>
+                            <Link component="button" underline="none" onClick={() => setOpenRPCModal(true)}>
+                                <Network /><Typography variant="body2" component="span">{rpc.name}</Typography>
+                            </Link>
+                        </Box>
+                    )}
+                    {!mobile && (
+                        <Box className={cn(classes.linkWrapper, {'collapsed': !open && !mobile})}>
+                            <Link href="https://hydraswap.gitbook.io/hydra-beta-testing-guide" underline="none">
+                                <Doc /><Typography variant="body2" component="span">Test Guide</Typography>
+                            </Link>
+                        </Box>
+                    )}
+                    {!mobile && (
+                        <Box className={cn(classes.linkWrapper, {'collapsed': !open && !mobile})}>
+                            <Link href="https://hydraswap.gitbook.io/hydraswap-gitbook/" underline="none">
+                                <Menu /><Typography variant="body2" component="span">Paper & Docs</Typography>
+                            </Link>
+                        </Box>
+                    )}
+                    <Box className={cn(classes.socialWrapper, {'collapsed': !open && !mobile})}>
+                        <Box className={cn(classes.social, {'collapsed': !open && !mobile})}>
+                            {(!open && !mobile) && <Share />}
+                            <Link href="https://twitter.com/HydraSwap_io" underline="none">
+                                <Twitter />
+                            </Link>
+                            <Link href="https://t.me/hydraswap" underline="none">
+                                <Telegram />
+                            </Link>
+                            <Link href="https://t.me/hydraswap_ANN" underline="none">
+                                <Speaker />
+                            </Link>
+                            <Link href="https://medium.com/@HydraSwap" underline="none">
+                                <Medium />
+                            </Link>
+                            <Link href="https://discord.gg/AA26dw6Hpm" underline="none">
+                                <Discord />
+                            </Link>
+                        </Box>
                     </Box>
                 </Box>
-            </Box>
-        </MuiDrawer>
+            </MuiDrawer>
+            <SelectRPCModal
+                open={openRPCModal}
+                onClose={() => setOpenRPCModal(false)}
+                rpc={rpc}
+                changeRPC={changeRPC}
+            />
+        </>
     )
 }
 

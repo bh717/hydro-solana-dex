@@ -95,7 +95,7 @@ html, body {
 }
 
 .MuiModal-root {
-    z-index: 900 !important;
+    z-index: 10000 !important;
 }
 
 @media screen and (min-width: 601px) {

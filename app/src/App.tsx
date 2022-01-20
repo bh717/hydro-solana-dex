@@ -16,9 +16,10 @@ import { clusterApiUrl } from '@solana/web3.js';
 import { Toaster } from 'react-hot-toast';
 
 import Sidebar from './components/sidebar';
-import Wallet from './components/wallet';
+import { WalletButton, WalletModal } from './components/wallet';
 import Swap from './pages/swap';
 import Stake from './pages/stake';
+import { RPC } from './interfaces';
 
 const useStyles = makeStyles({
     walletWrapper: {
@@ -45,14 +46,7 @@ const useStyles = makeStyles({
             }
         },
         '@media (max-width:600px)': {
-            order: 1,
-            justifyContent: 'center',
-            '& .wallet-adapter-dropdown-list': {
-                top: 0,
-                right: '50%',
-                transform: 'translate(50%, -146px)',
-                transition: 'opacity 200ms ease, visibility 200ms'
-            }
+            display: 'none'
         }
     },
     contentWrapper: {
@@ -63,8 +57,8 @@ const useStyles = makeStyles({
         height: 'calc(100vh - 116px)',
         overflow: 'auto',
         '@media (max-width:600px)': {
-            margin: '20px 10px 0',
-            height: 'calc(100vh - 164px)',
+            margin: '20px 10px',
+            height: 'calc(100vh - 100px)',
             maxHeight: 'initial'
         }
     }
@@ -90,6 +84,11 @@ function App() {
         getBloctoWallet()
     ], [network]);
 
+    const [address, setAddress] = useState('');
+    const [currentRPC, setCurrentRPC] = useState<RPC>({
+        id: 1,
+        name: 'Solend Node 1'
+    });
     const [openWalletModal, setOpenWalletModal] = useState(false);
 
     return (
@@ -97,10 +96,10 @@ function App() {
             <WalletProvider wallets={wallets}>
                 <div className="layout">
                     <Toaster position="bottom-right" />
-                    <Sidebar />
+                    <Sidebar openWalletModal={() => setOpenWalletModal(true)} address={address} rpc={currentRPC} changeRPC={setCurrentRPC}  />
                     <Box component="main" className="container">
                         <Box className={classes.walletWrapper}>
-                            <Wallet openModal={openWalletModal} handleModal={setOpenWalletModal} />
+                            <WalletButton openWalletModal={() => setOpenWalletModal(true)} updateAddress={setAddress} />
                         </Box>
                         <Box className={classes.contentWrapper}>
                             <Routes>
@@ -110,6 +109,7 @@ function App() {
                             </Routes>
                         </Box>
                     </Box>
+                    <WalletModal open={openWalletModal} onClose={() => setOpenWalletModal(false)} address={address} />
                 </div>
             </WalletProvider>
         </ConnectionProvider>
