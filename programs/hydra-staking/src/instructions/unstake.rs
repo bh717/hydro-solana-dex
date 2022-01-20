@@ -1,7 +1,7 @@
 use crate::constants::*;
 use crate::events::*;
 use crate::state::state::State;
-use crate::utils::price::calc_price;
+use crate::utils::price::calculate_price;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
 use anchor_spl::token::{Mint, Token, TokenAccount};
@@ -53,10 +53,16 @@ pub struct UnStake<'info> {
     pub token_program: Program<'info, Token>,
 }
 
+impl<'info> UnStake<'info> {
+    pub fn calculate_price(&self) -> (u64, String) {
+        calculate_price(&self.token_vault, &self.redeemable_mint)
+    }
+}
+
 pub fn handle(ctx: Context<UnStake>, vault_bump: u8, state_bump: u8, amount: u64) -> ProgramResult {
     let total_tokens = ctx.accounts.token_vault.amount;
     let total_redeemable_token_supply = ctx.accounts.redeemable_mint.supply;
-    let old_price = calc_price(&ctx.accounts.token_vault, &ctx.accounts.redeemable_mint);
+    let old_price = ctx.accounts.calculate_price();
 
     // burn incoming tokens
     let cpi_ctx = CpiContext::new(
@@ -96,7 +102,7 @@ pub fn handle(ctx: Context<UnStake>, vault_bump: u8, state_bump: u8, amount: u64
     (&mut ctx.accounts.token_vault).reload()?;
     (&mut ctx.accounts.redeemable_mint).reload()?;
 
-    let new_price = calc_price(&ctx.accounts.token_vault, &ctx.accounts.redeemable_mint);
+    let new_price = ctx.accounts.calculate_price();
 
     emit!(PriceChange {
         old_base_per_quote_native: old_price.0,

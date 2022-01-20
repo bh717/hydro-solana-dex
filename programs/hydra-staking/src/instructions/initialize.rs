@@ -48,10 +48,7 @@ pub struct Initialize<'info> {
 
 pub fn handle(ctx: Context<Initialize>, vault_bump: u8, state_bump: u8) -> ProgramResult {
     msg!("Initializing!");
-    ctx.accounts.state.authority = *ctx.accounts.authority.to_account_info().key;
     ctx.accounts.state.token_mint = *ctx.accounts.token_mint.to_account_info().key;
     ctx.accounts.state.redeemable_mint = *ctx.accounts.redeemable_mint.to_account_info().key;
-    ctx.accounts.state.state_bump_seed = state_bump;
-    ctx.accounts.state.vault_bump_seed = vault_bump;
     Ok(())
 }

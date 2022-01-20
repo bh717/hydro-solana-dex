@@ -3,7 +3,7 @@ use anchor_spl::token::{Mint, TokenAccount};
 const ONE_E9: u64 = 1000000000;
 
 /// calculate price
-pub fn calc_price<'info>(
+pub fn calculate_price<'info>(
     vault: &Account<'info, TokenAccount>,
     mint: &Account<'info, Mint>,
 ) -> (u64, String) {

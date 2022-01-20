@@ -1,15 +1,26 @@
 use crate::constants::*;
 use crate::events::*;
-use crate::utils::price::calc_price;
+use crate::state::state::State;
+use crate::utils::price::calculate_price;
 use crate::ProgramResult;
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, TokenAccount};
 
 #[derive(Accounts)]
+#[instruction(state_bump: u8)]
 pub struct EmitPrice<'info> {
     pub token_mint: Account<'info, Mint>,
 
-    pub x_token_mint: Account<'info, Mint>,
+    #[account(
+        seeds = [STATE_SEED],
+        bump = state_bump,
+    )]
+    pub state: Box<Account<'info, State>>,
+
+    #[account(
+        constraint = redeemable_mint.key() == state.redeemable_mint.key()
+    )]
+    pub redeemable_mint: Account<'info, Mint>,
 
     #[account(
         mut,
@@ -19,8 +30,8 @@ pub struct EmitPrice<'info> {
     pub token_vault: Account<'info, TokenAccount>,
 }
 
-pub fn handle(ctx: Context<EmitPrice>) -> ProgramResult {
-    let price = calc_price(&ctx.accounts.token_vault, &ctx.accounts.x_token_mint);
+pub fn handle(ctx: Context<EmitPrice>, state_bump: u8) -> ProgramResult {
+    let price = calculate_price(&ctx.accounts.token_vault, &ctx.accounts.redeemable_mint);
     emit!(Price {
         base_per_quote_native: price.0,
         base_per_quote_ui: price.1,

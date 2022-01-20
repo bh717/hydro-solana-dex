@@ -117,10 +117,11 @@ describe('hydra-staking',  () => {
     });
     //
     it('should emit the current price', async () => {
-        await program.rpc.emitPrice({
+        await program.rpc.emitPrice(stateBump, {
             accounts: {
+                state: statePoolPubkey,
                tokenMint: hydMint.publicKey,
-               xTokenMint: xhydMint.publicKey,
+               redeemableMint: xhydMint.publicKey,
                tokenVault: vaultPubkey,
             }
         })
@@ -140,10 +141,11 @@ describe('hydra-staking',  () => {
     });
 
     it('should emit the next price', async () => {
-        await program.rpc.emitPrice({
+        await program.rpc.emitPrice(stateBump, {
             accounts: {
+                state: statePoolPubkey,
                 tokenMint: hydMint.publicKey,
-                xTokenMint: xhydMint.publicKey,
+                redeemableMint: xhydMint.publicKey,
                 tokenVault: vaultPubkey,
             }
         })
