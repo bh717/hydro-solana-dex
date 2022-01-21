@@ -20,13 +20,13 @@ import reportWebVitals from './reportWebVitals';
 const LazyApp = lazy(() => import('./App'))
 
 ReactDOM.render(
-  <BrowserRouter>
-    <Suspense fallback={<FallbackSpinner />}>
-      <LazyApp />
-      <ToastContainer newestOnTop />
-    </Suspense>
-  </BrowserRouter>,
-  document.getElementById('root')
+    <BrowserRouter>
+        <Suspense fallback={<FallbackSpinner />}>
+            <LazyApp />
+            <ToastContainer newestOnTop />
+        </Suspense>
+    </BrowserRouter>,
+    document.getElementById('root')
 );
 
 // If you want to start measuring performance in your app, pass a function

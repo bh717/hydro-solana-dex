@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { makeStyles } from '@mui/styles';
 import { Box } from '@mui/material';
@@ -16,9 +16,10 @@ import { clusterApiUrl } from '@solana/web3.js';
 import { Toaster } from 'react-hot-toast';
 
 import Sidebar from './components/sidebar';
-import Wallet from './components/wallet';
+import { WalletButton, WalletModal } from './components/wallet';
 import Swap from './pages/swap';
 import Stake from './pages/stake';
+import { RPC } from './interfaces';
 
 const useStyles = makeStyles({
     walletWrapper: {
@@ -45,14 +46,7 @@ const useStyles = makeStyles({
             }
         },
         '@media (max-width:600px)': {
-            order: 1,
-            justifyContent: 'center',
-            '& .wallet-adapter-dropdown-list': {
-                top: 0,
-                right: '50%',
-                transform: 'translate(50%, -146px)',
-                transition: 'opacity 200ms ease, visibility 200ms'
-            }
+            display: 'none'
         }
     },
     contentWrapper: {
@@ -63,12 +57,35 @@ const useStyles = makeStyles({
         height: 'calc(100vh - 116px)',
         overflow: 'auto',
         '@media (max-width:600px)': {
-            margin: '20px 10px 0',
-            height: 'calc(100vh - 164px)',
+            margin: '20px 10px',
+            height: 'calc(100vh - 100px)',
             maxHeight: 'initial'
         }
     }
 })
+
+const networks = [
+    {
+        name: 'MainNet Beta RPC',
+        url: 'https://api.mainnet-beta.solana.com'
+    },
+    {
+        name: 'Serum RPC',
+        url: 'https://solana-api.projectserum.com'
+    },
+    {
+        name: 'TestNet RPC',
+        url: 'https://api.testnet.solana.com'
+    },
+    {
+        name: 'DevNet RPC',
+        url: 'https://api.devnet.solana.com'
+    },
+    {
+        name: 'LocalNet RPC',
+        url: 'http://localhost:8899'
+    }
+]
 
 function App() {
     const classes = useStyles();
@@ -90,17 +107,26 @@ function App() {
         getBloctoWallet()
     ], [network]);
 
+    const [address, setAddress] = useState('');
+    const [currentRPC, setCurrentRPC] = useState<RPC>({
+        name: '',
+        url: ''
+    });
     const [openWalletModal, setOpenWalletModal] = useState(false);
+
+    useEffect(() => {
+        setCurrentRPC(networks[0]);
+    }, [])
 
     return (
         <ConnectionProvider endpoint={endpoint}>
             <WalletProvider wallets={wallets}>
                 <div className="layout">
                     <Toaster position="bottom-right" />
-                    <Sidebar />
+                    <Sidebar openWalletModal={() => setOpenWalletModal(true)} address={address} rpc={currentRPC} changeRPC={setCurrentRPC} networks={networks} />
                     <Box component="main" className="container">
                         <Box className={classes.walletWrapper}>
-                            <Wallet openModal={openWalletModal} handleModal={setOpenWalletModal} />
+                            <WalletButton openWalletModal={() => setOpenWalletModal(true)} updateAddress={setAddress} />
                         </Box>
                         <Box className={classes.contentWrapper}>
                             <Routes>
@@ -110,6 +136,7 @@ function App() {
                             </Routes>
                         </Box>
                     </Box>
+                    <WalletModal open={openWalletModal} onClose={() => setOpenWalletModal(false)} address={address} />
                 </div>
             </WalletProvider>
         </ConnectionProvider>
