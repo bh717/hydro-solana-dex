@@ -10,4 +10,9 @@ fn main() {
 
     let rez = Pool::liq_x_only(2.0, 2000f64.sqrt(), 2500f64.sqrt());
     println!("{}", rez);
+    println!("{}", u128::MAX);
+    println!("{}", u32::MAX);
+    println!("{}", f64::MAX.log(1.0001_f64.sqrt()));
+    println!("{}", (u128::MAX as f64).log(1.0001_f64.sqrt()));
+
 }

@@ -5,18 +5,37 @@ pub trait PoolMath {
     const ADJ_WHOLE_FILL: f64 = 1.0e-12;
     const ADJ_WITHDRAWAL: f64 = 0.0e-8;
 
-    fn tick_to_rp(tick: u128) -> f64 {
+    fn tick_to_rp(tick: u32) -> f64 {
         Self::TICK_BASE.sqrt().powf(tick as f64)
     }
 
-    fn rp_to_tick(rp: f64, left_to_right: bool) -> u128 {
+    fn rp_to_tick(rp: f64, left_to_right: bool) -> u32 {
         let base = Self::TICK_BASE.sqrt();
         match left_to_right {
-            true => rp.log(base).ceil() as u128,
-            false => rp.log(base).floor() as u128
+            true => rp.log(base).ceil() as u32,
+            false => rp.log(base).floor() as u32
         }
     }
     
+    fn tk_to_possible_tk(tick:u32, spacing:u32, left_to_right:bool) -> u32 {
+        // use tk_spacing to find allowable/ initializable tick that is <= tick 
+        // (if left_to_right is false) or >= tick (if left_to_right is true)
+        // returns unchanged tick if self.tick_spacing is 1
+        let ts = spacing as f64;
+        let tk = tick as f64;
+        let result = match left_to_right {
+            false => (tk / ts).floor() * ts,
+            true => (tk / ts).ceil() * ts,
+        };
+        result as u32
+    }
+
+    fn rp_to_possible_tk(rp: f64, spacing: u32, left_to_right: bool) -> u32 {
+        // find allowable tick from given rp
+        let tick_theo = Self::rp_to_tick(rp, left_to_right);
+        Self::tk_to_possible_tk(tick_theo, spacing ,left_to_right)
+    }
+
     fn liq_x_only(x: f64, rpa: f64, rpb: f64) -> f64 {
         // Lx : liquidity amount when liquidity fully composed of  token x
         // e.g when price below lower bound of range and y=0. [5]
@@ -50,7 +69,7 @@ pub trait PoolMath {
         }
     }
 
-    fn _liq_from_x_y_rp_rng(x: f64, y: f64, t: u128, ta: u128, tb: u128) -> f64 {
+    fn liq_from_x_y_tick_rng(x: f64, y: f64, t: u32, ta: u32, tb: u32) -> f64 {
         // tick as inputs instead of root prices
         let rp = Self::tick_to_rp(t);
         let rpa = Self::tick_to_rp(ta);
@@ -65,7 +84,7 @@ pub trait PoolMath {
         l * (rpb - rp) / (rp * rpb) 
     }
     
-    fn x_from_l_tick_rng(l:f64, t: u128, ta: u128, tb: u128) -> f64 {
+    fn x_from_l_tick_rng(l:f64, t: u32, ta: u32, tb: u32) -> f64 {
         // tick as inputs instead of root prices
         let rp = Self::tick_to_rp(t);
         let rpa = Self::tick_to_rp(ta);
@@ -79,7 +98,7 @@ pub trait PoolMath {
         let rp = rp.min(rpb).max(rpa);
         l * (rp - rpa) 
     }
-    fn y_from_l_tick_rng(l:f64, t: u128, ta: u128, tb: u128) -> f64 {
+    fn y_from_l_tick_rng(l:f64, t: u32, ta: u32, tb: u32) -> f64 {
         // tick as inputs instead of root prices
         let rp = Self::tick_to_rp(t);
         let rpa = Self::tick_to_rp(ta);
