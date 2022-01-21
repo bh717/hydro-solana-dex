@@ -15,7 +15,7 @@ pub struct EmitPrice<'info> {
         seeds = [STATE_SEED],
         bump = state_bump,
     )]
-    pub state: Box<Account<'info, State>>,
+    pub state: Account<'info, State>,
 
     #[account(
         constraint = redeemable_mint.key() == state.redeemable_mint.key()
