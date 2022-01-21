@@ -47,31 +47,13 @@ const useStyles = makeStyles({
     }
 })
 
-const networks = [
-    {
-        id: 1,
-        name: 'Solend Node 1'
-    },
-    {
-        id: 2,
-        name: 'Public Mainnet RPC'
-    },
-    {
-        id: 3,
-        name: 'Serum RPC'
-    },
-    {
-        id: 4,
-        name: 'RPCPool RPC'
-    }
-]
-
 interface ContentProps {
     data: RPC;
     setData(value: RPC): void;
+    networks: Array<RPC>;
 }
 
-const Content: FC<ContentProps> = ({ data, setData }) => {
+const Content: FC<ContentProps> = ({ data, setData, networks }) => {
     const classes = useStyles();
 
     return (
@@ -84,7 +66,7 @@ const Content: FC<ContentProps> = ({ data, setData }) => {
                         onClick={() => setData(network)}
                     >
                         <span>{network.name}</span>
-                        {data.id === network.id && <Check />}
+                        {data.url === network.url && <Check />}
                     </Button>
                 ))}
             </Box>

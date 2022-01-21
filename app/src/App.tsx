@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { makeStyles } from '@mui/styles';
 import { Box } from '@mui/material';
@@ -64,6 +64,29 @@ const useStyles = makeStyles({
     }
 })
 
+const networks = [
+    {
+        name: 'MainNet Beta RPC',
+        url: 'https://api.mainnet-beta.solana.com'
+    },
+    {
+        name: 'Serum RPC',
+        url: 'https://solana-api.projectserum.com'
+    },
+    {
+        name: 'TestNet RPC',
+        url: 'https://api.testnet.solana.com'
+    },
+    {
+        name: 'DevNet RPC',
+        url: 'https://api.devnet.solana.com'
+    },
+    {
+        name: 'LocalNet RPC',
+        url: 'http://localhost:8899'
+    }
+]
+
 function App() {
     const classes = useStyles();
 
@@ -86,17 +109,21 @@ function App() {
 
     const [address, setAddress] = useState('');
     const [currentRPC, setCurrentRPC] = useState<RPC>({
-        id: 1,
-        name: 'Solend Node 1'
+        name: '',
+        url: ''
     });
     const [openWalletModal, setOpenWalletModal] = useState(false);
+
+    useEffect(() => {
+        setCurrentRPC(networks[0]);
+    }, [])
 
     return (
         <ConnectionProvider endpoint={endpoint}>
             <WalletProvider wallets={wallets}>
                 <div className="layout">
                     <Toaster position="bottom-right" />
-                    <Sidebar openWalletModal={() => setOpenWalletModal(true)} address={address} rpc={currentRPC} changeRPC={setCurrentRPC}  />
+                    <Sidebar openWalletModal={() => setOpenWalletModal(true)} address={address} rpc={currentRPC} changeRPC={setCurrentRPC} networks={networks} />
                     <Box component="main" className="container">
                         <Box className={classes.walletWrapper}>
                             <WalletButton openWalletModal={() => setOpenWalletModal(true)} updateAddress={setAddress} />

@@ -331,9 +331,10 @@ interface SidebarProps {
     address: string;
     rpc: RPC;
     changeRPC(value: RPC): void;
+    networks: Array<RPC>;
 }
 
-const Sidebar: FC<SidebarProps> = ({ openWalletModal, address, rpc, changeRPC }) => {
+const Sidebar: FC<SidebarProps> = ({ openWalletModal, address, rpc, changeRPC, networks }) => {
     const classes = useStyles();
     const [open, setOpen] = useState(true);
     const [mobile, setMobile] = useState(false);
@@ -455,6 +456,7 @@ const Sidebar: FC<SidebarProps> = ({ openWalletModal, address, rpc, changeRPC })
                 onClose={() => setOpenRPCModal(false)}
                 rpc={rpc}
                 changeRPC={changeRPC}
+                networks={networks}
             />
         </>
     )

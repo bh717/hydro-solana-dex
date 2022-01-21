@@ -9,11 +9,12 @@ interface SelectRPCModalProps {
     onClose(): void;
     rpc: RPC;
     changeRPC(value: RPC): void;
+    networks: Array<RPC>;
 }
 
-const SelectRPCModal: FC<SelectRPCModalProps> = ({ open, onClose, rpc, changeRPC }) => (
+const SelectRPCModal: FC<SelectRPCModalProps> = ({ open, onClose, rpc, changeRPC, networks }) => (
     <Modal
-        content={<Content data={rpc} setData={changeRPC} />}
+        content={<Content data={rpc} setData={changeRPC} networks={networks} />}
         open={open}
         onClose={onClose}
     />

@@ -10,6 +10,6 @@ export interface Transaction {
 }
 
 export interface RPC {
-    id: number;
     name: string;
+    url: string;
 }
