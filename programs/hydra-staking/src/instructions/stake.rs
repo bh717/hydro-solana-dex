@@ -7,11 +7,10 @@ use anchor_spl::token;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 
 #[derive(Accounts)]
-#[instruction(token_vault_bump: u8, pool_state_bump: u8)]
 pub struct Stake<'info> {
     #[account(
         seeds = [ POOL_STATE_SEED, token_mint.key().as_ref(), redeemable_mint.key().as_ref() ],
-        bump = pool_state_bump,
+        bump,
     )]
     pub pool_state: Box<Account<'info, PoolState>>,
 
@@ -40,7 +39,7 @@ pub struct Stake<'info> {
     #[account(
         mut,
         seeds = [ TOKEN_VAULT_SEED, token_mint.key().as_ref(), redeemable_mint.key().as_ref() ],
-        bump = token_vault_bump,
+        bump,
     )]
     pub token_vault: Box<Account<'info, TokenAccount>>,
 
@@ -61,8 +60,6 @@ impl<'info> Stake<'info> {
 
 pub fn handle(
     ctx: Context<Stake>,
-    token_vault_bump: u8,
-    pool_state_bump: u8,
     amount: u64,
 ) -> ProgramResult {
     let total_token_vault = ctx.accounts.token_vault.amount;
@@ -75,7 +72,7 @@ pub fn handle(
         TOKEN_VAULT_SEED,
         token_mint_key.as_ref(),
         redeemable_mint_key.as_ref(),
-        &[token_vault_bump],
+        &[ctx.accounts.pool_state.token_vault_bump],
     ];
     let signer = [&seeds[..]];
 

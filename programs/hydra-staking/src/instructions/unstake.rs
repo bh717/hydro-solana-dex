@@ -7,11 +7,10 @@ use anchor_spl::token;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 
 #[derive(Accounts)]
-#[instruction(vault_bump: u8, state_bump: u8)]
 pub struct UnStake<'info> {
     #[account(
         seeds = [ POOL_STATE_SEED, token_mint.key().as_ref(), redeemable_mint.key().as_ref() ],
-        bump = state_bump,
+        bump,
     )]
     pub pool_state: Box<Account<'info, PoolState>>,
 
@@ -36,7 +35,7 @@ pub struct UnStake<'info> {
     #[account(
         mut,
         seeds = [ TOKEN_VAULT_SEED, token_mint.key().as_ref(), redeemable_mint.key().as_ref() ],
-        bump = vault_bump,
+        bump ,
     )]
     pub token_vault: Box<Account<'info, TokenAccount>>,
 
@@ -58,7 +57,7 @@ impl<'info> UnStake<'info> {
     }
 }
 
-pub fn handle(ctx: Context<UnStake>, vault_bump: u8, state_bump: u8, amount: u64) -> ProgramResult {
+pub fn handle(ctx: Context<UnStake>, amount: u64) -> ProgramResult {
     let total_tokens = ctx.accounts.token_vault.amount;
     let total_redeemable_token_supply = ctx.accounts.redeemable_mint.supply;
     let old_price = ctx.accounts.calculate_price();
@@ -83,8 +82,14 @@ pub fn handle(ctx: Context<UnStake>, vault_bump: u8, state_bump: u8, amount: u64
         .unwrap();
 
     let token_mint_key = ctx.accounts.pool_state.token_mint.key();
-    let seeds = &[token_mint_key.as_ref(), &[vault_bump]];
-    let signer = &[&seeds[..]];
+    let redeemable_mint_key = ctx.accounts.pool_state.redeemable_mint.key();
+    let seeds = &[
+        TOKEN_VAULT_SEED,
+        token_mint_key.as_ref(),
+        redeemable_mint_key.as_ref(),
+        &[ctx.accounts.pool_state.token_vault_bump],
+    ];
+    let signer = [&seeds[..]];
 
     // transfer from the vault to user
     let cpi_ctx = CpiContext::new_with_signer(
@@ -94,7 +99,7 @@ pub fn handle(ctx: Context<UnStake>, vault_bump: u8, state_bump: u8, amount: u64
             to: ctx.accounts.user_to.to_account_info(),
             authority: ctx.accounts.token_vault.to_account_info(),
         },
-        signer,
+        &signer,
     );
     token::transfer(cpi_ctx, token_share)?;
 

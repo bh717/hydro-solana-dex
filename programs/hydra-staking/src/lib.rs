@@ -29,25 +29,15 @@ pub mod hydra_staking {
         instructions::initialize::handle(ctx, token_vault_bump, pool_state_bump)
     }
 
-    pub fn stake(
-        ctx: Context<Stake>,
-        vault_bump: u8,
-        state_bump: u8,
-        amount: u64,
-    ) -> ProgramResult {
-        instructions::stake::handle(ctx, vault_bump, state_bump, amount)
+    pub fn stake(ctx: Context<Stake>, amount: u64) -> ProgramResult {
+        instructions::stake::handle(ctx, amount)
     }
 
-    pub fn emit_price(ctx: Context<EmitPrice>, state_bump: u8) -> ProgramResult {
-        instructions::emit_price::handle(ctx, state_bump)
+    pub fn emit_price(ctx: Context<EmitPrice>) -> ProgramResult {
+        instructions::emit_price::handle(ctx)
     }
 
-    pub fn unstake(
-        ctx: Context<UnStake>,
-        vault_bump: u8,
-        state_bump: u8,
-        amount: u64,
-    ) -> ProgramResult {
-        instructions::unstake::handle(ctx, vault_bump, state_bump, amount)
+    pub fn unstake(ctx: Context<UnStake>, amount: u64) -> ProgramResult {
+        instructions::unstake::handle(ctx, amount)
     }
 }

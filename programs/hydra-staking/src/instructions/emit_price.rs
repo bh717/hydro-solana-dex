@@ -7,13 +7,12 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, TokenAccount};
 
 #[derive(Accounts)]
-#[instruction(pool_state_bump: u8)]
 pub struct EmitPrice<'info> {
     pub token_mint: Account<'info, Mint>,
 
     #[account(
         seeds = [ POOL_STATE_SEED, token_mint.key().as_ref(), redeemable_mint.key().as_ref() ],
-        bump = pool_state_bump,
+        bump,
     )]
     pub pool_state: Account<'info, PoolState>,
 
@@ -24,13 +23,13 @@ pub struct EmitPrice<'info> {
 
     #[account(
         mut,
-        seeds = [ token_mint.key().as_ref() ],
+        seeds = [ TOKEN_VAULT_SEED, token_mint.key().as_ref(), redeemable_mint.key().as_ref() ],
         bump,
     )]
     pub token_vault: Account<'info, TokenAccount>,
 }
 
-pub fn handle(ctx: Context<EmitPrice>, state_bump: u8) -> ProgramResult {
+pub fn handle(ctx: Context<EmitPrice>) -> ProgramResult {
     let price = calculate_price(&ctx.accounts.token_vault, &ctx.accounts.redeemable_mint);
     emit!(Price {
         base_per_quote_native: price.0,
