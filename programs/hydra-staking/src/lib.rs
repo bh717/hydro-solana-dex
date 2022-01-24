@@ -12,7 +12,8 @@ use instructions::unstake::*;
 declare_id!("F1y1FTP91nwxbNUW3nXY6mKQzWawihwVYGwMsi7oKGyg");
 
 pub mod constants {
-    pub const STATE_SEED: &[u8] = b"state_seed";
+    pub const TOKEN_VAULT_SEED: &[u8] = b"token_vault_seed";
+    pub const POOL_STATE_SEED: &[u8] = b"pool_state_seed";
 }
 
 #[program]
@@ -20,8 +21,12 @@ pub mod hydra_staking {
     use super::*;
 
     /// initialize token_vault
-    pub fn initialize(ctx: Context<Initialize>, vault_bump: u8, state_bump: u8) -> ProgramResult {
-        instructions::initialize::handle(ctx, vault_bump, state_bump)
+    pub fn initialize(
+        ctx: Context<Initialize>,
+        token_vault_bump: u8,
+        pool_state_bump: u8,
+    ) -> ProgramResult {
+        instructions::initialize::handle(ctx, token_vault_bump, pool_state_bump)
     }
 
     pub fn stake(

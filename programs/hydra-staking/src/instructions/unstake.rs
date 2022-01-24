@@ -1,6 +1,6 @@
 use crate::constants::*;
 use crate::events::*;
-use crate::state::state::State;
+use crate::state::pool_state::PoolState;
 use crate::utils::price::calculate_price;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
@@ -10,46 +10,45 @@ use anchor_spl::token::{Mint, Token, TokenAccount};
 #[instruction(vault_bump: u8, state_bump: u8)]
 pub struct UnStake<'info> {
     #[account(
-        seeds = [STATE_SEED],
+        seeds = [ POOL_STATE_SEED, token_mint.key().as_ref(), redeemable_mint.key().as_ref() ],
         bump = state_bump,
     )]
-    pub state: Box<Account<'info, State>>,
+    pub pool_state: Box<Account<'info, PoolState>>,
 
     #[account(
-        constraint = token_mint.key() == state.token_mint.key()
+        constraint = token_mint.key() == pool_state.token_mint.key()
     )]
     pub token_mint: Box<Account<'info, Mint>>,
 
     #[account(
         mut,
-        constraint = redeemable_mint.key() == state.redeemable_mint.key()
+        constraint = redeemable_mint.key() == pool_state.redeemable_mint.key()
     )]
     pub redeemable_mint: Box<Account<'info, Mint>>,
 
     #[account(
         mut,
-        constraint = user_to.mint == state.token_mint.key(),
+        constraint = user_to.mint == pool_state.token_mint.key(),
     )]
     /// the token account to withdraw from
     pub user_to: Box<Account<'info, TokenAccount>>,
 
     #[account(
         mut,
-        seeds = [ state.token_mint.key().as_ref() ],
+        seeds = [ TOKEN_VAULT_SEED, token_mint.key().as_ref(), redeemable_mint.key().as_ref() ],
         bump = vault_bump,
     )]
     pub token_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(
         mut,
-        constraint = redeemable_from.mint == state.redeemable_mint.key(),
+        constraint = redeemable_from.mint == pool_state.redeemable_mint.key(),
     )]
     pub redeemable_from: Box<Account<'info, TokenAccount>>,
 
     /// the authority allowed to transfer from token_from
     pub redeemable_from_authority: Signer<'info>,
 
-    #[account(address = anchor_spl::token::ID)]
     pub token_program: Program<'info, Token>,
 }
 
@@ -83,7 +82,7 @@ pub fn handle(ctx: Context<UnStake>, vault_bump: u8, state_bump: u8, amount: u64
         .checked_div(total_redeemable_token_supply)
         .unwrap();
 
-    let token_mint_key = ctx.accounts.state.token_mint.key();
+    let token_mint_key = ctx.accounts.pool_state.token_mint.key();
     let seeds = &[token_mint_key.as_ref(), &[vault_bump]];
     let signer = &[&seeds[..]];
 

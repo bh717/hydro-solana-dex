@@ -1,24 +1,24 @@
 use crate::constants::*;
 use crate::events::*;
-use crate::state::state::State;
+use crate::state::pool_state::PoolState;
 use crate::utils::price::calculate_price;
 use crate::ProgramResult;
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, TokenAccount};
 
 #[derive(Accounts)]
-#[instruction(state_bump: u8)]
+#[instruction(pool_state_bump: u8)]
 pub struct EmitPrice<'info> {
     pub token_mint: Account<'info, Mint>,
 
     #[account(
-        seeds = [STATE_SEED],
-        bump = state_bump,
+        seeds = [ POOL_STATE_SEED, token_mint.key().as_ref(), redeemable_mint.key().as_ref() ],
+        bump = pool_state_bump,
     )]
-    pub state: Account<'info, State>,
+    pub pool_state: Account<'info, PoolState>,
 
     #[account(
-        constraint = redeemable_mint.key() == state.redeemable_mint.key()
+        constraint = redeemable_mint.key() == pool_state.redeemable_mint.key()
     )]
     pub redeemable_mint: Account<'info, Mint>,
 
