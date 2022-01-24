@@ -9,7 +9,7 @@ import StakeUnstake from './stakeUnstake';
 import StakeStatus from './stakeStatus';
 
 const useStyles = makeStyles({
-    stakeContent: {
+    stakeContainer: {
         display: 'flex',
         flexDirection: 'column',
         width: '100%',
@@ -124,7 +124,7 @@ const useStyles = makeStyles({
             }
         }
     },
-    stakeWrapper: {
+    stakeContent: {
         display: 'flex',
         marginTop: '24px',
         '& > div': {
@@ -158,7 +158,7 @@ const Stake: FC<StakeProps> = ({ openWalletConnect }) => {
     const classes = useStyles();
 
     return (
-        <Box className={classes.stakeContent}>
+        <Box className={classes.stakeContainer}>
             <Box className={classes.stakeBanner}>
                 <Box className={classes.bannerLeft}>
                     <img src={Diamond} alt="Diamond" />
@@ -174,7 +174,7 @@ const Stake: FC<StakeProps> = ({ openWalletConnect }) => {
                     <Typography>$12.56 m</Typography>
                 </Box>
             </Box>
-            <Box className={classes.stakeWrapper}>
+            <Box className={classes.stakeContent}>
                 <StakeUnstake walletConnect={openWalletConnect} />
                 <StakeStatus />
             </Box>
