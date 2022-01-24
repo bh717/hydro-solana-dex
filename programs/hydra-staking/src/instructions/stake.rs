@@ -10,7 +10,7 @@ use anchor_spl::token::{Mint, Token, TokenAccount};
 #[instruction(token_vault_bump: u8, pool_state_bump: u8)]
 pub struct Stake<'info> {
     #[account(
-        seeds = [POOL_STATE_SEED],
+        seeds = [ POOL_STATE_SEED, token_mint.key().as_ref(), redeemable_mint.key().as_ref() ],
         bump = pool_state_bump,
     )]
     pub pool_state: Box<Account<'info, PoolState>>,
@@ -39,7 +39,7 @@ pub struct Stake<'info> {
 
     #[account(
         mut,
-        seeds = [ pool_state.token_mint.key().as_ref() ],
+        seeds = [ TOKEN_VAULT_SEED, token_mint.key().as_ref(), redeemable_mint.key().as_ref() ],
         bump = token_vault_bump,
     )]
     pub token_vault: Box<Account<'info, TokenAccount>>,
@@ -59,13 +59,24 @@ impl<'info> Stake<'info> {
     }
 }
 
-pub fn handle(ctx: Context<Stake>, vault_bump: u8, state_bump: u8, amount: u64) -> ProgramResult {
+pub fn handle(
+    ctx: Context<Stake>,
+    token_vault_bump: u8,
+    pool_state_bump: u8,
+    amount: u64,
+) -> ProgramResult {
     let total_token_vault = ctx.accounts.token_vault.amount;
     let total_redeemable_tokens = ctx.accounts.redeemable_mint.supply;
     let old_price = ctx.accounts.calculate_price();
 
     let token_mint_key = ctx.accounts.pool_state.token_mint.key();
-    let seeds = &[token_mint_key.as_ref(), &[vault_bump]];
+    let redeemable_mint_key = ctx.accounts.pool_state.redeemable_mint.key();
+    let seeds = &[
+        TOKEN_VAULT_SEED,
+        token_mint_key.as_ref(),
+        redeemable_mint_key.as_ref(),
+        &[token_vault_bump],
+    ];
     let signer = [&seeds[..]];
 
     // // On first stake.

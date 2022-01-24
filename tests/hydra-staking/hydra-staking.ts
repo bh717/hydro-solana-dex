@@ -75,53 +75,53 @@ describe('hydra-staking',  async () => {
     });
 
 
-    // it('should stake tokens into vault for the first time', async () => {
-    //     await program.rpc.stake(
-    //         tokenVaultBump,
-    //         poolStateBump,
-    //         new anchor.BN(1000),
-    //         {
-    //             accounts: {
-    //                 state: poolStatePubkey ,
-    //                 tokenMint: tokenMint.publicKey,
-    //                 redeemableMint: redeemableMint.publicKey,
-    //                 userFrom: TokenAccount.publicKey,
-    //                 userFromAuthority: program.provider.wallet.publicKey,
-    //                 tokenVault: tokenVaultPubkey,
-    //                 redeemableTo: redeemableTokenAccount,
-    //                 tokenProgram: TOKEN_PROGRAM_ID,
-    //             },
-    //             signers: [(program.provider.wallet as NodeWallet).payer]
-    //         }
-    //     )
-    //     assert.strictEqual(await getTokenBalance(program.provider, redeemableTokenAccount), 1000)
-    //     assert.strictEqual(await getTokenBalance(program.provider, tokenVaultPubkey), 1000)
-    //     assert.strictEqual(await getTokenBalance(program.provider, TokenAccount.publicKey), 99999000)
-    // });
+    it('should stake tokens into vault for the first time', async () => {
+        await program.rpc.stake(
+            tokenVaultBump,
+            poolStateBump,
+            new anchor.BN(1000),
+            {
+                accounts: {
+                    poolState: poolStatePubkey ,
+                    tokenMint: tokenMint.publicKey,
+                    redeemableMint: redeemableMint.publicKey,
+                    userFrom: TokenAccount.publicKey,
+                    userFromAuthority: program.provider.wallet.publicKey,
+                    tokenVault: tokenVaultPubkey,
+                    redeemableTo: redeemableTokenAccount,
+                    tokenProgram: TOKEN_PROGRAM_ID,
+                },
+                signers: [(program.provider.wallet as NodeWallet).payer]
+            }
+        )
+        assert.strictEqual(await getTokenBalance(program.provider, redeemableTokenAccount), 1000)
+        assert.strictEqual(await getTokenBalance(program.provider, tokenVaultPubkey), 1000)
+        assert.strictEqual(await getTokenBalance(program.provider, TokenAccount.publicKey), 99999000)
+    });
+
+    it('should stake tokens into the vault for a second time', async () => {
+        await program.rpc.stake(
+            tokenVaultBump,
+            poolStateBump,
+            new anchor.BN(4000),
+            {
+                accounts: {
+                    poolState: poolStatePubkey,
+                    tokenMint: tokenMint.publicKey,
+                    redeemableMint: redeemableMint.publicKey,
+                    userFrom: TokenAccount.publicKey,
+                    userFromAuthority: program.provider.wallet.publicKey,
+                    tokenVault: tokenVaultPubkey,
+                    redeemableTo: redeemableTokenAccount,
+                    tokenProgram: TOKEN_PROGRAM_ID,
+                }
+            }
+        )
+        assert.strictEqual(await getTokenBalance(program.provider, redeemableTokenAccount), 5000)
+        assert.strictEqual(await getTokenBalance(program.provider, tokenVaultPubkey), 5000)
+        assert.strictEqual(await getTokenBalance(program.provider, TokenAccount.publicKey), 99995000)
+    });
     //
-    // it('should stake tokens into the vault for a second time', async () => {
-    //     await program.rpc.stake(
-    //         tokenVaultBump,
-    //         poolStateBump,
-    //         new anchor.BN(4000),
-    //         {
-    //             accounts: {
-    //                 state: poolStatePubkey,
-    //                 tokenMint: tokenMint.publicKey,
-    //                 redeemableMint: redeemableMint.publicKey,
-    //                 userFrom: TokenAccount.publicKey,
-    //                 userFromAuthority: program.provider.wallet.publicKey,
-    //                 tokenVault: tokenVaultPubkey,
-    //                 redeemableTo: redeemableTokenAccount,
-    //                 tokenProgram: TOKEN_PROGRAM_ID,
-    //             }
-    //         }
-    //     )
-    //     assert.strictEqual(await getTokenBalance(program.provider, redeemableTokenAccount), 5000)
-    //     assert.strictEqual(await getTokenBalance(program.provider, tokenVaultPubkey), 5000)
-    //     assert.strictEqual(await getTokenBalance(program.provider, TokenAccount.publicKey), 99995000)
-    // });
-    // //
     // it('should emit the current price', async () => {
     //     await program.rpc.emitPrice(poolStateBump, {
     //         accounts: {
