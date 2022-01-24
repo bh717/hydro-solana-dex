@@ -107,6 +107,8 @@ pub fn handle(ctx: Context<UnStake>, amount: u64) -> ProgramResult {
     (&mut ctx.accounts.redeemable_mint).reload()?;
 
     let new_price = ctx.accounts.calculate_price();
+    ctx.accounts.pool_state.pool_price_native = new_price.0.clone();
+    ctx.accounts.pool_state.pool_price_ui = new_price.1.clone();
 
     emit!(PriceChange {
         old_base_per_quote_native: old_price.0,

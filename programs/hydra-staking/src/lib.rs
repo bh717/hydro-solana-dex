@@ -4,7 +4,6 @@ mod state;
 mod utils;
 
 use anchor_lang::prelude::*;
-use instructions::emit_price::*;
 use instructions::initialize::*;
 use instructions::stake::*;
 use instructions::unstake::*;
@@ -31,10 +30,6 @@ pub mod hydra_staking {
 
     pub fn stake(ctx: Context<Stake>, amount: u64) -> ProgramResult {
         instructions::stake::handle(ctx, amount)
-    }
-
-    pub fn emit_price(ctx: Context<EmitPrice>) -> ProgramResult {
-        instructions::emit_price::handle(ctx)
     }
 
     pub fn unstake(ctx: Context<UnStake>, amount: u64) -> ProgramResult {

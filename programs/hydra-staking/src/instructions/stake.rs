@@ -40,6 +40,7 @@ pub struct Stake<'info> {
         mut,
         seeds = [ TOKEN_VAULT_SEED, token_mint.key().as_ref(), redeemable_mint.key().as_ref() ],
         bump,
+        constraint = token_vault.key() == pool_state.token_vault.key()
     )]
     pub token_vault: Box<Account<'info, TokenAccount>>,
 
@@ -58,10 +59,7 @@ impl<'info> Stake<'info> {
     }
 }
 
-pub fn handle(
-    ctx: Context<Stake>,
-    amount: u64,
-) -> ProgramResult {
+pub fn handle(ctx: Context<Stake>, amount: u64) -> ProgramResult {
     let total_token_vault = ctx.accounts.token_vault.amount;
     let total_redeemable_tokens = ctx.accounts.redeemable_mint.supply;
     let old_price = ctx.accounts.calculate_price();
@@ -123,6 +121,8 @@ pub fn handle(
     (&mut ctx.accounts.redeemable_mint).reload()?;
 
     let new_price = ctx.accounts.calculate_price();
+    ctx.accounts.pool_state.pool_price_native = new_price.0.clone();
+    ctx.accounts.pool_state.pool_price_ui = new_price.1.clone();
 
     emit!(PriceChange {
         old_base_per_quote_native: old_price.0,

@@ -2,7 +2,6 @@ use crate::constants::*;
 use crate::state::pool_state::*;
 use anchor_lang::{prelude::*, solana_program::system_program};
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use std::mem::size_of;
 
 #[derive(Accounts)]
 #[instruction(token_vault_bump: u8, pool_state_bump: u8)]
@@ -53,5 +52,6 @@ pub fn handle(
     ctx.accounts.pool_state.redeemable_mint = *ctx.accounts.redeemable_mint.to_account_info().key;
     ctx.accounts.pool_state.pool_state_bump = pool_state_bump;
     ctx.accounts.pool_state.token_vault_bump = token_vault_bump;
+    ctx.accounts.pool_state.token_vault = ctx.accounts.token_vault.to_account_info().key();
     Ok(())
 }

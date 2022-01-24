@@ -53,7 +53,6 @@ describe('hydra-staking',  async () => {
         );
     });
 
-
     it('should initialized Staking contract\'s PDA, state and token_vault', async () => {
         await program.rpc.initialize(
             tokenVaultBump,
@@ -73,7 +72,6 @@ describe('hydra-staking',  async () => {
                 signers: [(program.provider.wallet as NodeWallet).payer],
             });
     });
-
 
     it('should stake tokens into token_vault for the first time', async () => {
         await program.rpc.stake(
@@ -118,18 +116,6 @@ describe('hydra-staking',  async () => {
         assert.strictEqual(await getTokenBalance(program.provider, TokenAccount.publicKey), 99995000)
     });
 
-    it('should emit the current price', async () => {
-        await program.rpc.emitPrice({
-            accounts: {
-                poolState: poolStatePubkey,
-                tokenMint: tokenMint.publicKey,
-                redeemableMint: redeemableMint.publicKey,
-                tokenVault: tokenVaultPubkey,
-            }
-        })
-
-    });
-
     it('should transfer tokens into the vault directly', async () => {
         await transfer(
             program.provider,
@@ -140,17 +126,6 @@ describe('hydra-staking',  async () => {
         assert.strictEqual(await getTokenBalance(program.provider, tokenVaultPubkey), 100000000)
         assert.strictEqual(await getTokenBalance(program.provider, redeemableTokenAccount), 5000)
         assert.strictEqual(await getTokenBalance(program.provider, TokenAccount.publicKey), 0)
-    });
-
-    it('should emit the next price', async () => {
-        await program.rpc.emitPrice({
-            accounts: {
-                poolState: poolStatePubkey,
-                tokenMint: tokenMint.publicKey,
-                redeemableMint: redeemableMint.publicKey,
-                tokenVault: tokenVaultPubkey,
-            }
-        })
     });
 
     it('should unStake 100% of the vault', async () => {
