@@ -316,7 +316,7 @@ const SidebarItems = [
         name: 'Pools',
         icon: <Pools />,
         activeIcon: <ActivePools />,
-        link: '#'
+        link: '/pools'
     },
     {
         name: 'Stake',

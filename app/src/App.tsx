@@ -15,9 +15,11 @@ import {
 import { clusterApiUrl } from '@solana/web3.js';
 import { Toaster } from 'react-hot-toast';
 
+import { SvgGradient } from './components/icons';
 import Sidebar from './components/sidebar';
 import { WalletButton, WalletModal } from './components/wallet';
 import Swap from './pages/swap';
+import Pools from './pages/pools';
 import Stake from './pages/stake';
 import { RPC } from './interfaces';
 
@@ -53,7 +55,7 @@ const useStyles = makeStyles({
         display: 'flex',
         alignItems: 'flex-start',
         justifyContent: 'center',
-        margin: '0 10px 20px',
+        margin: '0 24px 20px',
         height: 'calc(100vh - 116px)',
         overflow: 'auto',
         '@media (max-width:600px)': {
@@ -122,6 +124,7 @@ function App() {
         <ConnectionProvider endpoint={endpoint}>
             <WalletProvider wallets={wallets}>
                 <div className="layout">
+                    <SvgGradient />
                     <Toaster position="bottom-right" />
                     <Sidebar openWalletModal={() => setOpenWalletModal(true)} address={address} rpc={currentRPC} changeRPC={setCurrentRPC} networks={networks} />
                     <Box component="main" className="container">
@@ -131,6 +134,7 @@ function App() {
                         <Box className={classes.contentWrapper}>
                             <Routes>
                                 <Route path="/swap" element={<Swap openWalletConnect={() => setOpenWalletModal(true)} />} />
+                                <Route path="/pools" element={<Pools />} />
                                 <Route path="/stake" element={<Stake openWalletConnect={() => setOpenWalletModal(true)} />} />
                                 <Route path="*" element={<Navigate replace to="/swap" />} />
                             </Routes>
