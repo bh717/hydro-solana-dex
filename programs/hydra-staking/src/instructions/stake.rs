@@ -4,7 +4,7 @@ use crate::state::pool_state::PoolState;
 use crate::utils::price::calculate_price;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
-use anchor_spl::token::{Mint, Token, TokenAccount};
+use anchor_spl::token::{Mint, MintTo, Token, TokenAccount, Transfer};
 
 #[derive(Accounts)]
 pub struct Stake<'info> {
@@ -57,6 +57,28 @@ impl<'info> Stake<'info> {
     pub fn calculate_price(&self) -> (u64, String) {
         calculate_price(&self.token_vault, &self.redeemable_mint)
     }
+
+    pub fn into_mint_redeemable(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
+        let cpi_accounts = MintTo {
+            mint: self.redeemable_mint.to_account_info(),
+            to: self.redeemable_to.to_account_info(),
+            authority: self.token_vault.to_account_info(),
+        };
+        let cpi_program = self.token_program.to_account_info();
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+
+    pub fn into_transfer_from_user_to_token_vault(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
+        let cpi_accounts = Transfer {
+            from: self.user_from.to_account_info(),
+            to: self.token_vault.to_account_info(),
+            authority: self.user_from_authority.to_account_info(),
+        };
+        let cpi_program = self.token_program.to_account_info();
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
 }
 
 pub fn handle(ctx: Context<Stake>, amount: u64) -> ProgramResult {
@@ -66,6 +88,7 @@ pub fn handle(ctx: Context<Stake>, amount: u64) -> ProgramResult {
 
     let token_mint_key = ctx.accounts.pool_state.token_mint.key();
     let redeemable_mint_key = ctx.accounts.pool_state.redeemable_mint.key();
+
     let seeds = &[
         TOKEN_VAULT_SEED,
         token_mint_key.as_ref(),
@@ -76,16 +99,9 @@ pub fn handle(ctx: Context<Stake>, amount: u64) -> ProgramResult {
 
     // // On first stake.
     if total_token_vault == 0 || total_redeemable_tokens == 0 {
-        let cpi_ctx = CpiContext::new_with_signer(
-            ctx.accounts.token_program.to_account_info(),
-            token::MintTo {
-                mint: ctx.accounts.redeemable_mint.to_account_info(),
-                to: ctx.accounts.redeemable_to.to_account_info(),
-                authority: ctx.accounts.token_vault.to_account_info(),
-            },
-            &signer,
-        );
-        token::mint_to(cpi_ctx, amount)?;
+        let mut cpi_tx = ctx.accounts.into_mint_redeemable();
+        cpi_tx.signer_seeds = &signer;
+        token::mint_to(cpi_tx, amount)?;
     } else {
         // (amount * total_x_token.supply) / total_token_vault
         let mint_redeemable_amount: u64 = amount
@@ -94,28 +110,16 @@ pub fn handle(ctx: Context<Stake>, amount: u64) -> ProgramResult {
             .checked_div(total_token_vault)
             .unwrap();
 
-        let cpi_ctx = CpiContext::new_with_signer(
-            ctx.accounts.token_program.to_account_info(),
-            token::MintTo {
-                mint: ctx.accounts.redeemable_mint.to_account_info(),
-                to: ctx.accounts.redeemable_to.to_account_info(),
-                authority: ctx.accounts.token_vault.to_account_info(),
-            },
-            &signer,
-        );
-        token::mint_to(cpi_ctx, mint_redeemable_amount)?;
+        let mut cpi_tx = ctx.accounts.into_mint_redeemable();
+        cpi_tx.signer_seeds = &signer;
+        token::mint_to(cpi_tx, mint_redeemable_amount)?;
     }
 
     // transfer the users token's to the vault
-    let cpi_ctx = CpiContext::new(
-        ctx.accounts.token_program.to_account_info(),
-        token::Transfer {
-            from: ctx.accounts.user_from.to_account_info(),
-            to: ctx.accounts.token_vault.to_account_info(),
-            authority: ctx.accounts.user_from_authority.to_account_info(),
-        },
-    );
-    token::transfer(cpi_ctx, amount)?;
+    token::transfer(
+        ctx.accounts.into_transfer_from_user_to_token_vault(),
+        amount,
+    )?;
 
     (&mut ctx.accounts.token_vault).reload()?;
     (&mut ctx.accounts.redeemable_mint).reload()?;
