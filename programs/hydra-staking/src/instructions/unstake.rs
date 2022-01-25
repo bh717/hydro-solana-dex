@@ -4,7 +4,7 @@ use crate::state::pool_state::PoolState;
 use crate::utils::price::calculate_price;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
-use anchor_spl::token::{Mint, Token, TokenAccount};
+use anchor_spl::token::{Burn, Mint, Token, TokenAccount, Transfer};
 
 #[derive(Accounts)]
 pub struct UnStake<'info> {
@@ -55,6 +55,28 @@ impl<'info> UnStake<'info> {
     pub fn calculate_price(&self) -> (u64, String) {
         calculate_price(&self.token_vault, &self.redeemable_mint)
     }
+
+    pub fn into_burn_redeemable(&self) -> CpiContext<'_, '_, '_, 'info, Burn<'info>> {
+        let cpi_accounts = Burn {
+            mint: self.redeemable_mint.to_account_info(),
+            to: self.redeemable_from.to_account_info(),
+            authority: self.redeemable_from_authority.to_account_info(),
+        };
+        let cpi_program = self.token_program.to_account_info();
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+
+    pub fn into_transfer_from_user_to_token_vault(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
+        let cpi_accounts = Transfer {
+            from: self.token_vault.to_account_info(),
+            to: self.user_to.to_account_info(),
+            authority: self.token_vault.to_account_info(),
+        };
+        let cpi_program = self.token_program.to_account_info();
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
 }
 
 pub fn handle(ctx: Context<UnStake>, amount: u64) -> ProgramResult {
@@ -62,16 +84,8 @@ pub fn handle(ctx: Context<UnStake>, amount: u64) -> ProgramResult {
     let total_redeemable_token_supply = ctx.accounts.redeemable_mint.supply;
     let old_price = ctx.accounts.calculate_price();
 
-    // burn incoming tokens
-    let cpi_ctx = CpiContext::new(
-        ctx.accounts.token_program.to_account_info(),
-        token::Burn {
-            mint: ctx.accounts.redeemable_mint.to_account_info(),
-            to: ctx.accounts.redeemable_from.to_account_info(),
-            authority: ctx.accounts.redeemable_from_authority.to_account_info(),
-        },
-    );
-    token::burn(cpi_ctx, amount)?;
+    // burn redeemable tokens
+    token::burn(ctx.accounts.into_burn_redeemable(), amount)?;
 
     // determine user share of vault
     // (amount * total_tokens) / total_redeemable_token_supply
@@ -92,16 +106,9 @@ pub fn handle(ctx: Context<UnStake>, amount: u64) -> ProgramResult {
     let signer = [&seeds[..]];
 
     // transfer from the vault to user
-    let cpi_ctx = CpiContext::new_with_signer(
-        ctx.accounts.token_program.to_account_info(),
-        token::Transfer {
-            from: ctx.accounts.token_vault.to_account_info(),
-            to: ctx.accounts.user_to.to_account_info(),
-            authority: ctx.accounts.token_vault.to_account_info(),
-        },
-        &signer,
-    );
-    token::transfer(cpi_ctx, token_share)?;
+    let mut cpi_tx = ctx.accounts.into_transfer_from_user_to_token_vault();
+    cpi_tx.signer_seeds = &signer;
+    token::transfer(cpi_tx, token_share)?;
 
     (&mut ctx.accounts.token_vault).reload()?;
     (&mut ctx.accounts.redeemable_mint).reload()?;
