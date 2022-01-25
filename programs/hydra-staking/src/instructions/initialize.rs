@@ -1,6 +1,6 @@
 use crate::constants::*;
 use crate::state::pool_state::*;
-use anchor_lang::{prelude::*, solana_program::system_program};
+use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 
 #[derive(Accounts)]
