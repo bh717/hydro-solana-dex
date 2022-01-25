@@ -80,13 +80,14 @@ impl Pool {
         bootstrap_rp: f64, tick_spacing: u32,hmm_c: f64,fee_rate: f64,
     ) -> Pool {
         let tk = Self::rp_to_possible_tk(bootstrap_rp, tick_spacing, false);
+        let rp_of_tk = Self::tick_to_rp(tk);
 
         Pool {
             token_x: Token::new(x_name, x_decimals),
             token_y: Token::new(y_name, y_decimals),
             tick_spacing,
             global_state: GlobalState {
-                liq: 0.0, rp: bootstrap_rp,tick: tk,
+                liq: 0.0, rp: rp_of_tk, tick: tk,
                 fg_x: 0.0, fg_y: 0.0, hg_x: 0.0, hg_y: 0.0,
             },
             active_ticks: BTreeMap::new(),
@@ -97,14 +98,24 @@ impl Pool {
             c: hmm_c,fee_rate,
         }
     }
-
+    pub fn position_count (&self) -> usize {
+        self.positions.len()
+    }
+    pub fn tick_count (&self) -> usize {
+        self.active_ticks.len()
+    }
+    pub fn x_info(&self) -> (f64,f64,f64) {
+        (self.x, self.x_adj, self.x_fee)
+    }
+    pub fn y_info(&self) -> (f64,f64,f64) {
+        (self.y, self.y_adj, self.y_fee)
+    }
     pub fn glbl_liq (&self) -> f64 {
         self.global_state.liq
     }
     pub fn glbl_tick (&self) -> u32 {
         self.global_state.tick
     }
-
     pub fn glbl_rp (&self) -> f64 {
         self.global_state.rp
     }
@@ -431,7 +442,7 @@ impl Pool {
     }
 
 
-    fn deposit(&mut self, user_id: &str, x: f64, y: f64, rpa: f64, rpb: f64) {
+    pub fn deposit(&mut self, user_id: &str, x: f64, y: f64, rpa: f64, rpb: f64) {
         // interface to deposit liquidity in pool & give change if necessary
         if x < 0.0 || y < 0.0 {panic!("can only deposit positive amounts");}
 
@@ -443,13 +454,13 @@ impl Pool {
         // TODO should we use Oracle price here instead? or real price as param
         // ? only when no liquidity in range?
 
-        let liq = Pool::liq_from_x_y_tick_rng(x, y, tk, lower_tick, upper_tick);
+        let mut liq = Pool::liq_from_x_y_tick_rng(x, y, tk, lower_tick, upper_tick);
         // round down to avoid float rounding vulnerabilities
         // TODO choose what precision to round down to
-        let liq = liq.floor();
+        if Self::FLOOR_LIQ {liq = liq.floor()};
 
-        let x_in = Pool::x_from_l_tick_rng(liq, tk, lower_tick, upper_tick);
-        let y_in = Pool::y_from_l_tick_rng(liq, tk, lower_tick, upper_tick);
+        let x_in = Pool::x_from_l_tick_rng(liq, tk, lower_tick, upper_tick).min(x);
+        let y_in = Pool::y_from_l_tick_rng(liq, tk, lower_tick, upper_tick).min(y);
         if x_in > x  {
             panic!("used x amt cannot exceed provided amount");
         }
@@ -465,16 +476,16 @@ impl Pool {
         let x_debited = x_in - fees_x - adj_x;
         let y_debited = y_in - fees_y - adj_y;
         // update state: reserves, fee pot , hmm-adj-fee pot
-        self.x += x_in; self.x += y_in;
+        self.x += x_in; self.y += y_in;
         self.x_fee -= fees_x; self.x_adj -= adj_x;
         self.y_fee -= fees_y; self.y_adj -= adj_y;
 
-        println!("x_debited={} y_debited{}",x_debited,y_debited);
-        println!("including {} and {}",fees_x+adj_x, fees_y+adj_y);
+        println!("x_debited={} y_debited {}",x_debited,y_debited);
+        println!("including fees_x+adj_x ={} and fees_y+adj_y={}",fees_x+adj_x, fees_y+adj_y);
         println!("X returned {} Y returned {}",x-x_debited, y-y_debited);
     }
 
-    fn withdraw(&mut self, user_id: &str, liq: f64, rpa: f64, rpb: f64) {
+    pub fn withdraw(&mut self, user_id: &str, liq: f64, rpa: f64, rpb: f64) {
         // interface to withdraw liquidity from pool
         if liq < 0.0 {panic!("")}
 
@@ -610,7 +621,7 @@ impl Pool {
         return (done_dx, done_dy, end_t, end_rp, cross, hmm_adj_y, fee_x);
     }
 
-    fn execute_swap_from_x(&mut self, dx: f64, rp_oracle: f64) -> (f64, f64, f64, f64, f64, f64) {
+    pub fn execute_swap_from_x(&mut self, dx: f64, rp_oracle: f64) -> (f64, f64, f64, f64, f64, f64) {
         // * Swap algo when provided with dX>0
         // * We go from right to left on the curve and manage crossings as needed.
         // * within initialized tick we use swap_within_tick_from_X
@@ -829,7 +840,7 @@ impl Pool {
         return (done_dx, done_dy, end_t, end_rp, cross, hmm_adj_x, fee_y);
     }
 
-    fn execute_swap_from_y(&mut self, dy: f64, rp_oracle: f64) -> (f64, f64, f64, f64, f64, f64) {
+    pub fn execute_swap_from_y(&mut self, dy: f64, rp_oracle: f64) -> (f64, f64, f64, f64, f64, f64) {
         // Swap algo when pool provided with dY > 0
         // We go from right to left on the curve and manage crossings as needed.
         // within initialized tick we use swap_within_tick_from_X

@@ -3,7 +3,8 @@
 pub trait PoolMath {
     const TICK_BASE: f64 = 1.0001;
     const ADJ_WHOLE_FILL: f64 = 1.0e-12;
-    const ADJ_WITHDRAWAL: f64 = 0.0e-8;
+    const ADJ_WITHDRAWAL: f64 = 1.0e-12;
+    const FLOOR_LIQ: bool = true;
 
     fn tick_to_rp(tick: u32) -> f64 {
         Self::TICK_BASE.sqrt().powf(tick as f64)
@@ -62,7 +63,7 @@ pub trait PoolMath {
             let lx = Self::liq_x_only(x, rp, rpb);
             let ly = Self::liq_y_only(y, rpa, rp);
             // Lx Ly should be close to equal, by precaution take the minimum
-            lx.max(ly)
+            lx.min(ly)
         } else {
             // x = 0 and reserves entirely in y. [8]
             Self::liq_y_only(y, rpa, rpb)
