@@ -9,6 +9,5 @@ pub struct PoolState {
     pub pool_state_bump: u8,
     pub token_vault_bump: u8,
     pub pool_price_native: u64,
-    pub pool_price_ui: String,
 }
 impl PoolState {}

@@ -54,7 +54,7 @@ pub struct Stake<'info> {
 }
 
 impl<'info> Stake<'info> {
-    pub fn calculate_price(&self) -> (u64, String) {
+    pub fn calculate_price(&self) -> u64 {
         calculate_price(&self.token_vault, &self.redeemable_mint)
     }
 
@@ -125,14 +125,11 @@ pub fn handle(ctx: Context<Stake>, amount: u64) -> ProgramResult {
     (&mut ctx.accounts.redeemable_mint).reload()?;
 
     let new_price = ctx.accounts.calculate_price();
-    ctx.accounts.pool_state.pool_price_native = new_price.0.clone();
-    ctx.accounts.pool_state.pool_price_ui = new_price.1.clone();
+    ctx.accounts.pool_state.pool_price_native = new_price;
 
     emit!(PriceChange {
-        old_base_per_quote_native: old_price.0,
-        old_base_per_quote_ui: old_price.1,
-        new_base_per_quote_native: new_price.0,
-        new_base_per_quote_ui: new_price.1,
+        old_base_per_quote_native: old_price,
+        new_base_per_quote_native: new_price,
     });
 
     Ok(())
