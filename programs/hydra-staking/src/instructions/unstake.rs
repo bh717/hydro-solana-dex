@@ -66,7 +66,7 @@ impl<'info> UnStake<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_transfer_from_user_to_token_vault(
+    pub fn into_transfer_from_token_vault_to_user(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
         let cpi_accounts = Transfer {
@@ -110,7 +110,7 @@ pub fn handle(ctx: Context<UnStake>, amount: u64) -> ProgramResult {
     let signer = [&seeds[..]];
 
     // transfer from the vault to user
-    let mut cpi_tx = ctx.accounts.into_transfer_from_user_to_token_vault();
+    let mut cpi_tx = ctx.accounts.into_transfer_from_token_vault_to_user();
     cpi_tx.signer_seeds = &signer;
     token::transfer(cpi_tx, token_share)?;
 
