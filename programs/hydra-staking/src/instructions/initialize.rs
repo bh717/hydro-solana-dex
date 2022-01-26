@@ -48,10 +48,12 @@ pub fn handle(
     token_vault_bump: u8,
     pool_state_bump: u8,
 ) -> ProgramResult {
+    ctx.accounts.pool_state.authority = *ctx.accounts.authority.to_account_info().key;
     ctx.accounts.pool_state.token_mint = *ctx.accounts.token_mint.to_account_info().key;
     ctx.accounts.pool_state.redeemable_mint = *ctx.accounts.redeemable_mint.to_account_info().key;
     ctx.accounts.pool_state.pool_state_bump = pool_state_bump;
     ctx.accounts.pool_state.token_vault_bump = token_vault_bump;
     ctx.accounts.pool_state.token_vault = ctx.accounts.token_vault.to_account_info().key();
+    ctx.accounts.pool_state.token_mint_decimals = ctx.accounts.token_mint.decimals;
     Ok(())
 }
