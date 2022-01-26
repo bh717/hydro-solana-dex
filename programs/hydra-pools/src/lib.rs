@@ -2,7 +2,6 @@ pub mod instructions;
 pub mod state;
 
 use instructions::*;
-use state::*;
 
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::log::sol_log_compute_units;

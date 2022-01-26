@@ -12,7 +12,14 @@ name = "hydra_staking"
 no-entrypoint = []
 no-idl = []
 cpi = ["no-entrypoint"]
-default = []
+mainnet = []
+testnet = []
+devnet = []
+localnet = []
+
+default = ["localnet"]
 
 [dependencies]
-anchor-lang = { git = "https://github.com/hydraswap-io/anchor" }
+# anchor-lang = { git = "https://github.com/hydraswap-io/anchor" }
+anchor-spl = "0.20.1"
+anchor-lang = "0.20.1"
