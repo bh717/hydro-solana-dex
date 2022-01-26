@@ -55,7 +55,7 @@ pub struct Stake<'info> {
 
 impl<'info> Stake<'info> {
     pub fn calculate_price(&self) -> u64 {
-        calculate_price(&self.token_vault, &self.redeemable_mint)
+        calculate_price(&self.token_vault, &self.redeemable_mint, &self.pool_state)
     }
 
     pub fn into_mint_redeemable(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
@@ -84,7 +84,9 @@ impl<'info> Stake<'info> {
 pub fn handle(ctx: Context<Stake>, amount: u64) -> ProgramResult {
     let total_token_vault = ctx.accounts.token_vault.amount;
     let total_redeemable_tokens = ctx.accounts.redeemable_mint.supply;
+
     let old_price = ctx.accounts.calculate_price();
+    msg!("old_price: {}", old_price);
 
     let token_mint_key = ctx.accounts.pool_state.token_mint.key();
     let redeemable_mint_key = ctx.accounts.pool_state.redeemable_mint.key();
@@ -125,8 +127,8 @@ pub fn handle(ctx: Context<Stake>, amount: u64) -> ProgramResult {
     (&mut ctx.accounts.redeemable_mint).reload()?;
 
     let new_price = ctx.accounts.calculate_price();
-    ctx.accounts.pool_state.pool_price_native = new_price;
 
+    msg!("new_price: {}", new_price);
     emit!(PriceChange {
         old_base_per_quote_native: old_price,
         new_base_per_quote_native: new_price,
