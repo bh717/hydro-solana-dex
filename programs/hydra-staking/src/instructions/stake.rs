@@ -106,10 +106,12 @@ pub fn handle(ctx: Context<Stake>, amount: u64) -> ProgramResult {
         token::mint_to(cpi_tx, amount)?;
     } else {
         // (amount * total_x_token.supply) / total_token_vault
-        let mint_redeemable_amount: u64 = amount
-            .checked_mul(total_redeemable_tokens)
+        let mint_redeemable_amount: u64 = (amount as u128)
+            .checked_mul(total_redeemable_tokens as u128)
             .unwrap()
-            .checked_div(total_token_vault)
+            .checked_div(total_token_vault as u128)
+            .unwrap()
+            .try_into()
             .unwrap();
 
         let mut cpi_tx = ctx.accounts.into_mint_redeemable();

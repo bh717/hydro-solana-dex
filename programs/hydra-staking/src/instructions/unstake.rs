@@ -91,10 +91,12 @@ pub fn handle(ctx: Context<UnStake>, amount: u64) -> ProgramResult {
 
     // determine user share of vault
     // (amount * total_tokens) / total_redeemable_token_supply
-    let token_share = amount
-        .checked_mul(total_tokens)
+    let token_share = (amount as u128)
+        .checked_mul(total_tokens as u128)
         .unwrap()
-        .checked_div(total_redeemable_token_supply)
+        .checked_div(total_redeemable_token_supply as u128)
+        .unwrap()
+        .try_into()
         .unwrap();
 
     let token_mint_key = ctx.accounts.pool_state.token_mint.key();
