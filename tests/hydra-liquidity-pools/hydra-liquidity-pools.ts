@@ -3,7 +3,9 @@ import {BN, Program} from '@project-serum/anchor';
 import { HydraLiquidityPools } from '../../target/types/hydra_liquidity_pools';
 import assert from "assert";
 import {TokenInstructions} from "@project-serum/serum";
-import {createMint, createMintAndVault} from "@project-serum/common";
+import {createMintAndVault} from "@project-serum/common";
+import {createMint} from "../utils/utils";
+import {Keypair} from "@solana/web3.js";
 const utf8 = anchor.utils.bytes.utf8;
 
 describe ("hydra-liquidity-pool", async () => {
@@ -18,7 +20,7 @@ describe ("hydra-liquidity-pool", async () => {
   let tokenBMint
   let token_a_account
   let token_b_account
-  let lpTokenMint
+  const lpTokenMint = Keypair.generate()
 
   let poolState
   let tokenAVault
@@ -36,28 +38,27 @@ describe ("hydra-liquidity-pool", async () => {
     [tokenBMint, token_b_account ] = await createMintAndVault(provider, new BN(1_000_000_000),provider.wallet.publicKey, 9)
   });
 
-
   it('should get the PDA for the PoolState', async () => {
     [poolState, poolStateBump] = await anchor.web3.PublicKey.findProgramAddress(
-        [utf8.encode("pool_state_seed"), tokenAMint.toBuffer(), tokenBMint.toBuffer() ],
+        [utf8.encode("pool_state_seed"), tokenAMint.toBuffer(), tokenBMint.toBuffer(), lpTokenMint.publicKey.toBuffer() ],
         program.programId
     );
   });
 
   it('should create lpTokenMint with poolState as the authority', async () => {
-    lpTokenMint = await createMint(provider, poolState, 9)
+    await createMint(provider, lpTokenMint,poolState, 9)
   });
 
   it('should get the PDA for the TokenAVault', async () => {
     [tokenAVault, tokenAVaultBump] = await anchor.web3.PublicKey.findProgramAddress(
-        [utf8.encode("token_vault_seed"), tokenAMint.toBuffer(), poolState.toBuffer(), lpTokenMint.toBuffer() ],
+        [utf8.encode("token_vault_seed"), tokenAMint.toBuffer(), poolState.toBuffer(), lpTokenMint.publicKey.toBuffer() ],
         program.programId
     )
   });
 
   it('should get the PDA for the TokenBVault', async () => {
     [tokenBVault, tokenBVaultBump] = await anchor.web3.PublicKey.findProgramAddress(
-        [utf8.encode("token_vault_seed"), tokenBMint.toBuffer(), poolState.toBuffer(), lpTokenMint.toBuffer() ],
+        [utf8.encode("token_vault_seed"), tokenBMint.toBuffer(), poolState.toBuffer(), lpTokenMint.publicKey.toBuffer() ],
         program.programId
     )
   });
@@ -74,7 +75,7 @@ describe ("hydra-liquidity-pool", async () => {
             poolState: poolState,
             tokenAMint: tokenAMint,
             tokenBMint: tokenBMint,
-            lpTokenMint: lpTokenMint,
+            lpTokenMint: lpTokenMint.publicKey,
             tokenAVault: tokenAVault,
             tokenBVault: tokenBVault,
             systemProgram: anchor.web3.SystemProgram.programId,
