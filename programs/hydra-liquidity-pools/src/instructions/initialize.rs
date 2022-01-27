@@ -28,7 +28,7 @@ pub struct Initialize<'info> {
     #[account(
         constraint = lp_token_mint.mint_authority.unwrap() == pool_state.key()
     )]
-    /// redeemable_mint: Eg xHYD
+    /// lp_token_mint: Eg xlp-hyd-usdc
     pub lp_token_mint: Box<Account<'info, Mint>>,
 
     #[account(
