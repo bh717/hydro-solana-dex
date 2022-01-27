@@ -1,6 +1,7 @@
 mod instructions;
 pub mod state;
 
+use instructions::add_liquidity::*;
 use instructions::initialize::*;
 
 use anchor_lang::prelude::*;
@@ -31,6 +32,10 @@ pub mod hydra_liquidity_pools {
             token_b_vault_bump,
             pool_state_bump,
         )
+    }
+
+    pub fn add_liquidity(ctx: Context<AddLiquidity>) -> ProgramResult {
+        instructions::add_liquidity::handle(ctx)
     }
 
     // pub fn swap_amm(ctx: Context<Swap>) -> ProgramResult {
