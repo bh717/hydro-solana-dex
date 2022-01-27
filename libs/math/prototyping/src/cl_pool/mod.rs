@@ -124,11 +124,6 @@ impl Pool {
     pub fn hg_x (&self) -> f64 { self.global_state.hg_x }
     pub fn hg_y (&self) -> f64 { self.global_state.hg_y }
 
-    pub fn get_tick_state_mut(&mut self, tick: u32) -> Option<&mut TickState> {
-        self.active_ticks.get_mut(&tick)
-    }
-
-
     fn tick_to_possible_tick(&self, tick: u32, left_to_right: bool ) -> u32 {
         // use tick_spacing to find allowable/ initializable tick that is <= tick 
         // (if left_to_right is false) or >= tick (if left_to_right is true)
@@ -140,8 +135,6 @@ impl Pool {
         // find allowable tick from given rp
         Self::rp_to_possible_tk(rp, self.tick_spacing, left_to_right)
     }
-
-    
 
     fn initialize_tick(&mut self, tick: u32) {
         // set f0 of tick based on convention [6.21]
@@ -177,11 +170,6 @@ impl Pool {
             self.unset_tick(tick);
         }
     }
-    // fn get_sorted_ticks(&self) -> Vec<u32> {
-    //     let mut tick_vec: Vec<u32> = self.active_ticks.keys().cloned().collect();
-    //     tick_vec.sort_unstable();
-    //     tick_vec
-    // } 
 
     fn cross_tick(&mut self, provided_tick: u32, left_to_right: bool) {
         // Handle update of global state and tick state when initialized tick is crossed 
