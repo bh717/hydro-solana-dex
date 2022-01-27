@@ -19,7 +19,7 @@ anchor-client = "0.20.1"
 shellexpand = "2.1"
 hydra-farming = { path = "../../programs/hydra-farming", features = ["no-entrypoint"] }
 hydra-staking = { path = "../../programs/hydra-staking", features = ["no-entrypoint"] }
-hydra-pools = { path = "../../programs/hydra-pools", features = ["no-entrypoint"] }
+hydra-liquidity-pools = { path = "../../programs/hydra-liquidity-pools", features = ["no-entrypoint"] }
 static-pubkey = "1.0.2"
 dotenv = "0.15.0"
 solana-program = "1.9.4"
