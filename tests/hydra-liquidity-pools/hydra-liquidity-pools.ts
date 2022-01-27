@@ -1,101 +1,86 @@
 import * as anchor from '@project-serum/anchor';
-import { Program } from '@project-serum/anchor';
+import {BN, Program} from '@project-serum/anchor';
 import { HydraLiquidityPools } from '../../target/types/hydra_liquidity_pools';
 import assert from "assert";
+import {TokenInstructions} from "@project-serum/serum";
+import {createMint, createMintAndVault} from "@project-serum/common";
+const utf8 = anchor.utils.bytes.utf8;
 
-// describe('hydra-liquidity-pools', () => {
-//
-//   // Configure the client to use the local cluster.
-//   anchor.setProvider(anchor.Provider.env());
-//
-//   const { SystemProgram } = anchor.web3;
-//   const program = anchor.workspace.HydraPools as Program<HydraPools>;
-//   const provider = anchor.Provider.env();
-//   // Swap Account
-//   const swapAccount = anchor.web3.Keypair.generate();
-//
-//   it('Is initialized!', async () => {
-//     // Add your test here.
-//     // const tx = await program.rpc.initialize({});
-//     // console.log("Your transaction signature", tx);
-//
-//     // Create the new account and initialize it with the program.
-//     await program.rpc.initialize(provider.wallet.publicKey, {
-//       accounts: {
-//         swapResult: swapAccount.publicKey,
-//         user: provider.wallet.publicKey,
-//         systemProgram: SystemProgram.programId,
-//       },
-//       signers: [swapAccount],
-//     });
-//
-//     // Fetch the newly created account from the cluster.
-//     const swapResult = await program.account.swapResult.fetch(swapAccount.publicKey);
-//
-//     // @ts-ignore
-//     assert.ok(swapResult.xNew.eq(new anchor.BN(0)));
-//   });
-//
-//   it('Swaps using AMM', async () => {
-//     // Invoke the swap AMM rpc.
-//     await program.rpc.swapAmm({
-//       accounts: {
-//         swapResult: swapAccount.publicKey,
-//         authority: provider.wallet.publicKey,
-//       },
-//     });
-//
-//     // Fetch the swapResult
-//     const swapResult = await program.account.swapResult.fetch(swapAccount.publicKey);
-//
-//     assert.ok(swapResult.deltaY.eq(new anchor.BN(5)));
-//   });
-//
-//   it('Swaps using HMM', async () => {
-//     // Invoke the swap HMM rpc.
-//     await program.rpc.swapHmm({
-//       accounts: {
-//         swapResult: swapAccount.publicKey,
-//         authority: provider.wallet.publicKey,
-//       },
-//     });
-//
-//     // Fetch the swapResult
-//     const swapResult = await program.account.swapResult.fetch(swapAccount.publicKey);
-//
-//     // @ts-ignore
-//     // TODO: figure out how to compare big numbers in anchor with precise numbers in sol
-//     // assert.ok(swapResult.deltaY.eq(new anchor.BN(56)));
-//   });
-// });
-
-
-
-describe ("hydra-poolz", async () => {
+describe ("hydra-liquidity-pool", async () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.Provider.env());
 
   const { SystemProgram } = anchor.web3;
-  const program = anchor.workspace.HydraPools as Program<HydraLiquidityPools>;
+  const program = anchor.workspace.HydraLiquidityPools as Program<HydraLiquidityPools>;
   const provider = anchor.Provider.env();
 
-  it('Is initialized!', async () => {
-    // const newPool = anchor.web3.Keypair.generate();
-    // await program.rpc.initPool(new anchor.BN(42),{
-    //   accounts: {
-    //     pool: newPool.publicKey,
-    //     user: provider.wallet.publicKey,
-    //     systemProgram: SystemProgram.programId,
-    //   },
-    //   signers: [newPool],
-    // });
-    //
-    // const pool = await program.account.pool.fetch(newPool.publicKey);
-    //
-    // assert.ok(pool.num.eq(new anchor.BN(42)));
+  let tokenAMint
+  let tokenBMint
+  let token_a_account
+  let token_b_account
+  let lpTokenMint
+
+  let poolState
+  let tokenAVault
+  let tokenBVault
+
+  let poolStateBump
+  let tokenAVaultBump
+  let tokenBVaultBump
+
+  it('should create tokenAMint', async () =>  {
+    [tokenAMint, token_a_account ] = await createMintAndVault(provider, new BN(1_000_000_000),provider.wallet.publicKey, 9)
   });
 
-  it('should initialize ', function () {
-    
+  it('should create tokenBMint', async () =>  {
+    [tokenBMint, token_b_account ] = await createMintAndVault(provider, new BN(1_000_000_000),provider.wallet.publicKey, 9)
+  });
+
+
+  it('should get the PDA for the PoolState', async () => {
+    [poolState, poolStateBump] = await anchor.web3.PublicKey.findProgramAddress(
+        [utf8.encode("pool_state_seed"), tokenAMint.toBuffer(), tokenBMint.toBuffer() ],
+        program.programId
+    );
+  });
+
+  it('should create lpTokenMint with poolState as the authority', async () => {
+    lpTokenMint = await createMint(provider, poolState, 9)
+  });
+
+  it('should get the PDA for the TokenAVault', async () => {
+    [tokenAVault, tokenAVaultBump] = await anchor.web3.PublicKey.findProgramAddress(
+        [utf8.encode("token_vault_seed"), tokenAMint.toBuffer(), poolState.toBuffer(), lpTokenMint.toBuffer() ],
+        program.programId
+    )
+  });
+
+  it('should get the PDA for the TokenBVault', async () => {
+    [tokenBVault, tokenBVaultBump] = await anchor.web3.PublicKey.findProgramAddress(
+        [utf8.encode("token_vault_seed"), tokenBMint.toBuffer(), poolState.toBuffer(), lpTokenMint.toBuffer() ],
+        program.programId
+    )
+  });
+
+  it('should initialize a liquidity-pool', async () => {
+    await program.rpc.initialize(
+        tokenAVaultBump,
+        tokenBVaultBump,
+        poolStateBump,
+        {
+          accounts: {
+            authority: provider.wallet.publicKey,
+            payer: provider.wallet.publicKey,
+            poolState: poolState,
+            tokenAMint: tokenAMint,
+            tokenBMint: tokenBMint,
+            lpTokenMint: lpTokenMint,
+            tokenAVault: tokenAVault,
+            tokenBVault: tokenBVault,
+            systemProgram: anchor.web3.SystemProgram.programId,
+            tokenProgram: TokenInstructions.TOKEN_PROGRAM_ID,
+            rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      }
+    });
   });
 });
