@@ -13,8 +13,8 @@ describe('hydra-staking',  async () => {
     anchor.setProvider(anchor.Provider.env());
     const program = anchor.workspace.HydraStaking as Program<HydraStaking>;
 
-    let tokenMint
-    let redeemableMint
+    const tokenMint = Keypair.generate()
+    const redeemableMint = Keypair.generate()
 
     let tokenVaultPubkey
     let tokenVaultBump
@@ -24,11 +24,6 @@ describe('hydra-staking',  async () => {
 
     let poolStatePubkey
     let poolStateBump
-
-    it('should load mint keys', async () => {
-        tokenMint = await loadKey("tests/keys/hyd3VthE9YPGBeg9HEgZsrM5qPniC6VoaEFeTGkVsJR.json")
-        redeemableMint = await loadKey("tests/keys/xhy1rv75cEJahTbsKnv2TpNhdR7KNUoDPavKuQDwhDU.json")
-    });
 
     it('should create tokenMint', async () => {
         await createMintAndVault(program.provider, tokenMint, TokenAccount, new anchor.BN(100_000_000))
@@ -53,7 +48,7 @@ describe('hydra-staking',  async () => {
         );
     });
 
-    it('should initialize Staking contract\'s PDA, state and token_vault', async () => {
+    it('should initialize hydra-staking contract', async () => {
         await program.rpc.initialize(
             tokenVaultBump,
             poolStateBump,
