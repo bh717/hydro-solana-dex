@@ -1,5 +1,5 @@
 import * as anchor from '@project-serum/anchor';
-import {BN, Program} from '@project-serum/anchor';
+import { Program } from '@project-serum/anchor';
 import { HydraStaking } from '../../target/types/hydra_staking';
 import {loadKey, createMintAndVault, createMint, getTokenBalance, transfer} from "../utils/utils"
 import { TokenInstructions } from "@project-serum/serum"
@@ -53,7 +53,7 @@ describe('hydra-staking',  async () => {
         );
     });
 
-    it('should initialized Staking contract\'s PDA, state and token_vault', async () => {
+    it('should initialize Staking contract\'s PDA, state and token_vault', async () => {
         await program.rpc.initialize(
             tokenVaultBump,
             poolStateBump,
