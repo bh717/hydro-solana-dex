@@ -7,7 +7,7 @@ use anchor_lang::prelude::*;
 // use anchor_lang::solana_program::log::sol_log_compute_units;
 // use hydra_math::swap_calculator::SwapCalculator;
 
-declare_id!("9waTtNnGG8GB1z4o42VByPpJ1biaKeadVJa3MupGUeDL");
+declare_id!("BBjT5U42SuA6FcVZEofPgjAVZahvtWzHaQ8pJHyKkC5T");
 
 pub mod constants {
     pub const TOKEN_VAULT_SEED: &[u8] = b"token_vault_seed";
