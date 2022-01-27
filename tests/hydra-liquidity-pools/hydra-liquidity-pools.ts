@@ -3,9 +3,10 @@ import {BN, Program} from '@project-serum/anchor';
 import { HydraLiquidityPools } from '../../target/types/hydra_liquidity_pools';
 import assert from "assert";
 import {TokenInstructions} from "@project-serum/serum";
-import {createMintAndVault} from "@project-serum/common";
+import {createMintAndVault, createTokenAccount} from "@project-serum/common";
 import {createMint} from "../utils/utils";
 import {Keypair} from "@solana/web3.js";
+import {TOKEN_PROGRAM_ID} from "@project-serum/serum/lib/token-instructions";
 const utf8 = anchor.utils.bytes.utf8;
 
 describe ("hydra-liquidity-pool", async () => {
@@ -18,9 +19,10 @@ describe ("hydra-liquidity-pool", async () => {
 
   let tokenAMint
   let tokenBMint
-  let token_a_account
-  let token_b_account
+  let tokenAAccount
+  let tokenBAccount
   const lpTokenMint = Keypair.generate()
+  let lpTokenAccount
 
   let poolState
   let tokenAVault
@@ -31,11 +33,11 @@ describe ("hydra-liquidity-pool", async () => {
   let tokenBVaultBump
 
   it('should create tokenAMint', async () =>  {
-    [tokenAMint, token_a_account ] = await createMintAndVault(provider, new BN(1_000_000_000),provider.wallet.publicKey, 9)
+    [tokenAMint, tokenAAccount ] = await createMintAndVault(provider, new BN(1_000_000_000),provider.wallet.publicKey, 9)
   });
 
   it('should create tokenBMint', async () =>  {
-    [tokenBMint, token_b_account ] = await createMintAndVault(provider, new BN(1_000_000_000),provider.wallet.publicKey, 9)
+    [tokenBMint, tokenBAccount ] = await createMintAndVault(provider, new BN(1_000_000_000),provider.wallet.publicKey, 9)
   });
 
   it('should get the PDA for the PoolState', async () => {
@@ -45,8 +47,9 @@ describe ("hydra-liquidity-pool", async () => {
     );
   });
 
-  it('should create lpTokenMint with poolState as the authority', async () => {
+  it('should create lpTokenMint with poolState as the authority and a lpTokenAccount', async () => {
     await createMint(provider, lpTokenMint,poolState, 9)
+    lpTokenAccount = await createTokenAccount(provider, lpTokenMint.publicKey, provider.wallet.publicKey)
   });
 
   it('should get the PDA for the TokenAVault', async () => {
@@ -83,5 +86,37 @@ describe ("hydra-liquidity-pool", async () => {
             rent: anchor.web3.SYSVAR_RENT_PUBKEY,
       }
     });
+
+    const poolStateAccount = await program.account.poolState.fetch(poolState)
+
+    assert.equal(poolStateAccount.authority.toString(),provider.wallet.publicKey.toString())
+    assert.equal(poolStateAccount.tokenAVault.toString(), tokenAVault.toString())
+    assert.equal(poolStateAccount.tokenBVault.toString(), tokenBVault.toString())
+    assert.equal(poolStateAccount.tokenAMint.toString(), tokenAMint.toString())
+    assert.equal(poolStateAccount.tokenBMint.toString(), tokenBMint.toString())
+    assert.equal(poolStateAccount.lpTokenMint.toString(), lpTokenMint.publicKey.toString())
+    assert.equal(poolStateAccount.poolStateBump, poolStateBump)
+    assert.equal(poolStateAccount.tokenAVaultBump, tokenAVaultBump)
+    assert.equal(poolStateAccount.tokenBVaultBump, tokenBVaultBump)
+  });
+
+  it('should add-liquidity to pool', async () => {
+    await program.rpc.addLiquidity(
+        {
+          accounts: {
+            poolState: poolState,
+            lpTokenMint: lpTokenMint.publicKey,
+            tokenAMint: tokenAMint,
+            tokenBMint: tokenBMint,
+            tokenAVault: tokenAVault,
+            tokenBVault: tokenBVault,
+            lpTokenTo: lpTokenAccount,
+            userTokenA: tokenAAccount,
+            userTokenB: tokenBAccount,
+            userAuthority: provider.wallet.publicKey,
+            tokenProgram: TOKEN_PROGRAM_ID,
+          }
+        }
+    )
   });
 });
