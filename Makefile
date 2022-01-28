@@ -41,7 +41,6 @@ watch:
 anchor-ci:
 	yarn install
 	solana-keygen new --no-bip39-passphrase || true
-	#cargo clean
 	cargo check
 	cargo test
 	anchor build
