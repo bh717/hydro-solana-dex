@@ -1,7 +1,6 @@
 use hydra_math::math::sqrt_precise;
 use spl_math::precise_number::PreciseNumber;
 
-
 fn main() {
     println!("testing sqrt");
 
@@ -16,5 +15,4 @@ fn main() {
         "u128::MAX float: {:?}",
         sqrt_precise(&PreciseNumber::new(std::u128::MAX).unwrap()).unwrap()
     );
-
 }
