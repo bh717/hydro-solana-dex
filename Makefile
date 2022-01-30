@@ -7,7 +7,7 @@ list:
 
 # install our fork of anchor
 install_anchor:
-	cargo install --git https://github.com/hydraswap-io/anchor anchor-cli --locked --force
+	cargo install --git https://github.com/project-serum/anchor --tag v0.20.1 anchor-cli --locked
 
 # COMMON
 check:
