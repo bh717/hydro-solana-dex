@@ -1,4 +1,4 @@
-use proto::cl_pool::*;
+use proto::cl_pool_float::*;
 
 fn main() {
     // let sol = Token::new("SOL", 9) ;

@@ -4,7 +4,7 @@
 #[cfg(test)]
 mod tests {
 
-    use proto::cl_pool::*;
+    use proto::cl_pool_float::*;
 
     #[test]
     fn problem1() {
