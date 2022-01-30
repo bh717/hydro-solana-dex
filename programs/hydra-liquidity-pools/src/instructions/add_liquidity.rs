@@ -2,7 +2,7 @@ use crate::constants::*;
 use crate::state::pool_state::PoolState;
 use crate::ProgramResult;
 use anchor_lang::prelude::*;
-use anchor_spl::token::{Mint, Token, TokenAccount};
+use anchor_spl::token::{burn, Mint, Token, TokenAccount};
 
 #[derive(Accounts)]
 pub struct AddLiquidity<'info> {
@@ -72,6 +72,38 @@ pub struct AddLiquidity<'info> {
     pub token_program: Program<'info, Token>,
 }
 
-pub fn handle(ctx: Context<AddLiquidity>) -> ProgramResult {
+impl<'info> AddLiquidity<'info> {}
+
+/// AddLiquidity instruction. See python model here: https://colab.research.google.com/drive/1p0HToo1mxm2Z1e8dpzIvScGrMCrgN6qr?authuser=2#scrollTo=Awc9KZdYEpPn
+pub fn handle(
+    ctx: Context<AddLiquidity>,
+    token_a_amount: u64,
+    token_b_amount: u64,
+) -> ProgramResult {
+    let x = token_a_amount;
+    let y = token_b_amount;
+
+    let mut x_total = ctx.accounts.pool_state.x_total;
+    let mut y_total = ctx.accounts.pool_state.y_total;
+    let lp_total = ctx.accounts.lp_token_mint.supply;
+    let mut burn_lp: u64 = 0;
+    let mut lp_tokens_to_issue: u64 = 0;
+
+    if x_total == 0 {
+        // burn_lp = 1e-15;
+        let burn = 1e-15 as u64;
+        lp_tokens_to_issue = (x / y).pow(0.5 as u32) - burn;
+    } else {
+        if x / y != x_total / y_total {
+            return Err(ProgramError::Custom(99));
+        }
+        lp_tokens_to_issue = (x / x_total) * lp_total;
+    }
+
+    x_total += x;
+    y_total += y;
+
+    msg!("lp_tokens_to_issue: {}", lp_tokens_to_issue);
+
     Ok(())
 }

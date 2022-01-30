@@ -34,8 +34,12 @@ pub mod hydra_liquidity_pools {
         )
     }
 
-    pub fn add_liquidity(ctx: Context<AddLiquidity>) -> ProgramResult {
-        instructions::add_liquidity::handle(ctx)
+    pub fn add_liquidity(
+        ctx: Context<AddLiquidity>,
+        token_a_amount: u64,
+        token_b_amount: u64,
+    ) -> ProgramResult {
+        instructions::add_liquidity::handle(ctx, token_a_amount, token_b_amount)
     }
 
     // pub fn swap_amm(ctx: Context<Swap>) -> ProgramResult {

@@ -102,6 +102,8 @@ describe ("hydra-liquidity-pool", async () => {
 
   it('should add-liquidity to pool', async () => {
     await program.rpc.addLiquidity(
+        new BN(100000),
+        new BN(100000),
         {
           accounts: {
             poolState: poolState,
