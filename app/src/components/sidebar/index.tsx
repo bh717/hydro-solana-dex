@@ -27,7 +27,7 @@ import {
     ActiveStake,
     Network,
     Doc,
-    List as Menu,
+    Bars,
     Share,
     Twitter,
     Telegram,
@@ -398,7 +398,7 @@ const Sidebar: FC<SidebarProps> = ({ openWalletModal, address, rpc, changeRPC, n
                                 onClick={() => setOpenRPCModal(true)}
                             />
                             <ListItem icon={<Doc />} name="Test Guide" />
-                            <ListItem icon={<Menu />} name="Docs" />
+                            <ListItem icon={<Bars />} name="Docs" />
                         </Box>
                     )}
                 </List>
@@ -425,7 +425,7 @@ const Sidebar: FC<SidebarProps> = ({ openWalletModal, address, rpc, changeRPC, n
                     {!mobile && (
                         <Box className={cn(classes.linkWrapper, {'collapsed': !open && !mobile})}>
                             <Link href="https://hydraswap.gitbook.io/hydraswap-gitbook/" underline="none">
-                                <Menu /><Typography variant="body2" component="span">Paper & Docs</Typography>
+                                <Bars /><Typography variant="body2" component="span">Paper & Docs</Typography>
                             </Link>
                         </Box>
                     )}
