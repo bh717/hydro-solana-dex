@@ -106,13 +106,8 @@ pub fn handle(ctx: Context<Stake>, amount: u64) -> ProgramResult {
         token::mint_to(cpi_tx, amount)?;
     } else {
         // (amount * total_x_token.supply) / total_token_vault
-        let mint_redeemable_amount: u64 = (amount as u128)
-            .checked_mul(total_redeemable_tokens as u128)
-            .unwrap()
-            .checked_div(total_token_vault as u128)
-            .unwrap()
-            .try_into()
-            .unwrap();
+        let mint_redeemable_amount: u64 =
+            mint_redeemable_amount(amount, total_token_vault, total_redeemable_tokens);
 
         let mut cpi_tx = ctx.accounts.into_mint_redeemable();
         cpi_tx.signer_seeds = &signer;
@@ -137,4 +132,68 @@ pub fn handle(ctx: Context<Stake>, amount: u64) -> ProgramResult {
     });
 
     Ok(())
+}
+
+pub fn mint_redeemable_amount(
+    amount: u64,
+    total_token_vault: u64,
+    total_redeemable_tokens: u64,
+) -> u64 {
+    (amount as u128)
+        .checked_mul(total_redeemable_tokens as u128)
+        .unwrap()
+        .checked_div(total_token_vault as u128)
+        .unwrap()
+        .try_into()
+        .unwrap()
+}
+
+#[cfg(test)]
+#[allow(clippy::unwrap_used)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn check_mint_redeemable_amount() {
+        // (amount * total_x_token.supply) / total_token_vault
+
+        // With integer amounts
+        let amount = 1_000u64;
+        let total_redeemable_tokens = 100_000_000u64;
+        let total_token_vault = 100_000_000u64;
+
+        let expected = 1_000u64;
+        let result = mint_redeemable_amount(amount, total_token_vault, total_redeemable_tokens);
+        assert_eq!(
+            expected, result,
+            "redeemable (1000 * 100000000) / 100000000 = ({} * {} / {})",
+            amount, total_redeemable_tokens, total_token_vault
+        );
+
+        // With rounded integer amounts
+        let amount = 987u64;
+        let total_redeemable_tokens = 99_99_000u64;
+        let total_token_vault = 100_000_000u64;
+
+        let expected = 98u64;
+        let result = mint_redeemable_amount(amount, total_token_vault, total_redeemable_tokens);
+        assert_eq!(
+            expected, result,
+            "redeemable (987 * 9999000) / 100000000 = ({} * {} / {})",
+            amount, total_redeemable_tokens, total_token_vault
+        );
+
+        // With decimal amounts
+        let amount = 987u64;
+        let total_redeemable_tokens = 99_99_000u64;
+        let total_token_vault = 100_000_000u64;
+
+        let expected = 98u64;
+        let result = mint_redeemable_amount(amount, total_token_vault, total_redeemable_tokens);
+        assert_eq!(
+            expected, result,
+            "redeemable (987 * 9999000) / 100000000 = ({} * {} / {})",
+            amount, total_redeemable_tokens, total_token_vault
+        );
+    }
 }
