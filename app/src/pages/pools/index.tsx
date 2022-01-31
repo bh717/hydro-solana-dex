@@ -93,7 +93,10 @@ const useStyles = makeStyles({
                 '& svg': {
                     color: '#FFFFFF40',
                     width: '20px',
-                    height: '20px'
+                    height: '20px',
+                    '@media (min-width: 601px)': {
+                        display: 'none'
+                    }
                 }
             },
             '&:last-of-type': {
