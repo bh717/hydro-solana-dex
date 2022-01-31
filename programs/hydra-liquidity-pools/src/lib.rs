@@ -1,5 +1,6 @@
 mod instructions;
 pub mod state;
+mod events;
 
 use instructions::add_liquidity::*;
 use instructions::initialize::*;

@@ -101,6 +101,12 @@ describe ("hydra-liquidity-pool", async () => {
   });
 
   it('should add-liquidity to pool', async () => {
+    program.addEventListener("LpTokensIssued", (e,s) => {
+      console.log('Lp Tokens Issued In Slot ', s);
+      console.log('amount: ', e.amount.toString());
+    });
+
+
     await program.rpc.addLiquidity(
         new BN(100000),
         new BN(100000),
