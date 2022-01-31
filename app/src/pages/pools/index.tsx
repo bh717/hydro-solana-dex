@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { makeStyles } from '@mui/styles';
 import { Box, Typography } from "@mui/material";
+import cn from 'classnames';
 
-import { Hydraswap, Lock, Volume, Deposit } from "../../components/icons";
+import { Hydraswap, Lock, Volume, Deposit, CaretDown } from "../../components/icons";
 import Banner from "../../assets/images/pools/banner.png";
 import PoolsContent from './poolsContent';
 
@@ -43,7 +44,8 @@ const useStyles = makeStyles({
             paddingBottom: '20px'
         },
         '@media (max-width: 600px)': {
-            justifyContent: 'flex-start'
+            justifyContent: 'flex-start',
+            paddingBottom: '0'
         }
     },
     bannerIcon: {
@@ -87,7 +89,12 @@ const useStyles = makeStyles({
                 color: '#19CE9D',
                 fontSize: '32px !important',
                 fontWeight: '700 !important',
-                marginBottom: '24px'
+                marginBottom: '24px',
+                '& svg': {
+                    color: '#FFFFFF40',
+                    width: '20px',
+                    height: '20px'
+                }
             },
             '&:last-of-type': {
                 color: '#FFF',
@@ -127,8 +134,13 @@ const useStyles = makeStyles({
             width: '100%'
         },
         '@media (max-width: 600px)': {
-            paddingRight: 0
+            display: 'none',
+            paddingRight: 0,
+            marginTop: '20px'
         }
+    },
+    showStatus: {
+        display: 'flex'
     },
     reportItem: {
         display: 'flex',
@@ -205,6 +217,8 @@ const useStyles = makeStyles({
 const Pools = () => {
     const classes = useStyles();
 
+    const [showPoolsStatus, setShowPoolsStatus] = useState(false);
+
     return (
         <Box className={classes.poolsContainer}>
             <Box className={classes.poolsBanner}>
@@ -213,11 +227,13 @@ const Pools = () => {
                         <Hydraswap />
                     </Box>
                     <Box className={classes.bannerTitle}>
-                        <Typography>Pools</Typography>
+                        <Typography>
+                            Pools <CaretDown onClick={() => setShowPoolsStatus(!showPoolsStatus)} />
+                        </Typography>
                         <Typography>Providing liquidity can earn swap fee and farm income.</Typography>
                     </Box>
                 </Box>
-                <Box className={classes.bannerRight}>
+                <Box className={cn(classes.bannerRight, {[classes.showStatus]: showPoolsStatus})}>
                     <Box className={classes.reportItem}>
                         <Lock />
                         <Typography>Total Value Locked</Typography>
@@ -235,9 +251,8 @@ const Pools = () => {
                     </Box>
                 </Box>
             </Box>
-            <Box className={classes.poolsContent}>
-                <PoolsContent />
-            </Box>
+
+            <PoolsContent />
         </Box>
     )
 }
