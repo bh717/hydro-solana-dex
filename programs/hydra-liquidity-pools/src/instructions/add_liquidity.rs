@@ -109,8 +109,6 @@ impl<'info> AddLiquidity<'info> {
                 .sqrt()
                 .checked_sub(to_u128(MIN_LIQUIDITY)?)
                 .unwrap();
-
-            msg!("lp_tokens_to_issue_step1: {}", lp_tokens_to_issue);
         } else {
             // if x / y != x_total / y_total {
             //     return Err(ProgramError::Custom(99));
@@ -142,6 +140,13 @@ pub fn handle(
     token_b_amount: u64,
     minimum_lp_tokens_requested_by_user: u64, // Slippage handling
 ) -> ProgramResult {
+    msg!("token_a_amount: {}", token_a_amount);
+    msg!("token_b_amount: {}", token_b_amount);
+    msg!(
+        "minimum_lp_tokens_requested_by_user: {}",
+        minimum_lp_tokens_requested_by_user
+    );
+
     let seeds = &[
         POOL_STATE_SEED,
         ctx.accounts.pool_state.token_a_mint.as_ref(),
