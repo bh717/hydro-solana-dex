@@ -5,6 +5,7 @@ use crate::utils::price::calculate_price;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
 use anchor_spl::token::{Mint, MintTo, Token, TokenAccount, Transfer};
+use std::cmp::min;
 
 #[derive(Accounts)]
 pub struct Stake<'info> {
@@ -113,6 +114,8 @@ pub fn handle(ctx: Context<Stake>, amount: u64) -> ProgramResult {
             .unwrap()
             .try_into()
             .unwrap();
+
+        msg!("mint_redeemable_amount: {}", mint_redeemable_amount);
 
         let mut cpi_tx = ctx.accounts.into_mint_redeemable();
         cpi_tx.signer_seeds = &signer;
