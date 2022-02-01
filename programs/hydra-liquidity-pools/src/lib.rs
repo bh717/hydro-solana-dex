@@ -1,6 +1,10 @@
+extern crate core;
+
+mod errors;
+mod events;
 mod instructions;
 pub mod state;
-mod events;
+mod utils;
 
 use instructions::add_liquidity::*;
 use instructions::initialize::*;
@@ -39,8 +43,14 @@ pub mod hydra_liquidity_pools {
         ctx: Context<AddLiquidity>,
         token_a_amount: u64,
         token_b_amount: u64,
+        minimum_lp_tokens_requested_by_user: u64,
     ) -> ProgramResult {
-        instructions::add_liquidity::handle(ctx, token_a_amount, token_b_amount)
+        instructions::add_liquidity::handle(
+            ctx,
+            token_a_amount,
+            token_b_amount,
+            minimum_lp_tokens_requested_by_user,
+        )
     }
 
     // pub fn swap_amm(ctx: Context<Swap>) -> ProgramResult {

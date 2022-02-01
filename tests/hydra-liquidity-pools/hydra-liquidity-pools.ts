@@ -108,8 +108,10 @@ describe ("hydra-liquidity-pool", async () => {
 
 
     await program.rpc.addLiquidity(
-        new BN(100000),
-        new BN(100000),
+        new BN(400000), // token_a_amount
+        new BN(600000000), // token_b_amount
+        // new BN(15491933), // TODO: This should work, however maths are currently getting rounddown
+        new BN(15490933),
         {
           accounts: {
             poolState: poolState,

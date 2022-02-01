@@ -1,4 +1,5 @@
 use crate::constants::*;
+use crate::errors::*;
 use crate::state::pool_state::PoolState;
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
@@ -84,5 +85,9 @@ pub fn handle(
 
     ctx.accounts.pool_state.x_total = 0;
     ctx.accounts.pool_state.y_total = 0;
+
+    ctx.accounts.pool_state.is_frozen = false;
+
+    // pool is now live
     Ok(())
 }
