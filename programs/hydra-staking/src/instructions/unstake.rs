@@ -91,6 +91,7 @@ pub fn handle(ctx: Context<UnStake>, amount: u64) -> ProgramResult {
 
     // determine user share of vault
     // (amount * total_tokens) / total_redeemable_token_supply
+    // TODO: Updated logic to match stake's new slp-maths usage
     let token_share = (amount as u128)
         .checked_mul(total_tokens as u128)
         .unwrap()
