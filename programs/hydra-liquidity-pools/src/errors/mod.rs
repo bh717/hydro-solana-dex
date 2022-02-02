@@ -2,12 +2,12 @@ use anchor_lang::prelude::*;
 
 #[error]
 pub enum ErrorCode {
-    #[msg(NumberConcerionFailure)]
+    #[msg("Number conversion Failure")]
     NumberConversionFailure,
 
-    #[msg(SlippageAmountExceeded)]
+    #[msg("Slippage Amount Exceeded")]
     SlippageExceeded,
 
-    #[msg(CheckedMathsError)]
+    #[msg("Checked Maths Error")]
     CheckedMathsError,
 }

@@ -100,10 +100,39 @@ describe ("hydra-liquidity-pool", async () => {
     assert.equal(poolStateAccount.tokenBVaultBump, tokenBVaultBump)
   });
 
+  it('should not add-liquidity to pool due to slippage', async () => {
+    try {
+      const tx =
+          await program.rpc.addLiquidity(
+              new BN(400000), // token_a_amount
+              new BN(600000000), // token_b_amount
+              new BN(15491933),
+              {
+                accounts: {
+                  poolState: poolState,
+                  lpTokenMint: lpTokenMint.publicKey,
+                  tokenAMint: tokenAMint,
+                  tokenBMint: tokenBMint,
+                  tokenAVault: tokenAVault,
+                  tokenBVault: tokenBVault,
+                  lpTokenTo: lpTokenAccount,
+                  userTokenA: tokenAAccount,
+                  userTokenB: tokenBAccount,
+                  userAuthority: provider.wallet.publicKey,
+                  tokenProgram: TOKEN_PROGRAM_ID,
+                }
+              }
+          )
+
+      assert.ok(false)
+    } catch (err) {
+      assert.equal(err.toString(), "Slippage Amount Exceeded")
+    }
+
+  });
   it('should add-liquidity to pool', async () => {
     program.addEventListener("LpTokensIssued", (e,s) => {
-      console.log('Lp Tokens Issued In Slot ', s);
-      console.log('amount: ', e.amount.toString());
+      assert.equal(e.amount.toString(), new BN(15490933))
     });
 
 
