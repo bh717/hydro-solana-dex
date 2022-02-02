@@ -6,7 +6,7 @@ use crate::utils::{to_u128, to_u64};
 use crate::ProgramResult;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
-use anchor_spl::token::{burn, Mint, MintTo, Token, TokenAccount};
+use anchor_spl::token::{burn, Mint, MintTo, Token, TokenAccount, Transfer};
 use num::integer::Roots;
 
 #[derive(Accounts)]
@@ -80,19 +80,43 @@ pub struct AddLiquidity<'info> {
 const MIN_LIQUIDITY: u64 = 10_u64.pow(3);
 
 impl<'info> AddLiquidity<'info> {
+    pub fn into_transfer_user_token_a_to_vault(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
+        let cpi_accounts = Transfer {
+            from: self.user_token_a.to_account_info(),
+            to: self.token_a_vault.to_account_info(),
+            authority: self.user_authority.to_account_info(),
+        };
+        let cpi_program = self.token_program.to_account_info();
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+
+    pub fn into_transfer_user_token_b_to_vault(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
+        let cpi_accounts = Transfer {
+            from: self.user_token_b.to_account_info(),
+            to: self.token_b_vault.to_account_info(),
+            authority: self.user_authority.to_account_info(),
+        };
+        let cpi_program = self.token_program.to_account_info();
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+
     /// AddLiquidity instruction. See python model here: https://colab.research.google.com/drive/1p0HToo1mxm2Z1e8dpzIvScGrMCrgN6qr?authuser=2#scrollTo=Awc9KZdYEpPn
     pub fn calculate_lp_tokens_to_issue(
         &self,
-        token_a_amount: u128,
-        token_b_amount: u128,
+        token_a_amount: u64,
+        token_b_amount: u64,
     ) -> Result<u64, ProgramError> {
         let x = token_a_amount;
         let y = token_b_amount;
 
-        let mut x_total = self.pool_state.x_total;
-        let mut y_total = self.pool_state.y_total;
+        let x_total = self.token_a_vault.amount;
+        let y_total = self.token_b_vault.amount;
         let lp_total = to_u128(self.lp_token_mint.supply)?;
-        let mut lp_tokens_to_issue: u128 = 0;
+        let mut lp_tokens_to_issue: u64 = 0;
 
         msg!("MIN_LIQUIDITY: {}", to_u128(MIN_LIQUIDITY)?);
         msg!("x: {}", x);
@@ -107,20 +131,24 @@ impl<'info> AddLiquidity<'info> {
                 .checked_mul(y)
                 .unwrap()
                 .sqrt()
-                .checked_sub(to_u128(MIN_LIQUIDITY)?)
+                .checked_sub(MIN_LIQUIDITY)
                 .unwrap();
         } else {
-            // if x / y != x_total / y_total {
-            //     return Err(ProgramError::Custom(99));
-            // }
+            // (x / y) != (x_total / y_total)
+            let step1 = x.checked_div(y).unwrap();
+            msg!("step1: {}", step1);
+            let step2 = x_total.checked_div(y).unwrap();
+            msg!("step2: {}", step2);
+            let step3 = step1 != step2;
+            msg!("step3: {}", step3);
+            if step3 {
+                return Err(ErrorCode::DepositRatioIncorrect.into());
+            }
             // lp_tokens_to_issue = (x / x_total) * lp_total;
         }
 
-        x_total += x;
-        y_total += y;
-
         msg!("lp_tokens_to_issue: {}", lp_tokens_to_issue);
-        Ok(to_u64(lp_tokens_to_issue)?)
+        Ok(lp_tokens_to_issue)
     }
 
     pub fn into_mint_lp_token(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
@@ -161,7 +189,7 @@ pub fn handle(
 
     let lp_tokens_to_issue = ctx
         .accounts
-        .calculate_lp_tokens_to_issue(to_u128(token_a_amount)?, to_u128(token_b_amount)?)?;
+        .calculate_lp_tokens_to_issue(token_a_amount, token_b_amount)?;
 
     if !(lp_tokens_to_issue >= minimum_lp_tokens_requested_by_user) {
         msg!("Error: SlippageExceeded");
@@ -173,12 +201,26 @@ pub fn handle(
         return Err(ErrorCode::SlippageExceeded.into());
     }
 
+    // mint lp tokens to users account
     token::mint_to(cpi_tx, lp_tokens_to_issue)?;
 
     msg!("lp_tokens_issued: {}", lp_tokens_to_issue);
     emit!(LpTokensIssued {
         amount: lp_tokens_to_issue,
     });
+
+    // transfer user_token_a to vault
+    token::transfer(
+        ctx.accounts.into_transfer_user_token_a_to_vault(),
+        token_a_amount,
+    )?;
+
+    // transfer user_token_b to vault
+    token::transfer(
+        ctx.accounts.into_transfer_user_token_b_to_vault(),
+        token_b_amount,
+    )?;
+
     Ok(())
 }
 

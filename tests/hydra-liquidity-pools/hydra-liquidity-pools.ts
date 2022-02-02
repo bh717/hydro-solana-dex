@@ -4,7 +4,7 @@ import { HydraLiquidityPools } from '../../target/types/hydra_liquidity_pools';
 import assert from "assert";
 import {TokenInstructions} from "@project-serum/serum";
 import {createMintAndVault, createTokenAccount} from "@project-serum/common";
-import {createMint} from "../utils/utils";
+import {createMint, getTokenBalance} from "../utils/utils";
 import {Keypair} from "@solana/web3.js";
 import {TOKEN_PROGRAM_ID} from "@project-serum/serum/lib/token-instructions";
 const utf8 = anchor.utils.bytes.utf8;
@@ -130,11 +130,10 @@ describe ("hydra-liquidity-pool", async () => {
     }
 
   });
-  it('should add-liquidity to pool', async () => {
+  it('should add-liquidity to pool for the first time', async () => {
     program.addEventListener("LpTokensIssued", (e,s) => {
       assert.equal(e.amount.toString(), new BN(15490933))
     });
-
 
     await program.rpc.addLiquidity(
         new BN(400000), // token_a_amount
@@ -157,5 +156,43 @@ describe ("hydra-liquidity-pool", async () => {
           }
         }
     )
+    assert.strictEqual(await getTokenBalance(provider, lpTokenAccount), 15490933)
+    assert.strictEqual(await getTokenBalance(provider, tokenAAccount), 999600000)
+    assert.strictEqual(await getTokenBalance(provider, tokenBAccount), 400000000)
   });
+
+  // it('should not add-liquidity to due to token deposit ratio not aligned', async () => {
+  //   program.addEventListener("LpTokensIssued", (e,s) => {
+  //     // assert.equal(e.amount.toString(), new BN(15490933))
+  //     console.log(e.amount.toString())
+  //   });
+  //
+  //   try {
+  //     const tx =
+  //         await program.rpc.addLiquidity(
+  //             new BN(600000), // token_a_amount
+  //             new BN(600000000), // token_b_amount
+  //             new BN(15490933), // slippage
+  //             {
+  //               accounts: {
+  //                 poolState: poolState,
+  //                 lpTokenMint: lpTokenMint.publicKey,
+  //                 tokenAMint: tokenAMint,
+  //                 tokenBMint: tokenBMint,
+  //                 tokenAVault: tokenAVault,
+  //                 tokenBVault: tokenBVault,
+  //                 lpTokenTo: lpTokenAccount,
+  //                 userTokenA: tokenAAccount,
+  //                 userTokenB: tokenBAccount,
+  //                 userAuthority: provider.wallet.publicKey,
+  //                 tokenProgram: TOKEN_PROGRAM_ID,
+  //               }
+  //             }
+  //         )
+  //     assert.ok(false)
+  //   } catch (err) {
+  //     assert.equal(err.toString(), "Deposit tokens not in the correct ratio")
+  //   }
+  //
+  // });
 });

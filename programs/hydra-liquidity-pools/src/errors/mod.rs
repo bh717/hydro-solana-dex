@@ -10,4 +10,7 @@ pub enum ErrorCode {
 
     #[msg("Checked Maths Error")]
     CheckedMathsError,
+
+    #[msg("Deposit tokens not in the correct ratio")]
+    DepositRatioIncorrect,
 }
