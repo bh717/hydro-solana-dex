@@ -228,7 +228,8 @@ mod tests {
             prop_assume!(deposit_result > 0);
             stake_pool.total_token_vault += deposit_amount;
             stake_pool.total_redeemable_tokens += deposit_result;
-            // let withdraw_result = stake_pool.calc_lamports_withdraw_amount(deposit_result).unwrap();
+            // TODO: move this prop test to utils/ path and add testing of withdrawls i.e. Unstake#token_share
+            // let withdraw_result = token_share(amount, total_tokens, total_redeemable_token_supply);
             // assert!(withdraw_result <= deposit_stake);
         }
     }
