@@ -63,11 +63,7 @@ const useStyles = makeStyles({
             color: '#FFFFFFD9',
             fontSize: '20px',
             lineHeight: '24px',
-            padding: '16px 0 16px 16px',
-            '&::-webkit-outer-spin-button, &::-webkit-inner-spin-button': {
-                '-webkit-appearance': 'none',
-                margin: 0
-            }
+            padding: '16px 0 16px 16px'
         },
         '& .MuiInputAdornment-root': {
             '& p': {

@@ -112,6 +112,13 @@ html, body {
     }
 }
 
+input[type=number] {
+    &::-webkit-outer-spin-button, &::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+}
+
 @media screen and (min-width: 601px) {
     ::-webkit-scrollbar {
         width: 10px;
