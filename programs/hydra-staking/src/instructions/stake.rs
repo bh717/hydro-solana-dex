@@ -159,6 +159,7 @@ pub fn mint_redeemable_amount(
 #[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
+    use proptest::prelude::*;
 
     #[test]
     fn check_mint_redeemable_amount() {
@@ -193,5 +194,42 @@ mod tests {
             "redeemable (987 * 9999000) / 100000000 = ({} * {} / {})",
             amount, total_redeemable_tokens, total_token_vault
         );
+    }
+
+    pub struct StakePool {
+        pub total_token_vault: u64,
+        pub total_redeemable_tokens: u64,
+    }
+
+    prop_compose! {
+        fn total_tokens_and_deposit()(total_token_vault in 1..u64::MAX)(
+            total_token_vault in Just(total_token_vault),
+            total_redeemable_tokens in 1..=total_token_vault,
+            deposit_amount in 1..total_token_vault,
+        ) -> (u64, u64, u64) {
+            (
+                total_token_vault - deposit_amount,
+                total_redeemable_tokens.saturating_sub(deposit_amount).max(1),
+                deposit_amount
+            )
+        }
+    }
+
+    proptest! {
+        #[test]
+        fn deposit_and_withdraw(
+            (total_token_vault, total_redeemable_tokens, deposit_amount) in total_tokens_and_deposit()
+        ) {
+            let mut stake_pool = StakePool {
+                total_token_vault,
+                total_redeemable_tokens,
+            };
+            let deposit_result = mint_redeemable_amount(deposit_amount, total_token_vault, total_redeemable_tokens);
+            prop_assume!(deposit_result > 0);
+            stake_pool.total_token_vault += deposit_amount;
+            stake_pool.total_redeemable_tokens += deposit_result;
+            // let withdraw_result = stake_pool.calc_lamports_withdraw_amount(deposit_result).unwrap();
+            // assert!(withdraw_result <= deposit_stake);
+        }
     }
 }
