@@ -1525,6 +1525,8 @@ version = "0.1.0"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
+ "spl-math",
+ "uint 0.9.1",
 ]
 
 [[package]]
