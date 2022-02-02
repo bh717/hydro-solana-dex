@@ -1,0 +1,8 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 473b5fe90ae798e75bc9e52dda548720699d0ba8d587ba44e936aa9666a92297 # shrinks to amount = 1, total_redeemable_tokens = 18
+cc 3c9a3b638a68cf10a1b34ffd10f425f1bc96a66fe5f0e22097c0fb578c7fe538 # shrinks to (amount, total_redeemable_tokens, total_token_vault) = (1503908690463485777, 866674157169244511, 74140706087765717)

@@ -98,6 +98,20 @@ html, body {
     z-index: 10000 !important;
 }
 
+.MuiTooltip-tooltip {
+    background-color: #FFFFFF0F !important;
+    backdrop-filter: blur(10px);
+    border-radius: 4px !important;
+    padding: 10px 12px !important;
+    font-size: 13px !important;
+    line-height: 16px !important;
+    margin-top: 8px !important;
+
+    .MuiTooltip-arrow {
+        color: #FFFFFF0F;
+    }
+}
+
 @media screen and (min-width: 601px) {
     ::-webkit-scrollbar {
         width: 10px;

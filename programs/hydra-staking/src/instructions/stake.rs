@@ -5,7 +5,7 @@ use crate::utils::price::calculate_price;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
 use anchor_spl::token::{Mint, MintTo, Token, TokenAccount, Transfer};
-use std::cmp::min;
+use spl_math::precise_number::PreciseNumber;
 
 #[derive(Accounts)]
 pub struct Stake<'info> {
@@ -107,15 +107,8 @@ pub fn handle(ctx: Context<Stake>, amount: u64) -> ProgramResult {
         token::mint_to(cpi_tx, amount)?;
     } else {
         // (amount * total_x_token.supply) / total_token_vault
-        let mint_redeemable_amount: u64 = (amount as u128)
-            .checked_mul(total_redeemable_tokens as u128)
-            .unwrap()
-            .checked_div(total_token_vault as u128)
-            .unwrap()
-            .try_into()
-            .unwrap();
-
-        msg!("mint_redeemable_amount: {}", mint_redeemable_amount);
+        let mint_redeemable_amount: u64 =
+            mint_redeemable_amount(amount, total_token_vault, total_redeemable_tokens);
 
         let mut cpi_tx = ctx.accounts.into_mint_redeemable();
         cpi_tx.signer_seeds = &signer;
@@ -140,4 +133,104 @@ pub fn handle(ctx: Context<Stake>, amount: u64) -> ProgramResult {
     });
 
     Ok(())
+}
+
+pub fn mint_redeemable_amount(
+    amount: u64,
+    total_token_vault: u64,
+    total_redeemable_tokens: u64,
+) -> u64 {
+    let amount = PreciseNumber::new(amount as u128).unwrap();
+    let total_token_vault = PreciseNumber::new(total_token_vault as u128).unwrap();
+    let total_redeemable_tokens = PreciseNumber::new(total_redeemable_tokens as u128).unwrap();
+
+    (amount)
+        .checked_mul(&total_redeemable_tokens)
+        .unwrap()
+        .checked_div(&total_token_vault)
+        .unwrap()
+        .floor()
+        .unwrap()
+        .to_imprecise()
+        .unwrap() as u64
+}
+
+#[cfg(test)]
+#[allow(clippy::unwrap_used)]
+mod tests {
+    use super::*;
+    use proptest::prelude::*;
+
+    #[test]
+    fn check_mint_redeemable_amount() {
+        // (amount * total_x_token.supply) / total_token_vault
+
+        // With integer results
+        let amount = 1_000u64;
+        let total_redeemable_tokens = 100_000_000u64;
+        let total_token_vault = 100_000_000u64;
+
+        // (1000 * 100000000) / 100000000 = 1000
+        let expected = 1000u64;
+
+        let result = mint_redeemable_amount(amount, total_token_vault, total_redeemable_tokens);
+        assert_eq!(
+            expected, result,
+            "redeemable (1000 * 100000000) / 100000000 = ({} * {} / {})",
+            amount, total_redeemable_tokens, total_token_vault
+        );
+
+        // Expect fractional component to be rounded down (floored)
+        let amount = 987u64;
+        let total_redeemable_tokens = 99_99_000u64;
+        let total_token_vault = 100_000_000u64;
+
+        // (987 * 9999000) / 100000000 = 98.69013000000 = 98
+        let expected = 98u64;
+
+        let result = mint_redeemable_amount(amount, total_token_vault, total_redeemable_tokens);
+        assert_eq!(
+            expected, result,
+            "redeemable (987 * 9999000) / 100000000 = ({} * {} / {})",
+            amount, total_redeemable_tokens, total_token_vault
+        );
+    }
+
+    pub struct StakePool {
+        pub total_token_vault: u64,
+        pub total_redeemable_tokens: u64,
+    }
+
+    prop_compose! {
+        fn total_tokens_and_deposit()(total_token_vault in 1..u64::MAX)(
+            total_token_vault in Just(total_token_vault),
+            total_redeemable_tokens in 1..=total_token_vault,
+            deposit_amount in 1..total_token_vault,
+        ) -> (u64, u64, u64) {
+            (
+                total_token_vault - deposit_amount,
+                total_redeemable_tokens.saturating_sub(deposit_amount).max(1),
+                deposit_amount
+            )
+        }
+    }
+
+    proptest! {
+        #[test]
+        fn deposit_and_withdraw(
+            (total_token_vault, total_redeemable_tokens, deposit_amount) in total_tokens_and_deposit()
+        ) {
+            let mut stake_pool = StakePool {
+                total_token_vault,
+                total_redeemable_tokens,
+            };
+            let deposit_result = mint_redeemable_amount(deposit_amount, total_token_vault, total_redeemable_tokens);
+            prop_assume!(deposit_result > 0);
+            stake_pool.total_token_vault += deposit_amount;
+            stake_pool.total_redeemable_tokens += deposit_result;
+            // TODO: move this prop test to utils/ path and add testing of withdrawls i.e. Unstake#token_share
+            // let withdraw_result = token_share(amount, total_tokens, total_redeemable_token_supply);
+            // assert!(withdraw_result <= deposit_stake);
+        }
+    }
 }

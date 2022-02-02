@@ -21,7 +21,7 @@ const useStyles = makeStyles({
             maxHeight: 'calc(100% - 168px)',
             '@media (max-width:600px)': {
                 width: '100%',
-                margin: '80px 15px'
+                margin: '80px 10px'
             }
         }
     },

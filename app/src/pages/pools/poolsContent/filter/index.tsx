@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { FC, useState } from 'react';
 import { makeStyles } from '@mui/styles';
 import {
     Box,
@@ -154,7 +154,7 @@ const useStyles = makeStyles({
     },
     menuContent: {
         '& .MuiMenu-paper': {
-            backgroundColor: '#FFFFFF0A',
+            backgroundColor: '#2A2D38',
             borderRadius: '6px',
             '& .MuiMenu-list': {
                 padding: 0,
@@ -253,7 +253,11 @@ const useStyles = makeStyles({
     }
 })
 
-const Filter = () => {
+interface FilterProps {
+    type?: string;
+}
+
+const Filter: FC<FilterProps> = ({ type }) => {
     const classes = useStyles();
 
     const [openSortModal, setOpenSortModal] = useState(false);
@@ -332,16 +336,20 @@ const Filter = () => {
                 </Menu>
             </Box>
             <Box className={classes.harvestContainer}>
-                <Box className={classes.harvestAmount}>
-                    <Hydraswap />
-                    <Typography>0.0</Typography>
-                </Box>
-                <Button className={classes.harvestButton}>
-                    Harvest All
-                </Button>
-                <IconButton className='refresh-btn'>
-                    <Refresh />
-                </IconButton>
+                {type !== 'closed' && (
+                    <>
+                        <Box className={classes.harvestAmount}>
+                            <Hydraswap />
+                            <Typography>0.0</Typography>
+                        </Box>
+                        <Button className={classes.harvestButton}>
+                            Harvest All
+                        </Button>
+                        <IconButton className='refresh-btn'>
+                            <Refresh />
+                        </IconButton>
+                    </>
+                )}
                 <Box className={classes.mobileSort}>
                     <IconButton onClick={() => setOpenSortModal(true)}>
                         <Gear />
