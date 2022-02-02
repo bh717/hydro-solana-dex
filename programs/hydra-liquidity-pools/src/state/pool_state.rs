@@ -16,7 +16,5 @@ pub struct PoolState {
     pub pool_state_bump: u8,
     pub token_a_vault_bump: u8,
     pub token_b_vault_bump: u8,
-    pub x_total: u128,
-    pub y_total: u128,
 }
 impl PoolState {}
