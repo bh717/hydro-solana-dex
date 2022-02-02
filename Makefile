@@ -33,7 +33,7 @@ validator-logs:
 
 
 watch-test:
-	cargo watch -- anchor test -- --features "localnet"
+	cargo watch -c -- anchor test -- --features "localnet"
 
 watch:
 	cargo watch -- anchor build -- --features "localnet"
