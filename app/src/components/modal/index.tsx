@@ -2,6 +2,7 @@ import { FC } from 'react';
 import { makeStyles } from '@mui/styles';
 import { Dialog, Box, IconButton } from '@mui/material';
 import DialogContent from '@mui/material/DialogContent';
+import cn from 'classnames';
 
 import { Close } from '../icons';
 
@@ -19,9 +20,15 @@ const useStyles = makeStyles({
             marginBottom: '84px',
             width: '420px',
             maxHeight: 'calc(100% - 168px)',
+            maxWidth: '800px',
             '@media (max-width:600px)': {
-                width: '100%',
+                width: '100% !important',
                 margin: '80px 10px'
+            }
+        },
+        '&.dialog-large': {
+            '& .MuiDialog-paper': {
+                width: '800px'
             }
         }
     },
@@ -52,13 +59,14 @@ interface ModalProps {
     content: JSX.Element;
     open: boolean;
     onClose(): void;
+    size?: string;
 }
 
-const Modal: FC<ModalProps> = ({ content, open, onClose }) => {
+const Modal: FC<ModalProps> = ({ content, open, onClose, size }) => {
     const classes = useStyles();
 
     return (
-        <Dialog className={classes.dialog} open={open}>
+        <Dialog className={cn(classes.dialog, {'dialog-large': size === 'lg'})} open={open}>
             <Box className={classes.contentWrapper}>
                 <IconButton className={classes.closeButton} aria-label="close" onClick={onClose}>
                     <Close />
