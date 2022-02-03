@@ -314,6 +314,15 @@ impl Pool {
         self.active_ticks.clone()
     }
 
+    pub fn tick_keys_cloned(&self, reverse: bool) -> Vec<u32> {
+        match reverse {
+            // true => Vec::from_iter(self.active_ticks.keys().rev().map(|&x| x)),
+            // false => Vec::from_iter(self.active_ticks.keys().map(|&x| x)),
+            true => self.active_ticks.keys().rev().cloned().collect(),
+            false => self.active_ticks.keys().cloned().collect(),
+        }
+    }
+
     fn try_get_in_range(&mut self, left_to_right: bool) -> (Option<u32>, u32, f64) {
         // During swap, when no liquidity in current state, find next active tick, cross it  to
         // kick-in some liquidity. return (new_goal_tick or None, glbl_tick and glbl_rP).
@@ -321,11 +330,9 @@ impl Pool {
             panic!("there already is liquidity in range");
         }
 
-        // let keys: Vec<u32> = self.active_ticks.into_keys().rev().collect();
-
         if !left_to_right {
             // going right to left, X in Y out
-            for &tk in self.ticks_cloned().keys().rev() {
+            for tk in self.tick_keys_cloned(true) {
                 // descending
                 if tk > self.global_state.tick {
                     continue; // ignore ticks above current tick
@@ -348,7 +355,7 @@ impl Pool {
                 }
             }
         } else {
-            for &tk in self.ticks_cloned().keys() {
+            for tk in self.tick_keys_cloned(false) {
                 // ascending
                 if tk <= self.global_state.tick {
                     continue; // ignore ticks above current tick
