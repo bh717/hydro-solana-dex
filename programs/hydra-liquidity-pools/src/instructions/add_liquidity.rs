@@ -84,6 +84,12 @@ impl<'info> AddLiquidity<'info> {
     pub fn into_transfer_user_token_a_to_vault(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
+        if self.pool_state.debug {
+            msg!("Account balances before transfer...");
+            msg!("user_token_a.amount: {}", self.user_token_a.amount);
+            msg!("token_a_vault.amount: {}", self.token_a_vault.amount);
+        }
+
         let cpi_accounts = Transfer {
             from: self.user_token_a.to_account_info(),
             to: self.token_a_vault.to_account_info(),
@@ -96,6 +102,12 @@ impl<'info> AddLiquidity<'info> {
     pub fn into_transfer_user_token_b_to_vault(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
+        if self.pool_state.debug {
+            msg!("Account balances before transfer...");
+            msg!("user_token_b.amount: {}", self.user_token_b.amount);
+            msg!("token_b_vault.amount: {}", self.token_b_vault.amount);
+        }
+
         let cpi_accounts = Transfer {
             from: self.user_token_b.to_account_info(),
             to: self.token_b_vault.to_account_info(),
@@ -220,12 +232,14 @@ pub fn handle(
     token_b_amount: u64,
     minimum_lp_tokens_requested_by_user: u64, // Slippage handling
 ) -> ProgramResult {
-    msg!("token_a_amount: {}", token_a_amount);
-    msg!("token_b_amount: {}", token_b_amount);
-    msg!(
-        "minimum_lp_tokens_requested_by_user: {}",
-        minimum_lp_tokens_requested_by_user
-    );
+    if ctx.accounts.pool_state.debug {
+        msg!("token_a_amount: {}", token_a_amount);
+        msg!("token_b_amount: {}", token_b_amount);
+        msg!(
+            "minimum_lp_tokens_requested_by_user: {}",
+            minimum_lp_tokens_requested_by_user
+        );
+    }
 
     let seeds = &[
         POOL_STATE_SEED,
@@ -244,6 +258,7 @@ pub fn handle(
         .calculate_lp_tokens_to_issue(token_a_amount, token_b_amount)?;
 
     if !(lp_tokens_to_issue >= minimum_lp_tokens_requested_by_user) {
+        // TODO emit event
         msg!("Error: SlippageExceeded");
         msg!(
             "minimum_lp_tokens_requested_by_user: {}",
@@ -256,10 +271,12 @@ pub fn handle(
     // mint lp tokens to users account
     token::mint_to(cpi_tx, lp_tokens_to_issue)?;
 
-    msg!("lp_tokens_issued: {}", lp_tokens_to_issue);
-    emit!(LpTokensIssued {
-        amount: lp_tokens_to_issue,
-    });
+    if ctx.accounts.pool_state.debug {
+        msg!("lp_tokens_issued: {}", lp_tokens_to_issue);
+        emit!(LpTokensIssued {
+            amount: lp_tokens_to_issue,
+        });
+    }
 
     // transfer user_token_a to vault
     token::transfer(
