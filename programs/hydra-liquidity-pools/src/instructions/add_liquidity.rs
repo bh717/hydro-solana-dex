@@ -147,7 +147,6 @@ impl<'info> AddLiquidity<'info> {
         }
 
         msg!("lp_tokens_to_issue: {}", lp_tokens_to_issue.value);
-
         Ok(lp_tokens_to_issue.to_imprecise().unwrap() as u64)
     }
 
@@ -157,7 +156,7 @@ impl<'info> AddLiquidity<'info> {
         x_total: &PreciseNumber,
         y_total: &PreciseNumber,
     ) -> bool {
-        // TODO finish
+        // TODO: Cant seam to workout the best appraoch for this function
         // (x / y) != (x_total / y_total)
         // let step1 = x.checked_div(y).unwrap();
         // let step2 = x_total.checked_div(y).unwrap();
@@ -176,6 +175,7 @@ impl<'info> AddLiquidity<'info> {
         true
     }
 
+    // TODO: 1. This function has rounding issues
     fn lp_tokens_to_mint_following_deposits(
         x: u64,
         y: u64,
@@ -203,6 +203,7 @@ impl<'info> AddLiquidity<'info> {
             .unwrap())
     }
 
+    // TODO: This function is also giving rounding issues
     fn lp_tokens_to_mint_first_deposit(x: u64, y: u64) -> Result<PreciseNumber, ProgramError> {
         let x = PreciseNumber::new(x as u128).unwrap();
         let y = PreciseNumber::new(y as u128).unwrap();
