@@ -80,11 +80,7 @@ const useStyles = makeStyles({
             color: '#FFF',
             fontSize: '18px',
             fontWeight: '400',
-            padding: '14px 8px 14px 16px',
-            '&::-webkit-outer-spin-button, &::-webkit-inner-spin-button': {
-                '-webkit-appearance': 'none',
-                margin: 0
-            }
+            padding: '14px 8px 14px 16px'
         },
         '& .MuiInputAdornment-root': {
             marginLeft: '4px',

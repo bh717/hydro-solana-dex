@@ -2,6 +2,7 @@ use crate::constants::*;
 use crate::events::*;
 use crate::state::pool_state::PoolState;
 use crate::utils::price::calculate_price;
+use crate::utils::token::calc_pool_tokens_for_withdraw;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
 use anchor_spl::token::{Burn, Mint, Token, TokenAccount, Transfer};
@@ -90,15 +91,8 @@ pub fn handle(ctx: Context<UnStake>, amount: u64) -> ProgramResult {
     token::burn(ctx.accounts.into_burn_redeemable(), amount)?;
 
     // determine user share of vault
-    // (amount * total_tokens) / total_redeemable_token_supply
-    // TODO: Updated logic to match stake's new slp-maths usage
-    let token_share = (amount as u128)
-        .checked_mul(total_tokens as u128)
-        .unwrap()
-        .checked_div(total_redeemable_token_supply as u128)
-        .unwrap()
-        .try_into()
-        .unwrap();
+    let token_share =
+        calc_pool_tokens_for_withdraw(amount, total_tokens, total_redeemable_token_supply);
 
     let token_mint_key = ctx.accounts.pool_state.token_mint.key();
     let redeemable_mint_key = ctx.accounts.pool_state.redeemable_mint.key();

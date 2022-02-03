@@ -6,7 +6,8 @@ import cn from 'classnames';
 import { View, List, ChevronRight } from '../../../../components/icons';
 import HYSD from '../../../../assets/images/symbols/hysd.png';
 import USDC from '../../../../assets/images/symbols/usdc.png';
-import WithdrawLiquidityModal from "./withdrawLiquidity";
+import DepositLiquidityModal from './depositLiquidity';
+import WithdrawLiquidityModal from './withdrawLiquidity';
 
 const useStyles = makeStyles({
     poolContainer: {
@@ -378,6 +379,7 @@ interface PoolProps {
 const Pool: FC<PoolProps> = ({ type, isDoubleDip, hasWithdraw, isDisable, hasUndip, inRange }) => {
     const classes = useStyles();
 
+    const [showDepositModal, setShowDepositModal] = useState(false);
     const [showWithdrawModal, setShowWithdrawModal] = useState(false);
 
     return (
@@ -430,7 +432,10 @@ const Pool: FC<PoolProps> = ({ type, isDoubleDip, hasWithdraw, isDisable, hasUnd
                             </Typography>
                         </Box>
                         <Box className={classes.poolButtons}>
-                            <Button className={classes.poolButton}>
+                            <Button
+                                className={classes.poolButton}
+                                onClick={() => setShowDepositModal(true)}
+                            >
                                 Deposit
                             </Button>
                             {hasWithdraw && (
@@ -619,6 +624,10 @@ const Pool: FC<PoolProps> = ({ type, isDoubleDip, hasWithdraw, isDisable, hasUnd
                     </>
                 )}
             </Box>
+            <DepositLiquidityModal
+                open={showDepositModal}
+                onClose={() => setShowDepositModal(false)}
+            />
             <WithdrawLiquidityModal
                 open={showWithdrawModal}
                 onClose={() => setShowWithdrawModal(false)}
