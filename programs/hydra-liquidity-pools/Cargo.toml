@@ -26,3 +26,4 @@ anchor-spl = "0.20.1"
 derivative = "2.2.0"
 hydra-math = { version = "0.1.0", path = "../../libs/math/hmm", features = ["no-entrypoint"] }
 num = "0.4.0"
+spl-math = "0.1.0"

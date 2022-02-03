@@ -130,6 +130,7 @@ describe ("hydra-liquidity-pool", async () => {
     }
 
   });
+
   it('should add-liquidity to pool for the first time', async () => {
     program.addEventListener("LpTokensIssued", (e,s) => {
       assert.equal(e.amount.toString(), new BN(15490933))
@@ -138,7 +139,6 @@ describe ("hydra-liquidity-pool", async () => {
     await program.rpc.addLiquidity(
         new BN(400000), // token_a_amount
         new BN(600000000), // token_b_amount
-        // new BN(15491933), // TODO: This should work, however maths are currently getting rounddown
         new BN(15490933),
         {
           accounts: {
@@ -193,6 +193,36 @@ describe ("hydra-liquidity-pool", async () => {
   //   } catch (err) {
   //     assert.equal(err.toString(), "Deposit tokens not in the correct ratio")
   //   }
-  //
   // });
+
+  it('should add-liquidity to pool for the second time', async () => {
+    program.addEventListener("LpTokensIssued", (e,s) => {
+      // assert.equal(e.amount.toString(), new BN(15490933))
+      console.log(e)
+    });
+
+    await program.rpc.addLiquidity(
+        new BN(400000), // token_a_amount
+        new BN(600000000), // token_b_amount
+        new BN(15490933),
+        {
+          accounts: {
+            poolState: poolState,
+            lpTokenMint: lpTokenMint.publicKey,
+            tokenAMint: tokenAMint,
+            tokenBMint: tokenBMint,
+            tokenAVault: tokenAVault,
+            tokenBVault: tokenBVault,
+            lpTokenTo: lpTokenAccount,
+            userTokenA: tokenAAccount,
+            userTokenB: tokenBAccount,
+            userAuthority: provider.wallet.publicKey,
+            tokenProgram: TOKEN_PROGRAM_ID,
+          }
+        }
+    )
+    assert.strictEqual(await getTokenBalance(provider, lpTokenAccount), 15490933)
+    assert.strictEqual(await getTokenBalance(provider, tokenAAccount), 999600000)
+    assert.strictEqual(await getTokenBalance(provider, tokenBAccount), 400000000)
+  });
 });

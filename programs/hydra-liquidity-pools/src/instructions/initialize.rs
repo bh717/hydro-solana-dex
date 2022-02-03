@@ -83,7 +83,7 @@ pub fn handle(
     ctx.accounts.pool_state.token_a_vault_bump = token_a_vault_bump;
     ctx.accounts.pool_state.token_b_vault_bump = token_b_vault_bump;
 
-    ctx.accounts.pool_state.is_frozen = false;
+    ctx.accounts.pool_state.debug = true;
 
     // pool is now live
     Ok(())

@@ -7,7 +7,8 @@ use crate::ProgramResult;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
 use anchor_spl::token::{burn, Mint, MintTo, Token, TokenAccount, Transfer};
-use num::integer::Roots;
+use hydra_math::math::sqrt_precise;
+use spl_math::precise_number::PreciseNumber;
 
 #[derive(Accounts)]
 pub struct AddLiquidity<'info> {
@@ -112,43 +113,94 @@ impl<'info> AddLiquidity<'info> {
     ) -> Result<u64, ProgramError> {
         let x = token_a_amount;
         let y = token_b_amount;
-
         let x_total = self.token_a_vault.amount;
         let y_total = self.token_b_vault.amount;
-        let lp_total = to_u128(self.lp_token_mint.supply)?;
-        let mut lp_tokens_to_issue: u64 = 0;
+        let lp_total = self.lp_token_mint.supply;
+        let mut lp_tokens_to_issue = PreciseNumber::new(0 as u128).unwrap();
 
-        msg!("MIN_LIQUIDITY: {}", to_u128(MIN_LIQUIDITY)?);
-        msg!("x: {}", x);
-        msg!("y: {}", y);
-        msg!("x_total: {}", x_total);
-        msg!("y_total: {}", y_total);
-        msg!("lp_total: {}", lp_total);
-
-        if x_total == 0 {
-            // sqrt(x * y) - 10^3
-            lp_tokens_to_issue = x
-                .checked_mul(y)
-                .unwrap()
-                .sqrt()
-                .checked_sub(MIN_LIQUIDITY)
-                .unwrap();
-        } else {
-            // (x / y) != (x_total / y_total)
-            let step1 = x.checked_div(y).unwrap();
-            msg!("step1: {}", step1);
-            let step2 = x_total.checked_div(y).unwrap();
-            msg!("step2: {}", step2);
-            let step3 = step1 != step2;
-            msg!("step3: {}", step3);
-            if step3 {
-                return Err(ErrorCode::DepositRatioIncorrect.into());
-            }
-            // lp_tokens_to_issue = (x / x_total) * lp_total;
+        if self.pool_state.debug {
+            msg!("MIN_LIQUIDITY: {}", to_u128(MIN_LIQUIDITY)?);
+            msg!("x: {}", x);
+            msg!("y: {}", y);
+            msg!("x_total: {}", x_total);
+            msg!("y_total: {}", y_total);
+            msg!("lp_total: {}", lp_total);
         }
 
-        msg!("lp_tokens_to_issue: {}", lp_tokens_to_issue);
-        Ok(lp_tokens_to_issue)
+        if x_total == 0 || y_total == 0 {
+            lp_tokens_to_issue = Self::lp_tokens_to_mint_first_deposit(x, y)?;
+        } else {
+            lp_tokens_to_issue =
+                Self::lp_tokens_to_mint_following_deposits(x, y, x_total, y_total, lp_total)?;
+        }
+
+        msg!("lp_tokens_to_issue: {}", lp_tokens_to_issue.value);
+
+        Ok(lp_tokens_to_issue.to_imprecise().unwrap() as u64)
+    }
+
+    fn check_deposit_ration_correct(
+        x: &PreciseNumber,
+        y: &PreciseNumber,
+        x_total: &PreciseNumber,
+        y_total: &PreciseNumber,
+    ) -> bool {
+        // TODO finish
+        // (x / y) != (x_total / y_total)
+        // let step1 = x.checked_div(y).unwrap();
+        // let step2 = x_total.checked_div(y).unwrap();
+        // let step3 = step1 != step2;
+
+        // if self.pool_state.debug {
+        //     msg!("step1: {}", step1);
+        //     msg!("step2: {}", step2);
+        //     msg!("step3: {}", step3);
+        // }
+
+        // if self.pool_state.debug {
+        //     msg!("(x/y): {}", x / y);
+        //     msg!("(x_total/y_total): {}", x_total / y_total)
+        // }
+        true
+    }
+
+    fn lp_tokens_to_mint_following_deposits(
+        x: u64,
+        y: u64,
+        x_total: u64,
+        y_total: u64,
+        lp_total: u64,
+    ) -> Result<PreciseNumber, ProgramError> {
+        let x = PreciseNumber::new(x as u128).unwrap();
+        let y = PreciseNumber::new(y as u128).unwrap();
+        let x_total = PreciseNumber::new(x_total as u128).unwrap();
+        let y_total = PreciseNumber::new(y_total as u128).unwrap();
+        let lp_total = PreciseNumber::new(lp_total as u128).unwrap();
+
+        if !Self::check_deposit_ration_correct(&x, &y, &x_total, &y_total) {
+            return Err(ErrorCode::DepositRatioIncorrect.into());
+        }
+        // TODO rem?
+
+        // // lp_tokens_to_issue = (x / x_total) * lp_total;
+        Ok(x.checked_div(&x_total)
+            .unwrap()
+            .floor()
+            .unwrap()
+            .checked_mul(&lp_total)
+            .unwrap())
+    }
+
+    fn lp_tokens_to_mint_first_deposit(x: u64, y: u64) -> Result<PreciseNumber, ProgramError> {
+        let x = PreciseNumber::new(x as u128).unwrap();
+        let y = PreciseNumber::new(y as u128).unwrap();
+        let min_liquidity = PreciseNumber::new(MIN_LIQUIDITY as u128).unwrap();
+
+        // sqrt(x * y) - 10^3
+        Ok(sqrt_precise(&x.checked_mul(&y).unwrap())
+            .unwrap()
+            .checked_sub(&min_liquidity)
+            .unwrap())
     }
 
     pub fn into_mint_lp_token(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
