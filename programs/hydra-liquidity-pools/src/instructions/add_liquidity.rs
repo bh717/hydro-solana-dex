@@ -78,7 +78,14 @@ pub struct AddLiquidity<'info> {
     pub token_program: Program<'info, Token>,
 }
 
-const MIN_LIQUIDITY: u64 = 10_u64.pow(3);
+// const MIN_LIQUIDITY: u64 = 10_u64.pow(3);
+const MIN_LIQUIDITY: u64 = 0_u64;
+// we need to discuss this number, I think it's meant to be 1000 times the
+// minimum unit e.g 1000 satoshi, 1000 wei, 1000 lamports. Here (as well as
+// in the notebook) were are not using mint.decimals yet. so you can see
+// in the notebook that impact is negligeable. in notebook, I think Ayush is doing 1000 wei = 1000*10^-18 = 10^-15
+// I am guessing you are using a big number just to test.
+// either way shud work if you comment out the appropriate lines in hydra-liquidity-pools.ts
 
 impl<'info> AddLiquidity<'info> {
     pub fn into_transfer_user_token_a_to_vault(
@@ -156,6 +163,16 @@ impl<'info> AddLiquidity<'info> {
         x_total: &PreciseNumber,
         y_total: &PreciseNumber,
     ) -> bool {
+        let x_div_y = x.checked_div(y).unwrap();
+        let orig_ratio = x_total.checked_div(y_total).unwrap();
+        let result = x_div_y.eq(&orig_ratio);
+        msg!("x_div_y: {:?}", x_div_y);
+        msg!("orig_ratio: {:?}", orig_ratio);
+        msg!("result: {}", result);
+        if !result {
+            msg!("wrong ratio ");
+        }
+        result
         // TODO: Cant seam to workout the best appraoch for this function
         // (x / y) != (x_total / y_total)
         // let step1 = x.checked_div(y).unwrap();
@@ -172,7 +189,7 @@ impl<'info> AddLiquidity<'info> {
         //     msg!("(x/y): {}", x / y);
         //     msg!("(x_total/y_total): {}", x_total / y_total)
         // }
-        true
+        // true
     }
 
     // TODO: 1. This function has rounding issues
@@ -197,8 +214,8 @@ impl<'info> AddLiquidity<'info> {
         // // lp_tokens_to_issue = (x / x_total) * lp_total;
         Ok(x.checked_div(&x_total)
             .unwrap()
-            .floor()
-            .unwrap()
+            // .floor()
+            // .unwrap()
             .checked_mul(&lp_total)
             .unwrap())
     }

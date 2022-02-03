@@ -105,8 +105,8 @@ describe ("hydra-liquidity-pool", async () => {
       const tx =
           await program.rpc.addLiquidity(
               new BN(400000), // token_a_amount
-              new BN(600000000), // token_b_amount
-              new BN(15491933),
+              new BN(6000000), // token_b_amount
+              new BN(1549194),
               {
                 accounts: {
                   poolState: poolState,
@@ -126,20 +126,27 @@ describe ("hydra-liquidity-pool", async () => {
 
       assert.ok(false)
     } catch (err) {
-      assert.equal(err.toString(), "Slippage Amount Exceeded")
+      console.log(err.toString());
+      // assert.equal(err.toString(), "Slippage Amount Exceeded")
+      //+ i think it is just the way the error is output that doesnt match. the Program log does indeed show :  
+      // Program log: Error: SlippageExceeded Program log: minimum_lp_tokens_requested_by_user: 1549194 Program log: lp_tokens_to_issue: 1549193
+      assert.equal(err.toString(), "Error: failed to send transaction: Transaction simulation failed: Error processing Instruction 0: custom program error: 0x1771")
     }
 
   });
 
   it('should add-liquidity to pool for the first time', async () => {
     program.addEventListener("LpTokensIssued", (e,s) => {
+      //+ this is not affecting the outcome of test even when changed 
       assert.equal(e.amount.toString(), new BN(15490933))
     });
 
     await program.rpc.addLiquidity(
         new BN(400000), // token_a_amount
         new BN(6000000), // token_b_amount
-        new BN(1548193), // TODO slippage issue... min should be: 15490933
+        // new BN(1548193), // TODO slippage issue... min should be: 15490933 
+        // new BN(1548193), //+ with MIN_LIQUIDITY = 1000
+        new BN(1549193), //+ with MIN_LIQUIDITY = 0
         {
           accounts: {
             poolState: poolState,
@@ -156,44 +163,53 @@ describe ("hydra-liquidity-pool", async () => {
           }
         }
     )
-    assert.strictEqual(await getTokenBalance(provider, lpTokenAccount), 1548193)
+    // assert.strictEqual(await getTokenBalance(provider, lpTokenAccount), 1548193)
+    //+ with MIN_LIQUIDITY = 1000
+    // assert.strictEqual(await getTokenBalance(provider, lpTokenAccount), 1548193)
+    //+ with MIN_LIQUIDITY = 0
+    assert.strictEqual(await getTokenBalance(provider, lpTokenAccount), 1549193)
+
     assert.strictEqual(await getTokenBalance(provider, tokenAAccount), 999600000)
     assert.strictEqual(await getTokenBalance(provider, tokenBAccount), 994000000)
   });
 
-  // it('should not add-liquidity to due to token deposit ratio not aligned', async () => {
-  //   program.addEventListener("LpTokensIssued", (e,s) => {
-  //     // assert.equal(e.amount.toString(), new BN(15490933))
-  //     console.log(e.amount.toString())
-  //   });
-  //
-  //   try {
-  //     const tx =
-  //         await program.rpc.addLiquidity(
-  //             new BN(600000), // token_a_amount
-  //             new BN(600000000), // token_b_amount
-  //             new BN(15490933), // slippage
-  //             {
-  //               accounts: {
-  //                 poolState: poolState,
-  //                 lpTokenMint: lpTokenMint.publicKey,
-  //                 tokenAMint: tokenAMint,
-  //                 tokenBMint: tokenBMint,
-  //                 tokenAVault: tokenAVault,
-  //                 tokenBVault: tokenBVault,
-  //                 lpTokenTo: lpTokenAccount,
-  //                 userTokenA: tokenAAccount,
-  //                 userTokenB: tokenBAccount,
-  //                 userAuthority: provider.wallet.publicKey,
-  //                 tokenProgram: TOKEN_PROGRAM_ID,
-  //               }
-  //             }
-  //         )
-  //     assert.ok(false)
-  //   } catch (err) {
-  //     assert.equal(err.toString(), "Deposit tokens not in the correct ratio")
-  //   }
-  // });
+  it('should not add-liquidity to due to token deposit ratio not aligned', async () => {
+    program.addEventListener("LpTokensIssued", (e,s) => {
+      // assert.equal(e.amount.toString(), new BN(15490933))
+      console.log(e.amount.toString())
+    });
+  
+    try {
+      const tx =
+          await program.rpc.addLiquidity(
+              new BN(600000), // token_a_amount
+              new BN(600000000), // token_b_amount
+              new BN(15490933), // slippage
+              {
+                accounts: {
+                  poolState: poolState,
+                  lpTokenMint: lpTokenMint.publicKey,
+                  tokenAMint: tokenAMint,
+                  tokenBMint: tokenBMint,
+                  tokenAVault: tokenAVault,
+                  tokenBVault: tokenBVault,
+                  lpTokenTo: lpTokenAccount,
+                  userTokenA: tokenAAccount,
+                  userTokenB: tokenBAccount,
+                  userAuthority: provider.wallet.publicKey,
+                  tokenProgram: TOKEN_PROGRAM_ID,
+                }
+              }
+          )
+      assert.ok(false)
+    } catch (err) {
+      console.log(err.toString());
+      // assert.equal(err.toString(), "Deposit tokens not in the correct ratio")
+      //+ Again I think it is just the error text that is causing the error. the tx is failing in the log as expected: 
+      // Program log: result: false Program log: wrong ratio Program log: Custom program error: 0x1773
+      assert.equal(err.toString(), "Error: failed to send transaction: Transaction simulation failed: Error processing Instruction 0: custom program error: 0x1773")
+    }
+  });
 
   it('should add-liquidity to pool for the second time', async () => {
     program.addEventListener("LpTokensIssued", (e,s) => {
@@ -204,7 +220,9 @@ describe ("hydra-liquidity-pool", async () => {
     await program.rpc.addLiquidity(
         new BN(200000), // token_a_amount
         new BN(3000000), // token_b_amount
-        new BN(774596), // TODO slippage issue...
+        // new BN(774596), // TODO slippage issue...
+        new BN(773596), //+ with MIN_LIQUIDITY = 1000
+        // new BN(774596), //+ with MIN_LIQUIDITY = 0
         {
           accounts: {
             poolState: poolState,
@@ -221,8 +239,17 @@ describe ("hydra-liquidity-pool", async () => {
           }
         }
     )
-    assert.strictEqual(await getTokenBalance(provider, lpTokenAccount), 3096386)
-    assert.strictEqual(await getTokenBalance(provider, tokenAAccount), 999200000)
-    assert.strictEqual(await getTokenBalance(provider, tokenBAccount), 988000000)
+    // assert.strictEqual(await getTokenBalance(provider, lpTokenAccount), 3096386)
+    //+ This is what I see on the Notebook from Ayush : LP Tokens Issued = 774596.6692414833 , Total LP Tokens = 2323790.00772445
+    // assert.strictEqual(await getTokenBalance(provider, lpTokenAccount), 2322290) //* with MIN_LIQUIDITY = 1000
+    assert.strictEqual(await getTokenBalance(provider, lpTokenAccount), 2323790) //* with MIN_LIQUIDITY = 0
+
+    // assert.strictEqual(await getTokenBalance(provider, tokenAAccount), 999200000)
+    // + an extra 200k from above line 172 , first deposit 999600000 --> 999400000
+    assert.strictEqual(await getTokenBalance(provider, tokenAAccount), 999400000)
+
+    // assert.strictEqual(await getTokenBalance(provider, tokenBAccount), 988000000)
+    // + an extra 3mil from above line 173 , first deposit 994000000 --> 991000000
+    assert.strictEqual(await getTokenBalance(provider, tokenBAccount), 991000000)
   });
 });
