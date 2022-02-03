@@ -53,8 +53,6 @@ mod tests {
 
     #[test]
     fn deposit_token_specific_tests() {
-        // (amount * total_x_token.supply) / total_token_vault
-
         // With integer results
         let amount = 1_000u64;
         let total_redeemable_tokens = 100_000_000u64;
@@ -88,6 +86,41 @@ mod tests {
         );
     }
 
+    #[test]
+    fn withdraw_token_specific_tests() {
+        // With integer results
+        let amount = 1_000u64;
+        let total_redeemable_tokens = 100_000_000u64;
+        let total_token_vault = 100_000_000u64;
+
+        // (1000 * 100000000) / 100000000 = 1000
+        let expected = 1000u64;
+
+        let result =
+            calc_pool_tokens_for_withdraw(amount, total_token_vault, total_redeemable_tokens);
+        assert_eq!(
+            expected, result,
+            "redeemable (1000 * 100000000) / 100000000 = ({} * {} / {})",
+            amount, total_redeemable_tokens, total_token_vault
+        );
+
+        // Expect fractional component to be rounded down (floored)
+        let amount = 987u64;
+        let total_redeemable_tokens = 99_99_000u64;
+        let total_token_vault = 100_000_000u64;
+
+        // (987 * 100000000) / 9999000 = 9870.9870987099 = 9870
+        let expected = 9870u64;
+
+        let result =
+            calc_pool_tokens_for_withdraw(amount, total_token_vault, total_redeemable_tokens);
+        assert_eq!(
+            expected, result,
+            "redeemable (987 * 100000000) / 9999000 = ({} * {} / {})",
+            amount, total_redeemable_tokens, total_token_vault
+        );
+    }
+
     pub struct StakePool {
         pub total_token_vault: u64,
         pub total_redeemable_tokens: u64,
@@ -109,7 +142,7 @@ mod tests {
 
     proptest! {
         #[test]
-        fn deposit_token_range_tests(
+        fn deposit_and_withdraw_token_range_tests(
             (total_token_vault, total_redeemable_tokens, deposit_amount) in total_tokens_and_deposit()
         ) {
             let mut stake_pool = StakePool {
