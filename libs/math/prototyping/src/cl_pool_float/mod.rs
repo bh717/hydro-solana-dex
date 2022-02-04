@@ -6,12 +6,12 @@ use std::collections::{BTreeMap, HashMap};
 
 // #[allow(dead_code)] // for indiv struct
 #[derive(Debug)]
-pub struct Token {
+pub struct PoolToken {
     name: String,
     decimals: u8,
 }
 
-impl Token {
+impl PoolToken {
     pub fn new(name: &str, decimals: u8) -> Self {
         Self {
             name: name.to_string(),
@@ -32,6 +32,20 @@ pub struct GlobalState {
     hg_y: f64, // fee growth global
 }
 
+impl GlobalState {
+    pub fn new(liq: f64, rp: f64, tick: u32, fg_x: f64, fg_y: f64, hg_x: f64, hg_y: f64) -> Self {
+        Self {
+            liq,
+            rp,
+            tick,
+            fg_x,
+            fg_y,
+            hg_x,
+            hg_y,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct TickState {
     ///Tick Indexed State
@@ -43,6 +57,18 @@ pub struct TickState {
     h0_y: f64,      // hmm adj-fee growth outside
 }
 
+impl TickState {
+    pub fn new(liq_net: f64, liq_gross: f64, f0_x: f64, f0_y: f64, h0_x: f64, h0_y: f64) -> Self {
+        TickState {
+            liq_net,
+            liq_gross,
+            f0_x,
+            f0_y,
+            h0_x,
+            h0_y,
+        }
+    }
+}
 #[derive(Debug)]
 pub struct PositionState {
     ///Position Indexed State
@@ -53,13 +79,25 @@ pub struct PositionState {
     hr_y: f64, // hmm adj-fee growth inside last
 }
 
+impl PositionState {
+    pub fn new(liq: f64, fr_x: f64, fr_y: f64, hr_x: f64, hr_y: f64) -> Self {
+        Self {
+            liq,
+            fr_x,
+            fr_y,
+            hr_x,
+            hr_y,
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PositionKey(String, u32, u32);
 
 #[derive(Debug)]
 pub struct Pool {
-    token_x: Token,
-    token_y: Token,
+    token_x: PoolToken,
+    token_y: PoolToken,
     tick_spacing: u32,
     global_state: GlobalState,
     active_ticks: BTreeMap<u32, TickState>, // keep ordered
@@ -88,21 +126,13 @@ impl Pool {
         fee_rate: f64,
     ) -> Pool {
         let tk = Self::rp_to_possible_tk(bootstrap_rp, tick_spacing, false);
-        let rp_of_tk = Self::tick_to_rp(tk);
+        let rp = Self::tick_to_rp(tk);
 
         Pool {
-            token_x: Token::new(x_name, x_decimals),
-            token_y: Token::new(y_name, y_decimals),
+            token_x: PoolToken::new(x_name, x_decimals),
+            token_y: PoolToken::new(y_name, y_decimals),
             tick_spacing,
-            global_state: GlobalState {
-                liq: 0.0,
-                rp: rp_of_tk,
-                tick: tk,
-                fg_x: 0.0,
-                fg_y: 0.0,
-                hg_x: 0.0,
-                hg_y: 0.0,
-            },
+            global_state: GlobalState::new(0.0, rp, tk, 0.0, 0.0, 0.0, 0.0),
             active_ticks: BTreeMap::new(),
             positions: HashMap::new(),
             x: 0.0,
@@ -163,36 +193,13 @@ impl Pool {
 
     fn initialize_tick(&mut self, tick: u32) {
         // set f0 of tick based on convention [6.21]
-        let f0_x = if self.glbl_tick() >= tick {
-            self.fg_x()
+        let (f0_x, f0_y, h0_x, h0_y) = if self.glbl_tick() >= tick {
+            (self.fg_x(), self.fg_y(), self.hg_x(), self.hg_y())
         } else {
-            0.0
-        };
-        let f0_y = if self.glbl_tick() >= tick {
-            self.fg_y()
-        } else {
-            0.0
+            (0.0, 0.0, 0.0, 0.0)
         };
 
-        let h0_x = if self.glbl_tick() >= tick {
-            self.hg_x()
-        } else {
-            0.0
-        };
-        let h0_y = if self.glbl_tick() >= tick {
-            self.hg_y()
-        } else {
-            0.0
-        };
-
-        let ts = TickState {
-            liq_net: 0.0,
-            liq_gross: 0.0,
-            f0_x,
-            f0_y,
-            h0_x,
-            h0_y,
-        };
+        let ts = TickState::new(0.0, 0.0, f0_x, f0_y, h0_x, h0_y);
         self.active_ticks.insert(tick, ts);
     }
 
@@ -308,10 +315,6 @@ impl Pool {
             panic!("we do not expect global rP to ever be strictly below current global tick");
         }
         None
-    }
-
-    pub fn ticks_cloned(&self) -> BTreeMap<u32, TickState> {
-        self.active_ticks.clone()
     }
 
     pub fn tick_keys_cloned(&self, reverse: bool) -> Vec<u32> {
@@ -475,16 +478,8 @@ impl Pool {
                     // abort if withdrawal liq exceeds position liquidity
                     panic!("cannot newly provide negative liquidity");
                 }
-                self.positions.insert(
-                    key,
-                    PositionState {
-                        liq: liq_delta,
-                        fr_x: 0.0,
-                        fr_y: 0.0,
-                        hr_x: 0.0,
-                        hr_y: 0.0,
-                    },
-                );
+                self.positions
+                    .insert(key, PositionState::new(liq_delta, 0.0, 0.0, 0.0, 0.0));
             }
             Some(poz) => {
                 // get old value for feed from when position was last touched
