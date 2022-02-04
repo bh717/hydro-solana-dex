@@ -6,17 +6,14 @@ use std::collections::{BTreeMap, HashMap};
 
 // #[allow(dead_code)] // for indiv struct
 #[derive(Debug)]
-pub struct PoolToken {
-    name: String,
+pub struct PoolToken<'a> {
+    name: &'a str,
     decimals: u8,
 }
 
-impl PoolToken {
-    pub fn new(name: &str, decimals: u8) -> Self {
-        Self {
-            name: name.to_string(),
-            decimals,
-        }
+impl<'a> PoolToken<'a> {
+    pub fn new(name: &'a str, decimals: u8) -> Self {
+        Self { name, decimals }
     }
 }
 
@@ -95,9 +92,9 @@ impl PositionState {
 pub struct PositionKey(String, u32, u32);
 
 #[derive(Debug)]
-pub struct Pool {
-    token_x: PoolToken,
-    token_y: PoolToken,
+pub struct Pool<'a> {
+    token_x: PoolToken<'a>,
+    token_y: PoolToken<'a>,
     tick_spacing: u32,
     global_state: GlobalState,
     active_ticks: BTreeMap<u32, TickState>, // keep ordered
@@ -112,19 +109,19 @@ pub struct Pool {
     fee_rate: f64,
 }
 
-impl PoolMath for Pool {}
+impl PoolMath for Pool<'_> {}
 
-impl Pool {
+impl<'a> Pool<'a> {
     pub fn new(
-        x_name: &str,
+        x_name: &'a str,
         x_decimals: u8,
-        y_name: &str,
+        y_name: &'a str,
         y_decimals: u8,
         bootstrap_rp: f64,
         tick_spacing: u32,
         hmm_c: f64,
         fee_rate: f64,
-    ) -> Pool {
+    ) -> Pool<'a> {
         let tk = Self::rp_to_possible_tk(bootstrap_rp, tick_spacing, false);
         let rp = Self::tick_to_rp(tk);
 
