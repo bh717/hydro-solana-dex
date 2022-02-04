@@ -89,7 +89,7 @@ impl PositionState {
 }
 
 #[derive(Debug, PartialEq, Eq, Hash)]
-pub struct PositionKey(String, u32, u32);
+pub struct PositionKey<'a>(&'a str, u32, u32);
 
 #[derive(Debug)]
 pub struct Pool<'a> {
@@ -98,7 +98,7 @@ pub struct Pool<'a> {
     tick_spacing: u32,
     global_state: GlobalState,
     active_ticks: BTreeMap<u32, TickState>, // keep ordered
-    positions: HashMap<PositionKey, PositionState>,
+    positions: HashMap<PositionKey<'a>, PositionState>,
     x: f64,
     y: f64,
     x_adj: f64,
@@ -444,7 +444,7 @@ impl<'a> Pool<'a> {
 
     fn _set_position(
         &mut self,
-        user_id: &str,
+        user_id: &'a str,
         lower_tick: u32,
         upper_tick: u32,
         liq_delta: f64,
@@ -467,7 +467,7 @@ impl<'a> Pool<'a> {
 
         // find position if exists
         // positions are uniquely identitfied by the (sender, lower, upper)
-        let key = PositionKey(user_id.to_string(), lower_tick, upper_tick);
+        let key = PositionKey(user_id, lower_tick, upper_tick);
 
         match self.positions.get_mut(&key) {
             None => {
@@ -520,7 +520,7 @@ impl<'a> Pool<'a> {
         (base * f_u_x, base * f_u_y, base * h_u_x, base * h_u_y)
     }
 
-    pub fn deposit(&mut self, user_id: &str, x: f64, y: f64, rpa: f64, rpb: f64) {
+    pub fn deposit(&mut self, user_id: &'a str, x: f64, y: f64, rpa: f64, rpb: f64) {
         // interface to deposit liquidity in pool & give change if necessary
         if x < 0.0 || y < 0.0 {
             panic!("can only deposit positive amounts");
@@ -573,7 +573,7 @@ impl<'a> Pool<'a> {
         println!("X returned {} Y returned {}", x - x_debited, y - y_debited);
     }
 
-    pub fn withdraw(&mut self, user_id: &str, liq: f64, rpa: f64, rpb: f64) {
+    pub fn withdraw(&mut self, user_id: &'a str, liq: f64, rpa: f64, rpb: f64) {
         // interface to withdraw liquidity from pool
         if liq < 0.0 {
             panic!("")
