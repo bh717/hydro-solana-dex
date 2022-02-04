@@ -31,6 +31,9 @@ pub struct GlobalState {
 
 impl GlobalState {
     pub fn new(liq: f64, rp: f64, tick: u32, fg_x: f64, fg_y: f64, hg_x: f64, hg_y: f64) -> Self {
+        if liq < 0.0 {
+            panic!("global liquidity cannot be negative");
+        }
         Self {
             liq,
             rp,
@@ -40,6 +43,52 @@ impl GlobalState {
             hg_x,
             hg_y,
         }
+    }
+    pub fn liq(&self) -> f64 {
+        self.liq
+    }
+    pub fn add_liq(&mut self, liq: f64) {
+        if self.liq + liq < 0.0 {
+            panic!("global liquidity cannot turn negative");
+        }
+        self.liq += liq;
+    }
+    pub fn rp(&self) -> f64 {
+        self.rp
+    }
+    pub fn set_rp(&mut self, rp: f64) {
+        self.rp = rp;
+    }
+    pub fn tick(&self) -> u32 {
+        self.tick
+    }
+    pub fn set_tick(&mut self, tick: u32) {
+        self.tick = tick;
+    }
+    pub fn fee(&self, token: char, f_or_h: char) -> f64 {
+        match (token, f_or_h) {
+            ('x', 'f') => self.fg_x,
+            ('y', 'f') => self.fg_y,
+            ('x', 'h') => self.hg_x,
+            ('y', 'h') => self.hg_y,
+            _ => {
+                panic!("not a valid fee type");
+            }
+        }
+    }
+    pub fn set_fee(&mut self, token: char, f_or_h: char, fee: f64) {
+        match (token, f_or_h) {
+            ('x', 'f') => self.fg_x = fee,
+            ('y', 'f') => self.fg_y = fee,
+            ('x', 'h') => self.hg_x = fee,
+            ('y', 'h') => self.hg_y = fee,
+            _ => {
+                panic!("not a valid fee type");
+            }
+        };
+    }
+    pub fn all_fees(&self) -> (f64, f64, f64, f64) {
+        (self.fg_x, self.fg_y, self.hg_x, self.hg_y)
     }
 }
 
@@ -56,6 +105,9 @@ pub struct TickState {
 
 impl TickState {
     pub fn new(liq_net: f64, liq_gross: f64, f0_x: f64, f0_y: f64, h0_x: f64, h0_y: f64) -> Self {
+        if liq_gross < 0.0 {
+            panic!("gross liquidity cannot be negative");
+        }
         TickState {
             liq_net,
             liq_gross,
@@ -64,6 +116,46 @@ impl TickState {
             h0_x,
             h0_y,
         }
+    }
+    pub fn liq_net(&self) -> f64 {
+        self.liq_net
+    }
+    pub fn add_liq_net(&mut self, liq_net: f64) {
+        self.liq_net += liq_net;
+    }
+    pub fn liq_gross(&self) -> f64 {
+        self.liq_gross
+    }
+    pub fn add_liq_gross(&mut self, liq_gross: f64) {
+        if self.liq_gross + liq_gross < 0.0 {
+            panic!("gross liquidity cannot turn negative");
+        }
+        self.liq_gross += liq_gross;
+    }
+    pub fn fee(&self, token: char, f_or_h: char) -> f64 {
+        match (token, f_or_h) {
+            ('x', 'f') => self.f0_x,
+            ('y', 'f') => self.f0_y,
+            ('x', 'h') => self.h0_x,
+            ('y', 'h') => self.h0_y,
+            _ => {
+                panic!("not a valid fee type");
+            }
+        }
+    }
+    pub fn set_fee(&mut self, token: char, f_or_h: char, fee: f64) {
+        match (token, f_or_h) {
+            ('x', 'f') => self.f0_x = fee,
+            ('y', 'f') => self.f0_y = fee,
+            ('x', 'h') => self.h0_x = fee,
+            ('y', 'h') => self.h0_y = fee,
+            _ => {
+                panic!("not a valid fee type");
+            }
+        };
+    }
+    pub fn all_fees(&self) -> (f64, f64, f64, f64) {
+        (self.f0_x, self.f0_y, self.h0_x, self.h0_y)
     }
 }
 #[derive(Debug)]
@@ -78,6 +170,9 @@ pub struct PositionState {
 
 impl PositionState {
     pub fn new(liq: f64, fr_x: f64, fr_y: f64, hr_x: f64, hr_y: f64) -> Self {
+        if liq < 0.0 {
+            panic!("position liquidity cannot be negative");
+        }
         Self {
             liq,
             fr_x,
@@ -85,6 +180,40 @@ impl PositionState {
             hr_x,
             hr_y,
         }
+    }
+    pub fn liq(&self) -> f64 {
+        self.liq
+    }
+    pub fn add_liq(&mut self, liq: f64) {
+        if self.liq + liq < 0.0 {
+            panic!("position liquidity cannot turn negative");
+        }
+        self.liq += liq;
+    }
+    pub fn fee(&self, token: char, f_or_h: char) -> f64 {
+        match (token, f_or_h) {
+            ('x', 'f') => self.fr_x,
+            ('y', 'f') => self.fr_y,
+            ('x', 'h') => self.hr_x,
+            ('y', 'h') => self.hr_y,
+            _ => {
+                panic!("not a valid fee type");
+            }
+        }
+    }
+    pub fn set_fee(&mut self, token: char, f_or_h: char, fee: f64) {
+        match (token, f_or_h) {
+            ('x', 'f') => self.fr_x = fee,
+            ('y', 'f') => self.fr_y = fee,
+            ('x', 'h') => self.hr_x = fee,
+            ('y', 'h') => self.hr_y = fee,
+            _ => {
+                panic!("not a valid fee type");
+            }
+        };
+    }
+    pub fn all_fees(&self) -> (f64, f64, f64, f64) {
+        (self.fr_x, self.fr_y, self.hr_x, self.hr_y)
     }
 }
 
@@ -155,25 +284,32 @@ impl<'a> Pool<'a> {
         (self.y, self.y_adj, self.y_fee)
     }
     pub fn glbl_liq(&self) -> f64 {
-        self.global_state.liq
+        self.global_state.liq()
+    }
+    pub fn add_glbl_liq(&mut self, liq: f64) {
+        self.global_state.add_liq(liq);
     }
     pub fn glbl_tick(&self) -> u32 {
-        self.global_state.tick
+        self.global_state.tick()
+    }
+    pub fn set_glbl_tick(&mut self, tick: u32) {
+        self.global_state.set_tick(tick);
     }
     pub fn glbl_rp(&self) -> f64 {
-        self.global_state.rp
+        self.global_state.rp()
     }
-    pub fn fg_x(&self) -> f64 {
-        self.global_state.fg_x
+    pub fn set_glbl_rp(&mut self, rp: f64) {
+        self.global_state.set_rp(rp)
     }
-    pub fn fg_y(&self) -> f64 {
-        self.global_state.fg_y
+
+    pub fn glbl_fee(&self, token: char, f_or_h: char) -> f64 {
+        self.global_state.fee(token, f_or_h)
     }
-    pub fn hg_x(&self) -> f64 {
-        self.global_state.hg_x
+    pub fn set_fee_glbl(&mut self, token: char, f_or_h: char, fee: f64) {
+        self.global_state.set_fee(token, f_or_h, fee)
     }
-    pub fn hg_y(&self) -> f64 {
-        self.global_state.hg_y
+    pub fn glbl_fees(&self) -> (f64, f64, f64, f64) {
+        self.global_state.all_fees()
     }
 
     fn tick_to_possible_tick(&self, tick: u32, left_to_right: bool) -> u32 {
@@ -191,7 +327,7 @@ impl<'a> Pool<'a> {
     fn initialize_tick(&mut self, tick: u32) {
         // set f0 of tick based on convention [6.21]
         let (f0_x, f0_y, h0_x, h0_y) = if self.glbl_tick() >= tick {
-            (self.fg_x(), self.fg_y(), self.hg_x(), self.hg_y())
+            self.glbl_fees()
         } else {
             (0.0, 0.0, 0.0, 0.0)
         };
@@ -212,10 +348,10 @@ impl<'a> Pool<'a> {
         }
         let ts = self.active_ticks.get_mut(&tick).unwrap();
 
-        ts.liq_net += if !upper { liq_delta } else { -liq_delta };
-        ts.liq_gross += liq_delta;
+        ts.add_liq_net(if !upper { liq_delta } else { -liq_delta });
+        ts.add_liq_gross(liq_delta);
 
-        if ts.liq_gross == 0.0 {
+        if ts.liq_gross() == 0.0 {
             // de-initialize tick when no longer ref'ed by a position
             self.unset_tick(tick);
         }
@@ -227,35 +363,36 @@ impl<'a> Pool<'a> {
         if !left_to_right && self.glbl_tick() != provided_tick {
             panic!("can only cross current tick");
         }
+        let (fg_x, fg_y, hg_x, hg_y) = self.glbl_fees();
+
         let ts = self
             .active_ticks
             .get_mut(&provided_tick)
             .expect("cannot find tick for crossing");
 
         // add/substract to glabal liq depending on direction of crossing
-        let liq_to_apply = if left_to_right {
-            ts.liq_net
-        } else {
-            -ts.liq_net
+        let liq_to_apply = match left_to_right {
+            true => ts.liq_net(),
+            false => -ts.liq_net(),
         };
-        if self.global_state.liq + liq_to_apply < 0.0 {
-            panic!("liquidity cannot turn negative");
-        }
-        self.global_state.liq += liq_to_apply;
 
         // update tick state by flipping fee growth outside f0_X_Y [6.26]
-        ts.f0_x = self.global_state.fg_x - ts.f0_x;
-        ts.f0_y = self.global_state.fg_y - ts.f0_y;
-        ts.h0_x = self.global_state.hg_x - ts.h0_x;
-        ts.h0_y = self.global_state.hg_y - ts.h0_y;
+        let (f0_x, f0_y, h0_x, h0_y) = ts.all_fees();
+        ts.set_fee('x', 'f', fg_x - f0_x);
+        ts.set_fee('y', 'f', fg_y - f0_y);
+        ts.set_fee('x', 'h', hg_x - h0_x);
+        ts.set_fee('y', 'h', hg_y - h0_y);
         // TODO: do the same for s0, i0, sl0 in Tick-state
 
         // update current tick in global state to reflect crossing; rP unchanged
         if left_to_right {
-            self.global_state.tick = provided_tick;
+            self.set_glbl_tick(provided_tick);
         } else {
-            self.global_state.tick = self.tick_to_possible_tick(provided_tick - 1, left_to_right)
+            self.set_glbl_tick(self.tick_to_possible_tick(provided_tick - 1, left_to_right))
         }
+
+        // adjust global liquidity
+        self.add_glbl_liq(liq_to_apply);
     }
 
     fn get_left_limit_of_swap_within(&self, start_t: u32) -> Option<u32> {
@@ -326,7 +463,7 @@ impl<'a> Pool<'a> {
     fn try_get_in_range(&mut self, left_to_right: bool) -> (Option<u32>, u32, f64) {
         // During swap, when no liquidity in current state, find next active tick, cross it  to
         // kick-in some liquidity. return (new_goal_tick or None, glbl_tick and glbl_rP).
-        if self.global_state.liq > 0.0 {
+        if self.glbl_liq() > 0.0 {
             panic!("there already is liquidity in range");
         }
 
@@ -334,45 +471,45 @@ impl<'a> Pool<'a> {
             // going right to left, X in Y out
             for tk in self.tick_keys_cloned(true) {
                 // descending
-                if tk > self.global_state.tick {
+                if tk > self.glbl_tick() {
                     continue; // ignore ticks above current tick
                 }
-                self.global_state.tick = tk;
-                self.global_state.rp = Self::tick_to_rp(tk);
+                self.set_glbl_tick(tk);
+                self.set_glbl_rp(Self::tick_to_rp(tk));
                 self.cross_tick(tk, left_to_right);
                 // crossing shud put glbl_state.tick 1 (possible) tick under tk
                 // set the next goal for swap
-                let new_goal = self.get_left_limit_of_swap_within(self.global_state.tick);
+                let new_goal = self.get_left_limit_of_swap_within(self.glbl_tick());
                 // at this point some Liquidity should have kicked in
-                if self.global_state.liq < 0.0 {
+                if self.glbl_liq() < 0.0 {
                     panic!(
                         "from being out of range, we don't expect to kick in negative liquidity"
                     );
                 }
-                if self.global_state.liq > 0.0 {
+                if self.glbl_liq() > 0.0 {
                     // * return next goal (1 tick under tk) and tk just crossed
-                    return (new_goal, tk, self.global_state.rp);
+                    return (new_goal, tk, self.glbl_rp());
                 }
             }
         } else {
             for tk in self.tick_keys_cloned(false) {
                 // ascending
-                if tk <= self.global_state.tick {
+                if tk <= self.glbl_tick() {
                     continue; // ignore ticks above current tick
                 }
-                self.global_state.tick = tk;
-                self.global_state.rp = Self::tick_to_rp(tk);
+                self.set_glbl_tick(tk);
+                self.set_glbl_rp(Self::tick_to_rp(tk));
                 self.cross_tick(tk, left_to_right);
                 // at this point some Liquidity should have kicked in
                 // now find the new goal_tick to be passed to swap_within()
                 let new_goal = self.get_right_limit_of_swap_within(tk, tk);
 
-                if self.global_state.liq < 0.0 {
+                if self.glbl_liq() < 0.0 {
                     panic!("from being out of rng, we don't expect to kick in negative liquidity");
                 }
-                if self.global_state.liq > 0.0 {
+                if self.glbl_liq() > 0.0 {
                     // * return next goal and tk just crossed (==global_st tick)
-                    return (new_goal, tk, self.global_state.rp);
+                    return (new_goal, tk, self.glbl_rp());
                 }
             }
         }
@@ -380,49 +517,20 @@ impl<'a> Pool<'a> {
     }
 
     //+ DEPOSITS AND WITHDRAWALS
-    fn fee_below_above(&self, tick: u32, for_x: bool, swp: bool) -> (f64, f64) {
+    // fn fee_below_above(&self, tick: u32, for_x: bool, swp: bool) -> (f64, f64) {
+    fn fee_below_above(&self, tick: u32, token: char, f_or_h: char) -> (f64, f64) {
         // Fees earned in a token below and above tick, as tuple.
         // can compute for either token: X if 'for_x' is true, else Y
         // & for either swap fees or hmm fees: swap fees id 'swp' is true else hmm fees)
 
         let i_c = self.glbl_tick();
-        let fg = match swp {
-            true => {
-                if for_x {
-                    self.fg_x()
-                } else {
-                    self.fg_y()
-                }
-            }
-            false => {
-                if for_x {
-                    self.fg_x()
-                } else {
-                    self.fg_y()
-                }
-            }
-        };
+        let fg = self.glbl_fee(token, f_or_h);
         let ts = self.active_ticks.get(&tick);
 
         match ts {
             None => (fg, 0.0), // from [6.17 - 6.21], convention
             Some(ts) => {
-                let f0 = match swp {
-                    true => {
-                        if for_x {
-                            ts.f0_x
-                        } else {
-                            ts.f0_y
-                        }
-                    }
-                    false => {
-                        if for_x {
-                            ts.h0_x
-                        } else {
-                            ts.h0_y
-                        }
-                    }
-                };
+                let f0 = ts.fee(token, f_or_h);
                 let f_below = if i_c >= tick { f0 } else { fg - f0 }; // [6.18]
                 let f_above = if i_c >= tick { fg - f0 } else { f0 }; // [6.17]
                 (f_below, f_above)
@@ -430,10 +538,10 @@ impl<'a> Pool<'a> {
         }
     }
 
-    fn fee_rng(&self, lower_tick: u32, upper_tick: u32, for_x: bool, swp: bool) -> f64 {
+    fn fee_rng(&self, lower_tick: u32, upper_tick: u32, token: char, f_or_h: char) -> f64 {
         // Fees earned (per unit of liq) within a range of ticks (e.g. by a position)
-        let (f_blw_lwr, f_abv_lwr) = self.fee_below_above(lower_tick, for_x, swp);
-        let (f_blw_upr, f_abv_upr) = self.fee_below_above(upper_tick, for_x, swp);
+        let (f_blw_lwr, f_abv_lwr) = self.fee_below_above(lower_tick, token, f_or_h);
+        let (f_blw_upr, f_abv_upr) = self.fee_below_above(upper_tick, token, f_or_h);
 
         // retrieve fg by summing up either tuple, they should match
         assert_eq!(f_blw_lwr + f_abv_lwr, f_blw_upr + f_abv_upr);
@@ -453,15 +561,14 @@ impl<'a> Pool<'a> {
         // used for deposits (l>0), withdrawals (l<0)
         // compute uncollected fees f_u the poz is entitled to: first compute new FeeGrowthInside,
         // to be written to position will be set to 0 by function if tick not initialized
-        let new_fr_x = self.fee_rng(lower_tick, upper_tick, true, true);
-        let new_fr_y = self.fee_rng(lower_tick, upper_tick, false, true);
-        let new_hr_x = self.fee_rng(lower_tick, upper_tick, true, false);
-        let new_hr_y = self.fee_rng(lower_tick, upper_tick, false, false);
+        let new_fr_x = self.fee_rng(lower_tick, upper_tick, 'x', 'f');
+        let new_fr_y = self.fee_rng(lower_tick, upper_tick, 'y', 'f');
+        let new_hr_x = self.fee_rng(lower_tick, upper_tick, 'x', 'h');
+        let new_hr_y = self.fee_rng(lower_tick, upper_tick, 'y', 'h');
 
         // then get old value from when position was last touched.(set below)
         // set to 0 as default for when new position
-        let (mut old_fr_x, mut old_fr_y) = (0.0, 0.0);
-        let (mut old_hr_x, mut old_hr_y) = (0.0, 0.0);
+        let (mut old_fr_x, mut old_fr_y, mut old_hr_x, mut old_hr_y) = (0.0, 0.0, 0.0, 0.0);
         // liquidity to use for computing fee amounts (set below)
         let mut base = 0.0;
 
@@ -480,26 +587,27 @@ impl<'a> Pool<'a> {
             }
             Some(poz) => {
                 // get old value for feed from when position was last touched
-                old_fr_x = poz.fr_x;
-                old_fr_y = poz.fr_y;
-                old_hr_x = poz.hr_x;
-                old_hr_y = poz.hr_y;
-                base = poz.liq;
+                let (fr_x, fr_y, hr_x, hr_y) = poz.all_fees();
+                old_fr_x = fr_x;
+                old_fr_y = fr_y;
+                old_hr_x = hr_x;
+                old_hr_y = hr_y;
+                base = poz.liq();
 
                 // update existing position
-                if liq_delta < 0.0 && poz.liq + liq_delta < 0.0 {
+                if liq_delta < 0.0 && base + liq_delta < 0.0 {
                     // abort if withdrawal liq exceeds position liquidity
                     panic!("liquidity is position insufficient");
                 }
-                if poz.liq + liq_delta == 0.0 {
+                if base + liq_delta == 0.0 {
                     // if position liq becomes 0 after operation remove from pool
                     self.positions.remove(&key);
                 } else {
-                    poz.liq += liq_delta;
-                    poz.fr_x = new_fr_x;
-                    poz.fr_y = new_fr_y;
-                    poz.hr_x = new_hr_x;
-                    poz.hr_y = new_hr_y;
+                    poz.add_liq(liq_delta);
+                    poz.set_fee('x', 'f', new_fr_x);
+                    poz.set_fee('y', 'f', new_fr_y);
+                    poz.set_fee('x', 'h', new_hr_x);
+                    poz.set_fee('y', 'h', new_hr_y);
                 }
             }
         }
@@ -513,8 +621,8 @@ impl<'a> Pool<'a> {
         self.update_tick(upper_tick, liq_delta, true);
 
         // update global state's liquidity if current price in poz's range
-        if self.global_state.tick >= lower_tick && self.global_state.tick < upper_tick {
-            self.global_state.liq += liq_delta;
+        if self.glbl_tick() >= lower_tick && self.glbl_tick() < upper_tick {
+            self.add_glbl_liq(liq_delta);
         }
         // return uncollected fee amounts to offset/add in deposit/withdrawal
         (base * f_u_x, base * f_u_y, base * h_u_x, base * h_u_y)
@@ -805,18 +913,22 @@ impl<'a> Pool<'a> {
                     curr_rp = end_rp;
 
                     // update global state to reflect price change (if any) & reserves
-                    self.global_state.tick = curr_t;
-                    self.global_state.rp = curr_rp;
+                    self.set_glbl_tick(curr_t);
+                    self.set_glbl_rp(curr_rp);
                     self.x += done_dx;
                     self.y += done_dy - hmm_adj_y; // adj out of reserves into fees
                     self.x_fee += fee_x;
                     self.y_adj += hmm_adj_y;
-                    if self.glbl_liq() > 0.0 {
+
+                    let liq_g = self.glbl_liq();
+                    let (fg_x, _, _, hg_y) = self.glbl_fees();
+                    if liq_g > 0.0 {
                         // make sure not 0 liquidity (empty trade)
                         // * update fee growth to reflect latest swap_within
-                        self.global_state.fg_x += fee_x / self.glbl_liq();
-                        self.global_state.hg_y += hmm_adj_y / self.glbl_liq();
+                        self.set_fee_glbl('x', 'f', fg_x + fee_x / liq_g);
+                        self.set_fee_glbl('y', 'h', hg_y + hmm_adj_y / liq_g);
                     }
+
                     // perform crossing of tick, if necessary
                     if cross == true {
                         assert!(end_t == gtk);
@@ -1038,19 +1150,23 @@ impl<'a> Pool<'a> {
                     curr_rp = end_rp;
 
                     // update global state to reflect price change (if any) & reserves
-                    self.global_state.tick = curr_t;
-                    self.global_state.rp = curr_rp;
+                    self.set_glbl_tick(curr_t);
+                    self.set_glbl_rp(curr_rp);
                     self.x += done_dx - hmm_adj_x; // adj out of reserves into fees
                     self.y += done_dy;
                     self.x_adj += hmm_adj_x;
                     self.y_fee += fee_y;
-                    if self.glbl_liq() > 0.0 {
+
+                    let liq_g = self.glbl_liq();
+                    let (_, fg_y, hg_x, _) = self.glbl_fees();
+                    if liq_g > 0.0 {
                         // make sure not 0 liquidity (empty trade)
                         // * update fee growth to reflect latest swap_within
-                        self.global_state.hg_x += hmm_adj_x / self.glbl_liq();
-                        self.global_state.fg_y += fee_y / self.glbl_liq();
+                        self.set_fee_glbl('x', 'h', hg_x + hmm_adj_x / liq_g);
+                        self.set_fee_glbl('y', 'f', fg_y + fee_y / liq_g);
                     }
 
+                    // perform crossing of tick, if necessary
                     if cross == true {
                         assert!(end_t == gtk);
                         if self.active_ticks.contains_key(&gtk) {
