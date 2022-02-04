@@ -165,34 +165,9 @@ impl<'info> AddLiquidity<'info> {
     ) -> bool {
         let x_div_y = x.checked_div(y).unwrap();
         let orig_ratio = x_total.checked_div(y_total).unwrap();
-        let result = x_div_y.eq(&orig_ratio);
-        msg!("x_div_y: {:?}", x_div_y);
-        msg!("orig_ratio: {:?}", orig_ratio);
-        msg!("result: {}", result);
-        if !result {
-            msg!("wrong ratio ");
-        }
-        result
-        // TODO: Cant seam to workout the best appraoch for this function
-        // (x / y) != (x_total / y_total)
-        // let step1 = x.checked_div(y).unwrap();
-        // let step2 = x_total.checked_div(y).unwrap();
-        // let step3 = step1 != step2;
-
-        // if self.pool_state.debug {
-        //     msg!("step1: {}", step1);
-        //     msg!("step2: {}", step2);
-        //     msg!("step3: {}", step3);
-        // }
-
-        // if self.pool_state.debug {
-        //     msg!("(x/y): {}", x / y);
-        //     msg!("(x_total/y_total): {}", x_total / y_total)
-        // }
-        // true
+        x_div_y.eq(&orig_ratio)
     }
 
-    // TODO: 1. This function has rounding issues
     fn lp_tokens_to_mint_following_deposits(
         x: u64,
         y: u64,
@@ -209,13 +184,9 @@ impl<'info> AddLiquidity<'info> {
         if !Self::check_deposit_ration_correct(&x, &y, &x_total, &y_total) {
             return Err(ErrorCode::DepositRatioIncorrect.into());
         }
-        // TODO rem?
-
         // // lp_tokens_to_issue = (x / x_total) * lp_total;
         Ok(x.checked_div(&x_total)
             .unwrap()
-            // .floor()
-            // .unwrap()
             .checked_mul(&lp_total)
             .unwrap())
     }
@@ -225,6 +196,7 @@ impl<'info> AddLiquidity<'info> {
         let x = PreciseNumber::new(x as u128).unwrap();
         let y = PreciseNumber::new(y as u128).unwrap();
         let min_liquidity = PreciseNumber::new(MIN_LIQUIDITY as u128).unwrap();
+
 
         // sqrt(x * y) - 10^3
         Ok(sqrt_precise(&x.checked_mul(&y).unwrap())
