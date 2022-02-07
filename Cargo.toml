@@ -2,8 +2,7 @@
 members = [
     "programs/*",
     "libs/math/hmm",
-    "libs/math/prototyping",
+    "libs/math/hydra-proto",
     "libs/math/sim",
-    "libs/math/sandbox/natural-log",
     "tools/*"
 ]
