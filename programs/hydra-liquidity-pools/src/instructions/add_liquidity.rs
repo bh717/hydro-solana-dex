@@ -11,6 +11,7 @@ use anchor_lang::solana_program::native_token::LAMPORTS_PER_SOL;
 use anchor_spl::token;
 use anchor_spl::token::{burn, Mint, MintTo, Token, TokenAccount, Transfer};
 use hydra_math::math::sqrt_precise;
+use num::traits::real::Real;
 use spl_math::precise_number::PreciseNumber;
 
 #[derive(Accounts)]
@@ -196,6 +197,8 @@ impl<'info> AddLiquidity<'info> {
             .floor()
             .unwrap()
             .checked_mul(&lp_total)
+            .unwrap()
+            .floor()
             .unwrap())
     }
 
@@ -210,6 +213,8 @@ impl<'info> AddLiquidity<'info> {
             .floor()
             .unwrap()
             .checked_sub(&min_liquidity)
+            .unwrap()
+            .floor()
             .unwrap())
     }
 
