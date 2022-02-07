@@ -1,5 +1,6 @@
 use crate::constants::*;
 use crate::errors::ErrorCode;
+use crate::events::deposit_ratio_incorrect::DepositRatioIncorrect;
 use crate::events::lp_tokens_issued::LpTokensIssued;
 use crate::events::slippage_exceeded::SlippageExceeded;
 use crate::state::pool_state::PoolState;
@@ -145,7 +146,7 @@ impl<'info> AddLiquidity<'info> {
             lp_tokens_to_issue = Self::lp_tokens_to_mint_first_deposit(x, y)?;
         } else {
             lp_tokens_to_issue =
-                Self::lp_tokens_to_mint_following_deposits(x, y, x_total, y_total, lp_total)?;
+                self.lp_tokens_to_mint_following_deposits(x, y, x_total, y_total, lp_total)?;
         }
 
         msg!("lp_tokens_to_issue: {}", lp_tokens_to_issue.value);
@@ -164,6 +165,7 @@ impl<'info> AddLiquidity<'info> {
     }
 
     fn lp_tokens_to_mint_following_deposits(
+        &self,
         x: u64,
         y: u64,
         x_total: u64,
@@ -177,6 +179,15 @@ impl<'info> AddLiquidity<'info> {
         let lp_total = PreciseNumber::new(lp_total as u128).unwrap();
 
         if !Self::check_deposit_ration_correct(&x, &y, &x_total, &y_total) {
+            emit!(DepositRatioIncorrect {
+                x: x.to_imprecise().unwrap() as u64,
+                y: y.to_imprecise().unwrap() as u64,
+                x_total: x_total.to_imprecise().unwrap() as u64,
+                y_total: y_total.to_imprecise().unwrap() as u64,
+            });
+            if self.pool_state.debug {
+                msg!("Error: DepositRatioIncorrect")
+            }
             return Err(ErrorCode::DepositRatioIncorrect.into());
         }
         // // lp_tokens_to_issue = (x / x_total) * lp_total;
