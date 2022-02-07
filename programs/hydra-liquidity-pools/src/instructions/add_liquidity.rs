@@ -5,6 +5,7 @@ use crate::state::pool_state::PoolState;
 use crate::utils::{to_u128, to_u64};
 use crate::ProgramResult;
 use anchor_lang::prelude::*;
+use anchor_lang::solana_program::native_token::LAMPORTS_PER_SOL;
 use anchor_spl::token;
 use anchor_spl::token::{burn, Mint, MintTo, Token, TokenAccount, Transfer};
 use hydra_math::math::sqrt_precise;
@@ -78,14 +79,7 @@ pub struct AddLiquidity<'info> {
     pub token_program: Program<'info, Token>,
 }
 
-// const MIN_LIQUIDITY: u64 = 10_u64.pow(3);
-const MIN_LIQUIDITY: u64 = 0_u64;
-// we need to discuss this number, I think it's meant to be 1000 times the
-// minimum unit e.g 1000 satoshi, 1000 wei, 1000 lamports. Here (as well as
-// in the notebook) were are not using mint.decimals yet. so you can see
-// in the notebook that impact is negligeable. in notebook, I think Ayush is doing 1000 wei = 1000*10^-18 = 10^-15
-// I am guessing you are using a big number just to test.
-// either way shud work if you comment out the appropriate lines in hydra-liquidity-pools.ts
+const MIN_LIQUIDITY: u64 = 1;
 
 impl<'info> AddLiquidity<'info> {
     pub fn into_transfer_user_token_a_to_vault(
@@ -191,14 +185,12 @@ impl<'info> AddLiquidity<'info> {
             .unwrap())
     }
 
-    // TODO: This function is also giving rounding issues
     fn lp_tokens_to_mint_first_deposit(x: u64, y: u64) -> Result<PreciseNumber, ProgramError> {
         let x = PreciseNumber::new(x as u128).unwrap();
         let y = PreciseNumber::new(y as u128).unwrap();
         let min_liquidity = PreciseNumber::new(MIN_LIQUIDITY as u128).unwrap();
 
-
-        // sqrt(x * y) - 10^3
+        // sqrt(x * y) - 1
         Ok(sqrt_precise(&x.checked_mul(&y).unwrap())
             .unwrap()
             .checked_sub(&min_liquidity)
