@@ -190,7 +190,7 @@ impl<'a> Pool<'a> {
     fn get_left_limit_of_swap_within(&self, start_t: u32) -> Option<u32> {
         // get next available active tick from a starting point going left
         let tick = self.tick_to_possible_tick(start_t.min(self.glbl_tick()), false);
-        for &tk in self.active_ticks.keys().rev() {
+        for tk in self.tick_keys_cloned(true) {
             // descending
             if tk <= tick {
                 // case when  starting_rP equals exactly tick_torP(current tick)
@@ -215,7 +215,7 @@ impl<'a> Pool<'a> {
             // the liquidity corresponding to this tick [start_tick, next_tick)
             // is already in range. We are looking for the 1st active tick
             // strictly superior to it.
-            for &tk in self.active_ticks.keys() {
+            for tk in self.tick_keys_cloned(false) {
                 // ascending
                 if tk > start_tick {
                     return Some(tk);
@@ -230,7 +230,7 @@ impl<'a> Pool<'a> {
             // above AND possibly INCLUDING start_tick. If start_tick is indeed
             // part of active_ticks, the very next swap_within_from_Y will
             // result in a 0_qty swap and trigger a crossing to the right
-            for &tk in self.active_ticks.keys() {
+            for tk in self.tick_keys_cloned(false) {
                 // ascending
                 if tk >= start_tick {
                     return Some(tk);
