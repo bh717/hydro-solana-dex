@@ -215,7 +215,7 @@ describe ("hydra-liquidity-pool", async () => {
           }
         }
     )
-    assert.strictEqual((await getTokenBalance(provider, lpTokenAccount)).toNumber(), 1238326078 + 2476652156)
+    assert.strictEqual((await getTokenBalance(provider, lpTokenAccount)).toNumber(), 1238326078 + 3302202874)
     assert.strictEqual((await getTokenBalance(provider, btcdAccount)).toNumber(), btcdAmount.isub(new BN(16_000_000)).toNumber())
     assert.strictEqual((await getTokenBalance(provider, usddAccount)).toNumber(), usddAmont.isub( new BN(681_534_099_200)).toNumber())
   });

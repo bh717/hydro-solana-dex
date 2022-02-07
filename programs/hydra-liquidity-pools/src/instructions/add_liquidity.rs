@@ -194,8 +194,6 @@ impl<'info> AddLiquidity<'info> {
         // // lp_tokens_to_issue = (x / x_total) * lp_total;
         Ok(x.checked_div(&x_total)
             .unwrap()
-            .floor()
-            .unwrap()
             .checked_mul(&lp_total)
             .unwrap()
             .floor()
@@ -209,8 +207,6 @@ impl<'info> AddLiquidity<'info> {
 
         // sqrt(x * y) - 1
         Ok(sqrt_precise(&x.checked_mul(&y).unwrap())
-            .unwrap()
-            .floor()
             .unwrap()
             .checked_sub(&min_liquidity)
             .unwrap()
