@@ -13,7 +13,6 @@ describe ("hydra-liquidity-pool", async () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.Provider.env());
 
-  const { SystemProgram } = anchor.web3;
   const program = anchor.workspace.HydraLiquidityPools as Program<HydraLiquidityPools>;
   const provider = anchor.Provider.env();
 
@@ -106,28 +105,26 @@ describe ("hydra-liquidity-pool", async () => {
 
   it('should not add-liquidity to pool due to slippage', async () => {
     try {
-      const tx =
-          await program.rpc.addLiquidity(
-              new BN(255_575_287_200), //$255,575.2872 usdc's @ ($42595.8812 each)
-              new BN(6_000_000), // token_b_amount: 6, bitcoins
-              new BN(1238326178),
-              {
-                accounts: {
-                  poolState: poolState,
-                  lpTokenMint: lpTokenMint.publicKey,
-                  tokenAMint: btcdMint,
-                  tokenBMint: usddMint,
-                  tokenAVault: tokenAVault,
-                  tokenBVault: tokenBVault,
-                  lpTokenTo: lpTokenAccount,
-                  userTokenA: btcdAccount,
-                  userTokenB: usddAccount,
-                  userAuthority: provider.wallet.publicKey,
-                  tokenProgram: TOKEN_PROGRAM_ID,
-                }
-              }
-          )
-
+      await program.rpc.addLiquidity(
+          new BN(255_575_287_200), //$255,575.2872 usdc's @ ($42595.8812 each)
+          new BN(6_000_000), // token_b_amount: 6, bitcoins
+          new BN(1238326178),
+          {
+            accounts: {
+              poolState: poolState,
+              lpTokenMint: lpTokenMint.publicKey,
+              tokenAMint: btcdMint,
+              tokenBMint: usddMint,
+              tokenAVault: tokenAVault,
+              tokenBVault: tokenBVault,
+              lpTokenTo: lpTokenAccount,
+              userTokenA: btcdAccount,
+              userTokenB: usddAccount,
+              userAuthority: provider.wallet.publicKey,
+              tokenProgram: TOKEN_PROGRAM_ID,
+            }
+          }
+      )
       assert.ok(false)
     } catch (err) {
       assert.equal(err.toString(), "Slippage Amount Exceeded")
@@ -166,27 +163,26 @@ describe ("hydra-liquidity-pool", async () => {
 
   it('should not add-liquidity to due to token deposit ratio not aligned', async () => {
     try {
-      const tx =
-          await program.rpc.addLiquidity(
-              new BN(255_575_287_200),  // $255,575.2872 usdc's @ ($42595.8812 each)
-              new BN(6_000_000),        // 6, bitcoins
-              new BN(1),
-              {
-                accounts: {
-                  poolState: poolState,
-                  lpTokenMint: lpTokenMint.publicKey,
-                  tokenAMint: btcdMint,
-                  tokenBMint: usddMint,
-                  tokenAVault: tokenAVault,
-                  tokenBVault: tokenBVault,
-                  lpTokenTo: lpTokenAccount,
-                  userTokenA: btcdAccount,
-                  userTokenB: usddAccount,
-                  userAuthority: provider.wallet.publicKey,
-                  tokenProgram: TOKEN_PROGRAM_ID,
-                }
-              }
-          )
+      await program.rpc.addLiquidity(
+          new BN(255_575_287_200),  // $255,575.2872 usdc's @ ($42595.8812 each)
+          new BN(6_000_000),        // 6, bitcoins
+          new BN(1),
+          {
+            accounts: {
+              poolState: poolState,
+              lpTokenMint: lpTokenMint.publicKey,
+              tokenAMint: btcdMint,
+              tokenBMint: usddMint,
+              tokenAVault: tokenAVault,
+              tokenBVault: tokenBVault,
+              lpTokenTo: lpTokenAccount,
+              userTokenA: btcdAccount,
+              userTokenB: usddAccount,
+              userAuthority: provider.wallet.publicKey,
+              tokenProgram: TOKEN_PROGRAM_ID,
+            }
+          }
+      )
       assert.ok(false)
     } catch (err) {
       assert.equal(err.toString(), "Deposit tokens not in the correct ratio")
