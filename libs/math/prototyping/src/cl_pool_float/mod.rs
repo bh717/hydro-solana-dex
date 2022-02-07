@@ -2,7 +2,10 @@
 pub mod cl_components;
 pub mod cl_math;
 
-pub use cl_components::{GlobalState, PoolToken, PositionState, TickState};
+pub use cl_components::{
+    GetInRangeOutput, GlobalState, PoolToken, PositionState, SwapOutput, SwapWithinResult,
+    TickState,
+};
 pub use cl_math::PoolMath;
 use std::collections::{BTreeMap, HashMap};
 
@@ -249,7 +252,7 @@ impl<'a> Pool<'a> {
         }
     }
 
-    fn try_get_in_range(&mut self, left_to_right: bool) -> (Option<u32>, u32, f64) {
+    fn try_get_in_range(&mut self, left_to_right: bool) -> GetInRangeOutput {
         // During swap, when no liquidity in current state, find next active tick, cross it  to
         // kick-in some liquidity. return (new_goal_tick or None, glbl_tick and glbl_rP).
         if self.glbl_liq() > 0.0 {
@@ -277,7 +280,7 @@ impl<'a> Pool<'a> {
                 }
                 if self.glbl_liq() > 0.0 {
                     // * return next goal (1 tick under tk) and tk just crossed
-                    return (new_goal, tk, self.glbl_rp());
+                    return GetInRangeOutput::new(new_goal, self.glbl_rp());
                 }
             }
         } else {
@@ -298,15 +301,14 @@ impl<'a> Pool<'a> {
                 }
                 if self.glbl_liq() > 0.0 {
                     // * return next goal and tk just crossed (==global_st tick)
-                    return (new_goal, tk, self.glbl_rp());
+                    return GetInRangeOutput::new(new_goal, self.glbl_rp());
                 }
             }
         }
-        return (None, self.glbl_tick(), self.glbl_rp());
+        return GetInRangeOutput::new(None, self.glbl_rp());
     }
 
     //+ DEPOSITS AND WITHDRAWALS
-    // fn fee_below_above(&self, tick: u32, for_x: bool, swp: bool) -> (f64, f64) {
     fn fee_below_above(&self, tick: u32, token: char, f_or_h: char) -> (f64, f64) {
         // Fees earned in a token below and above tick, as tuple.
         // can compute for either token: X if 'for_x' is true, else Y
@@ -517,7 +519,7 @@ impl<'a> Pool<'a> {
         liq: f64,
         dx: f64,
         rp_oracle: f64,
-    ) -> (f64, f64, u32, f64, bool, f64, f64) {
+    ) -> SwapWithinResult {
         // + no writing to state to occurs here, just calc and return to caller
         let (done_dx, end_t, end_rp, cross, hmm_adj_y, fee_x);
         let mut done_dy;
@@ -570,13 +572,13 @@ impl<'a> Pool<'a> {
             }
         }
         // now figure out how much done_dY and hmm_adj_Y
-        let mut done_dy_amm = Pool::dy_from_l_drp(liq, start_rp, end_rp);
+        let mut done_dy_cpmm = Pool::dy_from_l_drp(liq, start_rp, end_rp);
         if self.c == 0.0 || rp_oracle >= start_rp {
             // also when rP_oracle is None
             // in cases where no oracle or no hmm c=0, we cannot adjust so we fall back to amm
             // * when trade will make pool price diverge more from oracle,
             // * then we don't adjust (hmm adjust on convergence only)
-            done_dy = done_dy_amm;
+            done_dy = done_dy_cpmm;
         } else if rp_oracle < start_rp && rp_oracle >= end_rp {
             // 1st condition is redundant as implied from precious branch
             // we are leaving it for precision and readability
@@ -596,11 +598,11 @@ impl<'a> Pool<'a> {
 
         // adjust conservatively to avoid rounding issues.
         done_dy *= 1.0 - Pool::ADJ_WHOLE_FILL;
-        done_dy_amm *= 1.0 - Pool::ADJ_WHOLE_FILL;
+        done_dy_cpmm *= 1.0 - Pool::ADJ_WHOLE_FILL;
 
-        hmm_adj_y = done_dy - done_dy_amm;
+        hmm_adj_y = done_dy - done_dy_cpmm;
 
-        if done_dy_amm > 0.0 {
+        if done_dy_cpmm > 0.0 {
             panic!("expect done_dY < 0 when X supplied to pool")
             // again we allow 0-qty swap, just in case price was already
             // exactly on the tick we started with
@@ -608,17 +610,13 @@ impl<'a> Pool<'a> {
         if hmm_adj_y < 0.0 {
             panic!("hmm adj should be positive (conservative 4 pool)");
         }
-        if self.y + done_dy_amm < 0.0 {
+        if self.y + done_dy_cpmm < 0.0 {
             panic!("cannot swap out more Y than present in pool");
         }
-        return (done_dx, done_dy, end_t, end_rp, cross, hmm_adj_y, fee_x);
+        return SwapWithinResult::new(done_dx, done_dy, end_t, end_rp, cross, hmm_adj_y, fee_x);
     }
 
-    pub fn execute_swap_from_x(
-        &mut self,
-        dx: f64,
-        rp_oracle: f64,
-    ) -> (f64, f64, f64, f64, f64, f64) {
+    pub fn execute_swap_from_x(&mut self, dx: f64, rp_oracle: f64) -> SwapOutput {
         // * Swap algo when provided with dX>0
         // * We go from right to left on the curve and manage crossings as needed.
         // * within initialized tick we use swap_within_tick_from_X
@@ -649,9 +647,9 @@ impl<'a> Pool<'a> {
                 // try move into range, if cannot then break out to end swap
                 println!("Gap in liquidity... trying to get in range...");
                 let rez = self.try_get_in_range(left_to_right);
-                goal_tick = rez.0;
-                curr_t = rez.1;
-                curr_rp = rez.2;
+                goal_tick = rez.goal_tick();
+                // curr_t = rez.1; // not needed as overridden immediately before read, if used
+                curr_rp = rez.new_rp();
             }
 
             match goal_tick {
@@ -672,7 +670,14 @@ impl<'a> Pool<'a> {
                         "adjusted_dY={}  pool_cumul_Y_adj={} total_fee_X={}  pool_cumul_X_fee={}",
                         adjusted_dy, self.y_adj, total_fee_x, self.x_fee
                     );
-                    return (swpd_dx, swpd_dy, adjusted_dy, total_fee_x, avg_p, end_p);
+                    return SwapOutput::new(
+                        swpd_dx,
+                        swpd_dy,
+                        adjusted_dy,
+                        total_fee_x,
+                        avg_p,
+                        end_p,
+                    );
                 }
 
                 Some(gtk) => {
@@ -683,13 +688,13 @@ impl<'a> Pool<'a> {
                         dx - swpd_dx,
                         rp_oracle,
                     );
-                    done_dx = rez.0;
-                    done_dy = rez.1;
-                    end_t = rez.2;
-                    end_rp = rez.3;
-                    cross = rez.4;
-                    hmm_adj_y = rez.5;
-                    fee_x = rez.6;
+                    done_dx = rez.recv_amount();
+                    done_dy = rez.send_amount();
+                    end_t = rez.end_tick();
+                    end_rp = rez.end_rp();
+                    cross = rez.cross();
+                    hmm_adj_y = rez.send_hmm_adj();
+                    fee_x = rez.recv_fee();
                     assert!(self.y + done_dy - hmm_adj_y >= 0.0);
                     assert!(dx - swpd_dx >= done_dx + fee_x);
 
@@ -743,7 +748,7 @@ impl<'a> Pool<'a> {
             adjusted_dy, self.y_adj, total_fee_x, self.x_fee
         );
 
-        return (swpd_dx, swpd_dy, adjusted_dy, total_fee_x, avg_p, end_p);
+        return SwapOutput::new(swpd_dx, swpd_dy, adjusted_dy, total_fee_x, avg_p, end_p);
     }
 
     fn swap_within_tick_from_y(
@@ -753,7 +758,7 @@ impl<'a> Pool<'a> {
         liq: f64,
         dy: f64,
         rp_oracle: f64,
-    ) -> (f64, f64, u32, f64, bool, f64, f64) {
+    ) -> SwapWithinResult {
         // + no writing to state to occurs here, just calc and return to caller
         let (done_dy, end_t, end_rp, cross, hmm_adj_x, fee_y);
         let mut done_dx;
@@ -806,14 +811,14 @@ impl<'a> Pool<'a> {
             }
         }
         // now figure out how much done_dX and hmm_adj_X
-        let mut done_dx_amm = Pool::dx_from_l_drp(liq, start_rp, end_rp);
+        let mut done_dx_cpmm = Pool::dx_from_l_drp(liq, start_rp, end_rp);
 
         if self.c == 0.0 || rp_oracle <= start_rp {
             // also also rP_oracle is None
             // in cases where no oracle or no hmm as c=0, we cannot adjust so we fall back to amm
             // * when trade will make pool price diverge more from oracle,
             // * then we don't adjust (hmm adjust on convergence only)
-            done_dx = done_dx_amm;
+            done_dx = done_dx_cpmm;
         } else if rp_oracle > start_rp && rp_oracle <= end_rp {
             // 1st term is redundant as implied from precious branch
             // we are adding for precision and readability
@@ -831,12 +836,12 @@ impl<'a> Pool<'a> {
         }
 
         // adjust to prevent rounding issues
-        done_dx_amm *= 1.0 - Pool::ADJ_WHOLE_FILL;
+        done_dx_cpmm *= 1.0 - Pool::ADJ_WHOLE_FILL;
         done_dx *= 1.0 - Pool::ADJ_WHOLE_FILL;
 
-        hmm_adj_x = done_dx - done_dx_amm;
+        hmm_adj_x = done_dx - done_dx_cpmm;
 
-        if done_dx_amm > 0.0 {
+        if done_dx_cpmm > 0.0 {
             panic!("expect done_dX < 0 when Y supplied to pool");
             // again we allow 0-qty swap, just in case price was already
             // exactly on the tick we started with
@@ -844,18 +849,14 @@ impl<'a> Pool<'a> {
         if hmm_adj_x < 0.0 {
             panic!("hmm adj should be positive (conservative 4 pool)");
         }
-        if self.x + done_dx_amm < 0.0 {
+        if self.x + done_dx_cpmm < 0.0 {
             panic!("cannot swap out more X than present in pool");
         }
 
-        return (done_dx, done_dy, end_t, end_rp, cross, hmm_adj_x, fee_y);
+        return SwapWithinResult::new(done_dy, done_dx, end_t, end_rp, cross, hmm_adj_x, fee_y);
     }
 
-    pub fn execute_swap_from_y(
-        &mut self,
-        dy: f64,
-        rp_oracle: f64,
-    ) -> (f64, f64, f64, f64, f64, f64) {
+    pub fn execute_swap_from_y(&mut self, dy: f64, rp_oracle: f64) -> SwapOutput {
         // Swap algo when pool provided with dY > 0
         // We go from right to left on the curve and manage crossings as needed.
         // within initialized tick we use swap_within_tick_from_X
@@ -886,9 +887,9 @@ impl<'a> Pool<'a> {
                 // try move into range, if cannot then break out to end swap
                 println!("Gap in liquidity... trying to get in range...");
                 let rez = self.try_get_in_range(left_to_right);
-                goal_tick = rez.0;
-                curr_t = rez.1;
-                curr_rp = rez.2;
+                goal_tick = rez.goal_tick();
+                // curr_t = rez.1; // not needed as overridden immediately before read, if used
+                curr_rp = rez.new_rp();
             }
 
             match goal_tick {
@@ -909,7 +910,14 @@ impl<'a> Pool<'a> {
                         "adjusted_dX={}  pool_cumul_x_adj={} total_fee_y={}  pool_cumul_y_fee={}",
                         adjusted_dx, self.x_adj, total_fee_y, self.y_fee
                     );
-                    return (swpd_dx, swpd_dy, adjusted_dx, total_fee_y, avg_p, end_p);
+                    return SwapOutput::new(
+                        swpd_dy,
+                        swpd_dx,
+                        adjusted_dx,
+                        total_fee_y,
+                        avg_p,
+                        end_p,
+                    );
                 }
 
                 Some(gtk) => {
@@ -920,13 +928,13 @@ impl<'a> Pool<'a> {
                         dy - swpd_dy,
                         rp_oracle,
                     );
-                    done_dx = rez.0;
-                    done_dy = rez.1;
-                    end_t = rez.2;
-                    end_rp = rez.3;
-                    cross = rez.4;
-                    hmm_adj_x = rez.5;
-                    fee_y = rez.6;
+                    done_dx = rez.send_amount();
+                    done_dy = rez.recv_amount();
+                    end_t = rez.end_tick();
+                    end_rp = rez.end_rp();
+                    cross = rez.cross();
+                    hmm_adj_x = rez.send_hmm_adj();
+                    fee_y = rez.recv_fee();
                     assert!(self.x + done_dx - hmm_adj_x >= 0.0);
                     assert!(dy - swpd_dy >= done_dy + fee_y);
 
@@ -980,6 +988,6 @@ impl<'a> Pool<'a> {
             adjusted_dx, self.x_adj, total_fee_y, self.y_fee
         );
 
-        return (swpd_dx, swpd_dy, adjusted_dx, total_fee_y, avg_p, end_p);
+        return SwapOutput::new(swpd_dy, swpd_dx, adjusted_dx, total_fee_y, avg_p, end_p);
     }
 }

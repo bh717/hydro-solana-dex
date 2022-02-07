@@ -212,6 +212,27 @@ impl PositionState {
 }
 
 #[derive(Debug)]
+pub struct GetInRangeOutput {
+    goal_tick: Option<u32>,
+    new_rp: f64,
+}
+
+impl GetInRangeOutput {
+    pub fn new(goal_tick: Option<u32>, new_rp: f64) -> Self {
+        if new_rp < 0.0 {
+            panic!("root-price cannot be negative");
+        }
+        Self { goal_tick, new_rp }
+    }
+    pub fn goal_tick(&self) -> Option<u32> {
+        self.goal_tick
+    }
+    pub fn new_rp(&self) -> f64 {
+        self.new_rp
+    }
+}
+
+#[derive(Debug)]
 pub struct SwapWithinResult {
     recv_amount: f64,
     send_amount: f64,
@@ -233,7 +254,18 @@ impl SwapWithinResult {
         send_hmm_adj: f64,
         recv_fee: f64,
     ) -> Self {
-        // TODO add validations here
+        if recv_amount < 0.0 {
+            panic!("in-qty cannot be negative");
+        }
+        if send_amount > 0.0 {
+            panic!("out-qty cannot be positive");
+        }
+        if send_hmm_adj < 0.0 || recv_fee < 0.0 {
+            panic!("fees cannot be negative");
+        }
+        if end_rp < 0.0 {
+            panic!("root-price cannot be negative");
+        }
         Self {
             recv_amount,
             send_amount,
@@ -244,39 +276,86 @@ impl SwapWithinResult {
             recv_fee,
         }
     }
+    pub fn recv_amount(&self) -> f64 {
+        self.recv_amount
+    }
+    pub fn send_amount(&self) -> f64 {
+        self.send_amount
+    }
+    pub fn end_tick(&self) -> u32 {
+        self.end_tick
+    }
+    pub fn end_rp(&self) -> f64 {
+        self.end_rp
+    }
+    pub fn cross(&self) -> bool {
+        self.cross
+    }
+    pub fn send_hmm_adj(&self) -> f64 {
+        self.send_hmm_adj
+    }
+    pub fn recv_fee(&self) -> f64 {
+        self.recv_fee
+    }
 }
 
-#[derive(Debug)]
-pub struct SwapResult {
+#[derive(Debug, PartialEq)]
+pub struct SwapOutput {
     recv_amount: f64,
     send_amount: f64,
     send_hmm_adj: f64,
     recv_fee: f64,
-    end_tick: u32,
     avg_price: f64,
     end_price: f64,
 }
 // (swpd_dx, swpd_dy, adjusted_dy, total_fee_x, avg_p, end_p)
 
-impl SwapResult {
+impl SwapOutput {
     pub fn new(
         recv_amount: f64,
         send_amount: f64,
         send_hmm_adj: f64,
         recv_fee: f64,
-        end_tick: u32,
         avg_price: f64,
         end_price: f64,
     ) -> Self {
-        // TODO add validations here
+        if recv_amount < 0.0 {
+            panic!("in-qty cannot be negative");
+        }
+        if send_amount > 0.0 {
+            panic!("out-qty cannot be positive");
+        }
+        if send_hmm_adj < 0.0 || recv_fee < 0.0 {
+            panic!("fees cannot be negative");
+        }
+        if avg_price < 0.0 || end_price < 0.0 {
+            panic!("price cannot be negative");
+        }
         Self {
             recv_amount,
             send_amount,
             send_hmm_adj,
             recv_fee,
-            end_tick,
             avg_price,
             end_price,
         }
+    }
+    pub fn recv_amount(&self) -> f64 {
+        self.recv_amount
+    }
+    pub fn send_amount(&self) -> f64 {
+        self.send_amount
+    }
+    pub fn send_hmm_adj(&self) -> f64 {
+        self.send_hmm_adj
+    }
+    pub fn recv_fee(&self) -> f64 {
+        self.recv_fee
+    }
+    pub fn avg_price(&self) -> f64 {
+        self.avg_price
+    }
+    pub fn end_price(&self) -> f64 {
+        self.end_price
     }
 }

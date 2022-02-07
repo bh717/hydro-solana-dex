@@ -135,15 +135,15 @@ mod tests {
 
         if Pool::ADJ_WHOLE_FILL == 0.0 {
             if Pool::FLOOR_LIQ {
-                assert_eq!(rez.0, 2.4489254304487926_f64); // with liq.floor() in deposit
-                assert_eq!(rez.1, -3998.3195353714877_f64); // with liq.floor() in deposit
-                assert_eq!(x, 1.9984356160643284_f64 + rez.0); // with liq.floor() in deposit
-                assert_eq!(y, 3998.3195353714877_f64 + rez.1); // with liq.floor() in deposit
+                assert_eq!(rez.recv_amount(), 2.4489254304487926_f64); // with liq.floor() in deposit
+                assert_eq!(rez.send_amount(), -3998.3195353714877_f64); // with liq.floor() in deposit
+                assert_eq!(x, 1.9984356160643284_f64 + rez.recv_amount()); // with liq.floor() in deposit
+                assert_eq!(y, 3998.3195353714877_f64 + rez.send_amount()); // with liq.floor() in deposit
             } else {
-                assert_eq!(rez.0, 2.4499546960008143_f64); // without liq flooring
-                assert_eq!(rez.1, -4000_f64); // without liq flooring
-                assert_eq!(x, 1.999275544022923_f64 + rez.0); // without liq flooring
-                assert_eq!(y, 4000_f64 + rez.1); // without liq flooring
+                assert_eq!(rez.recv_amount(), 2.4499546960008143_f64); // without liq flooring
+                assert_eq!(rez.send_amount(), -4000_f64); // without liq flooring
+                assert_eq!(x, 1.999275544022923_f64 + rez.recv_amount()); // without liq flooring
+                assert_eq!(y, 4000_f64 + rez.send_amount()); // without liq flooring
             }
         }
         assert_eq!(x_adj, 0_f64);
@@ -183,10 +183,10 @@ mod tests {
         let extra_bis = pool_bis.execute_swap_from_x(0.75, 0.0);
 
         //so swapped amount shoud be zero
-        assert_eq!(extra.0, 0.0);
-        assert_eq!(extra.1, 0.0);
-        assert_eq!(extra_bis.0, 0.0);
-        assert_eq!(extra_bis.1, 0.0);
+        assert_eq!(extra.recv_amount(), 0.0);
+        assert_eq!(extra.send_amount(), 0.0);
+        assert_eq!(extra_bis.recv_amount(), 0.0);
+        assert_eq!(extra_bis.send_amount(), 0.0);
     }
 
     #[test]
@@ -202,15 +202,15 @@ mod tests {
         let rez = pool.execute_swap_from_x(2.0, 0.0);
 
         // trades executed after getting in range
-        assert!(rez.0 > 0.0);
-        assert!(rez.1 < 0.0);
+        assert!(rez.recv_amount() > 0.0);
+        assert!(rez.send_amount() < 0.0);
         assert!(pool.glbl_liq() > 0.0);
         assert!(pool.x_info().0 > 0.0);
         assert!(pool.glbl_rp().powi(2) > 100.0);
         assert!(pool.glbl_rp().powi(2) < 150.0);
 
         if Pool::ADJ_WHOLE_FILL == 0.0 {
-            assert_eq!(rez.0, 2.0); // when ADJ_WHOLE_FILL set to zero
+            assert_eq!(rez.recv_amount(), 2.0); // when ADJ_WHOLE_FILL set to zero
         }
         if Pool::FLOOR_LIQ {
             assert_eq!(pool.glbl_liq(), 327.0); // if liq.floor() is used in depost function
@@ -227,10 +227,10 @@ mod tests {
 
         if Pool::ADJ_WHOLE_FILL > 0.0 {
             let rez = pool.execute_swap_from_x(7.0, 0.0);
-            assert!(rez.0 > 4.0); // executed more than available in first range
-            assert!(rez.0 < 7.0);
+            assert!(rez.recv_amount() > 4.0); // executed more than available in first range
+            assert!(rez.recv_amount() < 7.0);
 
-            println!("{:?}", pool);
+            // println!("{:?}", pool);
         }
     }
 
@@ -245,15 +245,15 @@ mod tests {
 
         if Pool::ADJ_WHOLE_FILL == 1.0e-12 {
             if Pool::FLOOR_LIQ {
-                assert_eq!(rez.0, -1.9984356160623287_f64); // with liq.floor() in deposit
-                assert_eq!(rez.1, 4894.779514837586_f64); // with liq.floor() in deposit
-                assert_eq!(x, 1.9984356160643284_f64 + rez.0); // with liq.floor() in deposit
-                assert_eq!(y, 3998.3195353714877_f64 + rez.1); // with liq.floor() in deposit
+                assert_eq!(rez.send_amount(), -1.9984356160623287_f64); // with liq.floor() in deposit
+                assert_eq!(rez.recv_amount(), 4894.779514837586_f64); // with liq.floor() in deposit
+                assert_eq!(x, 1.9984356160643284_f64 + rez.send_amount()); // with liq.floor() in deposit
+                assert_eq!(y, 3998.3195353714877_f64 + rez.recv_amount()); // with liq.floor() in deposit
             } else {
-                assert_eq!(rez.0, -1.9992755440209227_f64); // without liq flooring
-                assert_eq!(rez.1, 4896.836755077212_f64); // without liq flooring
-                assert_eq!(x, 1.999275544022923_f64 + rez.0); // without liq flooring
-                assert_eq!(y, 4000_f64 + rez.1); // without liq flooring
+                assert_eq!(rez.send_amount(), -1.9992755440209227_f64); // without liq flooring
+                assert_eq!(rez.recv_amount(), 4896.836755077212_f64); // without liq flooring
+                assert_eq!(x, 1.999275544022923_f64 + rez.send_amount()); // without liq flooring
+                assert_eq!(y, 4000_f64 + rez.recv_amount()); // without liq flooring
             }
         }
         assert_eq!(x_adj, 0_f64);
@@ -293,10 +293,10 @@ mod tests {
         let extra_bis = pool_bis.execute_swap_from_y(500.0, 0.0);
 
         //so swapped amount shoud be zero
-        assert_eq!(extra.0, 0.0);
-        assert_eq!(extra.1, 0.0);
-        assert_eq!(extra_bis.0, 0.0);
-        assert_eq!(extra_bis.1, 0.0);
+        assert_eq!(extra.send_amount(), 0.0);
+        assert_eq!(extra.recv_amount(), 0.0);
+        assert_eq!(extra_bis.send_amount(), 0.0);
+        assert_eq!(extra_bis.recv_amount(), 0.0);
     }
 
     #[test]
@@ -312,15 +312,15 @@ mod tests {
         let rez = pool.execute_swap_from_y(200.0, 0.0);
 
         // trades executed after getting in range
-        assert!(rez.0 < 0.0);
-        assert!(rez.1 > 0.0);
+        assert!(rez.send_amount() < 0.0);
+        assert!(rez.recv_amount() > 0.0);
         assert!(pool.glbl_liq() > 0.0);
         assert!(pool.y_info().0 > 0.0);
         assert!(pool.glbl_rp().powi(2) > 180.0);
         assert!(pool.glbl_rp().powi(2) < 230.0);
 
         if Pool::ADJ_WHOLE_FILL == 0.0 {
-            assert_eq!(rez.1, 200.0); // when ADJ_WHOLE_FILL set to zero
+            assert_eq!(rez.recv_amount(), 200.0); // when ADJ_WHOLE_FILL set to zero
         }
         if Pool::FLOOR_LIQ {
             assert_eq!(pool.glbl_liq(), 465.0); // if liq.floor() is used in depost function
@@ -337,9 +337,9 @@ mod tests {
 
         if Pool::ADJ_WHOLE_FILL > 0.0 {
             let rez = pool.execute_swap_from_y(1500.0, 0.0);
-            assert!(rez.1 > 600.0); // executed more than available in first range
-            assert!(rez.1 < 1500.0);
-            assert!(rez.5 < 250.0); // end_price in upper range
+            assert!(rez.recv_amount() > 600.0); // executed more than available in first range
+            assert!(rez.recv_amount() < 1500.0);
+            assert!(rez.end_price() < 250.0); // end_price in upper range
             assert!(pool.glbl_rp().powi(2) > 210.0); // end_price in upper range
 
             // println!("{:?}", pool);

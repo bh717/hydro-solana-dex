@@ -8,10 +8,10 @@ mod tests {
 
     #[test]
     fn test_hmm_no_fees() {
-        let mut amm_pool = Pool::new("ETH", 18, "USDC", 6, 2000_f64.sqrt(), 1, 0.0, 0.0);
-        amm_pool.deposit("abc", 2.0, 4000.0, 1333_f64.sqrt(), 3000_f64.sqrt());
-        let (x_a, x_adj_a, x_fee_a) = amm_pool.x_info();
-        let (y_a, y_adj_a, y_fee_a) = amm_pool.y_info();
+        let mut cpmm_pool = Pool::new("ETH", 18, "USDC", 6, 2000_f64.sqrt(), 1, 0.0, 0.0);
+        cpmm_pool.deposit("abc", 2.0, 4000.0, 1333_f64.sqrt(), 3000_f64.sqrt());
+        let (x_a, x_adj_a, x_fee_a) = cpmm_pool.x_info();
+        let (y_a, y_adj_a, y_fee_a) = cpmm_pool.y_info();
 
         let mut hmm_pool = Pool::new("ETH", 18, "USDC", 6, 2000_f64.sqrt(), 1, 1.5, 0.0);
         hmm_pool.deposit("abc", 2.0, 4000.0, 1333_f64.sqrt(), 3000_f64.sqrt());
@@ -26,56 +26,62 @@ mod tests {
         assert_eq!(y_adj_a, y_adj_h);
         assert_eq!(y_fee_a, y_fee_h);
 
-        let rez_a = amm_pool.execute_swap_from_x(3.0, 1500_f64.sqrt());
+        let rez_a = cpmm_pool.execute_swap_from_x(3.0, 1500_f64.sqrt());
         let rez_h = hmm_pool.execute_swap_from_x(3.0, 1500_f64.sqrt());
         // same quantity of X swapped
-        assert_eq!(rez_h.0, rez_a.0);
+        assert_eq!(rez_h.recv_amount(), rez_a.recv_amount());
         // hmm gives out less of  asset Y (smaller abs value)
-        assert!(rez_h.1.abs() < rez_a.1.abs());
+        assert!(rez_h.send_amount().abs() < rez_a.send_amount().abs());
         // same end price for the pool
-        assert_eq!(rez_h.5, rez_a.5);
+        assert_eq!(rez_h.end_price(), rez_a.end_price());
         // pool buying X, hmm_pool buys at cheaper avg price
-        assert!(rez_h.4 < rez_a.4);
+        assert!(rez_h.avg_price() < rez_a.avg_price());
         // y_adj accounts for the difference in Y given out
-        assert_eq!(rez_h.2, rez_a.1.abs() - rez_h.1.abs());
+        assert_eq!(
+            rez_h.send_hmm_adj(),
+            rez_a.send_amount().abs() - rez_h.send_amount().abs()
+        );
 
         // post reserves are the same. hmm impact in taken out of reserves and put into adj_fee pot
-        assert_eq!(hmm_pool.x_info().0, amm_pool.x_info().0);
-        assert_eq!(hmm_pool.y_info().0, amm_pool.y_info().0);
+        assert_eq!(hmm_pool.x_info().0, cpmm_pool.x_info().0);
+        assert_eq!(hmm_pool.y_info().0, cpmm_pool.y_info().0);
         // global price and tick are the same
-        assert_eq!(hmm_pool.glbl_tick(), amm_pool.glbl_tick());
-        assert_eq!(hmm_pool.glbl_rp(), amm_pool.glbl_rp());
+        assert_eq!(hmm_pool.glbl_tick(), cpmm_pool.glbl_tick());
+        assert_eq!(hmm_pool.glbl_rp(), cpmm_pool.glbl_rp());
 
         if Pool::ADJ_WHOLE_FILL == 1.0e-12 && Pool::FLOOR_LIQ {
             assert_eq!(hmm_pool.y_info().1, 299.9158574252024_f64);
             assert_eq!(hmm_pool.glbl_rp(), 1332.937255554048_f64.sqrt());
-            assert_eq!(rez_h.4, 1510.2149015882912_f64);
+            assert_eq!(rez_h.avg_price(), 1510.2149015882912_f64);
         }
         // do another swap, from Y this time
-        let res_a = amm_pool.execute_swap_from_y(3955.0, 1700_f64.sqrt());
+        let res_a = cpmm_pool.execute_swap_from_y(3955.0, 1700_f64.sqrt());
         let res_h = hmm_pool.execute_swap_from_y(3955.0, 1700_f64.sqrt());
         // same quantity of Y swapped
-        assert_eq!(res_h.1, res_a.1);
+        assert_eq!(res_h.recv_amount(), res_a.recv_amount());
         // hmm gives out less of  asset X (smaller abs value)
-        assert!(res_h.0.abs() < res_a.0.abs());
+        assert!(res_h.send_amount().abs() < res_a.send_amount().abs());
         // same end price for the pool
-        assert_eq!(res_h.5, res_a.5);
+        assert_eq!(res_h.end_price(), res_a.end_price());
         // pool buying Y (selling X), hmm_pool sell at higher avg price
-        assert!(res_h.4 > res_a.4);
+        assert!(res_h.end_price() > res_a.avg_price());
         // x_adj accounts for the difference in X given out
-        assert_eq!(res_h.2, res_a.0.abs() - res_h.0.abs());
+        assert_eq!(
+            res_h.send_hmm_adj(),
+            res_a.send_amount().abs() - res_h.send_amount().abs()
+        );
 
         // post reserves, global price and tick are still the same after 2 swaps
-        assert_eq!(hmm_pool.x_info().0, amm_pool.x_info().0);
-        assert_eq!(hmm_pool.y_info().0, amm_pool.y_info().0);
-        assert_eq!(hmm_pool.glbl_tick(), amm_pool.glbl_tick());
-        assert_eq!(hmm_pool.glbl_rp(), amm_pool.glbl_rp());
+        assert_eq!(hmm_pool.x_info().0, cpmm_pool.x_info().0);
+        assert_eq!(hmm_pool.y_info().0, cpmm_pool.y_info().0);
+        assert_eq!(hmm_pool.glbl_tick(), cpmm_pool.glbl_tick());
+        assert_eq!(hmm_pool.glbl_rp(), cpmm_pool.glbl_rp());
 
         if Pool::ADJ_WHOLE_FILL == 1.0e-12 && Pool::FLOOR_LIQ {
             assert_eq!(hmm_pool.x_info().1, 0.13381481787398464_f64);
             assert_eq!(hmm_pool.y_info().1, 299.9158574252024_f64); // still same
             assert_eq!(hmm_pool.glbl_rp(), 1991.8871664747417_f64.sqrt());
-            assert_eq!(res_h.4, 1724.5093970632417_f64);
+            assert_eq!(res_h.avg_price(), 1724.5093970632417_f64);
         }
     }
 
@@ -100,33 +106,51 @@ mod tests {
 
         if x_to_swap > x_in_pool_n {
             // fee impact: more X received for same amount of Y given out
-            assert!(rez_f.0 > rez_n.0 && rez_f.1.abs() == rez_n.1.abs());
+            assert!(
+                rez_f.recv_amount() > rez_n.recv_amount()
+                    && rez_f.send_amount().abs() == rez_n.send_amount().abs()
+            );
             // same amount of Y given out ==> price impact is same
-            assert!(rez_f.5 == rez_n.5);
+            assert!(rez_f.end_price() == rez_n.end_price());
             // x_fee accounts for the difference between (x post_swap)  and (amt sent in + x pre_swap)
-            assert!(x_in_pool_f + rez_f.0 - (hmm_feed.x_info().0 + rez_f.3) < rez_f.3 * 1e-12);
-            assert_eq!(x_in_pool_n + rez_n.0, hmm_nofee.x_info().0 + rez_n.3);
+            assert!(
+                x_in_pool_f + rez_f.recv_amount() - (hmm_feed.x_info().0 + rez_f.recv_fee())
+                    < rez_f.recv_fee() * 1e-12
+            );
+            assert_eq!(
+                x_in_pool_n + rez_n.recv_amount(),
+                hmm_nofee.x_info().0 + rez_n.recv_fee()
+            );
         } else {
             // fee impact: same X received for less amount of Y given out
-            assert!(rez_f.0 == rez_n.0 && rez_f.1.abs() < rez_n.1.abs());
+            assert!(
+                rez_f.recv_amount() == rez_n.recv_amount()
+                    && rez_f.send_amount().abs() < rez_n.send_amount().abs()
+            );
             // less amount of Y given out ==> price impact is smaller (falls less)
-            assert!(rez_f.5 > rez_n.5);
+            assert!(rez_f.end_price() > rez_n.end_price());
             // x_fee accounts for the difference between (x post_swap)  and (amt sent in + x pre_swap)
             //* here small diff due to error in fee_x 'reverse-engineering' (line 774 )
-            assert!(x_in_pool_f + rez_f.0 - (hmm_feed.x_info().0 + rez_f.3) < rez_f.3 * 1e-12);
-            assert_eq!(x_in_pool_n + rez_n.0, hmm_nofee.x_info().0 + rez_n.3);
+            assert!(
+                x_in_pool_f + rez_f.recv_amount() - (hmm_feed.x_info().0 + rez_f.recv_fee())
+                    < rez_f.recv_fee() * 1e-12
+            );
+            assert_eq!(
+                x_in_pool_n + rez_n.recv_amount(),
+                hmm_nofee.x_info().0 + rez_n.recv_fee()
+            );
         }
         // EITHER WAY, pool buying X so with fees, pool buys at cheaper avg price
-        assert!(rez_f.4 < rez_n.4);
+        assert!(rez_f.avg_price() < rez_n.avg_price());
 
         // the fee charged is in fee pot
-        assert_eq!(hmm_feed.x_info().2, rez_f.3);
-        assert_eq!(hmm_nofee.x_info().2, rez_n.3);
+        assert_eq!(hmm_feed.x_info().2, rez_f.recv_fee());
+        assert_eq!(hmm_nofee.x_info().2, rez_n.recv_fee());
         // and it is not zero
         assert!(hmm_feed.x_info().2 > 0.0);
         assert!(hmm_nofee.x_info().2 == 0.0);
 
-        assert!((rez_f.3 / rez_f.0 - fee_rate).abs() < 1e-8_f64);
+        assert!((rez_f.recv_fee() / rez_f.recv_amount() - fee_rate).abs() < 1e-8_f64);
 
         // before withdrawal x_fee and y_adj are in the fee pots
         assert!(hmm_feed.x_info().2 + hmm_feed.y_info().1 > 0.0);
@@ -169,8 +193,8 @@ mod tests {
         let new_p = pool.glbl_rp().powi(2);
 
         // even tiniest of trades moves the needle (price) and is executed
-        assert!(rez.0 > 0.0);
-        assert!(rez.1 < 0.0);
+        assert!(rez.recv_amount() > 0.0);
+        assert!(rez.send_amount() < 0.0);
         assert!(orig_tick >= new_tick);
         assert!(orig_p > new_p);
     }
