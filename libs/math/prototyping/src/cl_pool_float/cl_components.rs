@@ -210,3 +210,73 @@ impl PositionState {
         (self.fr_x, self.fr_y, self.hr_x, self.hr_y)
     }
 }
+
+#[derive(Debug)]
+pub struct SwapWithinResult {
+    recv_amount: f64,
+    send_amount: f64,
+    end_tick: u32,
+    end_rp: f64,
+    cross: bool,
+    send_hmm_adj: f64,
+    recv_fee: f64,
+}
+// (done_dx, done_dy, end_t, end_rp, cross, hmm_adj_y, fee_x)
+
+impl SwapWithinResult {
+    pub fn new(
+        recv_amount: f64,
+        send_amount: f64,
+        end_tick: u32,
+        end_rp: f64,
+        cross: bool,
+        send_hmm_adj: f64,
+        recv_fee: f64,
+    ) -> Self {
+        // TODO add validations here
+        Self {
+            recv_amount,
+            send_amount,
+            end_tick,
+            end_rp,
+            cross,
+            send_hmm_adj,
+            recv_fee,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct SwapResult {
+    recv_amount: f64,
+    send_amount: f64,
+    send_hmm_adj: f64,
+    recv_fee: f64,
+    end_tick: u32,
+    avg_price: f64,
+    end_price: f64,
+}
+// (swpd_dx, swpd_dy, adjusted_dy, total_fee_x, avg_p, end_p)
+
+impl SwapResult {
+    pub fn new(
+        recv_amount: f64,
+        send_amount: f64,
+        send_hmm_adj: f64,
+        recv_fee: f64,
+        end_tick: u32,
+        avg_price: f64,
+        end_price: f64,
+    ) -> Self {
+        // TODO add validations here
+        Self {
+            recv_amount,
+            send_amount,
+            send_hmm_adj,
+            recv_fee,
+            end_tick,
+            avg_price,
+            end_price,
+        }
+    }
+}
