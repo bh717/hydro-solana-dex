@@ -1,5 +1,4 @@
 use crate::constants::*;
-use crate::errors::*;
 use crate::state::pool_state::PoolState;
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};

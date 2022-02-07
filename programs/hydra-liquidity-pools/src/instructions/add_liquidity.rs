@@ -4,14 +4,11 @@ use crate::events::deposit_ratio_incorrect::DepositRatioIncorrect;
 use crate::events::lp_tokens_issued::LpTokensIssued;
 use crate::events::slippage_exceeded::SlippageExceeded;
 use crate::state::pool_state::PoolState;
-use crate::utils::{to_u128, to_u64};
 use crate::ProgramResult;
 use anchor_lang::prelude::*;
-use anchor_lang::solana_program::native_token::LAMPORTS_PER_SOL;
 use anchor_spl::token;
-use anchor_spl::token::{burn, Mint, MintTo, Token, TokenAccount, Transfer};
+use anchor_spl::token::{Mint, MintTo, Token, TokenAccount, Transfer};
 use hydra_math::math::sqrt_precise;
-use num::traits::real::Real;
 use spl_math::precise_number::PreciseNumber;
 
 #[derive(Accounts)]
@@ -132,10 +129,9 @@ impl<'info> AddLiquidity<'info> {
         let x_total = self.token_a_vault.amount;
         let y_total = self.token_b_vault.amount;
         let lp_total = self.lp_token_mint.supply;
-        let mut lp_tokens_to_issue = PreciseNumber::new(0 as u128).unwrap();
 
         if self.pool_state.debug {
-            msg!("MIN_LIQUIDITY: {}", to_u128(MIN_LIQUIDITY)?);
+            msg!("MIN_LIQUIDITY: {}", MIN_LIQUIDITY);
             msg!("x: {}", x);
             msg!("y: {}", y);
             msg!("x_total: {}", x_total);
@@ -144,14 +140,15 @@ impl<'info> AddLiquidity<'info> {
         }
 
         if x_total == 0 || y_total == 0 {
-            lp_tokens_to_issue = Self::lp_tokens_to_mint_first_deposit(x, y)?;
+            Ok(Self::lp_tokens_to_mint_first_deposit(x, y)?
+                .to_imprecise()
+                .unwrap() as u64)
         } else {
-            lp_tokens_to_issue =
-                self.lp_tokens_to_mint_following_deposits(x, y, x_total, y_total, lp_total)?;
+            Ok(self
+                .lp_tokens_to_mint_following_deposits(x, y, x_total, y_total, lp_total)?
+                .to_imprecise()
+                .unwrap() as u64)
         }
-
-        msg!("lp_tokens_to_issue: {}", lp_tokens_to_issue.value);
-        Ok(lp_tokens_to_issue.to_imprecise().unwrap() as u64)
     }
 
     fn check_deposit_ration_correct(
