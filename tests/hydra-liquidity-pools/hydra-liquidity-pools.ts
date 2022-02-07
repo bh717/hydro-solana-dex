@@ -51,7 +51,7 @@ describe ("hydra-liquidity-pool", async () => {
   });
 
   it('should create lpTokenMint with poolState as the authority and a lpTokenAccount', async () => {
-    await createMint(provider, lpTokenMint,poolState, 6)
+    await createMint(provider, lpTokenMint,poolState, 9)
     lpTokenAccount = await createTokenAccount(provider, lpTokenMint.publicKey, provider.wallet.publicKey)
   });
 
@@ -108,7 +108,7 @@ describe ("hydra-liquidity-pool", async () => {
     try {
       const tx =
           await program.rpc.addLiquidity(
-              new BN(255_575_287_200), // token_a_amount: $255,575.2872 usdc's @ ($42595.8812 each)
+              new BN(255_575_287_200), //$255,575.2872 usdc's @ ($42595.8812 each)
               new BN(6_000_000), // token_b_amount: 6, bitcoins
               new BN(1238326178),
               {
@@ -142,7 +142,7 @@ describe ("hydra-liquidity-pool", async () => {
     await program.rpc.addLiquidity(
         new BN(6_000_000),        // 6, bitcoins
         new BN(255_575_287_200),  // $255,575.2872 usdc's @($42595.8812 each)
-        new BN(1238326177),
+        new BN(1238326078),
         {
           accounts: {
             poolState: poolState,
@@ -159,7 +159,7 @@ describe ("hydra-liquidity-pool", async () => {
           }
         }
     )
-    assert.strictEqual((await getTokenBalance(provider, lpTokenAccount)).toNumber(), 1238326177)
+    assert.strictEqual((await getTokenBalance(provider, lpTokenAccount)).toNumber(), 1238326078)
     assert.strictEqual((await getTokenBalance(provider, btcdAccount)).toNumber(), btcdAmount.isub(new BN(6_000_000)).toNumber())
     assert.strictEqual((await getTokenBalance(provider, usddAccount)).toNumber(), usddAmont.isub( new BN(255_575_287_200)).toNumber())
   });
@@ -193,7 +193,7 @@ describe ("hydra-liquidity-pool", async () => {
     }
 
     // no changes from last test case.
-    assert.strictEqual((await getTokenBalance(provider, lpTokenAccount)).toNumber(), 1238326177)
+    assert.strictEqual((await getTokenBalance(provider, lpTokenAccount)).toNumber(), 1238326078)
     assert.strictEqual((await getTokenBalance(provider, btcdAccount)).toNumber(), btcdAmount.toNumber())
     assert.strictEqual((await getTokenBalance(provider, usddAccount)).toNumber(), usddAmont.toNumber())
   });
@@ -219,7 +219,7 @@ describe ("hydra-liquidity-pool", async () => {
           }
         }
     )
-    assert.strictEqual((await getTokenBalance(provider, lpTokenAccount)).toNumber(), 1238326177 + 3302203139)
+    assert.strictEqual((await getTokenBalance(provider, lpTokenAccount)).toNumber(), 1238326078 + 2476652156)
     assert.strictEqual((await getTokenBalance(provider, btcdAccount)).toNumber(), btcdAmount.isub(new BN(16_000_000)).toNumber())
     assert.strictEqual((await getTokenBalance(provider, usddAccount)).toNumber(), usddAmont.isub( new BN(681_534_099_200)).toNumber())
   });

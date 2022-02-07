@@ -1,6 +1,7 @@
 use crate::constants::*;
 use crate::errors::ErrorCode;
 use crate::events::lp_tokens_issued::LpTokensIssued;
+use crate::events::slippage_exceeded::SlippageExceeded;
 use crate::state::pool_state::PoolState;
 use crate::utils::{to_u128, to_u64};
 use crate::ProgramResult;
@@ -79,7 +80,7 @@ pub struct AddLiquidity<'info> {
     pub token_program: Program<'info, Token>,
 }
 
-const MIN_LIQUIDITY: u64 = 1;
+const MIN_LIQUIDITY: u64 = 100;
 
 impl<'info> AddLiquidity<'info> {
     pub fn into_transfer_user_token_a_to_vault(
@@ -181,6 +182,8 @@ impl<'info> AddLiquidity<'info> {
         // // lp_tokens_to_issue = (x / x_total) * lp_total;
         Ok(x.checked_div(&x_total)
             .unwrap()
+            .floor()
+            .unwrap()
             .checked_mul(&lp_total)
             .unwrap())
     }
@@ -192,6 +195,8 @@ impl<'info> AddLiquidity<'info> {
 
         // sqrt(x * y) - 1
         Ok(sqrt_precise(&x.checked_mul(&y).unwrap())
+            .unwrap()
+            .floor()
             .unwrap()
             .checked_sub(&min_liquidity)
             .unwrap())
@@ -240,13 +245,19 @@ pub fn handle(
         .calculate_lp_tokens_to_issue(token_a_amount, token_b_amount)?;
 
     if !(lp_tokens_to_issue >= minimum_lp_tokens_requested_by_user) {
-        // TODO emit event
-        msg!("Error: SlippageExceeded");
-        msg!(
-            "minimum_lp_tokens_requested_by_user: {}",
-            minimum_lp_tokens_requested_by_user
-        );
-        msg!("lp_tokens_to_issue: {}", lp_tokens_to_issue);
+        emit!(SlippageExceeded {
+            minimum_lp_tokens_requested_by_user: minimum_lp_tokens_requested_by_user,
+            lp_tokens_to_issue: lp_tokens_to_issue,
+        });
+
+        if ctx.accounts.pool_state.debug {
+            msg!("Error: SlippageExceeded");
+            msg!(
+                "minimum_lp_tokens_requested_by_user: {}",
+                minimum_lp_tokens_requested_by_user
+            );
+            msg!("lp_tokens_to_issue: {}", lp_tokens_to_issue);
+        }
         return Err(ErrorCode::SlippageExceeded.into());
     }
 
