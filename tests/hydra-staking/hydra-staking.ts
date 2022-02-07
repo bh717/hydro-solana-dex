@@ -85,9 +85,9 @@ describe('hydra-staking',  async () => {
                 signers: [(program.provider.wallet as NodeWallet).payer]
             }
         )
-        assert.strictEqual(await getTokenBalance(program.provider, redeemableTokenAccount), 1000)
-        assert.strictEqual(await getTokenBalance(program.provider, tokenVaultPubkey), 1000)
-        assert.strictEqual(await getTokenBalance(program.provider, TokenAccount.publicKey), 99999000)
+        assert.strictEqual((await getTokenBalance(program.provider, redeemableTokenAccount)).toNumber(), 1000)
+        assert.strictEqual((await getTokenBalance(program.provider, tokenVaultPubkey)).toNumber(), 1000)
+        assert.strictEqual((await getTokenBalance(program.provider, TokenAccount.publicKey)).toNumber(), 99999000)
     });
 
     it('should stake tokens into the token_vault for a second time', async () => {
@@ -106,9 +106,9 @@ describe('hydra-staking',  async () => {
                 }
             }
         )
-        assert.strictEqual(await getTokenBalance(program.provider, redeemableTokenAccount), 5000)
-        assert.strictEqual(await getTokenBalance(program.provider, tokenVaultPubkey), 5000)
-        assert.strictEqual(await getTokenBalance(program.provider, TokenAccount.publicKey), 99995000)
+        assert.strictEqual((await getTokenBalance(program.provider, redeemableTokenAccount)).toNumber(), 5000)
+        assert.strictEqual((await getTokenBalance(program.provider, tokenVaultPubkey)).toNumber(), 5000)
+        assert.strictEqual((await getTokenBalance(program.provider, TokenAccount.publicKey)).toNumber(), 99995000)
     });
 
     it('should transfer tokens into the vault directly', async () => {
@@ -118,9 +118,9 @@ describe('hydra-staking',  async () => {
             tokenVaultPubkey,
             99995000,
         )
-        assert.strictEqual(await getTokenBalance(program.provider, tokenVaultPubkey), 100000000)
-        assert.strictEqual(await getTokenBalance(program.provider, redeemableTokenAccount), 5000)
-        assert.strictEqual(await getTokenBalance(program.provider, TokenAccount.publicKey), 0)
+        assert.strictEqual((await getTokenBalance(program.provider, tokenVaultPubkey)).toNumber(), 100000000)
+        assert.strictEqual((await getTokenBalance(program.provider, redeemableTokenAccount)).toNumber(), 5000)
+        assert.strictEqual((await getTokenBalance(program.provider, TokenAccount.publicKey)).toNumber(), 0)
     });
 
     it('should unStake 100% of the vault', async () => {
@@ -139,8 +139,8 @@ describe('hydra-staking',  async () => {
                 }
             }
         )
-        assert.strictEqual(await getTokenBalance(program.provider, redeemableTokenAccount), 0)
-        assert.strictEqual(await getTokenBalance(program.provider, tokenVaultPubkey), 0)
-        assert.strictEqual(await getTokenBalance(program.provider, TokenAccount.publicKey), 100000000)
+        assert.strictEqual((await getTokenBalance(program.provider, redeemableTokenAccount)).toNumber(), 0)
+        assert.strictEqual((await getTokenBalance(program.provider, tokenVaultPubkey)).toNumber(), 0)
+        assert.strictEqual((await getTokenBalance(program.provider, TokenAccount.publicKey)).toNumber(), 100000000)
     });
 });

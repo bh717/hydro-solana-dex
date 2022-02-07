@@ -4,7 +4,7 @@ import * as fs from "fs";
 import * as anchor from '@project-serum/anchor';
 import {Provider} from "@project-serum/anchor";
 import { PublicKey, Keypair, Transaction, SystemProgram, TransactionSignature } from "@solana/web3.js"
-import * as BN from "bn.js"
+import {BN} from '@project-serum/anchor';
 import { TokenInstructions } from "@project-serum/serum"
 import {createMintInstructions, NodeWallet} from "@project-serum/common";
 
@@ -111,5 +111,5 @@ export async function createMintAndVault(
 }
 
 export async function getTokenBalance(provider: Provider, pubkey: PublicKey) {
-    return parseInt((await provider.connection.getTokenAccountBalance(pubkey)).value.amount);
+    return new BN((await provider.connection.getTokenAccountBalance(pubkey)).value.amount);
 }
