@@ -244,9 +244,6 @@ pub fn handle(
     ];
     let signer = [&seeds[..]];
 
-    let mut cpi_tx = ctx.accounts.into_mint_lp_token();
-    cpi_tx.signer_seeds = &signer;
-
     let lp_tokens_to_issue = ctx
         .accounts
         .calculate_lp_tokens_to_issue(token_a_amount, token_b_amount)?;
@@ -269,6 +266,8 @@ pub fn handle(
     }
 
     // mint lp tokens to users account
+    let mut cpi_tx = ctx.accounts.into_mint_lp_token();
+    cpi_tx.signer_seeds = &signer;
     token::mint_to(cpi_tx, lp_tokens_to_issue)?;
 
     if ctx.accounts.pool_state.debug {
