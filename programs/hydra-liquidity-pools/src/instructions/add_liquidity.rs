@@ -14,7 +14,7 @@ use spl_math::precise_number::PreciseNumber;
 #[derive(Accounts)]
 pub struct AddLiquidity<'info> {
     #[account(
-        seeds = [ POOL_STATE_SEED, token_a_mint.key().as_ref(), token_b_mint.key().as_ref(), lp_token_mint.key().as_ref() ],
+        seeds = [ POOL_STATE_SEED, lp_token_mint.key().as_ref() ],
         bump,
     )]
     pub pool_state: Box<Account<'info, PoolState>>,
@@ -239,8 +239,6 @@ pub fn handle(
 
     let seeds = &[
         POOL_STATE_SEED,
-        ctx.accounts.pool_state.token_a_mint.as_ref(),
-        ctx.accounts.pool_state.token_b_mint.as_ref(),
         ctx.accounts.pool_state.lp_token_mint.as_ref(),
         &[ctx.accounts.pool_state.pool_state_bump],
     ];

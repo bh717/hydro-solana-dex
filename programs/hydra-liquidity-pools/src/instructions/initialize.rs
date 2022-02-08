@@ -14,7 +14,7 @@ pub struct Initialize<'info> {
     #[account(
         init,
         payer = payer,
-        seeds = [ POOL_STATE_SEED, token_a_mint.key().as_ref(), token_b_mint.key().as_ref(), lp_token_mint.key().as_ref() ],
+        seeds = [ POOL_STATE_SEED, lp_token_mint.key().as_ref() ],
         bump = pool_state_bump,
         rent_exempt = enforce,
     )]

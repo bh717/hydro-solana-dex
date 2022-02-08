@@ -44,7 +44,7 @@ describe ("hydra-liquidity-pool", async () => {
 
   it('should get the PDA for the PoolState', async () => {
     [poolState, poolStateBump] = await anchor.web3.PublicKey.findProgramAddress(
-        [utf8.encode("pool_state_seed"), btcdMint.toBuffer(), usddMint.toBuffer(), lpTokenMint.publicKey.toBuffer() ],
+        [utf8.encode("pool_state_seed"), lpTokenMint.publicKey.toBuffer() ],
         program.programId
     );
   });
