@@ -8,6 +8,7 @@ import {createMint, getTokenBalance} from "../utils/utils";
 import {Keypair} from "@solana/web3.js";
 import {TOKEN_PROGRAM_ID} from "@project-serum/serum/lib/token-instructions";
 const utf8 = anchor.utils.bytes.utf8;
+import {btcdMintAmount, usddMintAmount} from "../const"
 
 describe ("hydra-liquidity-pool", async () => {
   // Configure the client to use the local cluster.
@@ -31,15 +32,13 @@ describe ("hydra-liquidity-pool", async () => {
   let tokenAVaultBump
   let tokenBVaultBump
 
-  const btcdAmount = new BN(21_000_000_000_000)
-  const usddAmont  = new BN(100_000_000_000_000)
 
   it('should create btcdMint (21 million)', async () =>  {
-    [btcdMint, btcdAccount ] = await createMintAndVault(provider, btcdAmount ,provider.wallet.publicKey, 6)
+    [btcdMint, btcdAccount ] = await createMintAndVault(provider, btcdMintAmount, provider.wallet.publicKey, 6)
   });
 
   it('should create usddMint (100 million)', async () =>  {
-    [usddMint, usddAccount ] = await createMintAndVault(provider, usddAmont,provider.wallet.publicKey, 6)
+    [usddMint, usddAccount ] = await createMintAndVault(provider, usddMintAmount, provider.wallet.publicKey, 6)
   });
 
   it('should get the PDA for the PoolState', async () => {
@@ -131,8 +130,8 @@ describe ("hydra-liquidity-pool", async () => {
     }
 
     assert.strictEqual((await getTokenBalance(provider, lpTokenAccount)).toNumber(), 0)
-    assert.strictEqual((await getTokenBalance(provider, btcdAccount)).toNumber(), btcdAmount.toNumber())
-    assert.strictEqual((await getTokenBalance(provider, usddAccount)).toNumber(), usddAmont.toNumber())
+    assert.strictEqual((await getTokenBalance(provider, btcdAccount)).toNumber(), btcdMintAmount.toNumber())
+    assert.strictEqual((await getTokenBalance(provider, usddAccount)).toNumber(), usddMintAmount.toNumber())
   });
 
   it('should add-liquidity to pool for the first time', async () => {
@@ -157,8 +156,8 @@ describe ("hydra-liquidity-pool", async () => {
         }
     )
     assert.strictEqual((await getTokenBalance(provider, lpTokenAccount)).toNumber(), 1238326078)
-    assert.strictEqual((await getTokenBalance(provider, btcdAccount)).toNumber(), btcdAmount.isub(new BN(6_000_000)).toNumber())
-    assert.strictEqual((await getTokenBalance(provider, usddAccount)).toNumber(), usddAmont.isub( new BN(255_575_287_200)).toNumber())
+    assert.strictEqual((await getTokenBalance(provider, btcdAccount)).toNumber(), btcdMintAmount.isub(new BN(6_000_000)).toNumber())
+    assert.strictEqual((await getTokenBalance(provider, usddAccount)).toNumber(), usddMintAmount.isub( new BN(255_575_287_200)).toNumber())
   });
 
   it('should not add-liquidity to due to token deposit ratio not aligned', async () => {
@@ -190,8 +189,8 @@ describe ("hydra-liquidity-pool", async () => {
 
     // no changes from last test case.
     assert.strictEqual((await getTokenBalance(provider, lpTokenAccount)).toNumber(), 1238326078)
-    assert.strictEqual((await getTokenBalance(provider, btcdAccount)).toNumber(), btcdAmount.toNumber())
-    assert.strictEqual((await getTokenBalance(provider, usddAccount)).toNumber(), usddAmont.toNumber())
+    assert.strictEqual((await getTokenBalance(provider, btcdAccount)).toNumber(), btcdMintAmount.toNumber())
+    assert.strictEqual((await getTokenBalance(provider, usddAccount)).toNumber(), usddMintAmount.toNumber())
   });
 
   it('should add-liquidity to pool for the second time', async () => {
@@ -216,7 +215,7 @@ describe ("hydra-liquidity-pool", async () => {
         }
     )
     assert.strictEqual((await getTokenBalance(provider, lpTokenAccount)).toNumber(), 1238326078 + 3302202874)
-    assert.strictEqual((await getTokenBalance(provider, btcdAccount)).toNumber(), btcdAmount.isub(new BN(16_000_000)).toNumber())
-    assert.strictEqual((await getTokenBalance(provider, usddAccount)).toNumber(), usddAmont.isub( new BN(681_534_099_200)).toNumber())
+    assert.strictEqual((await getTokenBalance(provider, btcdAccount)).toNumber(), btcdMintAmount.isub(new BN(16_000_000)).toNumber())
+    assert.strictEqual((await getTokenBalance(provider, usddAccount)).toNumber(), usddMintAmount.isub( new BN(681_534_099_200)).toNumber())
   });
 });
