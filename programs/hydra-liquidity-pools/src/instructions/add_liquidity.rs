@@ -151,7 +151,7 @@ impl<'info> AddLiquidity<'info> {
         }
     }
 
-    fn check_deposit_ration_correct(
+    fn check_deposit_ratio_is_correct(
         x: &PreciseNumber,
         y: &PreciseNumber,
         x_total: &PreciseNumber,
@@ -176,7 +176,7 @@ impl<'info> AddLiquidity<'info> {
         let y_total = PreciseNumber::new(y_total as u128).unwrap();
         let lp_total = PreciseNumber::new(lp_total as u128).unwrap();
 
-        if !Self::check_deposit_ration_correct(&x, &y, &x_total, &y_total) {
+        if !Self::check_deposit_ratio_is_correct(&x, &y, &x_total, &y_total) {
             emit!(DepositRatioIncorrect {
                 x: x.to_imprecise().unwrap() as u64,
                 y: y.to_imprecise().unwrap() as u64,
