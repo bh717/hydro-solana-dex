@@ -225,9 +225,9 @@ class Pool:
         return rP - (y / L)
 
     @staticmethod
-    def rPb_from_L_rP_x(L, rP, y):
+    def rPb_from_L_rP_x(L, rP, x):
         """upper bound from L, price and x amount [14]"""
-        return rP - (y / L)
+        return L * rP / (L - rP * x)
 
     # bounds in 1-step calc, from real reserves
     @staticmethod
