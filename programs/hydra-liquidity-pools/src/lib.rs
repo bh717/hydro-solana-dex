@@ -7,7 +7,7 @@ pub mod state;
 mod utils;
 
 use instructions::add_liquidity::*;
-use instructions::initialize_with_first_deposit::*;
+use instructions::initialize::*;
 
 use anchor_lang::prelude::*;
 // use anchor_lang::solana_program::log::sol_log_compute_units;
@@ -32,21 +32,17 @@ pub mod hydra_liquidity_pools {
     use super::*;
 
     /// initialize a new empty pool
-    pub fn initialize_with_first_deposit(
-        ctx: Context<InitializeWithFirstDeposit>,
+    pub fn initialize(
+        ctx: Context<Initialize>,
         token_a_vault_bump: u8,
         token_b_vault_bump: u8,
         pool_state_bump: u8,
-        token_a_amount: u64,
-        token_b_amount: u64,
     ) -> ProgramResult {
-        instructions::initialize_with_first_deposit::handle(
+        instructions::initialize::handle(
             ctx,
             token_a_vault_bump,
             token_b_vault_bump,
             pool_state_bump,
-            token_a_amount,
-            token_b_amount,
         )
     }
 

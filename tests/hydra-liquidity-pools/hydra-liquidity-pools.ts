@@ -68,14 +68,14 @@ describe ("hydra-liquidity-pool", async () => {
   });
 
   it('should initialize a liquidity-pool', async () => {
-    await program.rpc.initializeWithFirstDeposit(
+    await program.rpc.initialize (
         tokenAVaultBump,
         tokenBVaultBump,
         poolStateBump,
         {
           accounts: {
             authority: provider.wallet.publicKey,
-            userAuthority: provider.wallet.publicKey,
+            payer: provider.wallet.publicKey,
             poolState: poolState,
             tokenAMint: btcdMint,
             tokenBMint: usddMint,
