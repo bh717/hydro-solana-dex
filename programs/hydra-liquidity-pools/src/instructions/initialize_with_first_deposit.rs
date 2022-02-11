@@ -1,11 +1,12 @@
 use crate::constants::*;
 use crate::state::pool_state::PoolState;
+use crate::DEBUG_MODE;
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 
 #[derive(Accounts)]
 #[instruction(token_a_vault_bump: u8, token_b_vault_bump: u8, pool_state_bump: u8)]
-pub struct Initialize<'info> {
+pub struct InitializeWithFirstDeposit<'info> {
     pub authority: Signer<'info>,
 
     #[account(mut)]
@@ -60,10 +61,12 @@ pub struct Initialize<'info> {
 }
 
 pub fn handle(
-    ctx: Context<Initialize>,
+    ctx: Context<InitializeWithFirstDeposit>,
     token_a_vault_bump: u8,
     token_b_vault_bump: u8,
     pool_state_bump: u8,
+    token_a_amount: u64,
+    token_b_amount: u64,
 ) -> ProgramResult {
     // save authority
     ctx.accounts.pool_state.authority = *ctx.accounts.authority.to_account_info().key;
@@ -82,8 +85,8 @@ pub fn handle(
     ctx.accounts.pool_state.token_a_vault_bump = token_a_vault_bump;
     ctx.accounts.pool_state.token_b_vault_bump = token_b_vault_bump;
 
-    ctx.accounts.pool_state.debug = true;
+    ctx.accounts.pool_state.debug = DEBUG_MODE;
+    // pool_state is set
 
-    // pool is now live
     Ok(())
 }

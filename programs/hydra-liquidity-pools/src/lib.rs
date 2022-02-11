@@ -7,13 +7,19 @@ pub mod state;
 mod utils;
 
 use instructions::add_liquidity::*;
-use instructions::initialize::*;
+use instructions::initialize_with_first_deposit::*;
 
 use anchor_lang::prelude::*;
 // use anchor_lang::solana_program::log::sol_log_compute_units;
 // use hydra_math::swap_calculator::SwapCalculator;
 
 declare_id!("BBjT5U42SuA6FcVZEofPgjAVZahvtWzHaQ8pJHyKkC5T");
+
+#[cfg(any(feature = "localnet", feature = "devnet", feature = "testnet"))]
+pub const DEBUG_MODE: bool = true;
+
+#[cfg(feature = "mainnet")]
+pub const DEBUG_MODE: bool = false;
 
 pub mod constants {
     pub const TOKEN_VAULT_SEED: &[u8] = b"token_vault_seed";
@@ -24,18 +30,22 @@ pub mod constants {
 pub mod hydra_liquidity_pools {
     use super::*;
 
-    /// initialise a new empty pool
-    pub fn initialize(
-        ctx: Context<Initialize>,
+    /// initialize a new empty pool
+    pub fn initialize_with_first_deposit(
+        ctx: Context<InitializeWithFirstDeposit>,
         token_a_vault_bump: u8,
         token_b_vault_bump: u8,
         pool_state_bump: u8,
+        token_a_amount: u64,
+        token_b_amount: u64,
     ) -> ProgramResult {
-        instructions::initialize::handle(
+        instructions::initialize_with_first_deposit::handle(
             ctx,
             token_a_vault_bump,
             token_b_vault_bump,
             pool_state_bump,
+            token_a_amount,
+            token_b_amount,
         )
     }
 
