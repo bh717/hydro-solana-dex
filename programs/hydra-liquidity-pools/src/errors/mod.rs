@@ -13,4 +13,7 @@ pub enum ErrorCode {
 
     #[msg("Deposit tokens not in the correct ratio")]
     DepositRatioIncorrect,
+
+    #[msg("Pool Already initialized")]
+    PoolAlreadyInitialized,
 }

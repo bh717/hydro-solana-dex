@@ -1,7 +1,7 @@
 use crate::constants::*;
 use crate::errors::ErrorCode;
 use crate::events::deposit_ratio_incorrect::DepositRatioIncorrect;
-use crate::events::lp_tokens_issued::LpTokensIssued;
+use crate::events::lp_tokens_minted::LpTokensMinted;
 use crate::events::slippage_exceeded::SlippageExceeded;
 use crate::state::pool_state::PoolState;
 use crate::ProgramResult;
@@ -78,8 +78,6 @@ pub struct AddLiquidity<'info> {
 
     pub token_program: Program<'info, Token>,
 }
-
-const MIN_LIQUIDITY: u64 = 100;
 
 impl<'info> AddLiquidity<'info> {
     pub fn into_transfer_user_token_a_to_vault(
@@ -272,7 +270,7 @@ pub fn handle(
 
     if ctx.accounts.pool_state.debug {
         msg!("lp_tokens_issued: {}", lp_tokens_to_issue);
-        emit!(LpTokensIssued {
+        emit!(LpTokensMinted {
             amount: lp_tokens_to_issue,
         });
     }

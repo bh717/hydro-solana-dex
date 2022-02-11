@@ -24,6 +24,7 @@ pub const DEBUG_MODE: bool = false;
 pub mod constants {
     pub const TOKEN_VAULT_SEED: &[u8] = b"token_vault_seed";
     pub const POOL_STATE_SEED: &[u8] = b"pool_state_seed";
+    pub const MIN_LIQUIDITY: u64 = 100;
 }
 
 #[program]
