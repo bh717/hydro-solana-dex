@@ -1,13 +1,14 @@
 [package]
-name = "natural-log-rs"
+name = "hydra-proto"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+hydra-math = { path = "../hmm" }
+spl-math = { version = "0.1.0", features = ["no-entrypoint"] }
 solana-program = "1.9.0"
-spl-math = "0.1.0"
 uint = "0.9"
 thiserror = "1.0.30"
 num-derive = "0.3.3"
