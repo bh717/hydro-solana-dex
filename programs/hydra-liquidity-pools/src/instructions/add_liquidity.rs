@@ -243,6 +243,13 @@ pub fn handle(
         .calculate_first_deposit_lp_tokens_to_mint(token_a_amount, token_b_amount)
     {
         // mint and lock lp tokens
+        let mut cpi_tx = ctx.accounts.mint_and_lock_lp_tokens_to_pool_state_account();
+        cpi_tx.signer_seeds = &signer;
+        token::mint_to(cpi_tx, MIN_LIQUIDITY);
+
+        emit!(LpTokensMinted {
+            amount: MIN_LIQUIDITY,
+        });
 
         // mint lp tokens to users account
         let mut cpi_tx = ctx.accounts.mint_lp_tokens_to_user_account();
