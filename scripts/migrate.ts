@@ -53,6 +53,7 @@ async function main() {
 
   // Run userScript with provider
   await userScript(provider);
+  console.log("Finished running script");
 }
 
 main()

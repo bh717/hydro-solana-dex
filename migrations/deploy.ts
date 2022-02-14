@@ -1,11 +1,69 @@
 // This is not run with anchor migrate
 import * as anchor from "@project-serum/anchor";
+import { Program } from "@project-serum/anchor";
+import { HydraStaking } from "../target/types/hydra_staking";
+import { loadKey, createMintAndVault, createMint } from "../tests/utils/utils"; // these should be moved out of test
+import { TokenInstructions } from "@project-serum/serum";
+import { Keypair } from "@solana/web3.js";
+import { NodeWallet } from "@project-serum/common";
+const utf8 = anchor.utils.bytes.utf8;
 
 export default async function (provider: anchor.Provider) {
-  // Configure client to use the provider.
   anchor.setProvider(provider);
 
   // Add your deploy script here.
+  const program = anchor.workspace.HydraStaking as Program<HydraStaking>;
 
-  console.log("hello World");
+  let TokenAccount = Keypair.generate();
+
+  const tokenMint = await loadKey(
+    "tests/keys/hyd3VthE9YPGBeg9HEgZsrM5qPniC6VoaEFeTGkVsJR.json"
+  );
+  const redeemableMint = await loadKey(
+    "tests/keys/xhy1rv75cEJahTbsKnv2TpNhdR7KNUoDPavKuQDwhDU.json"
+  );
+
+  await createMintAndVault(
+    program.provider,
+    tokenMint,
+    TokenAccount,
+    new anchor.BN(100_000_000)
+  );
+
+  const [tokenVaultPubkey, tokenVaultBump] =
+    await anchor.web3.PublicKey.findProgramAddress(
+      [
+        utf8.encode("token_vault_seed"),
+        tokenMint.publicKey.toBuffer(),
+        redeemableMint.publicKey.toBuffer(),
+      ],
+      program.programId
+    );
+
+  await createMint(program.provider, redeemableMint, tokenVaultPubkey);
+
+  const [poolStatePubkey, poolStateBump] =
+    await anchor.web3.PublicKey.findProgramAddress(
+      [
+        utf8.encode("pool_state_seed"),
+        tokenMint.publicKey.toBuffer(),
+        redeemableMint.publicKey.toBuffer(),
+      ],
+      program.programId
+    );
+
+  await program.rpc.initialize(tokenVaultBump, poolStateBump, {
+    accounts: {
+      authority: program.provider.wallet.publicKey,
+      tokenMint: tokenMint.publicKey,
+      redeemableMint: redeemableMint.publicKey,
+      poolState: poolStatePubkey,
+      tokenVault: tokenVaultPubkey,
+      payer: program.provider.wallet.publicKey,
+      systemProgram: anchor.web3.SystemProgram.programId,
+      tokenProgram: TokenInstructions.TOKEN_PROGRAM_ID,
+      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+    },
+    signers: [(program.provider.wallet as NodeWallet).payer],
+  });
 }
