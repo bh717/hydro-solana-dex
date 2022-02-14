@@ -14,6 +14,7 @@ pub struct PoolState {
     pub pool_state_bump: u8,
     pub token_a_vault_bump: u8,
     pub token_b_vault_bump: u8,
+    pub lp_token_vault_bump: u8,
     #[derivative(Default(value = "false"))]
     pub debug: bool,
 }

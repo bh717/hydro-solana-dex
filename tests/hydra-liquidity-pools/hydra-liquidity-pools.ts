@@ -27,10 +27,12 @@ describe ("hydra-liquidity-pool", async () => {
   let poolState
   let tokenAVault
   let tokenBVault
+  let lpTokenVault
 
   let poolStateBump
   let tokenAVaultBump
   let tokenBVaultBump
+  let lpTokenVaultBump
 
 
   it('should create btcdMint (21 million)', async () =>  {
@@ -67,11 +69,19 @@ describe ("hydra-liquidity-pool", async () => {
     )
   });
 
+  it('should get the PDA for lpTokenVault', async () => {
+    [lpTokenVault, lpTokenVaultBump] = await anchor.web3.PublicKey.findProgramAddress(
+        [utf8.encode("lp_token_vault_seed"), poolState.toBuffer(), lpTokenMint.publicKey.toBuffer()],
+        program.programId
+    )
+  });
+
   it('should initialize a liquidity-pool', async () => {
     await program.rpc.initialize (
         tokenAVaultBump,
         tokenBVaultBump,
         poolStateBump,
+        lpTokenVaultBump,
         {
           accounts: {
             authority: provider.wallet.publicKey,
@@ -82,6 +92,7 @@ describe ("hydra-liquidity-pool", async () => {
             lpTokenMint: lpTokenMint.publicKey,
             tokenAVault: tokenAVault,
             tokenBVault: tokenBVault,
+            lpTokenVault: lpTokenVault,
             systemProgram: anchor.web3.SystemProgram.programId,
             tokenProgram: TokenInstructions.TOKEN_PROGRAM_ID,
             rent: anchor.web3.SYSVAR_RENT_PUBKEY,
@@ -141,15 +152,16 @@ describe ("hydra-liquidity-pool", async () => {
         {
           accounts: {
             poolState: poolState,
-            lpTokenMint: lpTokenMint.publicKey,
             tokenAMint: btcdMint,
             tokenBMint: usddMint,
-            tokenAVault: tokenAVault,
-            tokenBVault: tokenBVault,
-            lpTokenTo: lpTokenAccount,
+            lpTokenMint: lpTokenMint.publicKey,
             userTokenA: btcdAccount,
             userTokenB: usddAccount,
             userAuthority: provider.wallet.publicKey,
+            tokenAVault: tokenAVault,
+            tokenBVault: tokenBVault,
+            lpTokenVault: lpTokenVault,
+            lpTokenTo: lpTokenAccount,
             tokenProgram: TOKEN_PROGRAM_ID,
           }
         }
@@ -157,14 +169,27 @@ describe ("hydra-liquidity-pool", async () => {
     assert.strictEqual((await getTokenBalance(provider, lpTokenAccount)).toNumber(), 1238326078)
     assert.strictEqual((await getTokenBalance(provider, btcdAccount)).toNumber(), btcdMintAmount.isub(new BN(6_000_000)).toNumber())
     assert.strictEqual((await getTokenBalance(provider, usddAccount)).toNumber(), usddMintAmount.isub( new BN(255_575_287_200)).toNumber())
+    assert.strictEqual((await getTokenBalance(provider, lpTokenVault)).toNumber(), 100)
+    assert.strictEqual((await getTokenBalance(provider, tokenAVault)).toNumber(), 6000000)
+    assert.strictEqual((await getTokenBalance(provider, tokenBVault)).toNumber(), 255575287200)
   });
   //
   // it('should not add-liquidity to due to token deposit ratio not aligned', async () => {
+  //   program.addEventListener("LpTokensMinted", (e,s) => {
+  //     console.log(e.amount.toString())
+  //   })
+  //
+  //   program.addEventListener("TokensTransferred" , (e,s) => {
+  //     console.log(e.token_a.toString())
+  //     console.log(e.token_b.toString())
+  //   })
+  //
+  //
   //   try {
   //     await program.rpc.addLiquidity(
   //         new BN(255_575_287_200),  // $255,575.2872 usdc's @ ($42595.8812 each)
   //         new BN(6_000_000),        // 6, bitcoins
-  //         new BN(1),
+  //         new BN(1238326077),
   //         {
   //           accounts: {
   //             poolState: poolState,

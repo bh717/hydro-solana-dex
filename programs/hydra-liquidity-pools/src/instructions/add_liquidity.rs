@@ -1,8 +1,7 @@
 use crate::constants::*;
 use crate::errors::ErrorCode;
-use crate::events::deposit_ratio_incorrect::DepositRatioIncorrect;
 use crate::events::lp_tokens_minted::LpTokensMinted;
-use crate::events::slippage_exceeded::SlippageExceeded;
+use crate::events::tokens_transferred::TokensTransferred;
 use crate::state::pool_state::PoolState;
 use crate::ProgramResult;
 use anchor_lang::prelude::*;
@@ -14,6 +13,7 @@ use spl_math::precise_number::PreciseNumber;
 #[derive(Accounts)]
 pub struct AddLiquidity<'info> {
     #[account(
+        mut,
         seeds = [ POOL_STATE_SEED, lp_token_mint.key().as_ref() ],
         bump,
     )]
@@ -69,6 +69,13 @@ pub struct AddLiquidity<'info> {
         constraint = token_b_vault.key() == pool_state.token_b_vault.key()
     )]
     pub token_b_vault: Box<Account<'info, TokenAccount>>,
+
+    #[account(
+        mut,
+        seeds = [ LP_TOKEN_VAULT_SEED, pool_state.key().as_ref(), lp_token_mint.key().as_ref() ],
+        bump,
+    )]
+    pub lp_token_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(
         mut,
@@ -169,7 +176,7 @@ impl<'info> AddLiquidity<'info> {
     ) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
         let cpi_accounts = MintTo {
             mint: self.lp_token_mint.to_account_info(),
-            to: self.pool_state.to_account_info(),
+            to: self.lp_token_vault.to_account_info(),
             authority: self.pool_state.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();
@@ -212,14 +219,14 @@ impl<'info> AddLiquidity<'info> {
 
 pub fn handle(
     ctx: Context<AddLiquidity>,
-    tokens_a_max_amount: u64, // slippage handling: token_a_amount * (1 + TOLERATED_SLIPPAGE) --> calculated in UI
-    tokens_b_max_amount: u64, // slippage handling: token_b_amount * (1 + TOLERATED_SLIPPAGE) --> calculated in UI
-    expected_lp_issued: u64,
+    token_a_max_amount: u64, // slippage handling: token_a_amount * (1 + TOLERATED_SLIPPAGE) --> calculated in UI
+    token_b_max_amount: u64, // slippage handling: token_b_amount * (1 + TOLERATED_SLIPPAGE) --> calculated in UI
+    expected_lp_issued: u64, // not used for first deposit.
 ) -> ProgramResult {
     if ctx.accounts.pool_state.debug {
         msg!("expected_lp_issued: {}", expected_lp_issued);
-        msg!("tokens_a_max_amount: {}", tokens_a_max_amount);
-        msg!("tokens_b_max_amount: {}", tokens_b_max_amount);
+        msg!("token_a_max_amount: {}", token_a_max_amount);
+        msg!("token_b_max_amount: {}", token_b_max_amount);
     }
 
     let seeds = &[
@@ -234,12 +241,12 @@ pub fn handle(
     // On first deposit
     if let Some(lp_tokens) = ctx
         .accounts
-        .calculate_first_deposit_lp_tokens_to_mint(tokens_a_max_amount, tokens_b_max_amount)
+        .calculate_first_deposit_lp_tokens_to_mint(token_a_max_amount, token_b_max_amount)
     {
         // mint and lock lp tokens on first deposit
-        // let mut cpi_tx = ctx.accounts.mint_and_lock_lp_tokens_to_pool_state_account();
-        // cpi_tx.signer_seeds = &signer;
-        // token::mint_to(cpi_tx, MIN_LIQUIDITY);
+        let mut cpi_tx = ctx.accounts.mint_and_lock_lp_tokens_to_pool_state_account();
+        cpi_tx.signer_seeds = &signer;
+        token::mint_to(cpi_tx, MIN_LIQUIDITY);
 
         emit!(LpTokensMinted {
             amount: MIN_LIQUIDITY,
@@ -249,8 +256,8 @@ pub fn handle(
             msg!("lp_tokens_locked: {}", MIN_LIQUIDITY);
         }
 
-        token_a_to_debit = tokens_a_max_amount;
-        token_b_to_debit = tokens_b_max_amount;
+        token_a_to_debit = token_a_max_amount;
+        token_b_to_debit = token_b_max_amount;
         lp_tokens_to_mint = lp_tokens;
     } else {
         // On subsequent deposits
@@ -276,14 +283,19 @@ pub fn handle(
     // transfer user_token_a to vault
     token::transfer(
         ctx.accounts.transfer_user_token_a_to_vault(),
-        tokens_a_max_amount,
+        token_a_max_amount,
     )?;
 
     // transfer user_token_b to vault
     token::transfer(
         ctx.accounts.transfer_user_token_b_to_vault(),
-        tokens_b_max_amount,
+        token_b_max_amount,
     )?;
+
+    emit!(TokensTransferred {
+        token_a: token_a_max_amount,
+        token_b: token_b_max_amount,
+    });
 
     Ok(())
 }

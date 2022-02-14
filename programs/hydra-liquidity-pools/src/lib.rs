@@ -22,6 +22,7 @@ pub const DEBUG_MODE: bool = true;
 pub const DEBUG_MODE: bool = false;
 
 pub mod constants {
+    pub const LP_TOKEN_VAULT_SEED: &[u8] = b"lp_token_vault_seed";
     pub const TOKEN_VAULT_SEED: &[u8] = b"token_vault_seed";
     pub const POOL_STATE_SEED: &[u8] = b"pool_state_seed";
     pub const MIN_LIQUIDITY: u64 = 100;
@@ -37,12 +38,14 @@ pub mod hydra_liquidity_pools {
         token_a_vault_bump: u8,
         token_b_vault_bump: u8,
         pool_state_bump: u8,
+        lp_token_vault_bump: u8,
     ) -> ProgramResult {
         instructions::initialize::handle(
             ctx,
             token_a_vault_bump,
             token_b_vault_bump,
             pool_state_bump,
+            lp_token_vault_bump,
         )
     }
 

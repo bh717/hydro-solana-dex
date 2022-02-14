@@ -9,7 +9,7 @@ use anchor_spl::token::{Mint, MintTo, Token, TokenAccount, Transfer};
 use hydra_math::math::sqrt_precise;
 
 #[derive(Accounts)]
-#[instruction(token_a_vault_bump: u8, token_b_vault_bump: u8, pool_state_bump: u8)]
+#[instruction(token_a_vault_bump: u8, token_b_vault_bump: u8, pool_state_bump: u8, lp_token_vault_bump: u8)]
 pub struct Initialize<'info> {
     pub authority: Signer<'info>,
 
@@ -59,6 +59,17 @@ pub struct Initialize<'info> {
     )]
     pub token_b_vault: Box<Account<'info, TokenAccount>>,
 
+    #[account(
+        init,
+        payer = payer,
+        token::mint = lp_token_mint,
+        token::authority = pool_state,
+        seeds = [ LP_TOKEN_VAULT_SEED, pool_state.key().as_ref(), lp_token_mint.key().as_ref() ],
+        bump = lp_token_vault_bump,
+        rent_exempt = enforce,
+    )]
+    pub lp_token_vault: Box<Account<'info, TokenAccount>>,
+
     // system accounts
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
@@ -70,6 +81,7 @@ pub fn handle(
     token_a_vault_bump: u8,
     token_b_vault_bump: u8,
     pool_state_bump: u8,
+    lp_token_vault_bump: u8,
 ) -> ProgramResult {
     // save authority
     ctx.accounts.pool_state.authority = *ctx.accounts.authority.to_account_info().key;
@@ -87,6 +99,7 @@ pub fn handle(
     ctx.accounts.pool_state.pool_state_bump = pool_state_bump;
     ctx.accounts.pool_state.token_a_vault_bump = token_a_vault_bump;
     ctx.accounts.pool_state.token_b_vault_bump = token_b_vault_bump;
+    ctx.accounts.pool_state.lp_token_vault_bump = lp_token_vault_bump;
 
     ctx.accounts.pool_state.debug = DEBUG_MODE;
 
