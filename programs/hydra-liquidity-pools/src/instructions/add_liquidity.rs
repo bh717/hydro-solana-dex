@@ -176,7 +176,8 @@ impl<'info> AddLiquidity<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn calculate_a_b_tokens_to_debit_from_user(
+    // calculate a and b tokens (x/y) from expected_lp_tokens (k)
+    pub fn calculate_a_and_b_tokens_to_debit_from_expected_lp_tokens(
         &self,
         expected_lp_tokens_minted: u64,
     ) -> (u64, u64) {
@@ -228,10 +229,10 @@ pub fn handle(
     ];
     let signer = [&seeds[..]];
 
-    let (token_a_to_debit, token_b_to_debit);
+    let (token_a_to_debit, token_b_to_debit, lp_tokens_to_mint);
 
     // On first deposit
-    if let Some(lp_tokens_to_mint) = ctx
+    if let Some(lp_tokens) = ctx
         .accounts
         .calculate_first_deposit_lp_tokens_to_mint(tokens_a_max_amount, tokens_b_max_amount)
     {
@@ -250,11 +251,13 @@ pub fn handle(
 
         token_a_to_debit = tokens_a_max_amount;
         token_b_to_debit = tokens_b_max_amount;
+        lp_tokens_to_mint = lp_tokens;
     } else {
         // On subsequent deposits
         let (token_a_to_debit, token_b_to_debit) = ctx
             .accounts
-            .calculate_a_b_tokens_to_debit_from_user(expected_lp_issued);
+            .calculate_a_and_b_tokens_to_debit_from_expected_lp_tokens(expected_lp_issued);
+        lp_tokens_to_mint = expected_lp_issued;
     }
 
     // mint lp tokens to users account
