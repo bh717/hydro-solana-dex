@@ -211,24 +211,14 @@ impl<'info> AddLiquidity<'info> {
 
 pub fn handle(
     ctx: Context<AddLiquidity>,
-    token_a_amount: u64,
-    token_b_amount: u64,
     expected_lp_issued: u64,
-    max_a_tokens_user_ready_to_give: u64, // slippage handling: token_a_amount * (1 + TOLERATED_SLIPPAGE) --> calculated in UI
-    max_b_tokens_user_ready_to_give: u64, // slippage handling: token_b_amount * (1 + TOLERATED_SLIPPAGE) --> calculated in UI
+    tokens_a_max_amount: u64, // slippage handling: token_a_amount * (1 + TOLERATED_SLIPPAGE) --> calculated in UI
+    tokens_b_max_amount: u64, // slippage handling: token_b_amount * (1 + TOLERATED_SLIPPAGE) --> calculated in UI
 ) -> ProgramResult {
     if ctx.accounts.pool_state.debug {
-        msg!("token_a_amount: {}", token_a_amount);
-        msg!("token_b_amount: {}", token_b_amount);
         msg!("expected_lp_issued: {}", expected_lp_issued);
-        msg!(
-            "max_a_tokens_user_ready_to_give: {}",
-            max_a_tokens_user_ready_to_give
-        );
-        msg!(
-            "max_b_tokens_user_ready_to_give: {}",
-            max_b_tokens_user_ready_to_give
-        );
+        msg!("tokens_a_max_amount: {}", tokens_a_max_amount);
+        msg!("tokens_b_max_amount: {}", tokens_b_max_amount);
     }
 
     let seeds = &[
@@ -238,11 +228,14 @@ pub fn handle(
     ];
     let signer = [&seeds[..]];
 
+    let (token_a_to_debit, token_b_to_debit);
+
+    // On first deposit
     if let Some(lp_tokens_to_mint) = ctx
         .accounts
-        .calculate_first_deposit_lp_tokens_to_mint(token_a_amount, token_b_amount)
+        .calculate_first_deposit_lp_tokens_to_mint(tokens_a_max_amount, tokens_b_max_amount)
     {
-        // mint and lock lp tokens
+        // mint and lock lp tokens on first deposit
         let mut cpi_tx = ctx.accounts.mint_and_lock_lp_tokens_to_pool_state_account();
         cpi_tx.signer_seeds = &signer;
         token::mint_to(cpi_tx, MIN_LIQUIDITY);
@@ -251,30 +244,42 @@ pub fn handle(
             amount: MIN_LIQUIDITY,
         });
 
-        // mint lp tokens to users account
-        let mut cpi_tx = ctx.accounts.mint_lp_tokens_to_user_account();
-        cpi_tx.signer_seeds = &signer;
-        token::mint_to(cpi_tx, lp_tokens_to_mint)?;
-
-        emit!(LpTokensMinted {
-            amount: lp_tokens_to_mint,
-        });
-
         if ctx.accounts.pool_state.debug {
-            msg!("lp_tokens_to_mint: {}", lp_tokens_to_mint);
+            msg!("lp_tokens_locked: {}", MIN_LIQUIDITY);
         }
+
+        token_a_to_debit = tokens_a_max_amount;
+        token_b_to_debit = tokens_b_max_amount;
+    } else {
+        // On subsequent deposits
+        let (token_a_to_debit, token_b_to_debit) = ctx
+            .accounts
+            .calculate_a_b_tokens_to_debit_from_user(expected_lp_issued);
+    }
+
+    // mint lp tokens to users account
+    let mut cpi_tx = ctx.accounts.mint_lp_tokens_to_user_account();
+    cpi_tx.signer_seeds = &signer;
+    token::mint_to(cpi_tx, lp_tokens_to_mint)?;
+
+    emit!(LpTokensMinted {
+        amount: lp_tokens_to_mint,
+    });
+
+    if ctx.accounts.pool_state.debug {
+        msg!("lp_tokens_to_mint: {}", lp_tokens_to_mint);
     }
 
     // transfer user_token_a to vault
     token::transfer(
         ctx.accounts.transfer_user_token_a_to_vault(),
-        token_a_amount,
+        tokens_a_max_amount,
     )?;
 
     // transfer user_token_b to vault
     token::transfer(
         ctx.accounts.transfer_user_token_b_to_vault(),
-        token_b_amount,
+        tokens_b_max_amount,
     )?;
 
     Ok(())
