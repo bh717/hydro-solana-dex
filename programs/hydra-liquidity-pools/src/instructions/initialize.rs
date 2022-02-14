@@ -7,7 +7,6 @@ use anchor_lang::prelude::*;
 use anchor_spl::token;
 use anchor_spl::token::{Mint, MintTo, Token, TokenAccount, Transfer};
 use hydra_math::math::sqrt_precise;
-use spl_math::precise_number::PreciseNumber;
 
 #[derive(Accounts)]
 #[instruction(token_a_vault_bump: u8, token_b_vault_bump: u8, pool_state_bump: u8)]

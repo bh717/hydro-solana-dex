@@ -80,9 +80,7 @@ pub struct AddLiquidity<'info> {
 }
 
 impl<'info> AddLiquidity<'info> {
-    pub fn into_transfer_user_token_a_to_vault(
-        &self,
-    ) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
+    pub fn transfer_user_token_a_to_vault(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
         if self.pool_state.debug {
             msg!("Account balances before transfer...");
             msg!("user_token_a.amount: {}", self.user_token_a.amount);
@@ -98,9 +96,7 @@ impl<'info> AddLiquidity<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_transfer_user_token_b_to_vault(
-        &self,
-    ) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
+    pub fn transfer_user_token_b_to_vault(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
         if self.pool_state.debug {
             msg!("Account balances before transfer...");
             msg!("user_token_b.amount: {}", self.user_token_b.amount);
@@ -117,11 +113,11 @@ impl<'info> AddLiquidity<'info> {
     }
 
     /// AddLiquidity instruction. See python model here: https://colab.research.google.com/drive/1p0HToo1mxm2Z1e8dpzIvScGrMCrgN6qr?authuser=2#scrollTo=Awc9KZdYEpPn
-    pub fn calculate_lp_tokens_to_issue(
+    pub fn calculate_first_deposit_lp_tokens_to_mint(
         &self,
         token_a_amount: u64,
         token_b_amount: u64,
-    ) -> Result<u64, ProgramError> {
+    ) -> Option<u64> {
         let x = token_a_amount;
         let y = token_b_amount;
         let x_total = self.token_a_vault.amount;
@@ -137,79 +133,28 @@ impl<'info> AddLiquidity<'info> {
             msg!("lp_total: {}", lp_total);
         }
 
-        if x_total == 0 || y_total == 0 {
-            Ok(Self::lp_tokens_to_mint_first_deposit(x, y)?
-                .to_imprecise()
-                .unwrap() as u64)
-        } else {
-            Ok(self
-                .lp_tokens_to_mint_following_deposits(x, y, x_total, y_total, lp_total)?
-                .to_imprecise()
-                .unwrap() as u64)
+        if lp_total == 0 {
+            // After the guard due to compute cost.
+            let x = PreciseNumber::new(x as u128).unwrap();
+            let y = PreciseNumber::new(y as u128).unwrap();
+            let min_liquidity = PreciseNumber::new(MIN_LIQUIDITY as u128).unwrap();
+
+            // sqrt(x * y) - min_liquidity
+            return Some(
+                sqrt_precise(&x.checked_mul(&y).unwrap())
+                    .unwrap()
+                    .checked_sub(&min_liquidity)
+                    .unwrap()
+                    .floor()
+                    .unwrap()
+                    .to_imprecise()
+                    .unwrap() as u64,
+            );
         }
+        None
     }
 
-    fn check_deposit_ratio_is_correct(
-        x: &PreciseNumber,
-        y: &PreciseNumber,
-        x_total: &PreciseNumber,
-        y_total: &PreciseNumber,
-    ) -> bool {
-        let x_div_y = x.checked_div(y).unwrap();
-        let orig_ratio = x_total.checked_div(y_total).unwrap();
-        x_div_y.eq(&orig_ratio)
-    }
-
-    fn lp_tokens_to_mint_following_deposits(
-        &self,
-        x: u64,
-        y: u64,
-        x_total: u64,
-        y_total: u64,
-        lp_total: u64,
-    ) -> Result<PreciseNumber, ProgramError> {
-        let x = PreciseNumber::new(x as u128).unwrap();
-        let y = PreciseNumber::new(y as u128).unwrap();
-        let x_total = PreciseNumber::new(x_total as u128).unwrap();
-        let y_total = PreciseNumber::new(y_total as u128).unwrap();
-        let lp_total = PreciseNumber::new(lp_total as u128).unwrap();
-
-        if !Self::check_deposit_ratio_is_correct(&x, &y, &x_total, &y_total) {
-            emit!(DepositRatioIncorrect {
-                x: x.to_imprecise().unwrap() as u64,
-                y: y.to_imprecise().unwrap() as u64,
-                x_total: x_total.to_imprecise().unwrap() as u64,
-                y_total: y_total.to_imprecise().unwrap() as u64,
-            });
-            if self.pool_state.debug {
-                msg!("Error: DepositRatioIncorrect")
-            }
-            return Err(ErrorCode::DepositRatioIncorrect.into());
-        }
-        // // lp_tokens_to_issue = (x / x_total) * lp_total;
-        Ok(x.checked_div(&x_total)
-            .unwrap()
-            .checked_mul(&lp_total)
-            .unwrap()
-            .floor()
-            .unwrap())
-    }
-
-    fn lp_tokens_to_mint_first_deposit(x: u64, y: u64) -> Result<PreciseNumber, ProgramError> {
-        let x = PreciseNumber::new(x as u128).unwrap();
-        let y = PreciseNumber::new(y as u128).unwrap();
-        let min_liquidity = PreciseNumber::new(MIN_LIQUIDITY as u128).unwrap();
-
-        // sqrt(x * y) - 1
-        Ok(sqrt_precise(&x.checked_mul(&y).unwrap())
-            .unwrap()
-            .checked_sub(&min_liquidity)
-            .unwrap()
-            .floor()
-            .unwrap())
-    }
-
-    pub fn into_mint_lp_token(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
+    pub fn mint_lp_tokens_to_user_account(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
         let cpi_accounts = MintTo {
             mint: self.lp_token_mint.to_account_info(),
             to: self.lp_token_to.to_account_info(),
@@ -218,20 +163,71 @@ impl<'info> AddLiquidity<'info> {
         let cpi_program = self.token_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
     }
+
+    pub fn mint_and_lock_lp_tokens_to_pool_state_account(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
+        let cpi_accounts = MintTo {
+            mint: self.lp_token_mint.to_account_info(),
+            to: self.pool_state.to_account_info(),
+            authority: self.pool_state.to_account_info(),
+        };
+        let cpi_program = self.token_program.to_account_info();
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+
+    pub fn calculate_a_b_tokens_to_debit_from_user(
+        &self,
+        expected_lp_tokens_minted: u64,
+    ) -> (u64, u64) {
+        let x_total = PreciseNumber::new(self.token_a_vault.amount as u128).unwrap();
+        let y_total = PreciseNumber::new(self.token_b_vault.amount as u128).unwrap();
+        let lp_total = PreciseNumber::new(self.lp_token_mint.supply as u128).unwrap();
+        let expected_lp_tokens_minted =
+            PreciseNumber::new(expected_lp_tokens_minted as u128).unwrap();
+
+        let x_debited = expected_lp_tokens_minted
+            .checked_mul(&x_total)
+            .unwrap()
+            .checked_div(&lp_total)
+            .unwrap()
+            .ceiling()
+            .unwrap();
+        let x_debited = x_debited.to_imprecise().unwrap() as u64;
+
+        let y_debited = expected_lp_tokens_minted
+            .checked_mul(&y_total)
+            .unwrap()
+            .checked_div(&lp_total)
+            .unwrap()
+            .ceiling()
+            .unwrap();
+        let y_debited = y_debited.to_imprecise().unwrap() as u64;
+
+        //* note that we rounded up with .ceiling() (as we are receiving these amounts)
+        (x_debited, y_debited)
+    }
 }
 
 pub fn handle(
     ctx: Context<AddLiquidity>,
     token_a_amount: u64,
     token_b_amount: u64,
-    minimum_lp_tokens_requested_by_user: u64, // Slippage handling
+    expected_lp_issued: u64,
+    max_a_tokens_user_ready_to_give: u64, // slippage handling: token_a_amount * (1 + TOLERATED_SLIPPAGE) --> calculated in UI
+    max_b_tokens_user_ready_to_give: u64, // slippage handling: token_b_amount * (1 + TOLERATED_SLIPPAGE) --> calculated in UI
 ) -> ProgramResult {
     if ctx.accounts.pool_state.debug {
         msg!("token_a_amount: {}", token_a_amount);
         msg!("token_b_amount: {}", token_b_amount);
+        msg!("expected_lp_issued: {}", expected_lp_issued);
         msg!(
-            "minimum_lp_tokens_requested_by_user: {}",
-            minimum_lp_tokens_requested_by_user
+            "max_a_tokens_user_ready_to_give: {}",
+            max_a_tokens_user_ready_to_give
+        );
+        msg!(
+            "max_b_tokens_user_ready_to_give: {}",
+            max_b_tokens_user_ready_to_give
         );
     }
 
@@ -242,48 +238,35 @@ pub fn handle(
     ];
     let signer = [&seeds[..]];
 
-    let lp_tokens_to_issue = ctx
+    if let Some(lp_tokens_to_mint) = ctx
         .accounts
-        .calculate_lp_tokens_to_issue(token_a_amount, token_b_amount)?;
+        .calculate_first_deposit_lp_tokens_to_mint(token_a_amount, token_b_amount)
+    {
+        // mint and lock lp tokens
 
-    if !(lp_tokens_to_issue >= minimum_lp_tokens_requested_by_user) {
-        emit!(SlippageExceeded {
-            minimum_lp_tokens_requested_by_user: minimum_lp_tokens_requested_by_user,
-            lp_tokens_to_issue: lp_tokens_to_issue,
+        // mint lp tokens to users account
+        let mut cpi_tx = ctx.accounts.mint_lp_tokens_to_user_account();
+        cpi_tx.signer_seeds = &signer;
+        token::mint_to(cpi_tx, lp_tokens_to_mint)?;
+
+        emit!(LpTokensMinted {
+            amount: lp_tokens_to_mint,
         });
 
         if ctx.accounts.pool_state.debug {
-            msg!("Error: SlippageExceeded");
-            msg!(
-                "minimum_lp_tokens_requested_by_user: {}",
-                minimum_lp_tokens_requested_by_user
-            );
-            msg!("lp_tokens_to_issue: {}", lp_tokens_to_issue);
+            msg!("lp_tokens_to_mint: {}", lp_tokens_to_mint);
         }
-        return Err(ErrorCode::SlippageExceeded.into());
-    }
-
-    // mint lp tokens to users account
-    let mut cpi_tx = ctx.accounts.into_mint_lp_token();
-    cpi_tx.signer_seeds = &signer;
-    token::mint_to(cpi_tx, lp_tokens_to_issue)?;
-
-    if ctx.accounts.pool_state.debug {
-        msg!("lp_tokens_issued: {}", lp_tokens_to_issue);
-        emit!(LpTokensMinted {
-            amount: lp_tokens_to_issue,
-        });
     }
 
     // transfer user_token_a to vault
     token::transfer(
-        ctx.accounts.into_transfer_user_token_a_to_vault(),
+        ctx.accounts.transfer_user_token_a_to_vault(),
         token_a_amount,
     )?;
 
     // transfer user_token_b to vault
     token::transfer(
-        ctx.accounts.into_transfer_user_token_b_to_vault(),
+        ctx.accounts.transfer_user_token_b_to_vault(),
         token_b_amount,
     )?;
 

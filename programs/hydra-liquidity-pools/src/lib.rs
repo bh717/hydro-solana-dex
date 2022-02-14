@@ -50,13 +50,17 @@ pub mod hydra_liquidity_pools {
         ctx: Context<AddLiquidity>,
         token_a_amount: u64,
         token_b_amount: u64,
-        minimum_lp_tokens_requested_by_user: u64,
+        expected_lp_issued: u64,
+        max_a_tokens_user_ready_to_give: u64, // slippage handling: token_a_amount * (1 + TOLERATED_SLIPPAGE) --> calculated in UI
+        max_b_tokens_user_ready_to_give: u64, // slippage handling: token_b_amount * (1 + TOLERATED_SLIPPAGE) --> calculated in UI
     ) -> ProgramResult {
         instructions::add_liquidity::handle(
             ctx,
             token_a_amount,
             token_b_amount,
-            minimum_lp_tokens_requested_by_user,
+            expected_lp_issued,
+            max_a_tokens_user_ready_to_give,
+            max_b_tokens_user_ready_to_give,
         )
     }
 
