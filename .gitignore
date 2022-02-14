@@ -8,4 +8,5 @@ node_modules
 test-ledger/
 .keys
 .vscode
+.anchor
 __pycache__
