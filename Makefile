@@ -7,7 +7,10 @@ list:
 
 # install our fork of anchor
 install_anchor:
-	cargo install --git https://github.com/project-serum/anchor --tag v0.20.1 anchor-cli --locked
+	cargo install --git https://github.com/project-serum/anchor --tag v0.20.1 anchor-cli --locked --force
+
+install_solana:
+	sh -c "$$(curl -sSfL https://release.solana.com/v1.9.6/install)"	
 
 # COMMON
 check:
