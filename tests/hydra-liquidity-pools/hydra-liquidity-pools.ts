@@ -133,31 +133,31 @@ describe ("hydra-liquidity-pool", async () => {
   //   assert.strictEqual((await getTokenBalance(provider, usddAccount)).toNumber(), usddMintAmount.toNumber())
   // });
   //
-  // it('should add-liquidity to pool for the first time', async () => {
-  //   await program.rpc.addLiquidity(
-  //       new BN(6_000_000),        // 6, bitcoins
-  //       new BN(255_575_287_200),  // $255,575.2872 usdc's @($42595.8812 each)
-  //       new BN(1238326078),
-  //       {
-  //         accounts: {
-  //           poolState: poolState,
-  //           lpTokenMint: lpTokenMint.publicKey,
-  //           tokenAMint: btcdMint,
-  //           tokenBMint: usddMint,
-  //           tokenAVault: tokenAVault,
-  //           tokenBVault: tokenBVault,
-  //           lpTokenTo: lpTokenAccount,
-  //           userTokenA: btcdAccount,
-  //           userTokenB: usddAccount,
-  //           userAuthority: provider.wallet.publicKey,
-  //           tokenProgram: TOKEN_PROGRAM_ID,
-  //         }
-  //       }
-  //   )
-  //   assert.strictEqual((await getTokenBalance(provider, lpTokenAccount)).toNumber(), 1238326078)
-  //   assert.strictEqual((await getTokenBalance(provider, btcdAccount)).toNumber(), btcdMintAmount.isub(new BN(6_000_000)).toNumber())
-  //   assert.strictEqual((await getTokenBalance(provider, usddAccount)).toNumber(), usddMintAmount.isub( new BN(255_575_287_200)).toNumber())
-  // });
+  it('should add-liquidity to pool for the first time', async () => {
+    await program.rpc.addLiquidity(
+        new BN(6_000_000),        // 6, bitcoins
+        new BN(255_575_287_200),  // $255,575.2872 usdc's @($42595.8812 each)
+        new BN(0),                // not used on first deposit.
+        {
+          accounts: {
+            poolState: poolState,
+            lpTokenMint: lpTokenMint.publicKey,
+            tokenAMint: btcdMint,
+            tokenBMint: usddMint,
+            tokenAVault: tokenAVault,
+            tokenBVault: tokenBVault,
+            lpTokenTo: lpTokenAccount,
+            userTokenA: btcdAccount,
+            userTokenB: usddAccount,
+            userAuthority: provider.wallet.publicKey,
+            tokenProgram: TOKEN_PROGRAM_ID,
+          }
+        }
+    )
+    assert.strictEqual((await getTokenBalance(provider, lpTokenAccount)).toNumber(), 1238326078)
+    assert.strictEqual((await getTokenBalance(provider, btcdAccount)).toNumber(), btcdMintAmount.isub(new BN(6_000_000)).toNumber())
+    assert.strictEqual((await getTokenBalance(provider, usddAccount)).toNumber(), usddMintAmount.isub( new BN(255_575_287_200)).toNumber())
+  });
   //
   // it('should not add-liquidity to due to token deposit ratio not aligned', async () => {
   //   try {

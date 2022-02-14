@@ -212,9 +212,9 @@ impl<'info> AddLiquidity<'info> {
 
 pub fn handle(
     ctx: Context<AddLiquidity>,
-    expected_lp_issued: u64,
     tokens_a_max_amount: u64, // slippage handling: token_a_amount * (1 + TOLERATED_SLIPPAGE) --> calculated in UI
     tokens_b_max_amount: u64, // slippage handling: token_b_amount * (1 + TOLERATED_SLIPPAGE) --> calculated in UI
+    expected_lp_issued: u64,
 ) -> ProgramResult {
     if ctx.accounts.pool_state.debug {
         msg!("expected_lp_issued: {}", expected_lp_issued);
@@ -237,9 +237,9 @@ pub fn handle(
         .calculate_first_deposit_lp_tokens_to_mint(tokens_a_max_amount, tokens_b_max_amount)
     {
         // mint and lock lp tokens on first deposit
-        let mut cpi_tx = ctx.accounts.mint_and_lock_lp_tokens_to_pool_state_account();
-        cpi_tx.signer_seeds = &signer;
-        token::mint_to(cpi_tx, MIN_LIQUIDITY);
+        // let mut cpi_tx = ctx.accounts.mint_and_lock_lp_tokens_to_pool_state_account();
+        // cpi_tx.signer_seeds = &signer;
+        // token::mint_to(cpi_tx, MIN_LIQUIDITY);
 
         emit!(LpTokensMinted {
             amount: MIN_LIQUIDITY,
