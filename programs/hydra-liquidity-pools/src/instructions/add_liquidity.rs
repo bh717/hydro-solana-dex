@@ -1,6 +1,7 @@
 use crate::constants::*;
 use crate::errors::ErrorCode;
 use crate::events::liquidity_added::LiquidityAdded;
+use crate::events::slippage_exceeded::SlippageExceeded;
 use crate::state::pool_state::PoolState;
 use crate::ProgramResult;
 use anchor_lang::prelude::*;
@@ -245,7 +246,7 @@ pub fn handle(
         // mint and lock lp tokens on first deposit
         let mut cpi_tx = ctx.accounts.mint_and_lock_lp_tokens_to_pool_state_account();
         cpi_tx.signer_seeds = &signer;
-        token::mint_to(cpi_tx, MIN_LIQUIDITY);
+        token::mint_to(cpi_tx, MIN_LIQUIDITY)?;
 
         if ctx.accounts.pool_state.debug {
             msg!("lp_tokens_locked: {}", MIN_LIQUIDITY);
@@ -272,6 +273,12 @@ pub fn handle(
                 msg!("token_b_to_debit: {}", token_b_to_debit);
                 msg!("token_b_max_amount: {}", token_b_max_amount);
             }
+            emit!(SlippageExceeded {
+                token_a_to_debit,
+                token_b_to_debit,
+                token_a_max_amount,
+                token_b_max_amount,
+            });
             return Err(ErrorCode::SlippageExceeded.into());
         }
     }

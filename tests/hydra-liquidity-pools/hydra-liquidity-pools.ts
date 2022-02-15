@@ -175,12 +175,6 @@ describe ("hydra-liquidity-pool", async () => {
   });
 
   it('should add-liquidity to pool for the second time', async () => {
-    program.addEventListener("LiquidityAdded" , (e,s) => {
-      console.log(e.tokensATransferred.toString())
-      console.log(e.tokensBTransferred.toString())
-      console.log(e.lpTokensMinted.toString())
-    })
-
     await program.rpc.addLiquidity(
         new BN(16_000_000), // 16 bitcoins
         new BN(681_534_099_132), // $681,534.099132 usdc
@@ -203,41 +197,54 @@ describe ("hydra-liquidity-pool", async () => {
         }
     )
     assert.strictEqual((await getTokenBalance(provider, lpTokenAccount)).toNumber(), 1238326078 + 3302203141)
-    // assert.strictEqual((await getTokenBalance(provider, btcdAccount)).toNumber(), btcdMintAmount.isub(new BN(16_000_000)).toNumber())
-    // assert.strictEqual((await getTokenBalance(provider, usddAccount)).toNumber(), usddMintAmount.isub( new BN(681_534_099_200)).toNumber())
+    assert.strictEqual((await getTokenBalance(provider, btcdAccount)).toNumber(), btcdMintAmount.isub(new BN(16_000_000)).toNumber())
+    assert.strictEqual((await getTokenBalance(provider, usddAccount)).toNumber(), usddMintAmount.isub( new BN(681_534_099_132)).toNumber())
+    assert.strictEqual((await getTokenBalance(provider, lpTokenVault)).toNumber(), 100) // no change
+    assert.strictEqual((await getTokenBalance(provider, tokenAVault)).toNumber(), 6000000 + 16000000)
+    assert.strictEqual((await getTokenBalance(provider, tokenBVault)).toNumber(), 255575287200 + 681534099132)
   });
 
-  // it('should not add-liquidity to pool for the ', async () => {
-  //   program.addEventListener("LiquidityAdded" , (e,s) => {
-  //     console.log(e.tokensATransferred.toString())
-  //     console.log(e.tokensBTransferred.toString())
-  //     console.log(e.lpTokensMinted.toString())
-  //   })
-  //
-  //   await program.rpc.addLiquidity(
-  //       new BN(16_000_000), // 16 bitcoins
-  //       new BN(681_534_099_200), // $686,006.512 usdc @($42595.8812 each)
-  //       new BN(1),
-  //       {
-  //         accounts: {
-  //          poolState: poolState,
-  //           tokenAMint: btcdMint,
-  //           tokenBMint: usddMint,
-  //           lpTokenMint: lpTokenMint.publicKey,
-  //           userTokenA: btcdAccount,
-  //           userTokenB: usddAccount,
-  //           userAuthority: provider.wallet.publicKey,
-  //           tokenAVault: tokenAVault,
-  //           tokenBVault: tokenBVault,
-  //           lpTokenVault: lpTokenVault,
-  //           lpTokenTo: lpTokenAccount,
-  //           tokenProgram: TOKEN_PROGRAM_ID,
-  //         }
-  //       }
-  //   )
-  //   assert.strictEqual((await getTokenBalance(provider, lpTokenAccount)).toNumber(), 1238326078 + 3302202874)
-  //   assert.strictEqual((await getTokenBalance(provider, btcdAccount)).toNumber(), btcdMintAmount.isub(new BN(16_000_000)).toNumber())
-  //   assert.strictEqual((await getTokenBalance(provider, usddAccount)).toNumber(), usddMintAmount.isub( new BN(681_534_099_200)).toNumber())
-  // });
+  it('should not add-liquidity to exceeding slippage ', async () => {
+      program.addEventListener("SlippageExceeded" , (e,s) => {
+        console.log(e)
+      })
+      try {
+
+          await program.rpc.addLiquidity(
+            new BN(16_000_000), // 16 bitcoins
+            new BN(681_534_099_131), // // $681,534.099132 usdc -0.000001
+            new BN(3_302_203_141),
+            {
+                accounts: {
+                  poolState: poolState,
+                  tokenAMint: btcdMint,
+                  tokenBMint: usddMint,
+                  lpTokenMint: lpTokenMint.publicKey,
+                  userTokenA: btcdAccount,
+                  userTokenB: usddAccount,
+                  userAuthority: provider.wallet.publicKey,
+                  tokenAVault: tokenAVault,
+                  tokenBVault: tokenBVault,
+                  lpTokenVault: lpTokenVault,
+                  lpTokenTo: lpTokenAccount,
+                  tokenProgram: TOKEN_PROGRAM_ID,
+                }
+            }
+          )
+          assert.ok(false)
+      } catch (err) {
+          const errMsg = "Slippage Amount Exceeded"
+          assert.equal(err.toString(), errMsg)
+      }
+
+
+      // no change from last test
+      assert.strictEqual((await getTokenBalance(provider, lpTokenAccount)).toNumber(), 1238326078 + 3302203141)
+      assert.strictEqual((await getTokenBalance(provider, btcdAccount)).toNumber(), btcdMintAmount.toNumber())
+      assert.strictEqual((await getTokenBalance(provider, usddAccount)).toNumber(), usddMintAmount.toNumber())
+      assert.strictEqual((await getTokenBalance(provider, lpTokenVault)).toNumber(), 100) // no change
+      assert.strictEqual((await getTokenBalance(provider, tokenAVault)).toNumber(), 6000000 + 16000000)
+      assert.strictEqual((await getTokenBalance(provider, tokenBVault)).toNumber(), 255575287200 + 681534099132)
+  });
 
 });
