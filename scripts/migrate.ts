@@ -14,7 +14,7 @@ const args = arg({
 
 // messy script to run our deploy scripts in
 // light of anchor migrate not working
-// we will have to customise this for
+// we can customise this for other environments to point to other files.
 async function main() {
   // Not sure if these should be configurable but they will
   // allow us to switch between deployment networks
