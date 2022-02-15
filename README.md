@@ -78,4 +78,4 @@ anchor-cli 0.20.1
 
 ### Migrate
 
-`yarn migrate`
+`make migrate`
