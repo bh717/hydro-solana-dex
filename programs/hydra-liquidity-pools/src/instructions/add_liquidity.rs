@@ -1,7 +1,6 @@
 use crate::constants::*;
 use crate::errors::ErrorCode;
-use crate::events::lp_tokens_minted::LpTokensMinted;
-use crate::events::tokens_transferred::TokensTransferred;
+use crate::events::liquidity_added::LiquidityAdded;
 use crate::state::pool_state::PoolState;
 use crate::ProgramResult;
 use anchor_lang::prelude::*;
@@ -125,23 +124,22 @@ impl<'info> AddLiquidity<'info> {
         token_a_amount: u64,
         token_b_amount: u64,
     ) -> Option<u64> {
-        let x = token_a_amount;
-        let y = token_b_amount;
-        let x_total = self.token_a_vault.amount;
-        let y_total = self.token_b_vault.amount;
-        let lp_total = self.lp_token_mint.supply;
+        if self.lp_token_mint.supply == 0 {
+            let x = token_a_amount;
+            let y = token_b_amount;
+            let x_total = self.token_a_vault.amount;
+            let y_total = self.token_b_vault.amount;
+            let lp_total = self.lp_token_mint.supply;
 
-        if self.pool_state.debug {
-            msg!("MIN_LIQUIDITY: {}", MIN_LIQUIDITY);
-            msg!("x: {}", x);
-            msg!("y: {}", y);
-            msg!("x_total: {}", x_total);
-            msg!("y_total: {}", y_total);
-            msg!("lp_total: {}", lp_total);
-        }
+            if self.pool_state.debug {
+                msg!("MIN_LIQUIDITY: {}", MIN_LIQUIDITY);
+                msg!("x: {}", x);
+                msg!("y: {}", y);
+                msg!("x_total: {}", x_total);
+                msg!("y_total: {}", y_total);
+                msg!("lp_total: {}", lp_total);
+            }
 
-        if lp_total == 0 {
-            // After the guard due to compute cost.
             let x = PreciseNumber::new(x as u128).unwrap();
             let y = PreciseNumber::new(y as u128).unwrap();
             let min_liquidity = PreciseNumber::new(MIN_LIQUIDITY as u128).unwrap();
@@ -194,6 +192,7 @@ impl<'info> AddLiquidity<'info> {
         let expected_lp_tokens_minted =
             PreciseNumber::new(expected_lp_tokens_minted as u128).unwrap();
 
+        // expected_lp_tokens_minted  * x_total
         let x_debited = expected_lp_tokens_minted
             .checked_mul(&x_total)
             .unwrap()
@@ -221,10 +220,10 @@ pub fn handle(
     ctx: Context<AddLiquidity>,
     token_a_max_amount: u64, // slippage handling: token_a_amount * (1 + TOLERATED_SLIPPAGE) --> calculated in UI
     token_b_max_amount: u64, // slippage handling: token_b_amount * (1 + TOLERATED_SLIPPAGE) --> calculated in UI
-    expected_lp_issued: u64, // not used for first deposit.
+    expected_lp_tokens: u64, // not used for first deposit.
 ) -> ProgramResult {
     if ctx.accounts.pool_state.debug {
-        msg!("expected_lp_issued: {}", expected_lp_issued);
+        msg!("expected_lp_tokens: {}", expected_lp_tokens);
         msg!("token_a_max_amount: {}", token_a_max_amount);
         msg!("token_b_max_amount: {}", token_b_max_amount);
     }
@@ -248,10 +247,6 @@ pub fn handle(
         cpi_tx.signer_seeds = &signer;
         token::mint_to(cpi_tx, MIN_LIQUIDITY);
 
-        emit!(LpTokensMinted {
-            amount: MIN_LIQUIDITY,
-        });
-
         if ctx.accounts.pool_state.debug {
             msg!("lp_tokens_locked: {}", MIN_LIQUIDITY);
         }
@@ -261,10 +256,24 @@ pub fn handle(
         lp_tokens_to_mint = lp_tokens;
     } else {
         // On subsequent deposits
-        let (token_a_to_debit, token_b_to_debit) = ctx
+        let debited = ctx
             .accounts
-            .calculate_a_and_b_tokens_to_debit_from_expected_lp_tokens(expected_lp_issued);
-        lp_tokens_to_mint = expected_lp_issued;
+            .calculate_a_and_b_tokens_to_debit_from_expected_lp_tokens(expected_lp_tokens);
+
+        token_a_to_debit = debited.0;
+        token_b_to_debit = debited.1;
+        lp_tokens_to_mint = expected_lp_tokens;
+
+        if (token_a_to_debit > token_a_max_amount) || (token_b_to_debit > token_b_max_amount) {
+            if ctx.accounts.pool_state.debug {
+                msg!("Error: SlippageExceeded");
+                msg!("token_a_to_debit: {}", token_a_to_debit);
+                msg!("token_a_max_amount: {}", token_a_max_amount);
+                msg!("token_b_to_debit: {}", token_b_to_debit);
+                msg!("token_b_max_amount: {}", token_b_max_amount);
+            }
+            return Err(ErrorCode::SlippageExceeded.into());
+        }
     }
 
     // mint lp tokens to users account
@@ -272,30 +281,29 @@ pub fn handle(
     cpi_tx.signer_seeds = &signer;
     token::mint_to(cpi_tx, lp_tokens_to_mint)?;
 
-    emit!(LpTokensMinted {
-        amount: lp_tokens_to_mint,
-    });
-
-    if ctx.accounts.pool_state.debug {
-        msg!("lp_tokens_to_mint: {}", lp_tokens_to_mint);
-    }
-
     // transfer user_token_a to vault
     token::transfer(
         ctx.accounts.transfer_user_token_a_to_vault(),
-        token_a_max_amount,
+        token_a_to_debit,
     )?;
 
     // transfer user_token_b to vault
     token::transfer(
         ctx.accounts.transfer_user_token_b_to_vault(),
-        token_b_max_amount,
+        token_b_to_debit,
     )?;
 
-    emit!(TokensTransferred {
-        token_a: token_a_max_amount,
-        token_b: token_b_max_amount,
+    emit!(LiquidityAdded {
+        tokens_a_transferred: token_a_to_debit,
+        tokens_b_transferred: token_b_to_debit,
+        lp_tokens_minted: lp_tokens_to_mint,
     });
+
+    if ctx.accounts.pool_state.debug {
+        msg!("lp_tokens_minted: {}", lp_tokens_to_mint);
+        msg!("tokens_a_transferred: {}", token_a_to_debit);
+        msg!("tokens_b_transferred: {}", token_b_to_debit);
+    }
 
     Ok(())
 }

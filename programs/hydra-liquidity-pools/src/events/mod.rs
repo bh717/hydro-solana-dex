@@ -1,2 +1,1 @@
-pub mod lp_tokens_minted;
-pub mod tokens_transferred;
+pub mod liquidity_added;

@@ -1,6 +1,5 @@
 use crate::constants::*;
 use crate::errors::ErrorCode;
-use crate::events::lp_tokens_minted::LpTokensMinted;
 use crate::state::pool_state::PoolState;
 use crate::DEBUG_MODE;
 use anchor_lang::prelude::*;

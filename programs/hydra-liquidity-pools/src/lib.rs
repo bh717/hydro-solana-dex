@@ -53,13 +53,13 @@ pub mod hydra_liquidity_pools {
         ctx: Context<AddLiquidity>,
         tokens_a_max_amount: u64, // slippage handling: token_a_amount * (1 + TOLERATED_SLIPPAGE) --> calculated in UI
         tokens_b_max_amount: u64, // slippage handling: token_b_amount * (1 + TOLERATED_SLIPPAGE) --> calculated in UI
-        expected_lp_issued: u64,
+        expected_lp_tokens: u64,
     ) -> ProgramResult {
         instructions::add_liquidity::handle(
             ctx,
             tokens_a_max_amount,
             tokens_b_max_amount,
-            expected_lp_issued,
+            expected_lp_tokens,
         )
     }
 
