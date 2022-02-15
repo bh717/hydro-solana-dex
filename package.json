@@ -4,9 +4,7 @@
     "build:localnet": "anchor build -- --features \"localnet\"",
     "build:devnet": "anchor build -- --features \"devnet\"",
     "build:testnet": "anchor build -- --features \"testnet\"",
-    "build:mainnet": "anchor build -- --features \"mainnet\"",
-    "migrate": "ts-node scripts/migrate.ts",
-    "validator": "solana-test-validator"
+    "build:mainnet": "anchor build -- --features \"mainnet\""
   },
   "license": "UNLICENSED",
   "dependencies": {

@@ -21,7 +21,7 @@ validator:
 	@pgrep "solana-test-val" || solana-test-validator --quiet &
 
 validator-reset:
-	@pkill -9 "solana-test-validator" > /dev/null
+	@pkill -9 "solana-test-val" > /dev/null
 	@sleep 1
 	@solana-test-validator --quiet --reset
 
@@ -31,6 +31,8 @@ set-localnet:
 validator-logs:
 	solana logs
 
+migrate:
+	yarn ts-node scripts/migrate.ts
 
 watch-test:
 	cargo watch -- anchor test -- --features "localnet"

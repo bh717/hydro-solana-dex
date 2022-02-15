@@ -23,6 +23,7 @@ export default async function (provider: anchor.Provider) {
     "tests/keys/xhy1rv75cEJahTbsKnv2TpNhdR7KNUoDPavKuQDwhDU.json"
   );
 
+  console.log("Creating mint and vault...");
   await createMintAndVault(
     program.provider,
     tokenMint,
@@ -40,6 +41,7 @@ export default async function (provider: anchor.Provider) {
       program.programId
     );
 
+  console.log("Creating mint...");
   await createMint(program.provider, redeemableMint, tokenVaultPubkey);
 
   const [poolStatePubkey, poolStateBump] =
@@ -52,6 +54,12 @@ export default async function (provider: anchor.Provider) {
       program.programId
     );
 
+  console.log("Initializing...");
+  console.log(`poolStatePubkey:\t${poolStatePubkey}
+tokenVaultPubkey:\t${tokenVaultPubkey}
+tokenMint:\t\t${tokenMint.publicKey}
+redeemableMint:\t\t${redeemableMint.publicKey}
+`);
   await program.rpc.initialize(tokenVaultBump, poolStateBump, {
     accounts: {
       authority: program.provider.wallet.publicKey,
