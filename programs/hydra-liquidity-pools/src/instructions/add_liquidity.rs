@@ -119,6 +119,28 @@ impl<'info> AddLiquidity<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
+    pub fn mint_lp_tokens_to_user_account(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
+        let cpi_accounts = MintTo {
+            mint: self.lp_token_mint.to_account_info(),
+            to: self.lp_token_to.to_account_info(),
+            authority: self.pool_state.to_account_info(),
+        };
+        let cpi_program = self.token_program.to_account_info();
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+
+    pub fn mint_and_lock_lp_tokens_to_pool_state_account(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
+        let cpi_accounts = MintTo {
+            mint: self.lp_token_mint.to_account_info(),
+            to: self.lp_token_vault.to_account_info(),
+            authority: self.pool_state.to_account_info(),
+        };
+        let cpi_program = self.token_program.to_account_info();
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+
     /// AddLiquidity instruction. See python model here: https://colab.research.google.com/drive/1p0HToo1mxm2Z1e8dpzIvScGrMCrgN6qr?authuser=2#scrollTo=Awc9KZdYEpPn
     pub fn calculate_first_deposit_lp_tokens_to_mint(
         &self,
@@ -160,29 +182,7 @@ impl<'info> AddLiquidity<'info> {
         None
     }
 
-    pub fn mint_lp_tokens_to_user_account(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
-        let cpi_accounts = MintTo {
-            mint: self.lp_token_mint.to_account_info(),
-            to: self.lp_token_to.to_account_info(),
-            authority: self.pool_state.to_account_info(),
-        };
-        let cpi_program = self.token_program.to_account_info();
-        CpiContext::new(cpi_program, cpi_accounts)
-    }
-
-    pub fn mint_and_lock_lp_tokens_to_pool_state_account(
-        &self,
-    ) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
-        let cpi_accounts = MintTo {
-            mint: self.lp_token_mint.to_account_info(),
-            to: self.lp_token_vault.to_account_info(),
-            authority: self.pool_state.to_account_info(),
-        };
-        let cpi_program = self.token_program.to_account_info();
-        CpiContext::new(cpi_program, cpi_accounts)
-    }
-
-    // calculate a and b tokens (x/y) from expected_lp_tokens (k)
+    /// calculate a and b tokens (x/y) from expected_lp_tokens (k)
     pub fn calculate_a_and_b_tokens_to_debit_from_expected_lp_tokens(
         &self,
         expected_lp_tokens_minted: u64,
