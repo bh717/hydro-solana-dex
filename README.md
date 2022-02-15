@@ -74,3 +74,7 @@ anchor-cli 0.20.1
 ### Test 
 
 `anchor test`
+
+### Migrate 
+
+`make migrate`
