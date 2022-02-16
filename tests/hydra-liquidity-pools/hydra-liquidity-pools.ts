@@ -57,14 +57,14 @@ describe ("hydra-liquidity-pool", async () => {
 
   it('should get the PDA for the TokenAVault', async () => {
     [tokenAVault, tokenAVaultBump] = await anchor.web3.PublicKey.findProgramAddress(
-        [utf8.encode("token_vault_seed"), btcdMint.toBuffer(), poolState.toBuffer(), lpTokenMint.publicKey.toBuffer() ],
+        [utf8.encode("token_vault_seed"), btcdMint.toBuffer(), lpTokenMint.publicKey.toBuffer() ],
         program.programId
     )
   });
 
   it('should get the PDA for the TokenBVault', async () => {
     [tokenBVault, tokenBVaultBump] = await anchor.web3.PublicKey.findProgramAddress(
-        [utf8.encode("token_vault_seed"), usddMint.toBuffer(), poolState.toBuffer(), lpTokenMint.publicKey.toBuffer() ],
+        [utf8.encode("token_vault_seed"), usddMint.toBuffer(), lpTokenMint.publicKey.toBuffer() ],
         program.programId
     )
   });
@@ -204,7 +204,7 @@ describe ("hydra-liquidity-pool", async () => {
     assert.strictEqual((await getTokenBalance(provider, tokenBVault)).toNumber(), 255575287200 + 681534099132)
   });
 
-  it('should not add-liquidity to exceeding slippage ', async () => {
+  it('should not add-liquidity due to exceeding slippage ', async () => {
       program.addEventListener("SlippageExceeded" , (e,s) => {
         console.log(e)
       })

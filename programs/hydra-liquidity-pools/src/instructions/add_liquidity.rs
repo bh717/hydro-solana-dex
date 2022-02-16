@@ -56,7 +56,7 @@ pub struct AddLiquidity<'info> {
 
     #[account(
         mut,
-        seeds = [ TOKEN_VAULT_SEED, token_a_mint.key().as_ref(), pool_state.key().as_ref() , lp_token_mint.key().as_ref() ],
+        seeds = [ TOKEN_VAULT_SEED, token_a_mint.key().as_ref(), lp_token_mint.key().as_ref() ],
         bump,
         constraint = token_a_vault.key() == pool_state.token_a_vault.key()
     )]
@@ -64,7 +64,7 @@ pub struct AddLiquidity<'info> {
 
     #[account(
         mut,
-        seeds = [ TOKEN_VAULT_SEED, token_b_mint.key().as_ref(), pool_state.key().as_ref() , lp_token_mint.key().as_ref() ],
+        seeds = [ TOKEN_VAULT_SEED, token_b_mint.key().as_ref(), lp_token_mint.key().as_ref() ],
         bump,
         constraint = token_b_vault.key() == pool_state.token_b_vault.key()
     )]

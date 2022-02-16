@@ -38,7 +38,7 @@ pub struct Initialize<'info> {
         payer = payer,
         token::mint = token_a_mint,
         token::authority = token_a_vault,
-        seeds = [ TOKEN_VAULT_SEED, token_a_mint.key().as_ref(), pool_state.key().as_ref() , lp_token_mint.key().as_ref() ],
+        seeds = [ TOKEN_VAULT_SEED, token_a_mint.key().as_ref(), lp_token_mint.key().as_ref() ],
         bump = token_a_vault_bump,
         rent_exempt = enforce,
     )]
@@ -49,7 +49,7 @@ pub struct Initialize<'info> {
         payer = payer,
         token::mint = token_b_mint,
         token::authority = token_b_vault,
-        seeds = [ TOKEN_VAULT_SEED, token_b_mint.key().as_ref(), pool_state.key().as_ref(), lp_token_mint.key().as_ref() ],
+        seeds = [ TOKEN_VAULT_SEED, token_b_mint.key().as_ref(), lp_token_mint.key().as_ref() ],
         bump = token_b_vault_bump,
         rent_exempt = enforce,
     )]
