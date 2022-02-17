@@ -80,7 +80,7 @@ pub fn add(a: u64, b: u64) -> u64 {
 
 ```json
 {
-  "name": "staking-sdk",
+  "name": "hydra-math-sdk",
   "version": "0.1.0",
   "license": "UNLICENSED",
   "files": [

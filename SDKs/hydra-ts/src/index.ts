@@ -1,4 +1,4 @@
-import * as wasm from "staking-sdk";
+import * as wasm from "hydra-math-sdk";
 
 export async function add(a: number, b: number) {
   if (typeof wasm.default !== "object") await wasm.default();
