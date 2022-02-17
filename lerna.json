@@ -1,5 +1,5 @@
 {
-  "packages": ["wasm/*", "SDKs/hydra-ts", "examples/*", "app"],
+  "packages": ["SDKs/*"],
   "version": "0.0.0",
   "npmClient": "yarn",
   "useWorkspaces": true

@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "programs/*",
+    "SDKs/staking-sdk",
     "libs/math/hmm",
     "libs/math/hydra-proto",
     "libs/math/sim",
