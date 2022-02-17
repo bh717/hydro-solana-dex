@@ -30,7 +30,7 @@
   },
   "workspaces": {
     "packages": [
-      "SDKs/*",
+      "sdks/*",
       "examples/*",
       "app"
     ],
