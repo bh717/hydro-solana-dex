@@ -27,18 +27,7 @@ members = [
 ]
 ```
 
-Also be sure to add it to the root `lerna.json`
-
-```json
-{
-  "packages": ["/path/to/my-wasm-package"],
-  "version": "0.0.0",
-  "npmClient": "yarn",
-  "useWorkspaces": true
-}
-```
-
-and the `workspaces` key of the root `package.json`
+and the root `package.json`
 
 ````json
 {
