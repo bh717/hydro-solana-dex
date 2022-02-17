@@ -36,8 +36,12 @@
       "app"
     ],
     "nohoist": [
-      "app/**/babel-loader",
-      "app/**/babel-loader/**"
+      "app/react-scripts",
+      "app/react-scripts/**",
+      "examples/sdk-playground/react-scripts",
+      "examples/sdk-playground/react-scripts/**",
+      "**/react-scripts",
+      "**/react-scripts/**"
     ]
   }
 }
