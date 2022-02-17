@@ -10,7 +10,7 @@
     "@types/node": "^16.11.25",
     "@types/react": "^17.0.39",
     "@types/react-dom": "^17.0.11",
-    "hydra-ts": "^0.0.0",
+    "hydra-ts": "*",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-scripts": "5.0.0",

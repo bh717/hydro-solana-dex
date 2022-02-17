@@ -1,12 +1,13 @@
 {
   "name": "hydra-protocol",
-  "private": "true",
+  "private": true,
   "version": "0.0.0",
   "scripts": {
     "build:localnet": "anchor build -- --features \"localnet\"",
     "build:devnet": "anchor build -- --features \"devnet\"",
     "build:testnet": "anchor build -- --features \"testnet\"",
-    "build:mainnet": "anchor build -- --features \"mainnet\""
+    "build:mainnet": "anchor build -- --features \"mainnet\"",
+    "build": "turbo run build"
   },
   "license": "UNLICENSED",
   "dependencies": {
@@ -21,16 +22,22 @@
     "arg": "^5.0.1",
     "chai": "^4.3.4",
     "expand-tilde": "^2.0.2",
-    "lerna": "^4.0.0",
     "mocha": "^9.0.3",
+    "prettier": "^2.5.1",
     "toml": "^3.0.0",
     "ts-mocha": "^8.0.0",
+    "turbo": "^1.1.2",
     "typescript": "^4.3.5"
   },
-  "workspaces": [
-    "wasm/*",
-    "SDKs/*",
-    "examples/*",
-    "app"
-  ]
+  "workspaces": {
+    "packages": [
+      "SDKs/*",
+      "examples/*",
+      "app"
+    ],
+    "nohoist": [
+      "app/**/babel-loader",
+      "app/**/babel-loader/**"
+    ]
+  }
 }

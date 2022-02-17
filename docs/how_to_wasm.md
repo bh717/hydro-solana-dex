@@ -110,16 +110,26 @@ cd /path/to/my-wasm-package
 yarn build
 ```
 
-**7. Symlink your package**
+**7. Link your package**
+
+We are using yarn workspaces so running install should create a symlink within the root `node_modules` folder.
 
 ```bash
-yarn lerna bootstrap
+yarn install
 ```
 
-You may want to install your package in your destination this will automatically bootstrap
+You may want to install your package in your destination by using a `*` version. Here we have added `my-wasm-package` to an app.
 
-```
-yarn lerna add my-wasm-package --scope=some-comsumer
+```json
+{
+  "name":"my-app",
+  "dependencies": {
+    ...
+    "my-wasm-package": "*",
+    "react": "^17.0.2",
+    ...
+  }
+}
 ```
 
 **8. Now you can use it in your ts**
