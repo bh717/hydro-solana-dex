@@ -69,7 +69,7 @@ pub fn add(a: u64, b: u64) -> u64 {
 
 ```json
 {
-  "name": "hydra-math-sdk",
+  "name": "hydra-math-rs",
   "version": "0.1.0",
   "license": "UNLICENSED",
   "files": [

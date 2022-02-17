@@ -1,7 +1,7 @@
 [workspace]
 members = [
     "programs/*",
-    "sdks/hydra-math-sdk",
+    "sdks/hydra-math-rs",
     "libs/math/hmm",
     "libs/math/hydra-proto",
     "libs/math/sim",

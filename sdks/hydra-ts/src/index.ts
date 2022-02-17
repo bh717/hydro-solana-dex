@@ -1,4 +1,4 @@
-import * as wasm from "hydra-math-sdk";
+import * as wasm from "hydra-math-rs";
 
 export async function add(a: number, b: number) {
   if (typeof wasm.default !== "object") await wasm.default();

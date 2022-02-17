@@ -1,5 +1,5 @@
 [package]
-name = "hydra-math-sdk"
+name = "hydra-math-rs"
 version = "0.1.0"
 edition = "2021"
 
