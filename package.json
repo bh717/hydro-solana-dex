@@ -1,10 +1,13 @@
 {
   "name": "hydra-protocol",
+  "private": true,
+  "version": "0.0.0",
   "scripts": {
     "build:localnet": "anchor build -- --features \"localnet\"",
     "build:devnet": "anchor build -- --features \"devnet\"",
     "build:testnet": "anchor build -- --features \"testnet\"",
-    "build:mainnet": "anchor build -- --features \"mainnet\""
+    "build:mainnet": "anchor build -- --features \"mainnet\"",
+    "build": "turbo run build"
   },
   "license": "UNLICENSED",
   "dependencies": {
@@ -22,6 +25,22 @@
     "mocha": "^9.0.3",
     "toml": "^3.0.0",
     "ts-mocha": "^8.0.0",
+    "turbo": "^1.1.2",
     "typescript": "^4.3.5"
+  },
+  "workspaces": {
+    "packages": [
+      "sdks/*",
+      "examples/*",
+      "app"
+    ],
+    "nohoist": [
+      "app/react-scripts",
+      "app/react-scripts/**",
+      "examples/sdk/react-scripts",
+      "examples/sdk/react-scripts/**",
+      "**/react-scripts",
+      "**/react-scripts/**"
+    ]
   }
 }
