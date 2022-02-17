@@ -37,8 +37,8 @@
     "nohoist": [
       "app/react-scripts",
       "app/react-scripts/**",
-      "examples/sdk-playground/react-scripts",
-      "examples/sdk-playground/react-scripts/**",
+      "examples/sdk/react-scripts",
+      "examples/sdk/react-scripts/**",
       "**/react-scripts",
       "**/react-scripts/**"
     ]
