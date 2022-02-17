@@ -29,7 +29,7 @@
   },
   "workspaces": [
     "wasm/*",
-    "SDKs/hydra-ts",
+    "SDKs/*",
     "examples/*",
     "app"
   ]

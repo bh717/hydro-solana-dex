@@ -10,5 +10,4 @@ test-ledger/
 .vscode
 .anchor
 __pycache__
-.pkg.node
-.pkg.web
+.pkg

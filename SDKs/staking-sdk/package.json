@@ -3,20 +3,20 @@
   "version": "0.1.0",
   "license": "UNLICENSED",
   "files": [
-    "./.pkg.node/index_bg.wasm",
-    "./.pkg.node/index_bg.wasm.d.ts",
-    "./.pkg.node/index.js",
-    "./.pkg.node/index.d.ts",
-    "./.pkg.web/index_bg.wasm",
-    "./.pkg.web/index_bg.wasm.d.ts",
-    "./.pkg.web/index.js",
-    "./.pkg.web/index.d.ts"
+    "./.pkg/node/index_bg.wasm",
+    "./.pkg/node/index_bg.wasm.d.ts",
+    "./.pkg/node/index.js",
+    "./.pkg/node/index.d.ts",
+    "./.pkg/web/index_bg.wasm",
+    "./.pkg/web/index_bg.wasm.d.ts",
+    "./.pkg/web/index.js",
+    "./.pkg/web/index.d.ts"
   ],
-  "browser": "./web/index.js",
-  "main": "./node/index.js",
-  "types": "./web/index.d.ts",
+  "browser": "./.pkg/web/index.js",
+  "main": "./.pkg/node/index.js",
+  "types": "./.pkg/web/index.d.ts",
   "scripts": {
-    "build": "wasm-pack build -d .pkg.web --target web --out-name index; wasm-pack build -d .pkg.node --target nodejs --out-name index"
+    "build": "wasm-pack build -d .pkg/web --target web --out-name index; wasm-pack build -d .pkg/node --target nodejs --out-name index"
   },
   "sideEffects": false
 }
