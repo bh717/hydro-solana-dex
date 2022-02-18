@@ -4,9 +4,8 @@ import { loadWasm } from "../utils/wasm-loader";
 
 const hydraMath = loadWasm(wasm);
 
-export const calculatePoolTokensForDeposit =
-  () =>
-  async (
+export function calculatePoolTokensForDeposit(_: Ctx) {
+  return async (
     amount: BigInt,
     totalTokenVault: BigInt,
     totalRedeemableTokens: BigInt
@@ -17,6 +16,11 @@ export const calculatePoolTokensForDeposit =
       totalRedeemableTokens
     );
   };
+}
 
-export const stake = (ctx: Ctx) => async () => {};
-export const unstake = (ctx: Ctx) => async () => {};
+export function stake(ctx: Ctx) {
+  return async () => {};
+}
+export function unstake(ctx: Ctx) {
+  return async () => {};
+}

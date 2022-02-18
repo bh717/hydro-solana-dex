@@ -1,6 +1,8 @@
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import {
   ConnectionProvider,
+  useAnchorWallet,
+  useConnection,
   WalletProvider,
 } from "@solana/wallet-adapter-react";
 import {
@@ -17,7 +19,14 @@ import {
   TorusWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import { clusterApiUrl } from "@solana/web3.js";
-import React, { FC, ReactNode, useMemo } from "react";
+import { createCtx, createSdk } from "hydra-ts";
+import { FC, ReactNode, useMemo } from "react";
+import HydraStakingIdl from "target/idl/hydra_staking.json";
+
+// TODO: Create a frontend build system that supports these addresses being injected correctly
+const ADDRESSES = {
+  hydraStaking: HydraStakingIdl.metadata.address,
+};
 
 require("./App.css");
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -64,9 +73,48 @@ const Context: FC<{ children: ReactNode }> = ({ children }) => {
 };
 
 const Content: FC = () => {
+  const wallet = useAnchorWallet();
+  const { connection } = useConnection();
+
+  const sdk = useMemo(() => {
+    if (!wallet || !connection) return;
+
+    ////////////////////////////////////////////
+    // EXAMPLE SDK BOOTSTRAP
+    ////////////////////////////////////////////
+
+    // Create the SDK context
+    const ctx = createCtx(wallet, connection, ADDRESSES);
+
+    // Create the sdk
+    const sdk = createSdk(ctx);
+
+    return sdk;
+  }, [wallet, connection]);
+
+  const handleDemoClicked = async () => {
+    if (!sdk) return;
+
+    // This is a wasm call
+    const answer = await sdk.staking.calculatePoolTokensForDeposit(
+      100n,
+      2000n,
+      100_000_000n
+    );
+
+    // alert the answer
+    alert(answer);
+  };
   return (
     <div className="App">
-      <WalletMultiButton />
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        <div style={{ marginBottom: 20 }}>
+          <WalletMultiButton />
+        </div>
+        {wallet && (
+          <button onClick={handleDemoClicked}>Demonstrate Calculate</button>
+        )}
+      </div>
     </div>
   );
 };

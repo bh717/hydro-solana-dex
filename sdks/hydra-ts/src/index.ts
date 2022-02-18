@@ -3,9 +3,16 @@ import { Connection } from "@solana/web3.js";
 import { Program, Provider } from "@project-serum/anchor";
 import stakingIdl from "target/idl/hydra_staking.json";
 import { HydraStaking } from "target/types/hydra_staking";
-import * as stakingFns from "./staking";
+import { calculatePoolTokensForDeposit, stake, unstake } from "./staking";
 import { injectContext } from "./utils/curry-arg";
 
+/**
+ * Creates a context object
+ * @param wallet An Anchor wallet like object
+ * @param connection A connection
+ * @param programIds A map of programIds for the SDK
+ * @returns Ctx
+ */
 export function createCtx(
   wallet: Wallet,
   connection: Connection,
@@ -15,6 +22,12 @@ export function createCtx(
   return createCtxAnchor(provider, programIds);
 }
 
+/**
+ * Create context from within an anchor test
+ * @param provider Anchor provider
+ * @param programIds A map of programIds for the SDK
+ * @returns Ctx
+ */
 export function createCtxAnchor(
   provider: Provider,
   programIds: ProgramIds
@@ -34,10 +47,23 @@ export function createCtxAnchor(
   };
 }
 
+/**
+ * Create an instance of the sdk
+ * @param ctx A Ctx
+ * @returns An Sdk instance
+ */
 export function createSdk(ctx: Ctx) {
+  const staking = injectContext(
+    {
+      calculatePoolTokensForDeposit,
+      stake,
+      unstake,
+    },
+    ctx
+  );
+
+  // Organised by namespace
   return {
-    // namespacing
-    staking: injectContext(stakingFns, ctx),
-    // pools
+    staking,
   };
 }

@@ -1,9 +1,11 @@
-type CurryFn<A> = (a: A) => (...args: any) => any;
-type FnFromCurry<T extends CurryFn<any>> = ReturnType<T>;
+type CurryFn<Ctx> = (a: Ctx) => (...args: any) => any;
+type FnFromCurry<Ctx, T extends CurryFn<Ctx>> = ReturnType<T>;
 
-type InputObj<T> = Record<string, CurryFn<T>>;
+export type InputObj<Ctx> = Record<string, CurryFn<Ctx>>;
 
-type Output<T extends InputObj<any>> = { [K in keyof T]: FnFromCurry<T[K]> };
+export type Output<Ctx, T extends InputObj<Ctx>> = {
+  [K in keyof T]: FnFromCurry<Ctx, T[K]>;
+};
 
 /**
  * Injects context in obj
@@ -11,9 +13,22 @@ type Output<T extends InputObj<any>> = { [K in keyof T]: FnFromCurry<T[K]> };
  * @param ctx
  * @returns
  */
-export function injectContext<T>(
-  obj: InputObj<T>,
-  ctx: T
-): Output<InputObj<T>> {
-  return Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, v(ctx)]));
+
+// type InjectableContext<T> = (obj: InputObj<T>, ctx: T) => Output<InputObj<T>>;
+
+export function injectContext<Ctx, T extends InputObj<Ctx>>(
+  obj: T,
+  ctx: Ctx
+): Output<Ctx, T> {
+  type Out = Output<Ctx, T>;
+
+  const entries = Object.entries(obj);
+  const out = entries.reduce((acc: Out, [k, curryFn]) => {
+    return {
+      ...acc,
+      [k]: curryFn(ctx),
+    } as Out;
+  }, {} as Out);
+
+  return out;
 }
