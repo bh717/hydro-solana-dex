@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 wasm-bindgen = "0.2.79"
+spl-math = { git = "https://github.com/utx0/spl-math-butchered.git"}
 
 [lib]
 crate-type = ["cdylib", "rlib"]

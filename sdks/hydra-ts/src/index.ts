@@ -1,8 +1,43 @@
-import * as wasm from "hydra-math-rs";
-import { loadWasm } from "./utils/wasm-loader";
+import { Wallet, ProgramIds, Ctx } from "./types";
+import { Connection } from "@solana/web3.js";
+import { Program, Provider } from "@project-serum/anchor";
+import stakingIdl from "target/idl/hydra_staking.json";
+import { HydraStaking } from "target/types/hydra_staking";
+import * as stakingFns from "./staking";
+import { injectContext } from "./utils/curry-arg";
 
-const hydraMath = loadWasm(wasm);
+export function createCtx(
+  wallet: Wallet,
+  connection: Connection,
+  programIds: ProgramIds
+): Ctx {
+  const provider = new Provider(connection, wallet, {});
+  return createCtxAnchor(provider, programIds);
+}
 
-export async function add(a: number, b: number) {
-  return await hydraMath.add(BigInt(a), BigInt(b));
+export function createCtxAnchor(
+  provider: Provider,
+  programIds: ProgramIds
+): Ctx {
+  const typedStakingIdl = stakingIdl as any as HydraStaking;
+  const hydraStaking = new Program(
+    typedStakingIdl,
+    programIds.hydraStaking,
+    provider
+  );
+
+  return {
+    connection: provider.connection,
+    wallet: provider.wallet,
+    programs: { hydraStaking },
+    provider,
+  };
+}
+
+export function createSdk(ctx: Ctx) {
+  return {
+    // namespacing
+    staking: injectContext(stakingFns, ctx),
+    // pools
+  };
 }

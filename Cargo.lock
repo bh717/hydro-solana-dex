@@ -1506,7 +1506,7 @@ dependencies = [
  "rand 0.8.4",
  "sim",
  "solana-program",
- "spl-math",
+ "spl-math 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "thiserror",
  "uint 0.9.1",
 ]
@@ -1515,6 +1515,7 @@ dependencies = [
 name = "hydra-math-rs"
 version = "0.1.0"
 dependencies = [
+ "spl-math 0.1.0 (git+https://github.com/utx0/spl-math-butchered.git)",
  "wasm-bindgen",
 ]
 
@@ -1534,7 +1535,7 @@ dependencies = [
  "num-derive",
  "num-traits",
  "solana-program",
- "spl-math",
+ "spl-math 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "thiserror",
  "uint 0.9.1",
 ]
@@ -1546,7 +1547,7 @@ dependencies = [
  "anchor-lang",
  "anchor-spl",
  "proptest",
- "spl-math",
+ "spl-math 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -2812,7 +2813,7 @@ name = "sim"
 version = "0.1.0"
 dependencies = [
  "pyo3",
- "spl-math",
+ "spl-math 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -3451,6 +3452,19 @@ dependencies = [
  "solana-program",
  "thiserror",
  "uint 0.8.5",
+]
+
+[[package]]
+name = "spl-math"
+version = "0.1.0"
+source = "git+https://github.com/utx0/spl-math-butchered.git#9e94fec0e705a2141a34ede3a502f3dfd5cfd43d"
+dependencies = [
+ "borsh 0.9.1",
+ "borsh-derive 0.9.1",
+ "num-derive",
+ "num-traits",
+ "thiserror",
+ "uint 0.9.1",
 ]
 
 [[package]]
