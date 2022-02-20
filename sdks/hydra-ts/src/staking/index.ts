@@ -18,6 +18,20 @@ export function calculatePoolTokensForDeposit(_: Ctx) {
   };
 }
 
+export function calculatePoolTokensForWithdraw(_: Ctx) {
+  return async (
+    amount: BigInt,
+    totalTokens: BigInt,
+    totalRedeemableTokens: BigInt
+  ) => {
+    return await hydraMath.calc_pool_tokens_for_withdraw(
+      amount,
+      totalTokens,
+      totalRedeemableTokens
+    );
+  };
+}
+
 export function stake(ctx: Ctx) {
   return async () => {};
 }

@@ -1515,6 +1515,7 @@ dependencies = [
 name = "hydra-math-rs"
 version = "0.1.0"
 dependencies = [
+ "proptest",
  "spl-math 0.1.0 (git+https://github.com/utx0/spl-math-butchered.git)",
  "wasm-bindgen",
 ]
@@ -1546,6 +1547,7 @@ version = "0.1.0"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
+ "hydra-math-rs",
  "proptest",
  "spl-math 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]

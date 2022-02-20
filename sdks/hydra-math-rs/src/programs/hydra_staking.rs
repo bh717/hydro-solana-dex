@@ -1,7 +1,9 @@
 use spl_math::precise_number::PreciseNumber;
+use wasm_bindgen::prelude::*;
 
 /// deposit tokens into pool
 // (amount * total_x_token.supply) / total_token_vault
+#[wasm_bindgen]
 pub fn calc_pool_tokens_for_deposit(
     amount: u64,
     total_token_vault: u64,
@@ -11,6 +13,7 @@ pub fn calc_pool_tokens_for_deposit(
     let total_token_vault = PreciseNumber::new(total_token_vault as u128).unwrap();
     let total_redeemable_tokens = PreciseNumber::new(total_redeemable_tokens as u128).unwrap();
 
+    //  as u64
     (amount)
         .checked_mul(&total_redeemable_tokens)
         .unwrap()
@@ -24,6 +27,7 @@ pub fn calc_pool_tokens_for_deposit(
 
 /// withdraw tokens from pool
 // (amount * total_tokens) / total_redeemable_token_supply
+#[wasm_bindgen]
 pub fn calc_pool_tokens_for_withdraw(
     amount: u64,
     total_tokens: u64,

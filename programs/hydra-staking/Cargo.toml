@@ -24,6 +24,8 @@ default = ["localnet"]
 anchor-spl = "0.20.1"
 anchor-lang = "0.20.1"
 spl-math = { version = "0.1.0", features = ["no-entrypoint"] }
+hydra-math-rs = { path="../../sdks/hydra-math-rs" }
+
 
 [dev-dependencies]
 proptest = { version = "1.0.0" }

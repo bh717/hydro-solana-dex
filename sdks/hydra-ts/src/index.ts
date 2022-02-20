@@ -3,7 +3,12 @@ import { Connection } from "@solana/web3.js";
 import { Program, Provider } from "@project-serum/anchor";
 import stakingIdl from "target/idl/hydra_staking.json";
 import { HydraStaking } from "target/types/hydra_staking";
-import { calculatePoolTokensForDeposit, stake, unstake } from "./staking";
+import {
+  calculatePoolTokensForDeposit,
+  calculatePoolTokensForWithdraw,
+  stake,
+  unstake,
+} from "./staking";
 import { injectContext } from "./utils/curry-arg";
 
 /**
@@ -56,6 +61,7 @@ export function createSdk(ctx: Ctx) {
   const staking = injectContext(
     {
       calculatePoolTokensForDeposit,
+      calculatePoolTokensForWithdraw,
       stake,
       unstake,
     },

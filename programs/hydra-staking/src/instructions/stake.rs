@@ -2,10 +2,10 @@ use crate::constants::*;
 use crate::events::*;
 use crate::state::pool_state::PoolState;
 use crate::utils::price::calculate_price;
-use crate::utils::token::calc_pool_tokens_for_deposit;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
 use anchor_spl::token::{Mint, MintTo, Token, TokenAccount, Transfer};
+use hydra_math_rs::programs::hydra_staking::calc_pool_tokens_for_deposit;
 
 #[derive(Accounts)]
 pub struct Stake<'info> {
