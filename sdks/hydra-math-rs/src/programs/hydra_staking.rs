@@ -13,7 +13,6 @@ pub fn calc_pool_tokens_for_deposit(
     let total_token_vault = PreciseNumber::new(total_token_vault as u128).unwrap();
     let total_redeemable_tokens = PreciseNumber::new(total_redeemable_tokens as u128).unwrap();
 
-    //  as u64
     (amount)
         .checked_mul(&total_redeemable_tokens)
         .unwrap()
