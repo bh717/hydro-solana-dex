@@ -1,6 +1,1 @@
-/** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
-module.exports = {
-  preset: "ts-jest",
-  testEnvironment: "node",
-  testMatch: ["**/src/**/?(*.)+(spec|test).ts?(x)"],
-};
+module.exports = require("config-ts/jest.config");

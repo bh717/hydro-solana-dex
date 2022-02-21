@@ -1,19 +1,4 @@
 {
-  "compilerOptions": {
-    "target": "es2020",
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
-    "module": "CommonJS",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "outDir": "./dist",
-    "declaration": true,
-    "declarationMap": true
-  },
-  "include": ["src"]
+  "extends": "config-ts/module.tsconfig.json",
+  "include": ["src/**/*.ts"]
 }

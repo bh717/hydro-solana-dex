@@ -1,0 +1,8 @@
+{
+  "extends": "./base.tsconfig.json",
+  "compilerOptions": {
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "./dist"
+  }
+}
