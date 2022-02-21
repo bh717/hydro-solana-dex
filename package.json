@@ -7,6 +7,7 @@
     "build:devnet": "anchor build -- --features \"devnet\"",
     "build:testnet": "anchor build -- --features \"testnet\"",
     "build:mainnet": "anchor build -- --features \"mainnet\"",
+    "prebuild": "yarn build:localnet",
     "build": "turbo run build",
     "test": "turbo run test --parallel",
     "dev": "turbo run dev --parallel"

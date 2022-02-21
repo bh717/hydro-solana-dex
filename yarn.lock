@@ -7816,11 +7816,6 @@ fragment-cache@^0.2.1:
   dependencies:
     map-cache "^0.2.2"
 
-frames@0.0.x:
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/frames/-/frames-0.0.1.tgz#58bd087b5eda848f03b600aa9f77eafdc1b30e93"
-  integrity sha1-WL0Ie17ahI8DtgCqn3fq/cGzDpM=
-
 fresh@0.5.2:
   version "0.5.2"
   resolved "https://registry.yarnpkg.com/fresh/-/fresh-0.5.2.tgz#3d8cadd90d976569fa835ab1f8e4b23a105605a7"
@@ -15013,13 +15008,6 @@ tar@^6.0.2:
     minizlib "^2.1.1"
     mkdirp "^1.0.3"
     yallist "^4.0.0"
-
-target@*:
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/target/-/target-0.0.2.tgz#f56520eb1d71422c522f5bde0b3f74cfd5a7e5f8"
-  integrity sha1-9WUg6x1xQixSL1veCz90z9Wn5fg=
-  dependencies:
-    frames "0.0.x"
 
 temp-dir@^1.0.0:
   version "1.0.0"
