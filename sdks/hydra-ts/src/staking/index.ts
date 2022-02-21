@@ -10,7 +10,7 @@ export function calculatePoolTokensForDeposit(_: Ctx) {
     totalTokenVault: BigInt,
     totalRedeemableTokens: BigInt
   ) => {
-    return await hydraMath.calc_pool_tokens_for_deposit(
+    return await hydraMath.calculate_pool_tokens_for_deposit(
       amount,
       totalTokenVault,
       totalRedeemableTokens
@@ -24,7 +24,7 @@ export function calculatePoolTokensForWithdraw(_: Ctx) {
     totalTokens: BigInt,
     totalRedeemableTokens: BigInt
   ) => {
-    return await hydraMath.calc_pool_tokens_for_withdraw(
+    return await hydraMath.calculate_pool_tokens_for_withdraw(
       amount,
       totalTokens,
       totalRedeemableTokens

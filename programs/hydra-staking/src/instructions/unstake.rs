@@ -5,7 +5,7 @@ use crate::utils::price::calculate_price;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
 use anchor_spl::token::{Burn, Mint, Token, TokenAccount, Transfer};
-use hydra_math_rs::programs::hydra_staking::calc_pool_tokens_for_withdraw;
+use hydra_math_rs::programs::hydra_staking::calculate_pool_tokens_for_withdraw;
 
 #[derive(Accounts)]
 pub struct UnStake<'info> {
@@ -92,7 +92,7 @@ pub fn handle(ctx: Context<UnStake>, amount: u64) -> ProgramResult {
 
     // determine user share of vault
     let token_share =
-        calc_pool_tokens_for_withdraw(amount, total_tokens, total_redeemable_token_supply);
+        calculate_pool_tokens_for_withdraw(amount, total_tokens, total_redeemable_token_supply);
 
     let token_mint_key = ctx.accounts.pool_state.token_mint.key();
     let redeemable_mint_key = ctx.accounts.pool_state.redeemable_mint.key();

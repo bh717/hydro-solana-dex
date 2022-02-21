@@ -5,7 +5,7 @@ use crate::utils::price::calculate_price;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
 use anchor_spl::token::{Mint, MintTo, Token, TokenAccount, Transfer};
-use hydra_math_rs::programs::hydra_staking::calc_pool_tokens_for_deposit;
+use hydra_math_rs::programs::hydra_staking::calculate_pool_tokens_for_deposit;
 
 #[derive(Accounts)]
 pub struct Stake<'info> {
@@ -107,7 +107,7 @@ pub fn handle(ctx: Context<Stake>, amount: u64) -> ProgramResult {
         token::mint_to(cpi_tx, amount)?;
     } else {
         let mint_redeemable_amount: u64 =
-            calc_pool_tokens_for_deposit(amount, total_token_vault, total_redeemable_tokens);
+            calculate_pool_tokens_for_deposit(amount, total_token_vault, total_redeemable_tokens);
 
         let mut cpi_tx = ctx.accounts.into_mint_redeemable();
         cpi_tx.signer_seeds = &signer;
