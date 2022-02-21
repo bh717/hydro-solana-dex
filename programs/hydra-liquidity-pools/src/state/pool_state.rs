@@ -22,7 +22,7 @@ pub struct PoolState {
 }
 impl PoolState {}
 
-const POOL_STATE_PADDING_SIZE: usize = 1024;
+const POOL_STATE_PADDING_SIZE: usize = 511;
 
 #[derive(Clone, Debug)]
 pub struct PoolStatePadding([u8; POOL_STATE_PADDING_SIZE]);
