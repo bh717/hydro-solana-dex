@@ -53,7 +53,12 @@ describe("wasm-loader", () => {
     expect(even).toBe(2222n);
   });
 
-  // test('returning_struct', async () => {
-  //   const struct = await testWasm.returning_struct()
-  // })
+  test("returning_struct", async () => {
+    const obj = await testWasm.returning_struct(100n);
+    expect(obj).toEqual({ x: 100n, y: 100n });
+    const { message } = await expectError(async () => {
+      await testWasm.returning_struct(11n);
+    });
+    expect(message).toBe("Error: You passed in an odd number!");
+  });
 });
