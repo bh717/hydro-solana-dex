@@ -1581,6 +1581,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "hydra-math-rs"
+version = "0.1.0"
+dependencies = [
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "hydra-proto"
 version = "0.1.0"
 dependencies = [

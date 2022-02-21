@@ -8,4 +8,7 @@ node_modules
 test-ledger/
 .keys
 .vscode
+.anchor
 __pycache__
+.pkg
+.turbo
