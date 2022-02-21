@@ -1,6 +1,6 @@
 import { Ctx } from "../types";
 import * as wasm from "hydra-math-rs";
-import { loadWasm } from "../utils/wasm-loader";
+import { loadWasm } from "wasm-loader-ts";
 
 const hydraMath = loadWasm(wasm);
 

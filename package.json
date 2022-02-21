@@ -8,7 +8,8 @@
     "build:testnet": "anchor build -- --features \"testnet\"",
     "build:mainnet": "anchor build -- --features \"mainnet\"",
     "build": "turbo run build",
-    "test": "turbo run test --parallel"
+    "test": "turbo run test --parallel",
+    "dev": "turbo run dev --parallel"
   },
   "license": "UNLICENSED",
   "dependencies": {
@@ -33,6 +34,7 @@
     "packages": [
       "target",
       "sdks/*",
+      "sdks/wasm-loader-ts/wasm-test",
       "examples/*",
       "app"
     ],

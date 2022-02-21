@@ -2,6 +2,7 @@
 members = [
     "programs/*",
     "sdks/hydra-math-rs",
+    "sdks/wasm-loader-ts/wasm-test",
     "libs/math/hmm",
     "libs/math/hydra-proto",
     "libs/math/sim",
