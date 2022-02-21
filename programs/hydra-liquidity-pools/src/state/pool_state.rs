@@ -18,31 +18,31 @@ pub struct PoolState {
     pub lp_token_vault_bump: u8,
     #[derivative(Default(value = "false"))]
     pub debug: bool,
-    // pub padding: PoolStatePadding,
+    _padding: PoolStatePadding,
 }
 impl PoolState {}
 
-// const POOL_STATE_PADDING_SIZE: usize = 1024;
-//
-// #[derive(Clone, Debug)]
-// pub struct PoolStatePadding([u8; POOL_STATE_PADDING_SIZE]);
-//
-// impl AnchorSerialize for PoolStatePadding {
-//     fn serialize<W: Write>(&self, writer: &mut W) -> std::io::Result<()> {
-//         writer.write_all(&self.0)
-//     }
-// }
-//
-// impl AnchorDeserialize for PoolStatePadding {
-//     fn deserialize(buf: &mut &[u8]) -> std::io::Result<Self> {
-//         Ok(Self([0u8; POOL_STATE_PADDING_SIZE]))
-//     }
-// }
-//
-// impl Default for PoolStatePadding {
-//     fn default() -> Self {
-//         PoolStatePadding {
-//             0: [0u8; POOL_STATE_PADDING_SIZE],
-//         }
-//     }
-// }
+const POOL_STATE_PADDING_SIZE: usize = 1024;
+
+#[derive(Clone, Debug)]
+pub struct PoolStatePadding([u8; POOL_STATE_PADDING_SIZE]);
+
+impl AnchorSerialize for PoolStatePadding {
+    fn serialize<W: Write>(&self, writer: &mut W) -> std::io::Result<()> {
+        writer.write_all(&self.0)
+    }
+}
+
+impl AnchorDeserialize for PoolStatePadding {
+    fn deserialize(buf: &mut &[u8]) -> std::io::Result<Self> {
+        Ok(Self([0u8; POOL_STATE_PADDING_SIZE]))
+    }
+}
+
+impl Default for PoolStatePadding {
+    fn default() -> Self {
+        PoolStatePadding {
+            0: [0u8; POOL_STATE_PADDING_SIZE],
+        }
+    }
+}
