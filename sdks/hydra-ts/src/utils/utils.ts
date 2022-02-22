@@ -42,9 +42,9 @@ export async function createMint(
 
 export async function transfer(
     provider: Provider,
-    source,
-    destination,
-    amount,
+    source: any,
+    destination: any,
+    amount: any,
 ): Promise<TransactionSignature> {
     const tx = new Transaction();
     tx.add(
