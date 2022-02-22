@@ -12,6 +12,10 @@ install_anchor:
 install_solana:
 	sh -c "$$(curl -sSfL https://release.solana.com/v1.9.6/install)"	
 
+# build
+build:
+	./scripts/build.sh
+
 # COMMON
 check:
 	cargo check --workspace
