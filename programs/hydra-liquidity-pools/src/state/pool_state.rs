@@ -21,7 +21,7 @@ pub struct PoolState {
 }
 impl PoolState {}
 
-const POOL_STATE_RESERVE_SIZE: usize = 511;
+const POOL_STATE_RESERVE_SIZE: usize = 512;
 
 #[derive(Clone, Debug)]
 pub struct PoolStateReserve([u8; POOL_STATE_RESERVE_SIZE]);
