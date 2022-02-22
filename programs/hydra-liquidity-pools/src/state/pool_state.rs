@@ -3,8 +3,7 @@ use derivative::Derivative;
 use std::io::Write;
 
 #[account]
-#[derive(Derivative)]
-#[derivative(Debug, Default)]
+#[derive(Default, Derivative)]
 pub struct PoolState {
     pub authority: Pubkey,
     pub token_a_vault: Pubkey,
@@ -18,7 +17,7 @@ pub struct PoolState {
     pub lp_token_vault_bump: u8,
     #[derivative(Default(value = "false"))]
     pub debug: bool,
-    reserved: PoolStateReserve,
+    pub reserved: PoolStateReserve,
 }
 impl PoolState {}
 
