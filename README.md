@@ -68,7 +68,7 @@ anchor-cli 0.20.1
 
 `anchor build`
 
-### Build Javascript components
+### Build TypeScript components
 
 To build the javascript components you need to have built and deployed anchor to a local `solana-test-validator` so that your IDLs contain programIds.
 
