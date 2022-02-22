@@ -11,10 +11,7 @@ import {TOKEN_PROGRAM_ID} from "@project-serum/serum/lib/token-instructions";
 const utf8 = anchor.utils.bytes.utf8;
 import {btcdMintAmount, usddMintAmount} from "../../sdks/hydra-ts/src/const"
 
-console.log("testing ................")
-
 describe ("hydra-liquidity-pool", async () => {
-    console.log("testing ................")
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.Provider.env());
 
@@ -22,7 +19,6 @@ describe ("hydra-liquidity-pool", async () => {
   const program = new anchor.Program(IDL, hydraLiquidityPoolsProgramId) as Program<HydraLiquidityPools>;
   const provider = anchor.Provider.env();
 
-    console.log("testing ................")
   let btcdMint
   let usddMint
   let btcdAccount
