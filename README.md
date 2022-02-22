@@ -9,29 +9,29 @@ Our vision is to attract more liquidity into decentralized exchanges and bring t
 
 ## Note
 
-* Hydra Protocol is in active development and all API are subject to change
-* This is currently experimental and unaudited software. Use at your own risk.
+- Hydra Protocol is in active development and all API are subject to change
+- This is currently experimental and unaudited software. Use at your own risk.
 
-## Programs / Contracts 
+## Programs / Contracts
 
 All programs can be found in `./programs` and all integration tests can be found in `./tests`
 
-* hydra-farming
-* hydra-multisig
-* hydra-pools
-* hydra-staking
-* hydra-vesting
+- hydra-farming
+- hydra-multisig
+- hydra-pools
+- hydra-staking
+- hydra-vesting
 
 ## Contributing
 
-### Install dependencies 
+### Install dependencies
 
 #### Installing rust:
 
 Direction can be found [here](https://www.rust-lang.org/tools/install)
 
-``` 
-$ rustc --version 
+```
+$ rustc --version
 rustc 1.58.0 (02072b482 2022-01-11)
 ```
 
@@ -39,16 +39,16 @@ rustc 1.58.0 (02072b482 2022-01-11)
 
 Directions can be found [here](https://docs.solana.com/cli/install-solana-cli-tools)
 
-``` 
+```
 $ solana --version
 solana-cli 1.9.4 (src:8ce65878; feat:3258470607)
 ```
 
-#### Installing NodeJs 
+#### Installing NodeJs
 
 Direction can be found [here](https://nodejs.org/en/)
 
-``` 
+```
 $ node --version
 v17.1.0
 ```
@@ -58,7 +58,8 @@ v17.1.0
 Directions can be found [here](https://project-serum.github.io/anchor/getting-started/installation.html).
 
 You can also use our own fork by running `make install_anchor`
-``` 
+
+```
 $ anchor --version
 anchor-cli 0.20.1
 ```
@@ -67,18 +68,27 @@ anchor-cli 0.20.1
 
 `anchor build`
 
-### Deploy 
+### Build Javascript components
+
+To build the javascript components you need to have built and deployed anchor to a local `solana-test-validator` so that your IDLs contain programIds.
+
+After `anchor deploy` you can run:
+
+`yarn build`
+
+We would like to make this experience more seamless.
+
+### Deploy
 
 `anchor deploy`
 
-### Test 
+### Test
 
 `anchor test`
 
-### Migrate 
+### Migrate
 
 `make migrate`
-
 
 ### How tos
 
