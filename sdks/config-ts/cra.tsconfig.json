@@ -1,0 +1,11 @@
+{
+  "extends": "./base.tsconfig.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "jsx": "react-jsx",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "module": "esnext",
+    "noEmit": true,
+    "strict": true
+  }
+}

@@ -1,8 +1,10 @@
 use spl_math::precise_number::PreciseNumber;
+use wasm_bindgen::prelude::*;
 
 /// deposit tokens into pool
 // (amount * total_x_token.supply) / total_token_vault
-pub fn calc_pool_tokens_for_deposit(
+#[wasm_bindgen]
+pub fn calculate_pool_tokens_for_deposit(
     amount: u64,
     total_token_vault: u64,
     total_redeemable_tokens: u64,
@@ -24,7 +26,8 @@ pub fn calc_pool_tokens_for_deposit(
 
 /// withdraw tokens from pool
 // (amount * total_tokens) / total_redeemable_token_supply
-pub fn calc_pool_tokens_for_withdraw(
+#[wasm_bindgen]
+pub fn calculate_pool_tokens_for_withdraw(
     amount: u64,
     total_tokens: u64,
     total_redeemable_token_supply: u64,
@@ -62,7 +65,7 @@ mod tests {
         let expected = 1000u64;
 
         let result =
-            calc_pool_tokens_for_deposit(amount, total_token_vault, total_redeemable_tokens);
+            calculate_pool_tokens_for_deposit(amount, total_token_vault, total_redeemable_tokens);
         assert_eq!(
             expected, result,
             "redeemable (1000 * 100000000) / 100000000 = ({} * {} / {})",
@@ -78,7 +81,7 @@ mod tests {
         let expected = 98u64;
 
         let result =
-            calc_pool_tokens_for_deposit(amount, total_token_vault, total_redeemable_tokens);
+            calculate_pool_tokens_for_deposit(amount, total_token_vault, total_redeemable_tokens);
         assert_eq!(
             expected, result,
             "redeemable (987 * 9999000) / 100000000 = ({} * {} / {})",
@@ -97,7 +100,7 @@ mod tests {
         let expected = 1000u64;
 
         let result =
-            calc_pool_tokens_for_withdraw(amount, total_token_vault, total_redeemable_tokens);
+            calculate_pool_tokens_for_withdraw(amount, total_token_vault, total_redeemable_tokens);
         assert_eq!(
             expected, result,
             "redeemable (1000 * 100000000) / 100000000 = ({} * {} / {})",
@@ -113,7 +116,7 @@ mod tests {
         let expected = 9870u64;
 
         let result =
-            calc_pool_tokens_for_withdraw(amount, total_token_vault, total_redeemable_tokens);
+            calculate_pool_tokens_for_withdraw(amount, total_token_vault, total_redeemable_tokens);
         assert_eq!(
             expected, result,
             "redeemable (987 * 100000000) / 9999000 = ({} * {} / {})",
@@ -149,11 +152,11 @@ mod tests {
                 total_token_vault,
                 total_redeemable_tokens,
             };
-            let deposit_result = calc_pool_tokens_for_deposit(deposit_amount, total_token_vault, total_redeemable_tokens);
+            let deposit_result = calculate_pool_tokens_for_deposit(deposit_amount, total_token_vault, total_redeemable_tokens);
             prop_assume!(deposit_result > 0);
             stake_pool.total_token_vault += deposit_amount;
             stake_pool.total_redeemable_tokens += deposit_result;
-            let withdraw_result = calc_pool_tokens_for_withdraw(deposit_result, total_token_vault, total_redeemable_tokens);
+            let withdraw_result = calculate_pool_tokens_for_withdraw(deposit_result, total_token_vault, total_redeemable_tokens);
             assert!(withdraw_result <= deposit_amount);
         }
     }

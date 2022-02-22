@@ -7,7 +7,9 @@
     "build:devnet": "anchor build -- --features \"devnet\"",
     "build:testnet": "anchor build -- --features \"testnet\"",
     "build:mainnet": "anchor build -- --features \"mainnet\"",
-    "build": "turbo run build"
+    "build": "turbo run build",
+    "test": "turbo run test --parallel",
+    "dev": "turbo run dev --parallel"
   },
   "license": "UNLICENSED",
   "dependencies": {
@@ -30,17 +32,33 @@
   },
   "workspaces": {
     "packages": [
+      "target",
       "sdks/*",
+      "sdks/wasm-loader-ts/wasm-test",
       "examples/*",
       "app"
     ],
     "nohoist": [
+      "@solana/wallet-adapter-base",
+      "@solana/wallet-adapter-react",
+      "@solana/wallet-adapter-react-ui",
+      "@solana/wallet-adapter-wallets",
       "app/react-scripts",
       "app/react-scripts/**",
       "examples/sdk/react-scripts",
       "examples/sdk/react-scripts/**",
+      "sdks/hydra-ts/jest",
+      "sdks/hydra-ts/jest/**",
+      "sdks/hydra-ts/jest-*",
+      "sdks/hydra-ts/@jest",
+      "sdks/hydra-ts/@jest/**",
       "**/react-scripts",
-      "**/react-scripts/**"
+      "**/react-scripts/**",
+      "**/@jest",
+      "**/@jest/**",
+      "**/jest",
+      "**/jest/**",
+      "**/jest-*"
     ]
   }
 }

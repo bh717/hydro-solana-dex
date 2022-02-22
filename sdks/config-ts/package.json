@@ -1,0 +1,13 @@
+{
+  "name": "config-ts",
+  "version": "0.0.0",
+  "license": "UNLICENSED",
+  "private": true,
+  "main": "index.js",
+  "files": [
+    "my.tsconfig.json",
+    "base.tsconfig.json",
+    "cra.tsconfig.json",
+    "jest.config.js"
+  ]
+}
