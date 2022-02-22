@@ -1,22 +1,28 @@
 import * as anchor from '@project-serum/anchor';
 import {BN, Program} from '@project-serum/anchor';
-import { HydraLiquidityPools } from '../../target/types/hydra_liquidity_pools';
+import * as localJsonIdl from "../../target/idl/hydra_liquidity_pools.json";
+import { HydraLiquidityPools, IDL } from '../../sdks/hydra-ts/codegen/types/hydra_liquidity_pools';
 import assert from "assert";
 import {TokenInstructions} from "@project-serum/serum";
 import {createMintAndVault, createTokenAccount} from "@project-serum/common";
-import {createMint, getTokenBalance} from "../utils/utils";
+import {createMint, getTokenBalance} from "../../sdks/hydra-ts/src/utils/utils";
 import {Keypair} from "@solana/web3.js";
 import {TOKEN_PROGRAM_ID} from "@project-serum/serum/lib/token-instructions";
 const utf8 = anchor.utils.bytes.utf8;
-import {btcdMintAmount, usddMintAmount} from "../const"
+import {btcdMintAmount, usddMintAmount} from "../../sdks/hydra-ts/src/const"
+
+console.log("testing ................")
 
 describe ("hydra-liquidity-pool", async () => {
+    console.log("testing ................")
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.Provider.env());
 
-  const program = anchor.workspace.HydraLiquidityPools as Program<HydraLiquidityPools>;
+  const hydraLiquidityPoolsProgramId = new anchor.web3.PublicKey(localJsonIdl["metadata"]["address"]);
+  const program = new anchor.Program(IDL, hydraLiquidityPoolsProgramId) as Program<HydraLiquidityPools>;
   const provider = anchor.Provider.env();
 
+    console.log("testing ................")
   let btcdMint
   let usddMint
   let btcdAccount

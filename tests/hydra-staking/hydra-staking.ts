@@ -1,7 +1,8 @@
 import * as anchor from '@project-serum/anchor';
 import { Program } from '@project-serum/anchor';
-import { HydraStaking } from '../../target/types/hydra_staking';
-import {loadKey, createMintAndVault, createMint, getTokenBalance, transfer} from "../utils/utils"
+import * as localJsonIdl from "../../target/idl/hydra_staking.json";
+import { HydraStaking, IDL } from '../../sdks/hydra-ts/codegen/types/hydra_staking';
+import {loadKey, createMintAndVault, createMint, getTokenBalance, transfer} from "../../sdks/hydra-ts/src/utils/utils";
 import { TokenInstructions } from "@project-serum/serum"
 import {Keypair} from "@solana/web3.js";
 import {createTokenAccount, NodeWallet} from "@project-serum/common";
@@ -10,8 +11,9 @@ import * as assert from "assert";
 const utf8 = anchor.utils.bytes.utf8;
 
 describe('hydra-staking',  async () => {
-    anchor.setProvider(anchor.Provider.env());
-    const program = anchor.workspace.HydraStaking as Program<HydraStaking>;
+    const hydraStaking = new anchor.web3.PublicKey(localJsonIdl["metadata"]["address"]);
+    const program = new anchor.Program(IDL, hydraStaking) as Program<HydraStaking>;
+    const provider = anchor.Provider.env();
 
     const tokenMint = Keypair.generate()
     const redeemableMint = Keypair.generate()

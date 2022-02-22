@@ -1,13 +1,15 @@
 import * as anchor from '@project-serum/anchor';
 import { Program } from '@project-serum/anchor';
-import { HydraFarming } from '../../target/types/hydra_farming';
+import * as localJsonIdl from "../../target/idl/hydra_farming.json";
+import { HydraFarming, IDL } from '../../sdks/hydra-ts/codegen/types/hydra_farming';
 
 describe('hydra-farming', () => {
 
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.Provider.env());
 
-  const program = anchor.workspace.HydraFarming as Program<HydraFarming>;
+  const  hydraFarming = new anchor.web3.PublicKey(localJsonIdl["metadata"]["address"]);
+  const program = new anchor.Program(IDL, hydraFarming) as Program<HydraFarming>;
 
   it('Is initialized!', async () => {
     // Add your test here.
