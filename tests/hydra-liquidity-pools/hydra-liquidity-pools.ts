@@ -17,7 +17,7 @@ import { TOKEN_PROGRAM_ID } from "@project-serum/serum/lib/token-instructions";
 const utf8 = anchor.utils.bytes.utf8;
 import { btcdMintAmount, usddMintAmount } from "../../sdks/hydra-ts/src/const";
 
-describe("hydra-liquidity-pool", async () => {
+describe("hydra-liquidity-pool", () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.Provider.env());
 
@@ -313,9 +313,6 @@ describe("hydra-liquidity-pool", async () => {
   });
 
   it("should not add-liquidity due to exceeding slippage ", async () => {
-    program.addEventListener("SlippageExceeded", (e, s) => {
-      console.log(e);
-    });
     try {
       await program.rpc.addLiquidity(
         new BN(16_000_000), // 16 bitcoins

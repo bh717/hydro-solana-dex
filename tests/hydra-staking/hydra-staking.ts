@@ -19,7 +19,7 @@ import { TOKEN_PROGRAM_ID } from "@project-serum/serum/lib/token-instructions";
 import * as assert from "assert";
 const utf8 = anchor.utils.bytes.utf8;
 
-describe("hydra-staking", async () => {
+describe("hydra-staking", () => {
   const hydraStaking = new anchor.web3.PublicKey(
     localJsonIdl["metadata"]["address"]
   );
