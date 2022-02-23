@@ -15,7 +15,7 @@ pub struct AddLiquidity<'info> {
     #[account(
         mut,
         seeds = [ POOL_STATE_SEED, lp_token_mint.key().as_ref() ],
-        bump,
+        bump = pool_state.pool_state_bump,
     )]
     pub pool_state: Box<Account<'info, PoolState>>,
 
