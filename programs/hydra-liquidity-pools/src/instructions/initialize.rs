@@ -16,7 +16,7 @@ pub struct Initialize<'info> {
         init,
         payer = payer,
         seeds = [ POOL_STATE_SEED, lp_token_mint.key().as_ref() ],
-        bump = pool_state_bump,
+        bump,
     )]
     pub pool_state: Box<Account<'info, PoolState>>,
 
@@ -38,7 +38,7 @@ pub struct Initialize<'info> {
         token::mint = token_a_mint,
         token::authority = pool_state,
         seeds = [ TOKEN_VAULT_SEED, token_a_mint.key().as_ref(), lp_token_mint.key().as_ref() ],
-        bump = token_a_vault_bump,
+        bump,
     )]
     pub token_a_vault: Box<Account<'info, TokenAccount>>,
 
@@ -48,7 +48,7 @@ pub struct Initialize<'info> {
         token::mint = token_b_mint,
         token::authority = pool_state,
         seeds = [ TOKEN_VAULT_SEED, token_b_mint.key().as_ref(), lp_token_mint.key().as_ref() ],
-        bump = token_b_vault_bump,
+        bump,
     )]
     pub token_b_vault: Box<Account<'info, TokenAccount>>,
 
@@ -58,7 +58,7 @@ pub struct Initialize<'info> {
         token::mint = lp_token_mint,
         token::authority = pool_state,
         seeds = [ LP_TOKEN_VAULT_SEED, pool_state.key().as_ref(), lp_token_mint.key().as_ref() ],
-        bump = lp_token_vault_bump,
+        bump,
     )]
     pub lp_token_vault: Box<Account<'info, TokenAccount>>,
 

@@ -219,6 +219,19 @@ export type HydraLiquidityPools = {
       };
     }
   ];
+  types: [
+    {
+      name: "ErrorCode";
+      type: {
+        kind: "enum";
+        variants: [
+          {
+            name: "SlippageExceeded";
+          }
+        ];
+      };
+    }
+  ];
   events: [
     {
       name: "LiquidityAdded";
@@ -264,13 +277,6 @@ export type HydraLiquidityPools = {
           index: false;
         }
       ];
-    }
-  ];
-  errors: [
-    {
-      code: 6000;
-      name: "SlippageExceeded";
-      msg: "Slippage Amount Exceeded";
     }
   ];
 };
@@ -496,6 +502,19 @@ export const IDL: HydraLiquidityPools = {
       },
     },
   ],
+  types: [
+    {
+      name: "ErrorCode",
+      type: {
+        kind: "enum",
+        variants: [
+          {
+            name: "SlippageExceeded",
+          },
+        ],
+      },
+    },
+  ],
   events: [
     {
       name: "LiquidityAdded",
@@ -541,13 +560,6 @@ export const IDL: HydraLiquidityPools = {
           index: false,
         },
       ],
-    },
-  ],
-  errors: [
-    {
-      code: 6000,
-      name: "SlippageExceeded",
-      msg: "Slippage Amount Exceeded",
     },
   ],
 };

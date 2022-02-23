@@ -1561,7 +1561,7 @@ dependencies = [
  "derivative",
  "hydra-math",
  "num",
- "spl-math",
+ "spl-math 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -3613,8 +3613,8 @@ name = "spl-math"
 version = "0.1.0"
 source = "git+https://github.com/utx0/spl-math-butchered.git#9e94fec0e705a2141a34ede3a502f3dfd5cfd43d"
 dependencies = [
- "borsh 0.9.1",
- "borsh-derive 0.9.1",
+ "borsh 0.9.2",
+ "borsh-derive 0.9.2",
  "num-derive",
  "num-traits",
  "thiserror",
