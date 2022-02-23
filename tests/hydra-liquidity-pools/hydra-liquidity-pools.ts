@@ -340,7 +340,11 @@ describe("hydra-liquidity-pool", async () => {
       );
       assert.ok(false);
     } catch (err) {
-      const errMsg = "Slippage Amount Exceeded";
+      // TODO; error handle is broken with anchor 0.22
+      // ref: https://github.com/project-serum/anchor/issues/1494
+      // const errMsg = "Slippage Amount Exceeded";
+      const errMsg =
+        "Error: failed to send transaction: Transaction simulation failed: Error processing Instruction 0: custom program error: 0x1770";
       assert.equal(err.toString(), errMsg);
     }
 
