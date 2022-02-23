@@ -2,7 +2,7 @@
 import * as anchor from "@project-serum/anchor";
 import { Program } from "@project-serum/anchor";
 import { HydraStaking } from "../target/types/hydra_staking";
-import { loadKey, createMintAndVault, createMint } from "../tests/utils/utils"; // these should be moved out of test
+import { loadKey, createMintAndVault, createMint } from "../sdks/hydra-ts/src/utils/utils"; // these should be moved out of test
 import { TokenInstructions } from "@project-serum/serum";
 import { Keypair } from "@solana/web3.js";
 import { NodeWallet } from "@project-serum/common";

@@ -1,1 +1,3 @@
 dist
+codegen/idl/*
+codegen/types/*

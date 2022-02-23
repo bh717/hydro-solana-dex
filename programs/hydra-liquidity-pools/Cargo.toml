@@ -1,12 +1,12 @@
 [package]
-name = "hydra-pools"
+name = "hydra-liquidity-pools"
 version = "0.1.0"
 description = "Created with Anchor"
 edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "hydra_pools"
+name = "hydra_liquidity_pools"
 
 [features]
 no-entrypoint = []
@@ -22,4 +22,8 @@ default = ["localnet"]
 [dependencies]
 #anchor-lang = { git = "https://github.com/hydraswap-io/anchor" }
 anchor-lang = "0.20.1"
+anchor-spl = "0.20.1"
+derivative = "2.2.0"
 hydra-math = { version = "0.1.0", path = "../../libs/math/hmm", features = ["no-entrypoint"] }
+num = "0.4.0"
+spl-math = "0.1.0"

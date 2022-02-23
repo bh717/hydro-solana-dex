@@ -7,7 +7,17 @@ list:
 
 # install our fork of anchor
 install_anchor:
-	cargo install --git https://github.com/hydraswap-io/anchor anchor-cli --locked --force
+	cargo install --git https://github.com/project-serum/anchor --tag v0.20.1 anchor-cli --locked --force
+
+install_solana:
+	sh -c "$$(curl -sSfL https://release.solana.com/v1.9.6/install)"	
+
+# build
+build:
+	./scripts/build.sh
+
+test:
+	anchor test
 
 # COMMON
 check:
@@ -35,7 +45,7 @@ migrate:
 	yarn ts-node scripts/migrate.ts
 
 watch-test:
-	cargo watch -- anchor test -- --features "localnet"
+	cargo watch -c -- anchor test -- --features "localnet"
 
 watch:
 	cargo watch -- anchor build -- --features "localnet"
@@ -43,7 +53,6 @@ watch:
 anchor-ci:
 	yarn install
 	solana-keygen new --no-bip39-passphrase || true
-	#cargo clean
 	cargo check
 	cargo test
 	anchor build

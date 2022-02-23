@@ -68,7 +68,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .subcommand(
             SubCommand::with_name("pools")
-                .about("For working with the hydra-pools program")
+                .about("For working with the hydra-liquidity-pools program")
                 .subcommand(SubCommand::with_name("init").about("init a pool"))
                 .subcommand(SubCommand::with_name("deposit").about("deposit into a pool"))
                 .subcommand(SubCommand::with_name("withdraw").about("withdraw from a pool"))
