@@ -4,7 +4,7 @@ import * as localJsonIdl from "../../target/idl/hydra_liquidity_pools.json";
 import {
   HydraLiquidityPools,
   IDL,
-} from "../../sdks/hydra-ts/codegen/types/hydra_liquidity_pools";
+} from "hydra-ts/codegen/types/hydra_liquidity_pools";
 import assert from "assert";
 import { TokenInstructions } from "@project-serum/serum";
 import { createMintAndVault, createTokenAccount } from "@project-serum/common";
