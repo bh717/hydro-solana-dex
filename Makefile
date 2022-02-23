@@ -16,6 +16,9 @@ install_solana:
 build:
 	./scripts/build.sh
 
+test:
+	anchor test
+
 # COMMON
 check:
 	cargo check --workspace
