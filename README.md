@@ -41,7 +41,7 @@ Directions can be found [here](https://docs.solana.com/cli/install-solana-cli-to
 
 ```
 $ solana --version
-solana-cli 1.9.4 (src:8ce65878; feat:3258470607)
+solana-cli 1.9.6 (src:781609b2; feat:2191737503)
 ```
 
 #### Installing NodeJs
@@ -61,7 +61,7 @@ You can also use our own fork by running `make install_anchor`
 
 ```
 $ anchor --version
-anchor-cli 0.20.1
+anchor-cli 0.22.0
 ```
 
 ### Build
