@@ -12,6 +12,9 @@ use spl_math::precise_number::PreciseNumber;
 
 #[derive(Accounts)]
 pub struct AddLiquidity<'info> {
+    /// the authority allowed to transfer token_a and token_b from the users wallet.
+    pub user: Signer<'info>,
+
     #[account(
         mut,
         seeds = [ POOL_STATE_SEED, lp_token_mint.key().as_ref() ],
@@ -38,7 +41,7 @@ pub struct AddLiquidity<'info> {
     #[account(
         mut,
         constraint = user_token_a.mint == pool_state.token_a_mint.key(),
-        constraint = user_token_a.owner == user_authority.key()
+        constraint = user_token_a.owner == user.key()
     )]
     /// the token account to withdraw from
     pub user_token_a: Box<Account<'info, TokenAccount>>,
@@ -46,13 +49,10 @@ pub struct AddLiquidity<'info> {
     #[account(
         mut,
         constraint = user_token_b.mint == pool_state.token_b_mint.key(),
-        constraint = user_token_b.owner == user_authority.key()
+        constraint = user_token_b.owner == user.key()
     )]
     /// the token account to withdraw from
     pub user_token_b: Box<Account<'info, TokenAccount>>,
-
-    /// the authority allowed to transfer token_a and token_b from the users wallet.
-    pub user_authority: Signer<'info>,
 
     #[account(
         mut,
@@ -97,7 +97,7 @@ impl<'info> AddLiquidity<'info> {
         let cpi_accounts = Transfer {
             from: self.user_token_a.to_account_info(),
             to: self.token_a_vault.to_account_info(),
-            authority: self.user_authority.to_account_info(),
+            authority: self.user.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
@@ -113,7 +113,7 @@ impl<'info> AddLiquidity<'info> {
         let cpi_accounts = Transfer {
             from: self.user_token_b.to_account_info(),
             to: self.token_b_vault.to_account_info(),
-            authority: self.user_authority.to_account_info(),
+            authority: self.user.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
