@@ -14,7 +14,7 @@ pub struct Initialize<'info> {
     #[account(init,
         payer = payer,
         seeds = [ POOL_STATE_SEED, token_mint.key().as_ref(), redeemable_mint.key().as_ref() ],
-        bump = pool_state_bump,
+        bump,
         rent_exempt = enforce,
     )]
     pub pool_state: Box<Account<'info, PoolState>>,
@@ -34,7 +34,7 @@ pub struct Initialize<'info> {
         token::mint = token_mint,
         token::authority = token_vault,
         seeds = [ TOKEN_VAULT_SEED, token_mint.key().as_ref(), redeemable_mint.key().as_ref() ],
-        bump = token_vault_bump,
+        bump,
     )]
     pub token_vault: Box<Account<'info, TokenAccount>>,
 
