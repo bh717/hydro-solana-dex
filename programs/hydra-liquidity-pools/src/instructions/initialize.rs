@@ -17,7 +17,6 @@ pub struct Initialize<'info> {
         payer = payer,
         seeds = [ POOL_STATE_SEED, lp_token_mint.key().as_ref() ],
         bump = pool_state_bump,
-        rent_exempt = enforce,
     )]
     pub pool_state: Box<Account<'info, PoolState>>,
 
@@ -40,7 +39,6 @@ pub struct Initialize<'info> {
         token::authority = token_a_vault,
         seeds = [ TOKEN_VAULT_SEED, token_a_mint.key().as_ref(), lp_token_mint.key().as_ref() ],
         bump = token_a_vault_bump,
-        rent_exempt = enforce,
     )]
     pub token_a_vault: Box<Account<'info, TokenAccount>>,
 
@@ -51,7 +49,6 @@ pub struct Initialize<'info> {
         token::authority = token_b_vault,
         seeds = [ TOKEN_VAULT_SEED, token_b_mint.key().as_ref(), lp_token_mint.key().as_ref() ],
         bump = token_b_vault_bump,
-        rent_exempt = enforce,
     )]
     pub token_b_vault: Box<Account<'info, TokenAccount>>,
 
@@ -62,7 +59,6 @@ pub struct Initialize<'info> {
         token::authority = pool_state,
         seeds = [ LP_TOKEN_VAULT_SEED, pool_state.key().as_ref(), lp_token_mint.key().as_ref() ],
         bump = lp_token_vault_bump,
-        rent_exempt = enforce,
     )]
     pub lp_token_vault: Box<Account<'info, TokenAccount>>,
 
