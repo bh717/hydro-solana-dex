@@ -24,7 +24,7 @@ jobs:
             ~/.cargo/bin/wasm-pack
 
       - id: install-os-deps
-        # if: steps.cache-cli-deps.outputs.cache-hit != 'true'
+        if: steps.cache-cli-deps.outputs.cache-hit != 'true'
         run: sudo apt-get update && sudo apt-get install -y pkg-config build-essential libudev-dev tree make
 
       - id: install-rust-toolchain
@@ -61,6 +61,8 @@ jobs:
             ~/.rustup
             ~/.cargo/bin/anchor
             ~/.cargo/bin/wasm-pack
+
+      - run: sudo apt-get update && sudo apt-get install -y pkg-config build-essential libudev-dev tree make
 
       - run: echo "PATH=$HOME/.local/share/solana/install/active_release/bin:$HOME/.cargo/bin:$PATH" >> $GITHUB_ENV
 
