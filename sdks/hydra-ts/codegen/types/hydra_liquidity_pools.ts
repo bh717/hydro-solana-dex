@@ -163,6 +163,62 @@ export type HydraLiquidityPools = {
           type: "u64";
         }
       ];
+    },
+    {
+      name: "removeLiquidity";
+      accounts: [
+        {
+          name: "poolState";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "userRedeemableLpTokensAuthority";
+          isMut: false;
+          isSigner: true;
+        },
+        {
+          name: "userRedeemableLpTokens";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "userTokenAToReceive";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "userTokenBToReceive";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "tokenAVault";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "tokenBVault";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "lpTokenMint";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [
+        {
+          name: "lpTokensToBurn";
+          type: "u64";
+        }
+      ];
     }
   ];
   accounts: [
@@ -443,6 +499,62 @@ export const IDL: HydraLiquidityPools = {
         },
         {
           name: "expectedLpTokens",
+          type: "u64",
+        },
+      ],
+    },
+    {
+      name: "removeLiquidity",
+      accounts: [
+        {
+          name: "poolState",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "userRedeemableLpTokensAuthority",
+          isMut: false,
+          isSigner: true,
+        },
+        {
+          name: "userRedeemableLpTokens",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "userTokenAToReceive",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "userTokenBToReceive",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "tokenAVault",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "tokenBVault",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "lpTokenMint",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: "lpTokensToBurn",
           type: "u64",
         },
       ],
