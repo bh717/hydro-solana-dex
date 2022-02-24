@@ -1,8 +1,17 @@
 // This is not run with anchor migrate
 import * as anchor from "@project-serum/anchor";
 import { Program } from "@project-serum/anchor";
-import { HydraStaking } from "../target/types/hydra_staking";
-import { loadKey, createMintAndVault, createMint } from "../sdks/hydra-ts/src/utils/utils"; // these should be moved out of test
+import * as localJsonIdl from "../target/idl/hydra_staking.json";
+import {
+  HydraStaking,
+  IDL,
+} from "../sdks/hydra-ts/codegen/types/hydra_staking";
+
+import {
+  loadKey,
+  createMintAndVault,
+  createMint,
+} from "../sdks/hydra-ts/src/utils/utils"; // these should be moved out of test
 import { TokenInstructions } from "@project-serum/serum";
 import { Keypair } from "@solana/web3.js";
 import { NodeWallet } from "@project-serum/common";
@@ -12,15 +21,21 @@ export default async function (provider: anchor.Provider) {
   anchor.setProvider(provider);
 
   // Add your deploy script here.
-  const program = anchor.workspace.HydraStaking as Program<HydraStaking>;
+  const hydraStaking = new anchor.web3.PublicKey(
+    localJsonIdl["metadata"]["address"]
+  );
+  const program = new anchor.Program(
+    IDL,
+    hydraStaking
+  ) as Program<HydraStaking>;
 
   let TokenAccount = Keypair.generate();
 
   const tokenMint = await loadKey(
-    "tests/keys/hyd3VthE9YPGBeg9HEgZsrM5qPniC6VoaEFeTGkVsJR.json"
+    "keys/localnet/staking/hyd3VthE9YPGBeg9HEgZsrM5qPniC6VoaEFeTGkVsJR.json"
   );
   const redeemableMint = await loadKey(
-    "tests/keys/xhy1rv75cEJahTbsKnv2TpNhdR7KNUoDPavKuQDwhDU.json"
+    "keys/localnet/staking/xhy1rv75cEJahTbsKnv2TpNhdR7KNUoDPavKuQDwhDU.json"
   );
 
   console.log("Creating mint and vault...");

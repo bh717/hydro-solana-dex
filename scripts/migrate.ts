@@ -19,7 +19,10 @@ async function main() {
   // Not sure if these should be configurable but they will
   // allow us to switch between deployment networks
   const urlMap = {
-    localnet: "http://localhost:8899",
+    localnet: "http://127.0.0.1:8899",
+    devnet: "https://api.devnet.solana.com",
+    testnet: "https://api.testnet.solana.com",
+    mainnet: "https://api.mainnet-beta.solana.com",
   };
 
   const feature = args["--features"] || "localnet";
@@ -30,7 +33,8 @@ async function main() {
   }
 
   // Get the url from the feature
-  const url = urlMap[feature];
+  const url = urlMap[feature as keyof typeof urlMap];
+  console.log("url: ", url);
 
   // set anchor wallet on env
   const config = toml.parse(
