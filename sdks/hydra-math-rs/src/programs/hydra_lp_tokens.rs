@@ -3,18 +3,10 @@ use spl_math::precise_number::PreciseNumber;
 
 pub const MIN_LIQUIDITY: u64 = 100;
 
-pub fn calculate_k(
-    token_a_amount: u64,
-    token_b_amount: u64,
-    token_a_vault_total: u64,
-    token_b_vault_total: u64,
-    lp_total: u64,
-) -> Option<u64> {
+pub fn calculate_k(token_a_amount: u64, token_b_amount: u64, lp_total: u64) -> Option<u64> {
     if lp_total == 0 {
         let x = token_a_amount;
         let y = token_b_amount;
-        let x_total = token_a_vault_total;
-        let y_total = token_b_vault_total;
 
         let x = PreciseNumber::new(x as u128).unwrap();
         let y = PreciseNumber::new(y as u128).unwrap();

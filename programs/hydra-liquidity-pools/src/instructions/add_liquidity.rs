@@ -147,13 +147,7 @@ impl<'info> AddLiquidity<'info> {
         token_a_amount: u64,
         token_b_amount: u64,
     ) -> Option<u64> {
-        calculate_k(
-            token_a_amount,
-            token_b_amount,
-            self.token_a_vault.amount,
-            self.token_b_vault.amount,
-            self.lp_token_mint.supply,
-        )
+        calculate_k(token_a_amount, token_b_amount, self.lp_token_mint.supply)
     }
 
     /// calculate a and b tokens (x/y) from expected_lp_tokens (k)
