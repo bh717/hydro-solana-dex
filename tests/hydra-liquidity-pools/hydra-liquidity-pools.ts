@@ -30,22 +30,23 @@ describe("hydra-liquidity-pool", () => {
   ) as Program<HydraLiquidityPools>;
   const provider = anchor.Provider.env();
 
-  let btcdMint;
-  let usddMint;
-  let btcdAccount;
-  let usddAccount;
+  let btcdMint: anchor.web3.PublicKey;
+  let usddMint: anchor.web3.PublicKey;
+  let btcdAccount: anchor.web3.PublicKey;
+  let usddAccount: anchor.web3.PublicKey;
   const lpTokenMint = Keypair.generate();
-  let lpTokenAccount;
+  let lpTokenAccount: anchor.web3.PublicKey;
 
-  let poolState;
-  let tokenAVault;
-  let tokenBVault;
-  let lpTokenVault;
+  let poolState: anchor.web3.PublicKey;
+  let tokenAVault: anchor.web3.PublicKey;
+  let tokenBVault: anchor.web3.PublicKey;
+  let lpTokenVault: anchor.web3.PublicKey;
 
-  let poolStateBump;
-  let tokenAVaultBump;
-  let tokenBVaultBump;
-  let lpTokenVaultBump;
+  let poolStateBump: number;
+  let tokenAVaultBump: number;
+  let tokenBVaultBump: number;
+  let lpTokenVaultBump: number;
+  let poolStateAccount: any;
 
   it("should create btcdMint (21 million)", async () => {
     [btcdMint, btcdAccount] = await createMintAndVault(
@@ -141,7 +142,7 @@ describe("hydra-liquidity-pool", () => {
       }
     );
 
-    const poolStateAccount = await program.account.poolState.fetch(poolState);
+    poolStateAccount = await program.account.poolState.fetch(poolState);
 
     assert.equal(
       poolStateAccount.authority.toString(),
@@ -361,7 +362,8 @@ describe("hydra-liquidity-pool", () => {
     assert.strictEqual(
       (await getTokenBalance(provider, lpTokenVault)).toNumber(),
       100
-    ); // no change
+    );
+    // no change
     assert.strictEqual(
       (await getTokenBalance(provider, tokenAVault)).toNumber(),
       6000000 + 16000000
@@ -370,5 +372,72 @@ describe("hydra-liquidity-pool", () => {
       (await getTokenBalance(provider, tokenBVault)).toNumber(),
       255575287200 + 681534099132
     );
+  });
+
+  it("should remove-liquidity first time", async () => {
+    await program.rpc.removeLiquidity(new BN(3_302_203_141), {
+      accounts: {
+        poolState: poolState,
+        userRedeemableLpTokensAuthority: provider.wallet.publicKey,
+        userRedeemableLpTokens: lpTokenAccount,
+        userTokenAToReceive: btcdAccount,
+        userTokenBToReceive: usddAccount,
+        tokenAVault: tokenAVault,
+        tokenBVault: tokenBVault,
+        lpTokenMint: lpTokenMint.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      },
+    });
+
+    assert.strictEqual(
+      (await getTokenBalance(provider, lpTokenAccount)).toNumber(),
+      1238326078
+    );
+
+    assert.strictEqual(
+      (await getTokenBalance(provider, btcdAccount)).toNumber(),
+      btcdMintAmount.iadd(new BN(16_000_000)).toNumber()
+    );
+
+    assert.strictEqual(
+      (await getTokenBalance(provider, usddAccount)).toNumber(),
+      usddMintAmount.iadd(new BN(681_534_099_132)).toNumber()
+    );
+
+    it("should remove-liquidity second time", async () => {
+      await program.rpc.removeLiquidity(new BN(1238326078), {
+        accounts: {
+          poolState: poolState,
+          userRedeemableLpTokensAuthority: provider.wallet.publicKey,
+          userRedeemableLpTokens: lpTokenAccount,
+          userTokenAToReceive: btcdAccount,
+          userTokenBToReceive: usddAccount,
+          tokenAVault: tokenAVault,
+          tokenBVault: tokenBVault,
+          lpTokenMint: lpTokenMint.publicKey,
+          tokenProgram: TOKEN_PROGRAM_ID,
+        },
+      });
+
+      assert.strictEqual(
+        (await getTokenBalance(provider, lpTokenAccount)).toNumber(),
+        0
+      );
+
+      assert.strictEqual(
+        (await getTokenBalance(provider, lpTokenVault)).toNumber(),
+        100
+      );
+
+      assert.strictEqual(
+        (await getTokenBalance(provider, btcdAccount)).toNumber(),
+        btcdMintAmount.iadd(new BN(6_000_000)).toNumber()
+      );
+
+      assert.strictEqual(
+        (await getTokenBalance(provider, usddAccount)).toNumber(),
+        usddMintAmount.iadd(new BN(255_575_287_200)).toNumber()
+      );
+    });
   });
 });
