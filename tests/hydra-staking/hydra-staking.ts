@@ -11,12 +11,10 @@ import {
 import { TokenInstructions } from "@project-serum/serum";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import { createTokenAccount, NodeWallet } from "@project-serum/common";
-// import { TOKEN_PROGRAM_ID } from "@project-serum/serum/lib/token-instructions";
 import * as assert from "assert";
 import { createApi, createCtxAnchor, HydraAPI } from "hydra-ts";
-import { loadKey } from "../../sdks/hydra-utils-ts/node";
+import { loadKey } from "hydra-ts/node";
 import { getPDA, getTokenBalance } from "hydra-ts/src/utils/utils";
-// const utf8 = anchor.utils.bytes.utf8;
 
 describe("hydra-staking", () => {
   const provider = anchor.Provider.env();

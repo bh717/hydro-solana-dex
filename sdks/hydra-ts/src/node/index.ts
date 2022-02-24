@@ -1,3 +1,6 @@
+/**
+ * THE FOLLOWING IS BUILD WITH A NODE COMPILE TARGET
+ */
 import { URL } from "url";
 import * as fs from "fs";
 import * as anchor from "@project-serum/anchor";
