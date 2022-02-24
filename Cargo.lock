@@ -1559,10 +1559,8 @@ dependencies = [
  "anchor-lang",
  "anchor-spl",
  "derivative",
- "hydra-math",
  "hydra-math-rs",
  "num",
- "spl-math 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
