@@ -105,7 +105,7 @@ export function unstake(ctx: Ctx) {
   };
 }
 
-export async function getTokenVaultAccount(ctx: Ctx) {
+async function getTokenVaultAccount(ctx: Ctx) {
   return (
     await getPDA(ctx.programs.hydraStaking.programId, [
       TOKEN_VAULT_SEED,
