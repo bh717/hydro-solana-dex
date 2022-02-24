@@ -3,9 +3,8 @@
   "version": "0.0.0",
   "description": "",
   "main": "dist/index.js",
-  "types": "src/index.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && tsc -p ./node.tsconfig.json",
     "watch": "tsc --watch",
     "test": "jest"
   },

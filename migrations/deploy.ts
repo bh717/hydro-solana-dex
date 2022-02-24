@@ -8,7 +8,7 @@ import {
   loadKey,
   createMintAndVault,
   createMint,
-} from "hydra-ts/src/utils/utils"; // these should be moved out of test
+} from "../tests/utils/deployment"; // these should be moved out of test
 import { TokenInstructions } from "@project-serum/serum";
 import { Keypair } from "@solana/web3.js";
 import { NodeWallet } from "@project-serum/common";

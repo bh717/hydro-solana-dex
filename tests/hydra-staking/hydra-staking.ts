@@ -3,14 +3,18 @@ import { BN, Program } from "@project-serum/anchor";
 import * as localJsonIdl from "../../target/idl/hydra_staking.json";
 import { HydraStaking, IDL } from "types-ts/codegen/types/hydra_staking";
 
-import { createMintAndVault, createMint, transfer } from "../utils/deployment";
+import {
+  createMintAndVault,
+  createMint,
+  transfer,
+} from "../../sdks/hydra-utils-ts/node";
 import { TokenInstructions } from "@project-serum/serum";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import { createTokenAccount, NodeWallet } from "@project-serum/common";
 // import { TOKEN_PROGRAM_ID } from "@project-serum/serum/lib/token-instructions";
 import * as assert from "assert";
 import { createApi, createCtxAnchor, HydraAPI } from "hydra-ts";
-import { loadKey } from "../utils/deployment";
+import { loadKey } from "../../sdks/hydra-utils-ts/node";
 import { getPDA, getTokenBalance } from "hydra-ts/src/utils/utils";
 // const utf8 = anchor.utils.bytes.utf8;
 

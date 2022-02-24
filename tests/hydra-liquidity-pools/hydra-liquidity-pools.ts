@@ -12,7 +12,8 @@ import { getTokenBalance } from "hydra-ts/src/utils/utils";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "@project-serum/serum/lib/token-instructions";
 const utf8 = anchor.utils.bytes.utf8;
-import { btcdMintAmount, usddMintAmount } from "../utils/constants";
+import { btcdMintAmount, usddMintAmount } from "./constants";
+import { createMint } from "hydra-ts/node";
 
 describe("hydra-liquidity-pool", () => {
   // Configure the client to use the local cluster.
