@@ -75,7 +75,7 @@ start:
 	solana-test-validator --quiet --reset &
 	anchor build
 	anchor deploy
-	yarn --frozen-lockfile
+	yarn
 	yarn build
 	anchor test --skip-deploy --skip-build
 	make migrate
