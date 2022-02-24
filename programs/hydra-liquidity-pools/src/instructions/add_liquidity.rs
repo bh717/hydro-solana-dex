@@ -3,7 +3,6 @@ use crate::errors::ErrorCode;
 use crate::events::liquidity_added::LiquidityAdded;
 use crate::events::slippage_exceeded::SlippageExceeded;
 use crate::state::pool_state::PoolState;
-use crate::ProgramResult;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
 use anchor_spl::token::{Mint, MintTo, Token, TokenAccount, Transfer};
@@ -17,11 +16,12 @@ pub struct AddLiquidity<'info> {
 
     #[account(
         mut,
-        seeds = [ POOL_STATE_SEED, lp_token_mint.key().as_ref() ],
+        seeds = [ POOL_STATE_SEED, pool_state.lp_token_mint.key().as_ref() ],
         bump = pool_state.pool_state_bump,
     )]
     pub pool_state: Box<Account<'info, PoolState>>,
 
+    // TODO: Look into if the mints are required to be sent into the add_liquidity instructions seeing as they exist in the pool_state and arent really used.
     #[account(
         constraint = token_a_mint.key() == pool_state.token_a_mint.key()
     )]
@@ -37,7 +37,6 @@ pub struct AddLiquidity<'info> {
         constraint = lp_token_mint.key() == pool_state.lp_token_mint.key()
     )]
     pub lp_token_mint: Box<Account<'info, Mint>>,
-
     #[account(
         mut,
         constraint = user_token_a.mint == pool_state.token_a_mint.key(),
@@ -56,7 +55,7 @@ pub struct AddLiquidity<'info> {
 
     #[account(
         mut,
-        seeds = [ TOKEN_VAULT_SEED, token_a_mint.key().as_ref(), lp_token_mint.key().as_ref() ],
+        seeds = [ TOKEN_VAULT_SEED, pool_state.token_a_mint.key().as_ref(), lp_token_mint.key().as_ref() ],
         bump,
         constraint = token_a_vault.key() == pool_state.token_a_vault.key()
     )]
@@ -64,7 +63,7 @@ pub struct AddLiquidity<'info> {
 
     #[account(
         mut,
-        seeds = [ TOKEN_VAULT_SEED, token_b_mint.key().as_ref(), lp_token_mint.key().as_ref() ],
+        seeds = [ TOKEN_VAULT_SEED, pool_state.token_b_mint.key().as_ref(), lp_token_mint.key().as_ref() ],
         bump,
         constraint = token_b_vault.key() == pool_state.token_b_vault.key()
     )]
@@ -313,9 +312,4 @@ pub fn handle(
     }
 
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
 }
