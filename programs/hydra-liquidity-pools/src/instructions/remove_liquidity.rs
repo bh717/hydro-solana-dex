@@ -1,15 +1,10 @@
 use crate::constants::*;
-use crate::errors::ErrorCode;
-use crate::events::liquidity_added::LiquidityAdded;
 use crate::events::liquidity_removed::LiquidityRemoved;
-use crate::events::slippage_exceeded::SlippageExceeded;
 use crate::state::pool_state::PoolState;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
-use anchor_spl::token::{Burn, Mint, MintTo, Token, TokenAccount, Transfer};
-use hydra_math::math::sqrt_precise;
+use anchor_spl::token::{Burn, Mint, Token, TokenAccount, Transfer};
 use hydra_math_rs::programs::hydra_lp_tokens::calculate_x_y;
-use spl_math::precise_number::PreciseNumber;
 
 #[derive(Accounts)]
 pub struct RemoveLiquidity<'info> {

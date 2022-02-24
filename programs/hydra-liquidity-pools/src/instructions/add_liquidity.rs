@@ -6,9 +6,7 @@ use crate::state::pool_state::PoolState;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
 use anchor_spl::token::{Mint, MintTo, Token, TokenAccount, Transfer};
-use hydra_math::math::sqrt_precise;
 use hydra_math_rs::programs::hydra_lp_tokens::{calculate_k, calculate_x_y};
-use spl_math::precise_number::PreciseNumber;
 
 #[derive(Accounts)]
 pub struct AddLiquidity<'info> {
