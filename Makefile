@@ -28,10 +28,12 @@ clean:
 	cargo clean
 
 validator:
-	@pgrep "solana-test-val" || solana-test-validator --quiet &
+	@pgrep "solana-test-val" || solana-test-validator &
 
-validator-reset:
-	@pkill -9 "solana-test-val" > /dev/null
+validator-kill:
+	@pkill -9 solana-test-val
+
+validator-reset: validator-kill
 	@sleep 1
 	@solana-test-validator --quiet --reset
 
@@ -64,3 +66,13 @@ react-ci-cd:
 	cd app; yarn build
 	#cd app; CI=true yarn test # Broke with inital UI
 	cd app; ipd -C build/
+
+# start the local development stack
+start:
+	solana-test-validator --quiet --reset &
+	anchor build
+	anchor deploy
+	yarn
+	yarn build
+	anchor test --skip-deploy --skip-build
+	make migrate
