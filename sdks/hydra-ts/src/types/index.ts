@@ -1,22 +1,25 @@
-import { Connection, PublicKey, Transaction } from "@solana/web3.js";
-import { Program, Provider } from "@project-serum/anchor";
-import { HydraStaking } from "target/types/hydra_staking";
+import { Transaction, PublicKey } from "@solana/web3.js";
+import { createCtxAnchor } from "../ctx";
 
 export type Wallet = {
+  signTransaction(tx: Transaction): Promise<Transaction>;
+  signAllTransactions(txs: Transaction[]): Promise<Transaction[]>;
   publicKey: PublicKey;
-  signTransaction(transaction: Transaction): Promise<Transaction>;
-  signAllTransactions(transactions: Transaction[]): Promise<Transaction[]>;
 };
 
 export type ProgramIds = {
+  // hydra staking program
   hydraStaking: string;
+  tokenMint: string;
+  redeemableMint: string;
 };
 
-export type Ctx = {
-  wallet: Wallet;
-  connection: Connection;
-  provider: Provider;
-  programs: {
-    hydraStaking: Program<HydraStaking>;
-  };
+export type Ctx = ReturnType<typeof createCtxAnchor>;
+
+export type Network = "mainnet" | "testnet" | "devnet" | "localnet";
+
+export type NetworkConfig = {
+  programIds: ProgramIds;
 };
+
+export type NetworkMap = Record<Network, NetworkConfig>;

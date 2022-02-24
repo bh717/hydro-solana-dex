@@ -1,6 +1,6 @@
 {
   "name": "wasm-test",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "license": "UNLICENSED",
   "files": [
     "./.pkg/node/index_bg.wasm",
@@ -16,7 +16,8 @@
   "main": "./.pkg/node/index.js",
   "types": "./.pkg/web/index.d.ts",
   "scripts": {
-    "build": "wasm-pack build -d .pkg/web --target web --out-name index; wasm-pack build -d .pkg/node --target nodejs --out-name index && rm .pkg/node/package.json && rm .pkg/web/package.json"
+    "watch": "cargo watch -i \".pkg\" -i \".turbo\" -s \"wasm-pack build\" --watch-when-idle",
+    "build": "./build.sh"
   },
   "sideEffects": false
 }

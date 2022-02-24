@@ -2,16 +2,13 @@
 import * as anchor from "@project-serum/anchor";
 import { Program } from "@project-serum/anchor";
 import * as localJsonIdl from "../target/idl/hydra_staking.json";
-import {
-  HydraStaking,
-  IDL,
-} from "../sdks/hydra-ts/codegen/types/hydra_staking";
+import { HydraStaking, IDL } from "types-ts/codegen/types/hydra_staking";
 
 import {
   loadKey,
   createMintAndVault,
   createMint,
-} from "../sdks/hydra-ts/src/utils/utils"; // these should be moved out of test
+} from "hydra-ts/src/utils/utils"; // these should be moved out of test
 import { TokenInstructions } from "@project-serum/serum";
 import { Keypair } from "@solana/web3.js";
 import { NodeWallet } from "@project-serum/common";

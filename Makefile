@@ -53,11 +53,14 @@ watch:
 	cargo watch -- anchor build -- --features "localnet"
 
 anchor-ci:
-	yarn install
 	solana-keygen new --no-bip39-passphrase || true
 	cargo check
 	cargo test
 	anchor build
+	yarn --frozen-lockfile
+	yarn deploy-to-create-idl
+	yarn turbo run build --concurrency=1
+	yarn test
 	anchor test
 	cargo fmt -- --check
 
@@ -72,7 +75,7 @@ start:
 	solana-test-validator --quiet --reset &
 	anchor build
 	anchor deploy
-	yarn
+	yarn --frozen-lockfile
 	yarn build
 	anchor test --skip-deploy --skip-build
 	make migrate

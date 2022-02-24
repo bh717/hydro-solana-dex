@@ -1,0 +1,9 @@
+{
+  "name": "types-ts",
+  "version": "0.0.0",
+  "license": "UNLICENSED",
+  "files": [
+    "codegen/types/*"
+  ],
+  "sideEffects": false
+}
