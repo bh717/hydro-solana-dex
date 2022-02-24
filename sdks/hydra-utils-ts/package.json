@@ -1,9 +1,0 @@
-{
-  "name": "utils-ts",
-  "version": "0.0.0",
-  "license": "UNLICENSED",
-  "files": [
-    "*.ts"
-  ],
-  "sideEffects": false
-}
