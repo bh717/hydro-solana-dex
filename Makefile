@@ -13,7 +13,7 @@ install_solana:
 	sh -c "$$(curl -sSfL https://release.solana.com/v1.9.6/install)"	
 
 # build
-build:
+build-idl-types:
 	./scripts/build.sh
 
 test:
