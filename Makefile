@@ -31,7 +31,7 @@ validator:
 	@pgrep "solana-test-val" || solana-test-validator &
 
 validator-kill:
-	@pkill -9 solana-test-val
+	@pkill -9 "solana-test-val"
 
 validator-reset: validator-kill
 	@sleep 1
@@ -68,7 +68,8 @@ react-ci-cd:
 	cd app; ipd -C build/
 
 # start the local development stack
-start: validator-reset
+start:
+	solana-test-validator --quiet --reset &
 	anchor build
 	anchor deploy
 	yarn
