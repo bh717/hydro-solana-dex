@@ -7,6 +7,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token;
 use anchor_spl::token::{Mint, MintTo, Token, TokenAccount, Transfer};
 use hydra_math::math::sqrt_precise;
+use hydra_math_rs::programs::hydra_lp_tokens::{calculate_k, calculate_x_y};
 use spl_math::precise_number::PreciseNumber;
 
 #[derive(Accounts)]
@@ -146,39 +147,13 @@ impl<'info> AddLiquidity<'info> {
         token_a_amount: u64,
         token_b_amount: u64,
     ) -> Option<u64> {
-        if self.lp_token_mint.supply == 0 {
-            let x = token_a_amount;
-            let y = token_b_amount;
-            let x_total = self.token_a_vault.amount;
-            let y_total = self.token_b_vault.amount;
-            let lp_total = self.lp_token_mint.supply;
-
-            if self.pool_state.debug {
-                msg!("MIN_LIQUIDITY: {}", MIN_LIQUIDITY);
-                msg!("x: {}", x);
-                msg!("y: {}", y);
-                msg!("x_total: {}", x_total);
-                msg!("y_total: {}", y_total);
-                msg!("lp_total: {}", lp_total);
-            }
-
-            let x = PreciseNumber::new(x as u128).unwrap();
-            let y = PreciseNumber::new(y as u128).unwrap();
-            let min_liquidity = PreciseNumber::new(MIN_LIQUIDITY as u128).unwrap();
-
-            // sqrt(x * y) - min_liquidity
-            return Some(
-                sqrt_precise(&x.checked_mul(&y).unwrap())
-                    .unwrap()
-                    .checked_sub(&min_liquidity)
-                    .unwrap()
-                    .floor()
-                    .unwrap()
-                    .to_imprecise()
-                    .unwrap() as u64,
-            );
-        }
-        None
+        calculate_k(
+            token_a_amount,
+            token_b_amount,
+            self.token_a_vault.amount,
+            self.token_b_vault.amount,
+            self.lp_token_mint.supply,
+        )
     }
 
     /// calculate a and b tokens (x/y) from expected_lp_tokens (k)
@@ -186,33 +161,12 @@ impl<'info> AddLiquidity<'info> {
         &self,
         expected_lp_tokens_minted: u64,
     ) -> (u64, u64) {
-        let x_total = PreciseNumber::new(self.token_a_vault.amount as u128).unwrap();
-        let y_total = PreciseNumber::new(self.token_b_vault.amount as u128).unwrap();
-        let lp_total = PreciseNumber::new(self.lp_token_mint.supply as u128).unwrap();
-        let expected_lp_tokens_minted =
-            PreciseNumber::new(expected_lp_tokens_minted as u128).unwrap();
-
-        // expected_lp_tokens_minted  * x_total
-        let x_debited = expected_lp_tokens_minted
-            .checked_mul(&x_total)
-            .unwrap()
-            .checked_div(&lp_total)
-            .unwrap()
-            .ceiling()
-            .unwrap();
-        let x_debited = x_debited.to_imprecise().unwrap() as u64;
-
-        let y_debited = expected_lp_tokens_minted
-            .checked_mul(&y_total)
-            .unwrap()
-            .checked_div(&lp_total)
-            .unwrap()
-            .ceiling()
-            .unwrap();
-        let y_debited = y_debited.to_imprecise().unwrap() as u64;
-
-        //* note that we rounded up with .ceiling() (as we are receiving these amounts)
-        (x_debited, y_debited)
+        calculate_x_y(
+            expected_lp_tokens_minted,
+            self.token_a_vault.amount,
+            self.token_b_vault.amount,
+            self.lp_token_mint.supply,
+        )
     }
 }
 

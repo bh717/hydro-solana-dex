@@ -1,12 +1,7 @@
 use crate::math::sqrt_precise;
-use crate::programs::hydra_lp_tokens::ErrorCode::LpTokensAlreadyExist;
 use spl_math::precise_number::PreciseNumber;
 
 pub const MIN_LIQUIDITY: u64 = 100;
-
-pub enum ErrorCode {
-    LpTokensAlreadyExist,
-}
 
 pub fn calculate_k(
     token_a_amount: u64,
@@ -14,7 +9,7 @@ pub fn calculate_k(
     token_a_vault_total: u64,
     token_b_vault_total: u64,
     lp_total: u64,
-) -> Result<u64, ErrorCode> {
+) -> Option<u64> {
     if lp_total == 0 {
         let x = token_a_amount;
         let y = token_b_amount;
@@ -26,16 +21,18 @@ pub fn calculate_k(
         let min_liquidity = PreciseNumber::new(MIN_LIQUIDITY as u128).unwrap();
 
         // sqrt(x * y) - min_liquidity
-        return Ok(sqrt_precise(&x.checked_mul(&y).unwrap())
-            .unwrap()
-            .checked_sub(&min_liquidity)
-            .unwrap()
-            .floor()
-            .unwrap()
-            .to_imprecise()
-            .unwrap() as u64);
+        return Some(
+            sqrt_precise(&x.checked_mul(&y).unwrap())
+                .unwrap()
+                .checked_sub(&min_liquidity)
+                .unwrap()
+                .floor()
+                .unwrap()
+                .to_imprecise()
+                .unwrap() as u64,
+        );
     }
-    Err(LpTokensAlreadyExist)
+    None
 }
 
 /// calculate a and b tokens (x/y) from lp_tokens (k)
