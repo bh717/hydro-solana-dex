@@ -8,6 +8,7 @@ mod utils;
 
 use instructions::add_liquidity::*;
 use instructions::initialize::*;
+use instructions::remove_liquidity::*;
 
 use anchor_lang::prelude::*;
 // use anchor_lang::solana_program::log::sol_log_compute_units;
@@ -51,8 +52,8 @@ pub mod hydra_liquidity_pools {
 
     pub fn add_liquidity(
         ctx: Context<AddLiquidity>,
-        tokens_a_max_amount: u64, // slippage handling: token_a_amount * (1 + TOLERATED_SLIPPAGE) --> calculated in UI
-        tokens_b_max_amount: u64, // slippage handling: token_b_amount * (1 + TOLERATED_SLIPPAGE) --> calculated in UI
+        tokens_a_max_amount: u64, // slippage handling: token_a_amount * (1 + TOLERATED_SLIPPAGE) --> calculated client side
+        tokens_b_max_amount: u64, // slippage handling: token_b_amount * (1 + TOLERATED_SLIPPAGE) --> calculated client side
         expected_lp_tokens: u64,
     ) -> ProgramResult {
         instructions::add_liquidity::handle(
@@ -61,6 +62,13 @@ pub mod hydra_liquidity_pools {
             tokens_b_max_amount,
             expected_lp_tokens,
         )
+    }
+
+    pub fn remove_liquidity(
+        ctx: Context<RemoveLiquidity>,
+        lp_tokens_to_burn: u64, // calculate the % client side
+    ) -> ProgramResult {
+        instructions::remove_liquidity::handle(ctx, lp_tokens_to_burn)
     }
 
     // pub fn swap_amm(ctx: Context<Swap>) -> ProgramResult {
