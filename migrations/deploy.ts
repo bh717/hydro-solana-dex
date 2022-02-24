@@ -1,17 +1,13 @@
 // This is not run with anchor migrate
 import * as anchor from "@project-serum/anchor";
 import { Program } from "@project-serum/anchor";
-import * as localJsonIdl from "../target/idl/hydra_staking.json";
+import * as localJsonIdl from "target/idl/hydra_staking.json";
 import { HydraStaking, IDL } from "types-ts/codegen/types/hydra_staking";
-
-import {
-  loadKey,
-  createMintAndVault,
-  createMint,
-} from "../tests/utils/deployment"; // these should be moved out of test
+import { loadKey, createMintAndVault, createMint } from "hydra-ts/node"; // these should be moved out of test
 import { TokenInstructions } from "@project-serum/serum";
 import { Keypair } from "@solana/web3.js";
 import { NodeWallet } from "@project-serum/common";
+
 const utf8 = anchor.utils.bytes.utf8;
 
 export default async function (provider: anchor.Provider) {
