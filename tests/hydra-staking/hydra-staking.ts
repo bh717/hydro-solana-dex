@@ -8,6 +8,7 @@ import {
   createMint,
   getTokenBalance,
   transfer,
+  getPDA,
 } from "hydra-ts/src/utils/utils";
 import { TokenInstructions } from "@project-serum/serum";
 import { Keypair, PublicKey } from "@solana/web3.js";
@@ -65,8 +66,11 @@ describe("hydra-staking", () => {
     );
 
     // get PDA for tokenVault
-    [tokenVaultPubkey, tokenVaultBump] =
-      await sdk.staking.getTokenVaultAccount();
+    [tokenVaultPubkey, tokenVaultBump] = await getPDA(program.programId, [
+      "token_vault_seed",
+      tokenMint.publicKey,
+      redeemableMint.publicKey,
+    ]);
 
     // create redeemableMint and redeemableTokenAccount
     await createMint(program.provider, redeemableMint, tokenVaultPubkey);
@@ -77,7 +81,11 @@ describe("hydra-staking", () => {
     );
 
     // get PDA for statePool
-    [poolStatePubkey, poolStateBump] = await sdk.staking.getPoolStateAccount();
+    [poolStatePubkey, poolStateBump] = await await getPDA(program.programId, [
+      "pool_state_seed",
+      tokenMint.publicKey,
+      redeemableMint.publicKey,
+    ]);
 
     // initialized Staking contract's PDA, state and token_vault
     await program.rpc.initialize(tokenVaultBump, poolStateBump, {
