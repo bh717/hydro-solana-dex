@@ -35,7 +35,7 @@ validator-kill:
 
 validator-reset: validator-kill
 	@sleep 1
-	@solana-test-validator --quiet --reset
+	@solana-test-validator --quiet --reset &
 
 set-localnet:
 	solana config set --url http://127.0.0.1:8899
@@ -68,8 +68,7 @@ react-ci-cd:
 	cd app; ipd -C build/
 
 # start the local development stack
-start:
-	solana-test-validator --quiet --reset &
+start: validator-reset
 	anchor build
 	anchor deploy
 	yarn
