@@ -1,8 +1,8 @@
 import * as anchor from "@project-serum/anchor";
 import { BN, Provider } from "@project-serum/anchor";
-// import { createTokenAccount } from "@project-serum/common";
 import { PublicKey } from "@solana/web3.js";
 import { Option } from "../types";
+
 // TODO:  This should return BigInt as we are going to be using BigInt over BN
 //        because wasm requires us to use BigInt and it is therefore available
 export async function getTokenBalance(provider: Provider, pubkey: PublicKey) {

@@ -4,7 +4,7 @@ import { createCtx, createReadonlyCtx } from "./ctx";
 import * as stakingApi from "./staking";
 import { Ctx, Network, Wallet } from "./types";
 import { injectContext } from "./utils/curry-arg";
-import * as utils from "./utils/utils";
+import * as utils from "./utils";
 /**
  * Create an instance of the sdk API
  * @param ctx A Ctx
