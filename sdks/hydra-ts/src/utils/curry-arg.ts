@@ -8,14 +8,11 @@ export type Output<Ctx, T extends InputObj<Ctx>> = {
 };
 
 /**
- * Injects context in obj
+ * Internal utility. Injects context in obj
  * @param obj
  * @param ctx
  * @returns
  */
-
-// type InjectableContext<T> = (obj: InputObj<T>, ctx: T) => Output<InputObj<T>>;
-
 export function injectContext<Ctx, T extends InputObj<Ctx>>(
   obj: T,
   ctx: Ctx
