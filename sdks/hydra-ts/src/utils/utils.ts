@@ -1,7 +1,8 @@
 import * as anchor from "@project-serum/anchor";
 import { BN, Provider } from "@project-serum/anchor";
+// import { createTokenAccount } from "@project-serum/common";
 import { PublicKey } from "@solana/web3.js";
-
+import { Option } from "../types";
 // TODO:  This should return BigInt as we are going to be using BigInt over BN
 //        because wasm requires us to use BigInt and it is therefore available
 export async function getTokenBalance(provider: Provider, pubkey: PublicKey) {
@@ -38,23 +39,46 @@ export function fromBigInt(amount: BigInt): BN {
   return new BN(amount.toString());
 }
 
+// /**
+//  * Return the first tokenAccount publicKey for the given mint address or create a new one
+//  * @param provider anchor provider
+//  * @param mint mintAddress
+//  * @returns publicKey
+//  */
+// export async function getOrCreateOwnerTokenAccount(
+//   provider: Provider,
+//   mint: PublicKey
+// ): Promise<PublicKey> {
+//   const account = await getExistingOwnerTokenAccount(provider, mint);
+
+//   if (!account) {
+//     // XXX: createTokenAccount requires node to be bundled within the package
+//     // We need this functionality but commenting out for now to implement later
+//     // return await createTokenAccount(provider, mint, provider.wallet.publicKey);
+//   }
+
+//   return account;
+// }
+
 /**
  * Return the first tokenAccount publicKey for the given mint address
  * @param provider anchor provider
  * @param mint mintAddress
  * @returns publicKey
  */
-export async function getOwnerTokenAccount(
+export async function getExistingOwnerTokenAccount(
   provider: Provider,
   mint: PublicKey
-) {
-  const { pubkey } = (
-    await provider.connection.getTokenAccountsByOwner(
-      provider.wallet.publicKey,
-      {
-        mint,
-      }
-    )
-  ).value[0];
-  return pubkey;
+): Promise<Option<PublicKey>> {
+  const account = await provider.connection.getTokenAccountsByOwner(
+    provider.wallet.publicKey,
+    {
+      mint,
+    }
+  );
+  const accounts = account.value;
+  if (accounts.length > 0) {
+    return accounts[0].pubkey;
+  }
+  return undefined;
 }

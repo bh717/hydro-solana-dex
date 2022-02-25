@@ -4,7 +4,7 @@ import { createCtx, createReadonlyCtx } from "./ctx";
 import * as stakingApi from "./staking";
 import { Ctx, Network, Wallet } from "./types";
 import { injectContext } from "./utils/curry-arg";
-
+import * as utils from "./utils/utils";
 /**
  * Create an instance of the sdk API
  * @param ctx A Ctx
@@ -15,6 +15,7 @@ export function createApi(ctx: Ctx) {
   // Organised by namespace
   return {
     staking,
+    utils,
   };
 }
 

@@ -1,6 +1,6 @@
 import * as anchor from "@project-serum/anchor";
-import { BN, Program } from "@project-serum/anchor";
-import * as localJsonIdl from "../../target/idl/hydra_staking.json";
+import { Program } from "@project-serum/anchor";
+import * as localJsonIdl from "target/idl/hydra_staking.json";
 import { HydraStaking, IDL } from "types-ts/codegen/types/hydra_staking";
 import {
   loadKey,
@@ -13,7 +13,6 @@ import { Keypair, PublicKey } from "@solana/web3.js";
 import { createTokenAccount, NodeWallet } from "@project-serum/common";
 import * as assert from "assert";
 import { createApi, createCtxAnchor, HydraAPI } from "hydra-ts";
-import { getPDA, getTokenBalance } from "hydra-ts/src/utils/utils";
 
 describe("hydra-staking", () => {
   const provider = anchor.Provider.env();
@@ -63,11 +62,10 @@ describe("hydra-staking", () => {
     );
 
     // get PDA for tokenVault
-    [tokenVaultPubkey, tokenVaultBump] = await getPDA(program.programId, [
-      "token_vault_seed",
-      tokenMint.publicKey,
-      redeemableMint.publicKey,
-    ]);
+    [tokenVaultPubkey, tokenVaultBump] = await sdk.utils.getPDA(
+      program.programId,
+      ["token_vault_seed", tokenMint.publicKey, redeemableMint.publicKey]
+    );
 
     // create redeemableMint and redeemableTokenAccount
     await createMint(program.provider, redeemableMint, tokenVaultPubkey);
@@ -78,27 +76,12 @@ describe("hydra-staking", () => {
     );
 
     // get PDA for statePool
-    [poolStatePubkey, poolStateBump] = await await getPDA(program.programId, [
-      "pool_state_seed",
-      tokenMint.publicKey,
-      redeemableMint.publicKey,
-    ]);
+    [poolStatePubkey, poolStateBump] = await sdk.utils.getPDA(
+      program.programId,
+      ["pool_state_seed", tokenMint.publicKey, redeemableMint.publicKey]
+    );
 
-    // initialized Staking contract's PDA, state and token_vault
-    await program.rpc.initialize(tokenVaultBump, poolStateBump, {
-      accounts: {
-        authority: program.provider.wallet.publicKey,
-        tokenMint: tokenMint.publicKey,
-        redeemableMint: redeemableMint.publicKey,
-        poolState: poolStatePubkey,
-        tokenVault: tokenVaultPubkey,
-        payer: program.provider.wallet.publicKey,
-        systemProgram: anchor.web3.SystemProgram.programId,
-        tokenProgram: TokenInstructions.TOKEN_PROGRAM_ID,
-        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-      },
-      signers: [(program.provider.wallet as NodeWallet).payer],
-    });
+    await sdk.staking.initialize(tokenVaultBump, poolStateBump);
   });
 
   it("should stake tokens into token_vault for the first time", async () => {
@@ -106,17 +89,25 @@ describe("hydra-staking", () => {
 
     assert.strictEqual(
       (
-        await getTokenBalance(program.provider, redeemableTokenAccount)
+        await sdk.utils.getTokenBalance(
+          program.provider,
+          redeemableTokenAccount
+        )
       ).toNumber(),
       1000
     );
     assert.strictEqual(
-      (await getTokenBalance(program.provider, tokenVaultPubkey)).toNumber(),
+      (
+        await sdk.utils.getTokenBalance(program.provider, tokenVaultPubkey)
+      ).toNumber(),
       1000
     );
     assert.strictEqual(
       (
-        await getTokenBalance(program.provider, TokenAccount.publicKey)
+        await sdk.utils.getTokenBalance(
+          program.provider,
+          TokenAccount.publicKey
+        )
       ).toNumber(),
       99999000
     );
@@ -127,17 +118,25 @@ describe("hydra-staking", () => {
 
     assert.strictEqual(
       (
-        await getTokenBalance(program.provider, redeemableTokenAccount)
+        await sdk.utils.getTokenBalance(
+          program.provider,
+          redeemableTokenAccount
+        )
       ).toNumber(),
       5000
     );
     assert.strictEqual(
-      (await getTokenBalance(program.provider, tokenVaultPubkey)).toNumber(),
+      (
+        await sdk.utils.getTokenBalance(program.provider, tokenVaultPubkey)
+      ).toNumber(),
       5000
     );
     assert.strictEqual(
       (
-        await getTokenBalance(program.provider, TokenAccount.publicKey)
+        await sdk.utils.getTokenBalance(
+          program.provider,
+          TokenAccount.publicKey
+        )
       ).toNumber(),
       99995000
     );
@@ -150,19 +149,28 @@ describe("hydra-staking", () => {
       tokenVaultPubkey,
       99995000
     );
+
     assert.strictEqual(
-      (await getTokenBalance(program.provider, tokenVaultPubkey)).toNumber(),
+      (
+        await sdk.utils.getTokenBalance(program.provider, tokenVaultPubkey)
+      ).toNumber(),
       100000000
     );
     assert.strictEqual(
       (
-        await getTokenBalance(program.provider, redeemableTokenAccount)
+        await sdk.utils.getTokenBalance(
+          program.provider,
+          redeemableTokenAccount
+        )
       ).toNumber(),
       5000
     );
     assert.strictEqual(
       (
-        await getTokenBalance(program.provider, TokenAccount.publicKey)
+        await sdk.utils.getTokenBalance(
+          program.provider,
+          TokenAccount.publicKey
+        )
       ).toNumber(),
       0
     );
@@ -173,17 +181,25 @@ describe("hydra-staking", () => {
 
     assert.strictEqual(
       (
-        await getTokenBalance(program.provider, redeemableTokenAccount)
+        await sdk.utils.getTokenBalance(
+          program.provider,
+          redeemableTokenAccount
+        )
       ).toNumber(),
       0
     );
     assert.strictEqual(
-      (await getTokenBalance(program.provider, tokenVaultPubkey)).toNumber(),
+      (
+        await sdk.utils.getTokenBalance(program.provider, tokenVaultPubkey)
+      ).toNumber(),
       0
     );
     assert.strictEqual(
       (
-        await getTokenBalance(program.provider, TokenAccount.publicKey)
+        await sdk.utils.getTokenBalance(
+          program.provider,
+          TokenAccount.publicKey
+        )
       ).toNumber(),
       100000000
     );

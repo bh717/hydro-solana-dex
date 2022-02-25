@@ -23,3 +23,5 @@ export type NetworkConfig = {
 };
 
 export type NetworkMap = Record<Network, NetworkConfig>;
+
+export type Option<T> = T | undefined;

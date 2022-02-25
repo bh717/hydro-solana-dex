@@ -87,6 +87,16 @@ const Content: FC = () => {
     // alert the answer
     alert(answer);
   };
+
+  const handleStakeClicked = async () => {
+    // Example of how you can create an instance of the sdk
+    // You don't want to do this in a production app.
+    // Instead you would want to create a context and provide to
+    // components that need the sdk via a custom hook
+    const sdk = HydraSDK.create("localnet", connection, wallet);
+
+    await sdk.staking.stake(1000n);
+  };
   return (
     <div className="App">
       <div style={{ display: "flex", flexDirection: "column" }}>
@@ -94,6 +104,7 @@ const Content: FC = () => {
           <WalletMultiButton />
         </div>
         <button onClick={handleDemoClicked}>Demonstrate Calculate</button>
+        <button onClick={handleStakeClicked}>Stake 1000</button>
       </div>
     </div>
   );
