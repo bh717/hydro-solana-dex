@@ -20,17 +20,6 @@ pub struct AddLiquidity<'info> {
     )]
     pub pool_state: Box<Account<'info, PoolState>>,
 
-    // TODO: Look into if the mints are required to be sent into the add_liquidity instructions seeing as they exist in the pool_state and arent really used.
-    #[account(
-        constraint = token_a_mint.key() == pool_state.token_a_mint.key()
-    )]
-    pub token_a_mint: Box<Account<'info, Mint>>,
-
-    #[account(
-        constraint = token_b_mint.key() == pool_state.token_b_mint.key()
-    )]
-    pub token_b_mint: Box<Account<'info, Mint>>,
-
     #[account(
         mut,
         constraint = lp_token_mint.key() == pool_state.lp_token_mint.key()
