@@ -1,30 +1,8 @@
-import { Network, NetworkConfig, NetworkMap, ProgramIds } from "../types";
-import HydraStakingIdl from "target/idl/hydra_staking.json";
-
-const programIds: ProgramIds = {
-  hydraStaking: HydraStakingIdl.metadata.address,
-  redeemableMint: "",
-  tokenMint: "",
-};
+import { Network, NetworkMap, ProgramIds } from "../types";
+import GlobalConfig from "config-ts/global-config.json";
 
 // This may be loaded async or be a JSON eventually
-const ConfigByNetwork: NetworkMap = {
-  localnet: {
-    programIds,
-  },
-
-  mainnet: {
-    programIds,
-  },
-
-  testnet: {
-    programIds,
-  },
-
-  devnet: {
-    programIds,
-  },
-};
+const ConfigByNetwork: NetworkMap = GlobalConfig;
 
 export function getProgramIds(connection: Network): ProgramIds {
   const { programIds } = ConfigByNetwork[connection];
