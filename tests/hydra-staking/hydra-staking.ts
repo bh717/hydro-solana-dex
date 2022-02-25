@@ -87,59 +87,17 @@ describe("hydra-staking", () => {
   it("should stake tokens into token_vault for the first time", async () => {
     await sdk.staking.stake(1000n);
 
-    assert.strictEqual(
-      (
-        await sdk.utils.getTokenBalance(
-          program.provider,
-          redeemableTokenAccount
-        )
-      ).toNumber(),
-      1000
-    );
-    assert.strictEqual(
-      (
-        await sdk.utils.getTokenBalance(program.provider, tokenVaultPubkey)
-      ).toNumber(),
-      1000
-    );
-    assert.strictEqual(
-      (
-        await sdk.utils.getTokenBalance(
-          program.provider,
-          TokenAccount.publicKey
-        )
-      ).toNumber(),
-      99999000
-    );
+    assert.strictEqual(await sdk.staking.accounts.userRedeemable.bal(), 1000n);
+    assert.strictEqual(await sdk.staking.accounts.tokenVault.bal(), 1000n);
+    assert.strictEqual(await sdk.staking.accounts.userToken.bal(), 99999000n);
   });
 
   it("should stake tokens into the token_vault for a second time", async () => {
     await sdk.staking.stake(4000n);
 
-    assert.strictEqual(
-      (
-        await sdk.utils.getTokenBalance(
-          program.provider,
-          redeemableTokenAccount
-        )
-      ).toNumber(),
-      5000
-    );
-    assert.strictEqual(
-      (
-        await sdk.utils.getTokenBalance(program.provider, tokenVaultPubkey)
-      ).toNumber(),
-      5000
-    );
-    assert.strictEqual(
-      (
-        await sdk.utils.getTokenBalance(
-          program.provider,
-          TokenAccount.publicKey
-        )
-      ).toNumber(),
-      99995000
-    );
+    assert.strictEqual(await sdk.staking.accounts.userRedeemable.bal(), 5000n);
+    assert.strictEqual(await sdk.staking.accounts.tokenVault.bal(), 5000n);
+    assert.strictEqual(await sdk.staking.accounts.userToken.bal(), 99995000n);
   });
 
   it("should transfer tokens into the vault directly", async () => {
@@ -149,59 +107,16 @@ describe("hydra-staking", () => {
       tokenVaultPubkey,
       99995000
     );
-
-    assert.strictEqual(
-      (
-        await sdk.utils.getTokenBalance(program.provider, tokenVaultPubkey)
-      ).toNumber(),
-      100000000
-    );
-    assert.strictEqual(
-      (
-        await sdk.utils.getTokenBalance(
-          program.provider,
-          redeemableTokenAccount
-        )
-      ).toNumber(),
-      5000
-    );
-    assert.strictEqual(
-      (
-        await sdk.utils.getTokenBalance(
-          program.provider,
-          TokenAccount.publicKey
-        )
-      ).toNumber(),
-      0
-    );
+    assert.strictEqual(await sdk.staking.accounts.tokenVault.bal(), 100000000n);
+    assert.strictEqual(await sdk.staking.accounts.userRedeemable.bal(), 5000n);
+    assert.strictEqual(await sdk.staking.accounts.userToken.bal(), 0n);
   });
 
   it("should unStake 100% of the vault", async () => {
     await sdk.staking.unstake(5000n);
 
-    assert.strictEqual(
-      (
-        await sdk.utils.getTokenBalance(
-          program.provider,
-          redeemableTokenAccount
-        )
-      ).toNumber(),
-      0
-    );
-    assert.strictEqual(
-      (
-        await sdk.utils.getTokenBalance(program.provider, tokenVaultPubkey)
-      ).toNumber(),
-      0
-    );
-    assert.strictEqual(
-      (
-        await sdk.utils.getTokenBalance(
-          program.provider,
-          TokenAccount.publicKey
-        )
-      ).toNumber(),
-      100000000
-    );
+    assert.strictEqual(await sdk.staking.accounts.tokenVault.bal(), 0n);
+    assert.strictEqual(await sdk.staking.accounts.userRedeemable.bal(), 0n);
+    assert.strictEqual(await sdk.staking.accounts.userToken.bal(), 100000000n);
   });
 });

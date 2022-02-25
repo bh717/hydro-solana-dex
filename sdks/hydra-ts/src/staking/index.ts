@@ -5,9 +5,16 @@ import { TOKEN_PROGRAM_ID } from "@project-serum/serum/lib/token-instructions";
 import NodeWallet from "@project-serum/anchor/dist/cjs/nodewallet";
 import { web3 } from "@project-serum/anchor";
 import { SystemProgram } from "@solana/web3.js";
-import { POOL_STATE_SEED, TOKEN_VAULT_SEED } from "../config/constants";
+import accounts from "./accounts";
 
 const hydraMath = loadWasm(wasm);
+async function tryGet<T>(fn: Promise<T>): Promise<T | undefined> {
+  try {
+    return await fn;
+  } catch (err) {
+    return undefined;
+  }
+}
 
 export function calculatePoolTokensForDeposit(_: Ctx) {
   return async (
@@ -39,10 +46,12 @@ export function calculatePoolTokensForWithdraw(_: Ctx) {
 
 export function initialize(ctx: Ctx) {
   return async (tokenVaultBump: number, poolStateBump: number) => {
-    const redeemableMint = ctx.getKey("redeemableMint");
-    const tokenMint = ctx.getKey("tokenMint");
-    const tokenVault = await getTokenVaultAccount(ctx);
-    const poolState = await getPoolStateAccount(ctx);
+    const acc = accounts(ctx);
+    const redeemableMint = await acc.redeemableMint.key();
+    const tokenMint = await acc.tokenMint.key();
+    const tokenVault = await acc.tokenVault.key();
+    const poolState = await acc.poolState.key();
+
     const program = ctx.programs.hydraStaking;
 
     await program.rpc.initialize(tokenVaultBump, poolStateBump, {
@@ -67,29 +76,21 @@ export function initialize(ctx: Ctx) {
 
 export function stake(ctx: Ctx) {
   return async (amount: BigInt) => {
-    const redeemableMint = ctx.getKey("redeemableMint");
-    const tokenMint = ctx.getKey("tokenMint");
-    const tokenVault = await getTokenVaultAccount(ctx);
-    const poolState = await getPoolStateAccount(ctx);
-
+    const acc = accounts(ctx);
+    const redeemableMint = await acc.redeemableMint.key();
+    const tokenMint = await acc.tokenMint.key();
+    const tokenVault = await acc.tokenVault.key();
+    const poolState = await acc.poolState.key();
+    const userFrom = await tryGet(acc.userToken.key());
+    const redeemableTo = await tryGet(acc.userRedeemable.key());
     const userFromAuthority = ctx.wallet.publicKey;
-
     const tokenProgram = TOKEN_PROGRAM_ID;
 
-    const userFrom = await ctx.utils.getExistingOwnerTokenAccount(
-      ctx.provider,
-      tokenMint
-    );
     if (!userFrom) {
       throw new Error(
         `Token owner account for tokenMint ${tokenMint} does not exist.`
       );
     }
-
-    const redeemableTo = await ctx.utils.getExistingOwnerTokenAccount(
-      ctx.provider,
-      redeemableMint
-    );
 
     if (!redeemableTo) {
       throw new Error(
@@ -113,27 +114,21 @@ export function stake(ctx: Ctx) {
 }
 export function unstake(ctx: Ctx) {
   return async (amount: BigInt) => {
-    const redeemableMint = ctx.getKey("redeemableMint");
-    const tokenMint = ctx.getKey("tokenMint");
-    const tokenVault = await getTokenVaultAccount(ctx);
-    const poolState = await getPoolStateAccount(ctx);
-
+    const acc = accounts(ctx);
+    const redeemableMint = await acc.redeemableMint.key();
+    const tokenMint = await acc.tokenMint.key();
+    const tokenVault = await acc.tokenVault.key();
+    const poolState = await acc.poolState.key();
+    const userTo = await tryGet(acc.userToken.key());
+    const redeemableFrom = await tryGet(acc.userRedeemable.key());
     const redeemableFromAuthority = ctx.wallet.publicKey;
 
-    const userTo = await ctx.utils.getExistingOwnerTokenAccount(
-      ctx.provider,
-      tokenMint
-    );
     if (!userTo) {
       throw new Error(
         `Token owner account for tokenMint ${tokenMint} does not exist.`
       );
     }
 
-    const redeemableFrom = await ctx.utils.getExistingOwnerTokenAccount(
-      ctx.provider,
-      redeemableMint
-    );
     if (!redeemableFrom) {
       throw new Error(
         `Token owner account for redeemableMint ${redeemableMint} does not exist.`
@@ -153,24 +148,4 @@ export function unstake(ctx: Ctx) {
       },
     });
   };
-}
-
-async function getTokenVaultAccount(ctx: Ctx) {
-  return (
-    await ctx.utils.getPDA(ctx.programs.hydraStaking.programId, [
-      TOKEN_VAULT_SEED,
-      ctx.getKey("tokenMint"),
-      ctx.getKey("redeemableMint"),
-    ])
-  )[0];
-}
-
-async function getPoolStateAccount(ctx: Ctx) {
-  return (
-    await ctx.utils.getPDA(ctx.programs.hydraStaking.programId, [
-      POOL_STATE_SEED,
-      ctx.getKey("tokenMint"),
-      ctx.getKey("redeemableMint"),
-    ])
-  )[0];
 }

@@ -2,16 +2,35 @@ import { Connection } from "@solana/web3.js";
 import { getProgramIds } from "./config/get-program-ids";
 import { createCtx, createReadonlyCtx } from "./ctx";
 import * as stakingApi from "./staking";
+import stakingAccounts from "./staking/accounts";
 import { Ctx, Network, Wallet } from "./types";
 import { injectContext } from "./utils/curry-arg";
 import * as utils from "./utils";
+
+function withAccounts<T, U>(
+  ctx: Ctx,
+  acc: (c: Ctx) => U,
+  obj: T
+): T & { readonly accounts: U } {
+  return Object.defineProperty(obj, "accounts", {
+    get: function () {
+      return acc(ctx);
+    },
+  }) as T & { readonly accounts: U };
+}
+
 /**
  * Create an instance of the sdk API
  * @param ctx A Ctx
  * @returns An Sdk instance
  */
 export function createApi(ctx: Ctx) {
-  const staking = injectContext(stakingApi, ctx);
+  const staking = withAccounts(
+    ctx,
+    stakingAccounts,
+    injectContext(stakingApi, ctx)
+  );
+
   // Organised by namespace
   return {
     staking,
