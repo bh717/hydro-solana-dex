@@ -1,9 +1,9 @@
-import { Wallet, ProgramIds, Ctx, Network } from "../types";
-import { Connection, Keypair, PublicKey } from "@solana/web3.js";
-import { utils, web3, Program, Provider } from "@project-serum/anchor";
+import { Wallet, ProgramIds, Ctx } from "../types";
+import { Connection, PublicKey } from "@solana/web3.js";
+import { Program, Provider } from "@project-serum/anchor";
 import stakingIdl from "target/idl/hydra_staking.json";
 import { HydraStaking } from "types-ts/codegen/types/hydra_staking";
-
+import * as utils from "../utils/utils";
 /**
  * Creates a context object
  * @param wallet An Anchor wallet like object
@@ -75,5 +75,6 @@ export function createCtxAnchor(provider: Provider, programIds: ProgramIds) {
     programs: { hydraStaking },
     provider,
     getKey,
+    utils,
   };
 }

@@ -5,11 +5,6 @@ import { TOKEN_PROGRAM_ID } from "@project-serum/serum/lib/token-instructions";
 import NodeWallet from "@project-serum/anchor/dist/cjs/nodewallet";
 import { web3 } from "@project-serum/anchor";
 import { SystemProgram } from "@solana/web3.js";
-import {
-  fromBigInt,
-  getExistingOwnerTokenAccount,
-  getPDA,
-} from "../utils/utils";
 import { POOL_STATE_SEED, TOKEN_VAULT_SEED } from "../config/constants";
 
 const hydraMath = loadWasm(wasm);
@@ -81,7 +76,7 @@ export function stake(ctx: Ctx) {
 
     const tokenProgram = TOKEN_PROGRAM_ID;
 
-    const userFrom = await getExistingOwnerTokenAccount(
+    const userFrom = await ctx.utils.getExistingOwnerTokenAccount(
       ctx.provider,
       tokenMint
     );
@@ -91,7 +86,7 @@ export function stake(ctx: Ctx) {
       );
     }
 
-    const redeemableTo = await getExistingOwnerTokenAccount(
+    const redeemableTo = await ctx.utils.getExistingOwnerTokenAccount(
       ctx.provider,
       redeemableMint
     );
@@ -102,7 +97,7 @@ export function stake(ctx: Ctx) {
       );
     }
 
-    await ctx.programs.hydraStaking.rpc.stake(fromBigInt(amount), {
+    await ctx.programs.hydraStaking.rpc.stake(ctx.utils.fromBigInt(amount), {
       accounts: {
         poolState,
         tokenMint,
@@ -125,14 +120,17 @@ export function unstake(ctx: Ctx) {
 
     const redeemableFromAuthority = ctx.wallet.publicKey;
 
-    const userTo = await getExistingOwnerTokenAccount(ctx.provider, tokenMint);
+    const userTo = await ctx.utils.getExistingOwnerTokenAccount(
+      ctx.provider,
+      tokenMint
+    );
     if (!userTo) {
       throw new Error(
         `Token owner account for tokenMint ${tokenMint} does not exist.`
       );
     }
 
-    const redeemableFrom = await getExistingOwnerTokenAccount(
+    const redeemableFrom = await ctx.utils.getExistingOwnerTokenAccount(
       ctx.provider,
       redeemableMint
     );
@@ -142,7 +140,7 @@ export function unstake(ctx: Ctx) {
       );
     }
 
-    await ctx.programs.hydraStaking.rpc.unstake(fromBigInt(amount), {
+    await ctx.programs.hydraStaking.rpc.unstake(ctx.utils.fromBigInt(amount), {
       accounts: {
         poolState,
         tokenMint,
@@ -159,7 +157,7 @@ export function unstake(ctx: Ctx) {
 
 async function getTokenVaultAccount(ctx: Ctx) {
   return (
-    await getPDA(ctx.programs.hydraStaking.programId, [
+    await ctx.utils.getPDA(ctx.programs.hydraStaking.programId, [
       TOKEN_VAULT_SEED,
       ctx.getKey("tokenMint"),
       ctx.getKey("redeemableMint"),
@@ -169,7 +167,7 @@ async function getTokenVaultAccount(ctx: Ctx) {
 
 async function getPoolStateAccount(ctx: Ctx) {
   return (
-    await getPDA(ctx.programs.hydraStaking.programId, [
+    await ctx.utils.getPDA(ctx.programs.hydraStaking.programId, [
       POOL_STATE_SEED,
       ctx.getKey("tokenMint"),
       ctx.getKey("redeemableMint"),
