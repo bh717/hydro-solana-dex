@@ -3,12 +3,10 @@ use crate::errors::ErrorCode;
 use crate::events::liquidity_added::LiquidityAdded;
 use crate::events::slippage_exceeded::SlippageExceeded;
 use crate::state::pool_state::PoolState;
-use crate::ProgramResult;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
 use anchor_spl::token::{Mint, MintTo, Token, TokenAccount, Transfer};
-use hydra_math::math::sqrt_precise;
-use spl_math::precise_number::PreciseNumber;
+use hydra_math_rs::programs::hydra_lp_tokens::{calculate_k, calculate_x_y};
 
 #[derive(Accounts)]
 pub struct AddLiquidity<'info> {
@@ -17,11 +15,12 @@ pub struct AddLiquidity<'info> {
 
     #[account(
         mut,
-        seeds = [ POOL_STATE_SEED, lp_token_mint.key().as_ref() ],
+        seeds = [ POOL_STATE_SEED, pool_state.lp_token_mint.key().as_ref() ],
         bump = pool_state.pool_state_bump,
     )]
     pub pool_state: Box<Account<'info, PoolState>>,
 
+    // TODO: Look into if the mints are required to be sent into the add_liquidity instructions seeing as they exist in the pool_state and arent really used.
     #[account(
         constraint = token_a_mint.key() == pool_state.token_a_mint.key()
     )]
@@ -37,7 +36,6 @@ pub struct AddLiquidity<'info> {
         constraint = lp_token_mint.key() == pool_state.lp_token_mint.key()
     )]
     pub lp_token_mint: Box<Account<'info, Mint>>,
-
     #[account(
         mut,
         constraint = user_token_a.mint == pool_state.token_a_mint.key(),
@@ -56,7 +54,7 @@ pub struct AddLiquidity<'info> {
 
     #[account(
         mut,
-        seeds = [ TOKEN_VAULT_SEED, token_a_mint.key().as_ref(), lp_token_mint.key().as_ref() ],
+        seeds = [ TOKEN_VAULT_SEED, pool_state.token_a_mint.key().as_ref(), lp_token_mint.key().as_ref() ],
         bump,
         constraint = token_a_vault.key() == pool_state.token_a_vault.key()
     )]
@@ -64,7 +62,7 @@ pub struct AddLiquidity<'info> {
 
     #[account(
         mut,
-        seeds = [ TOKEN_VAULT_SEED, token_b_mint.key().as_ref(), lp_token_mint.key().as_ref() ],
+        seeds = [ TOKEN_VAULT_SEED, pool_state.token_b_mint.key().as_ref(), lp_token_mint.key().as_ref() ],
         bump,
         constraint = token_b_vault.key() == pool_state.token_b_vault.key()
     )]
@@ -147,39 +145,7 @@ impl<'info> AddLiquidity<'info> {
         token_a_amount: u64,
         token_b_amount: u64,
     ) -> Option<u64> {
-        if self.lp_token_mint.supply == 0 {
-            let x = token_a_amount;
-            let y = token_b_amount;
-            let x_total = self.token_a_vault.amount;
-            let y_total = self.token_b_vault.amount;
-            let lp_total = self.lp_token_mint.supply;
-
-            if self.pool_state.debug {
-                msg!("MIN_LIQUIDITY: {}", MIN_LIQUIDITY);
-                msg!("x: {}", x);
-                msg!("y: {}", y);
-                msg!("x_total: {}", x_total);
-                msg!("y_total: {}", y_total);
-                msg!("lp_total: {}", lp_total);
-            }
-
-            let x = PreciseNumber::new(x as u128).unwrap();
-            let y = PreciseNumber::new(y as u128).unwrap();
-            let min_liquidity = PreciseNumber::new(MIN_LIQUIDITY as u128).unwrap();
-
-            // sqrt(x * y) - min_liquidity
-            return Some(
-                sqrt_precise(&x.checked_mul(&y).unwrap())
-                    .unwrap()
-                    .checked_sub(&min_liquidity)
-                    .unwrap()
-                    .floor()
-                    .unwrap()
-                    .to_imprecise()
-                    .unwrap() as u64,
-            );
-        }
-        None
+        calculate_k(token_a_amount, token_b_amount, self.lp_token_mint.supply)
     }
 
     /// calculate a and b tokens (x/y) from expected_lp_tokens (k)
@@ -187,33 +153,12 @@ impl<'info> AddLiquidity<'info> {
         &self,
         expected_lp_tokens_minted: u64,
     ) -> (u64, u64) {
-        let x_total = PreciseNumber::new(self.token_a_vault.amount as u128).unwrap();
-        let y_total = PreciseNumber::new(self.token_b_vault.amount as u128).unwrap();
-        let lp_total = PreciseNumber::new(self.lp_token_mint.supply as u128).unwrap();
-        let expected_lp_tokens_minted =
-            PreciseNumber::new(expected_lp_tokens_minted as u128).unwrap();
-
-        // expected_lp_tokens_minted  * x_total
-        let x_debited = expected_lp_tokens_minted
-            .checked_mul(&x_total)
-            .unwrap()
-            .checked_div(&lp_total)
-            .unwrap()
-            .ceiling()
-            .unwrap();
-        let x_debited = x_debited.to_imprecise().unwrap() as u64;
-
-        let y_debited = expected_lp_tokens_minted
-            .checked_mul(&y_total)
-            .unwrap()
-            .checked_div(&lp_total)
-            .unwrap()
-            .ceiling()
-            .unwrap();
-        let y_debited = y_debited.to_imprecise().unwrap() as u64;
-
-        //* note that we rounded up with .ceiling() (as we are receiving these amounts)
-        (x_debited, y_debited)
+        calculate_x_y(
+            expected_lp_tokens_minted,
+            self.token_a_vault.amount,
+            self.token_b_vault.amount,
+            self.lp_token_mint.supply,
+        )
     }
 }
 
@@ -284,9 +229,12 @@ pub fn handle(
     }
 
     // mint lp tokens to users account
-    let mut cpi_tx = ctx.accounts.mint_lp_tokens_to_user_account();
-    cpi_tx.signer_seeds = &signer;
-    token::mint_to(cpi_tx, lp_tokens_to_mint)?;
+    token::mint_to(
+        ctx.accounts
+            .mint_lp_tokens_to_user_account()
+            .with_signer(&signer),
+        lp_tokens_to_mint,
+    )?;
 
     // transfer user_token_a to vault
     token::transfer(
@@ -313,9 +261,4 @@ pub fn handle(
     }
 
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
 }
