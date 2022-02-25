@@ -175,8 +175,6 @@ describe("hydra-liquidity-pool", () => {
       {
         accounts: {
           poolState: poolState,
-          tokenAMint: btcdMint,
-          tokenBMint: usddMint,
           lpTokenMint: lpTokenMint.publicKey,
           userTokenA: btcdAccount,
           userTokenB: usddAccount,
@@ -223,8 +221,6 @@ describe("hydra-liquidity-pool", () => {
       {
         accounts: {
           poolState: poolState,
-          tokenAMint: btcdMint,
-          tokenBMint: usddMint,
           lpTokenMint: lpTokenMint.publicKey,
           userTokenA: btcdAccount,
           userTokenB: usddAccount,
@@ -273,8 +269,6 @@ describe("hydra-liquidity-pool", () => {
       {
         accounts: {
           poolState: poolState,
-          tokenAMint: btcdMint,
-          tokenBMint: usddMint,
           lpTokenMint: lpTokenMint.publicKey,
           userTokenA: btcdAccount,
           userTokenB: usddAccount,
@@ -322,8 +316,6 @@ describe("hydra-liquidity-pool", () => {
         {
           accounts: {
             poolState: poolState,
-            tokenAMint: btcdMint,
-            tokenBMint: usddMint,
             lpTokenMint: lpTokenMint.publicKey,
             userTokenA: btcdAccount,
             userTokenB: usddAccount,

@@ -99,16 +99,6 @@ export type HydraLiquidityPools = {
           "isSigner": false
         },
         {
-          "name": "tokenAMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenBMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "lpTokenMint",
           "isMut": true,
           "isSigner": false
@@ -455,16 +445,6 @@ export const IDL: HydraLiquidityPools = {
         {
           "name": "poolState",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenAMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenBMint",
-          "isMut": false,
           "isSigner": false
         },
         {
