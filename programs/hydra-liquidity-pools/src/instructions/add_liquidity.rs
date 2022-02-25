@@ -229,9 +229,12 @@ pub fn handle(
     }
 
     // mint lp tokens to users account
-    let mut cpi_tx = ctx.accounts.mint_lp_tokens_to_user_account();
-    cpi_tx.signer_seeds = &signer;
-    token::mint_to(cpi_tx, lp_tokens_to_mint)?;
+    token::mint_to(
+        ctx.accounts
+            .mint_lp_tokens_to_user_account()
+            .with_signer(&signer),
+        lp_tokens_to_mint,
+    )?;
 
     // transfer user_token_a to vault
     token::transfer(
