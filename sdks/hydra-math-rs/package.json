@@ -16,7 +16,7 @@
   "main": "./.pkg/node/index.js",
   "types": "./.pkg/web/index.d.ts",
   "scripts": {
-    "watch": "cargo watch -i \".pkg\" -i \".turbo\" -s \"wasm-pack build\" --watch-when-idle",
+    "watch": "cargo watch -i \".pkg/**\" -i \".turbo/**\" -s \"wasm-pack build\" --watch-when-idle",
     "build": "./build.sh"
   },
   "sideEffects": false
