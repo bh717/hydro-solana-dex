@@ -11,11 +11,11 @@ import { createMintAndVault, createTokenAccount } from "@project-serum/common";
 import {
   createMint,
   getTokenBalance,
-} from "../../sdks/hydra-ts/src/utils/utils";
+} from "hydra-ts/src/utils/utils";
 import { Keypair } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "@project-serum/serum/lib/token-instructions";
 const utf8 = anchor.utils.bytes.utf8;
-import { btcdMintAmount, usddMintAmount } from "../../sdks/hydra-ts/src/const";
+import { btcdMintAmount, usddMintAmount } from "hydra-ts/src/const";
 
 describe("hydra-liquidity-pool", () => {
   // Configure the client to use the local cluster.
@@ -337,7 +337,7 @@ describe("hydra-liquidity-pool", () => {
         }
       );
       assert.ok(false);
-    } catch (err) {
+    } catch (err: any) {
       // TODO; error handle is broken with anchor 0.22
       // ref: https://github.com/project-serum/anchor/issues/1494
       // const errMsg = "Slippage Amount Exceeded";
@@ -378,10 +378,10 @@ describe("hydra-liquidity-pool", () => {
     await program.rpc.removeLiquidity(new BN(3_302_203_141), {
       accounts: {
         poolState: poolState,
-        userRedeemableLpTokensAuthority: provider.wallet.publicKey,
+        user: provider.wallet.publicKey,
         userRedeemableLpTokens: lpTokenAccount,
-        userTokenAToReceive: btcdAccount,
-        userTokenBToReceive: usddAccount,
+        userTokenAAccount: btcdAccount,
+        userTokenBAccount: usddAccount,
         tokenAVault: tokenAVault,
         tokenBVault: tokenBVault,
         lpTokenMint: lpTokenMint.publicKey,
@@ -408,10 +408,10 @@ describe("hydra-liquidity-pool", () => {
       await program.rpc.removeLiquidity(new BN(1238326078), {
         accounts: {
           poolState: poolState,
-          userRedeemableLpTokensAuthority: provider.wallet.publicKey,
+          user: provider.wallet.publicKey,
           userRedeemableLpTokens: lpTokenAccount,
-          userTokenAToReceive: btcdAccount,
-          userTokenBToReceive: usddAccount,
+          userTokenAAccount: btcdAccount,
+          userTokenBAccount: usddAccount,
           tokenAVault: tokenAVault,
           tokenBVault: tokenBVault,
           lpTokenMint: lpTokenMint.publicKey,

@@ -12,33 +12,37 @@ pub struct RemoveLiquidity<'info> {
         mut,
         seeds = [ POOL_STATE_SEED, pool_state.lp_token_mint.key().as_ref() ],
         bump = pool_state.pool_state_bump,
+        has_one = token_a_vault.key(),
+        has_one = token_b_vault.key(),
+        has_one = lp_token_mint.key(),
     )]
     pub pool_state: Box<Account<'info, PoolState>>,
 
     /// the authority allowed to transfer token_a and token_b from the users wallet.
-    pub user_redeemable_lp_tokens_authority: Signer<'info>,
+    pub user: Signer<'info>,
 
     #[account(
         mut,
-        constraint = user_redeemable_lp_tokens.mint == pool_state.lp_token_mint.key()
+        constraint = user_redeemable_lp_tokens.mint == pool_state.lp_token_mint.key(),
+        constraint = user_redeemable_lp_tokens.owner ==  user.key(),
     )]
     pub user_redeemable_lp_tokens: Box<Account<'info, TokenAccount>>,
 
     #[account(
         mut,
-        constraint = user_token_a_to_receive.mint == pool_state.token_a_mint.key(),
-        constraint = user_token_a_to_receive.owner == user_redeemable_lp_tokens_authority.key()
+        constraint = user_token_a_account.mint == pool_state.token_a_mint.key(),
+        constraint = user_token_a_account.owner == user.key()
     )]
     /// the token account to send token_a's back to
-    pub user_token_a_to_receive: Box<Account<'info, TokenAccount>>,
+    pub user_token_a_account: Box<Account<'info, TokenAccount>>,
 
     #[account(
         mut,
-        constraint = user_token_b_to_receive.mint == pool_state.token_b_mint.key(),
-        constraint = user_token_b_to_receive.owner == user_redeemable_lp_tokens_authority.key()
+        constraint = user_token_b_account.mint == pool_state.token_b_mint.key(),
+        constraint = user_token_b_account.owner == user.key()
     )]
     ///  the token account to send token_b's back to
-    pub user_token_b_to_receive: Box<Account<'info, TokenAccount>>,
+    pub user_token_b_account: Box<Account<'info, TokenAccount>>,
 
     #[account(
         mut,
@@ -71,14 +75,14 @@ impl<'info> RemoveLiquidity<'info> {
             msg!("Account balances before transfer...");
             msg!(
                 "user_token_a_to_receive.amount: {}",
-                self.user_token_a_to_receive.amount
+                self.user_token_a_account.amount
             );
             msg!("token_a_vault.amount: {}", self.token_a_vault.amount);
         }
 
         let cpi_accounts = Transfer {
             from: self.token_a_vault.to_account_info(),
-            to: self.user_token_a_to_receive.to_account_info(),
+            to: self.user_token_a_account.to_account_info(),
             authority: self.pool_state.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();
@@ -90,14 +94,14 @@ impl<'info> RemoveLiquidity<'info> {
             msg!("Account balances before transfer...");
             msg!(
                 "user_token_b_to_receive.amount: {}",
-                self.user_token_b_to_receive.amount
+                self.user_token_b_account.amount
             );
             msg!("token_b_vault.amount: {}", self.token_b_vault.amount);
         }
 
         let cpi_accounts = Transfer {
             from: self.token_b_vault.to_account_info(),
-            to: self.user_token_b_to_receive.to_account_info(),
+            to: self.user_token_b_account.to_account_info(),
             authority: self.pool_state.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();
@@ -108,7 +112,7 @@ impl<'info> RemoveLiquidity<'info> {
         let cpi_accounts = Burn {
             mint: self.lp_token_mint.to_account_info(),
             to: self.user_redeemable_lp_tokens.to_account_info(),
-            authority: self.user_redeemable_lp_tokens_authority.to_account_info(),
+            authority: self.user.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
@@ -149,14 +153,20 @@ pub fn handle(ctx: Context<RemoveLiquidity>, lp_tokens_to_burn: u64) -> ProgramR
     token::burn(ctx.accounts.burn_lp_tokens(), lp_tokens_to_burn)?;
 
     // transfer user_token_a to vault
-    let mut cpi_tx = ctx.accounts.credit_user_token_a_from_vault();
-    cpi_tx.signer_seeds = &signer;
-    token::transfer(cpi_tx, token_a_to_credit)?;
+    token::transfer(
+        ctx.accounts
+            .credit_user_token_a_from_vault()
+            .with_signer(&signer),
+        token_a_to_credit,
+    )?;
 
     // transfer user_token_b to vault
-    let mut cpi_tx = ctx.accounts.credit_user_token_b_from_vault();
-    cpi_tx.signer_seeds = &signer;
-    token::transfer(cpi_tx, token_b_to_credit)?;
+    token::transfer(
+        ctx.accounts
+            .credit_user_token_b_from_vault()
+            .with_signer(&signer),
+        token_b_to_credit,
+    )?;
 
     emit!(LiquidityRemoved {
         tokens_a_credited: token_a_to_credit,
