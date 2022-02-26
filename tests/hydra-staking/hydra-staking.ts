@@ -12,8 +12,7 @@ import { TokenInstructions } from "@project-serum/serum";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import { createTokenAccount, NodeWallet } from "@project-serum/common";
 import * as assert from "assert";
-import { createApi, createCtxAnchor, HydraAPI } from "hydra-ts";
-
+import { HydraAPI, createApi, createCtxAnchor } from "hydra-ts";
 describe("hydra-staking", () => {
   const provider = anchor.Provider.env();
   anchor.setProvider(provider);
@@ -80,13 +79,12 @@ describe("hydra-staking", () => {
       program.programId,
       ["pool_state_seed", tokenMint.publicKey, redeemableMint.publicKey]
     );
-
+    // sdk.staking.stake()
     await sdk.staking.initialize(tokenVaultBump, poolStateBump);
   });
 
   it("should stake tokens into token_vault for the first time", async () => {
     await sdk.staking.stake(1000n);
-
     assert.strictEqual(await sdk.staking.accounts.userRedeemable.bal(), 1000n);
     assert.strictEqual(await sdk.staking.accounts.tokenVault.bal(), 1000n);
     assert.strictEqual(await sdk.staking.accounts.userToken.bal(), 99999000n);

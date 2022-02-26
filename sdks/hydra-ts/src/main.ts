@@ -1,23 +1,10 @@
 import { Connection } from "@solana/web3.js";
 import { getProgramIds } from "./config/get-program-ids";
 import { createCtx, createReadonlyCtx } from "./ctx";
-import * as stakingApi from "./staking";
-import stakingAccounts from "./staking/accounts";
+import staking from "./staking";
 import { Ctx, Network, Wallet } from "./types";
-import { injectContext } from "./utils/curry-arg";
 import * as utils from "./utils";
-
-function withAccounts<T, U>(
-  ctx: Ctx,
-  acc: (c: Ctx) => U,
-  obj: T
-): T & { readonly accounts: U } {
-  return Object.defineProperty(obj, "accounts", {
-    get: function () {
-      return acc(ctx);
-    },
-  }) as T & { readonly accounts: U };
-}
+import { inject } from "./utils/meta-utils";
 
 /**
  * Create an instance of the sdk API
@@ -25,15 +12,8 @@ function withAccounts<T, U>(
  * @returns An Sdk instance
  */
 export function createApi(ctx: Ctx) {
-  const staking = withAccounts(
-    ctx,
-    stakingAccounts,
-    injectContext(stakingApi, ctx)
-  );
-
-  // Organised by namespace
   return {
-    staking,
+    ...inject({ staking }, ctx),
     utils,
   };
 }
@@ -55,7 +35,7 @@ export const HydraSDK = {
     network: Network,
     connectionOrEndpoint: Connection | string,
     wallet?: Wallet
-  ): HydraAPI {
+  ) {
     const programIds = getProgramIds(network);
 
     const connection =

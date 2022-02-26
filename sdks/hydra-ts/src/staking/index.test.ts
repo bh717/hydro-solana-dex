@@ -1,7 +1,5 @@
-import {
-  calculatePoolTokensForDeposit,
-  calculatePoolTokensForWithdraw,
-} from "./index";
+import { calculatePoolTokensForDeposit } from "./calculatePoolTokensForDeposit";
+import { calculatePoolTokensForWithdraw } from "./calculatePoolTokensForWithdraw";
 
 describe("sanity tests for ensuring wasm works", () => {
   test("calculatePoolTokensForDeposit", async () => {

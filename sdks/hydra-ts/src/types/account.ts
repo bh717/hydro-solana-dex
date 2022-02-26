@@ -1,7 +1,7 @@
 import { Commitment } from "@solana/web3.js";
 import { AccountInfo } from "@solana/web3.js";
 import { PublicKey } from "@solana/web3.js";
-import { Option, Ctx } from ".";
+import { Ctx } from ".";
 
 export class OptionalAccount {}
 export class Account {
@@ -9,12 +9,9 @@ export class Account {
     private _key: PublicKey | Promise<PublicKey | undefined> | undefined,
     private ctx: Ctx
   ) {}
-  async key(optional?: true): Promise<PublicKey>;
-  async key(optional: true): Promise<Option<PublicKey>> {
+  // async key(optional?: true): Promise<PublicKey>;
+  async key(): Promise<PublicKey> {
     const key = await Promise.resolve(this._key);
-    if (optional === true) {
-      return key;
-    }
     if (key === undefined) throw new Error("Key was undefined after await");
     return key;
   }

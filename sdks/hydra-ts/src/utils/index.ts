@@ -1,7 +1,7 @@
 import * as anchor from "@project-serum/anchor";
 import { BN, Provider } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
-import { Option } from "../types";
+import { Ctx, Option } from "../types";
 
 // TODO:  This should return BigInt as we are going to be using BigInt over BN
 //        because wasm requires us to use BigInt and it is therefore available
@@ -37,6 +37,14 @@ export function toBigInt(amount: BN): BigInt {
 
 export function fromBigInt(amount: BigInt): BN {
   return new BN(amount.toString());
+}
+
+export async function tryGet<T>(fn: Promise<T>): Promise<T | undefined> {
+  try {
+    return await fn;
+  } catch (err) {
+    return undefined;
+  }
 }
 
 // /**
@@ -82,3 +90,4 @@ export async function getExistingOwnerTokenAccount(
   }
   return undefined;
 }
+//
