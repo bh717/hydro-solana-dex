@@ -13,7 +13,12 @@ import { inject } from "./utils/meta-utils";
  */
 export function createApi(ctx: Ctx) {
   return {
-    ...inject({ staking }, ctx),
+    ...inject(
+      {
+        staking,
+      },
+      ctx
+    ),
     utils,
   };
 }

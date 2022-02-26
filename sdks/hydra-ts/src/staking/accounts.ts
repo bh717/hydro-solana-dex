@@ -28,21 +28,17 @@ async function getUserRedeemableAccount(ctx: Ctx) {
 }
 
 async function getTokenVaultAccount(ctx: Ctx) {
-  return (
-    await ctx.utils.getPDA(ctx.programs.hydraStaking.programId, [
-      TOKEN_VAULT_SEED,
-      ctx.getKey("tokenMint"),
-      ctx.getKey("redeemableMint"),
-    ])
-  )[0];
+  return await ctx.utils.getPDA(ctx.programs.hydraStaking.programId, [
+    TOKEN_VAULT_SEED,
+    ctx.getKey("tokenMint"),
+    ctx.getKey("redeemableMint"),
+  ]);
 }
 
 async function getPoolStateAccount(ctx: Ctx) {
-  return (
-    await ctx.utils.getPDA(ctx.programs.hydraStaking.programId, [
-      POOL_STATE_SEED,
-      ctx.getKey("tokenMint"),
-      ctx.getKey("redeemableMint"),
-    ])
-  )[0];
+  return await ctx.utils.getPDA(ctx.programs.hydraStaking.programId, [
+    POOL_STATE_SEED,
+    ctx.getKey("tokenMint"),
+    ctx.getKey("redeemableMint"),
+  ]);
 }

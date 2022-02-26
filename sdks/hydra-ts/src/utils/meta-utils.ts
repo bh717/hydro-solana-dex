@@ -1,24 +1,22 @@
 import { Ctx } from "../types";
 
 type CtxFn<Ctx> = (a: Ctx) => any;
-type UnwrapCtxFn<Ctx, T extends CtxFn<Ctx>> = ReturnType<T>;
 
 type Injected<T, Ctx> = T extends Record<string, CtxFn<Ctx>>
-  ? { [k in keyof T]: UnwrapCtxFn<Ctx, T[k]> }
+  ? { [k in keyof T]: ReturnType<T[k]> }
   : never;
-
-// type ReturnOf<T> = T extends (a: any) => infer Q ? Q : never;
 
 export function inject<T, U>(obj: T, arg: U): Injected<T, U> {
   const entries = Object.entries(obj);
-  const out = entries.reduce((acc, [k, curryFn]) => {
-    return {
+  const out = entries.reduce(
+    (acc, [k, curryFn]) => ({
       ...acc,
       [k]: curryFn(arg),
-    };
-  }, {});
+    }),
+    {} as Injected<T, U>
+  );
 
-  return out as Injected<T, U>;
+  return out;
 }
 
 /**

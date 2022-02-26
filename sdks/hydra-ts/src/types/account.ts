@@ -1,18 +1,33 @@
 import { Commitment } from "@solana/web3.js";
 import { AccountInfo } from "@solana/web3.js";
 import { PublicKey } from "@solana/web3.js";
-import { Ctx } from ".";
+import { Ctx, Option } from ".";
+
+type PDAKey = [PublicKey, number];
+type Keyish = PDAKey | PublicKey;
+type MaybeKeyish = Option<Keyish>;
 
 export class Account {
   constructor(
-    private _key: PublicKey | Promise<PublicKey | undefined> | undefined,
+    private _keyishPromise: Option<MaybeKeyish> | Promise<MaybeKeyish>,
     private ctx: Ctx
   ) {}
 
   async key(): Promise<PublicKey> {
-    const key = await Promise.resolve(this._key);
-    if (key === undefined) throw new Error("Key was undefined after await");
-    return key;
+    const keyish = await Promise.resolve(this._keyishPromise);
+    if (Array.isArray(keyish)) {
+      return keyish[0];
+    }
+    if (keyish === undefined) throw new Error("Key was undefined after await");
+    return keyish;
+  }
+
+  async bump(): Promise<number> {
+    const keyish = await Promise.resolve(this._keyishPromise);
+    if (Array.isArray(keyish)) {
+      return keyish[1];
+    }
+    throw new Error("Cannot call bump on non PDA account");
   }
 
   async info(commitment?: Commitment) {
