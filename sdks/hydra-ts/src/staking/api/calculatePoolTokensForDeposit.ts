@@ -1,18 +1,18 @@
-import { Ctx } from "../types";
+import { Ctx } from "../../types";
 import * as wasm from "hydra-math-rs";
 import { loadWasm } from "wasm-loader-ts";
 
 const hydraMath = loadWasm(wasm);
 
-export function calculatePoolTokensForWithdraw(_: Ctx) {
+export function calculatePoolTokensForDeposit(_: Ctx) {
   return async (
     amount: BigInt,
-    totalTokens: BigInt,
+    totalTokenVault: BigInt,
     totalRedeemableTokens: BigInt
   ) => {
-    return await hydraMath.calculate_pool_tokens_for_withdraw(
+    return await hydraMath.calculate_pool_tokens_for_deposit(
       amount,
-      totalTokens,
+      totalTokenVault,
       totalRedeemableTokens
     );
   };

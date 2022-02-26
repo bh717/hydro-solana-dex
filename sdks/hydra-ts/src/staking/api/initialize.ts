@@ -1,9 +1,9 @@
-import { Ctx } from "../types";
+import { Ctx } from "../../types";
 import { TOKEN_PROGRAM_ID } from "@project-serum/serum/lib/token-instructions";
 import NodeWallet from "@project-serum/anchor/dist/cjs/nodewallet";
 import { web3 } from "@project-serum/anchor";
 import { SystemProgram } from "@solana/web3.js";
-import accounts from "./accounts";
+import accounts from "../accounts";
 
 export function initialize(ctx: Ctx) {
   return async (tokenVaultBump: number, poolStateBump: number) => {

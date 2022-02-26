@@ -21,10 +21,17 @@ export function inject<T, U>(obj: T, arg: U): Injected<T, U> {
   return out as Injected<T, U>;
 }
 
+/**
+ * Add accounts to object allowing for lazy account retieval
+ * @param obj - object to decorate with accounts prop
+ * @param acc - function to bind accounts with ctx
+ * @param ctx - context
+ * @returns
+ */
 export function withAccounts<T, U>(
-  ctx: Ctx,
+  obj: T,
   acc: (c: Ctx) => U,
-  obj: T
+  ctx: Ctx
 ): T & { readonly accounts: U } {
   return Object.defineProperty(obj, "accounts", {
     get: function () {

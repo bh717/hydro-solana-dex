@@ -1,7 +1,7 @@
-import { Ctx } from "../types";
+import { Ctx } from "../../types";
 import { TOKEN_PROGRAM_ID } from "@project-serum/serum/lib/token-instructions";
-import accounts from "./accounts";
-import { tryGet } from "../utils";
+import accounts from "../accounts";
+import { tryGet } from "../../utils";
 
 export function stake(ctx: Ctx) {
   return async (amount: BigInt) => {
