@@ -2,6 +2,7 @@ import { POOL_STATE_SEED, TOKEN_VAULT_SEED } from "../config/constants";
 import { Ctx } from "../types";
 import { Account } from "../types/account";
 
+// We will probably want to memoize this by ctx.wallet.publicKey
 export default function accounts(ctx: Ctx) {
   return {
     tokenVault: new Account(getTokenVaultAccount(ctx), ctx),

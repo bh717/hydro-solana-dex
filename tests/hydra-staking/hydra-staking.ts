@@ -7,7 +7,7 @@ import {
   createMint,
   transfer,
 } from "hydra-ts/node";
-import { Keypair, PublicKey } from "@solana/web3.js";
+import { Keypair } from "@solana/web3.js";
 import { createTokenAccount } from "@project-serum/common";
 import * as assert from "assert";
 import { HydraAPI, createApi, createCtxAnchor } from "hydra-ts";
