@@ -1,0 +1,14 @@
+{
+  "version": "0.0.0",
+  "name": "hydra_farming",
+  "instructions": [
+    {
+      "name": "initialize",
+      "accounts": [],
+      "args": []
+    }
+  ],
+  "metadata": {
+    "address": "26Z7yPwdJjU8a15GVBW2MBhPGjERhQPC5z7xTtiQMpe1"
+  }
+}

@@ -1,9 +1,8 @@
 import React, { FC, useState, useEffect } from 'react';
 import { makeStyles } from '@mui/styles';
 import { Box, IconButton, Typography } from '@mui/material';
-import toast from 'react-hot-toast';
 
-import { Gear, CheckMark, Close } from '../../components/icons';
+import { Gear } from '../../components/icons';
 import USDT from '../../assets/images/symbols/usdt.png';
 import { Asset } from '../../interfaces';
 import SwapAsset from './swapAsset';
@@ -84,72 +83,6 @@ const useStyles = makeStyles({
         '&:last-of-type': {
             marginRight: '0'
         }
-    },
-    successToast: {
-        background: 'linear-gradient(180deg, rgba(41, 255, 200, 0.25) 0%, rgba(1, 207, 237, 0) 100%)',
-        borderRadius: '6px',
-        padding: '1px',
-        position: 'relative'
-    },
-    toastClose: {
-        padding: '0 !important',
-        position: 'absolute !important' as any,
-        top: '28px',
-        right: '20px',
-        '& > svg': {
-            color: '#FFFFFF73',
-            width: '14px !important',
-            height: '14px !important'
-        }
-    },
-    toastContent: {
-        background: '#313C4E',
-        borderRadius: '5px',
-        display: 'flex',
-        alignItems: 'center',
-        padding: '24px 72px 24px 24px',
-        '& > svg': {
-            color: 'transparent',
-            marginRight: '16px'
-        },
-        '& p': {
-            color: '#FFFFFFD9',
-            fontSize: '14px !important',
-            lineHeight: '17px !important',
-            marginBottom: '7px'
-        },
-        '& span': {
-            backgroundImage: 'linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%)',
-            backgroundSize: '100%',
-            backgroundRepeat: 'repeat',
-            '-webkit-background-clip': 'text',
-            '-webkit-text-fill-color': 'transparent',
-            '-moz-background-clip': 'text',
-            '-moz-text-fill-color': 'transparent',
-            cursor: 'pointer',
-            fontSize: '14px !important',
-            lineHeight: '17px !important',
-            textDecoration: 'underline',
-            position: 'relative',
-            '&::after': {
-                content: "''",
-                position: 'absolute',
-                bottom: '0',
-                left: 0,
-                height: '1px',
-                width: '100%',
-                backgroundImage: 'linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%)'
-            }
-        }
-    },
-    toastFooter: {
-        background: 'linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%)',
-        display: 'block',
-        position: 'absolute',
-        left: '24px',
-        bottom: '1px',
-        width: 'calc(100% - 48px)',
-        height: '2px',
     }
 })
 
@@ -185,11 +118,6 @@ const Swap: FC<SwapProps> = ({ openWalletConnect }) => {
 
         setSwapRate(1);
     }, [setFromAsset, assets]);
-
-    // useEffect(() => {
-    //     toast.custom(<SwapSuccessToast />);
-    //     // eslint-disable-next-line
-    // }, [])
 
     const handleSettingModal = () => {
         if(parseFloat(slippage) > 0)
@@ -236,26 +164,6 @@ const Swap: FC<SwapProps> = ({ openWalletConnect }) => {
         setOpenConfirmSwapModal(false);
         setOpenSwapStatusModal(true);
     }
-
-    // eslint-disable-next-line
-    const SwapSuccessToast = () => (
-        <Box className={classes.successToast}>
-            <IconButton
-                className={classes.toastClose}
-                onClick={() => toast.dismiss()}
-            >
-                <Close />
-            </IconButton>
-            <Box className={classes.toastContent}>
-                <CheckMark />
-                <Box>
-                    <Typography>Swap 100 USDC for 100 HYSD</Typography>
-                    <Typography component="span">View on Solana Mainnet</Typography>
-                </Box>
-            </Box>
-            <span className={classes.toastFooter} />
-        </Box>
-    );
 
     return (
         <>

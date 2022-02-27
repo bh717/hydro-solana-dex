@@ -3,17 +3,16 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { makeStyles } from '@mui/styles';
 import { Box } from '@mui/material';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
-import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
+// import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import {
     getLedgerWallet,
     getPhantomWallet,
-    getSolletExtensionWallet,
-    getSolletWallet,
+    // getSolletExtensionWallet,
+    // getSolletWallet,
     getSolongWallet,
     getBloctoWallet
 } from '@solana/wallet-adapter-wallets';
-import { clusterApiUrl } from '@solana/web3.js';
-import { Toaster } from 'react-hot-toast';
+// import { clusterApiUrl } from '@solana/web3.js';
 
 import { SvgGradient } from './components/icons';
 import Sidebar from './components/sidebar';
@@ -93,21 +92,21 @@ function App() {
     const classes = useStyles();
 
     // Can be set to 'devnet', 'testnet', or 'mainnet-beta'
-    const network = WalletAdapterNetwork.Devnet;
+    // const network = WalletAdapterNetwork.Devnet;
 
     // You can also provide a custom RPC endpoint
-    const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+    // const endpoint = useMemo(() => clusterApiUrl(network), [network]);
 
     // @solana/wallet-adapter-wallets includes all the adapters but supports tree shaking --
     // Only the wallets you configure here will be compiled into your application
     const wallets = useMemo(() => [
         getLedgerWallet(),
         getPhantomWallet(),
-        getSolletExtensionWallet({ network }),
-        getSolletWallet({ network }),
+        // getSolletExtensionWallet({ network }),
+        // getSolletWallet({ network }),
         getSolongWallet(),
         getBloctoWallet()
-    ], [network]);
+    ], []);
 
     const [address, setAddress] = useState('');
     const [currentRPC, setCurrentRPC] = useState<RPC>({
@@ -117,15 +116,14 @@ function App() {
     const [openWalletModal, setOpenWalletModal] = useState(false);
 
     useEffect(() => {
-        setCurrentRPC(networks[0]);
+        setCurrentRPC(networks[4]);
     }, [])
 
     return (
-        <ConnectionProvider endpoint={endpoint}>
+        <ConnectionProvider endpoint={"http://127.0.0.1:8899"}>
             <WalletProvider wallets={wallets}>
                 <div className="layout">
                     <SvgGradient />
-                    <Toaster position="bottom-right" />
                     <Sidebar openWalletModal={() => setOpenWalletModal(true)} address={address} rpc={currentRPC} changeRPC={setCurrentRPC} networks={networks} />
                     <Box component="main" className="container">
                         <Box className={classes.walletWrapper}>

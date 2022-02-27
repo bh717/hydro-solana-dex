@@ -92,14 +92,15 @@ const useStyles = makeStyles({
 
 interface TabPanelProps {
     type: string;
-    balance: string;
+    balance: number;
+    status: boolean;
     amount: string;
     setAmount(value: string): void;
     onWalletConnect(): void;
-    onAction(type: string): void;
+    onAction(): void;
 }
 
-const TabPanel: FC<TabPanelProps> = ({ type, balance, amount, setAmount, onWalletConnect, onAction }) => {
+const TabPanel: FC<TabPanelProps> = ({ type, balance, status, amount, setAmount, onWalletConnect, onAction }) => {
     const classes = useStyles();
 
     const { connected } = useWallet();
@@ -125,10 +126,10 @@ const TabPanel: FC<TabPanelProps> = ({ type, balance, amount, setAmount, onWalle
             {connected ? (
                 <Button
                     className={classes.panelButton}
-                    onClick={() => onAction(type)}
-                    disabled={parseFloat(amount) === 0}
+                    onClick={onAction}
+                    disabled={!amount || parseFloat(amount) === 0 || parseFloat(amount) > balance || status}
                 >
-                    {type === 'stake' ? 'Stake' : 'Unstake'}
+                    {type === 'stake' ? status ? 'Staking' : 'Stake' : status ? 'Unstaking' : 'Unstake'}
                 </Button>
             ) : (
                 <Button

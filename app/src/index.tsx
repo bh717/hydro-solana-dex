@@ -23,7 +23,7 @@ ReactDOM.render(
     <BrowserRouter>
         <Suspense fallback={<FallbackSpinner />}>
             <LazyApp />
-            <ToastContainer newestOnTop />
+            <ToastContainer position="top-right" autoClose={5000} newestOnTop />
         </Suspense>
     </BrowserRouter>,
     document.getElementById('root')

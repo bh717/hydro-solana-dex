@@ -1,3 +1,4 @@
+import { FC } from 'react';
 import { makeStyles } from '@mui/styles';
 import { Box, Typography, Button } from '@mui/material';
 
@@ -103,7 +104,11 @@ const useStyles = makeStyles({
     }
 })
 
-const StakeStatus = () => {
+interface StakeStatusProps {
+    balance: number;
+}
+
+const StakeStatus: FC<StakeStatusProps> = ({ balance }) => {
     const classes = useStyles();
 
     return (
@@ -113,7 +118,7 @@ const StakeStatus = () => {
                     <Typography>Your staked HYSD</Typography>
                     <Box className={classes.stakedBalance}>
                         <img src={HYSD} alt="HYSD" />
-                        <span>0</span>
+                        <span>{balance.toFixed(2)}</span>
                     </Box>
                     <Typography> ≈ 0 USDC</Typography>
                 </Box>
