@@ -1,2 +1,2 @@
-pub mod math;
-pub mod programs;
+pub mod math_legacy;
+mod programs;

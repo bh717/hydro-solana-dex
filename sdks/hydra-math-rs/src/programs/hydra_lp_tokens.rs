@@ -1,4 +1,4 @@
-use crate::math::sqrt_precise;
+use crate::math_legacy::sqrt_precise;
 use spl_math::precise_number::PreciseNumber;
 
 pub const MIN_LIQUIDITY: u64 = 100;
