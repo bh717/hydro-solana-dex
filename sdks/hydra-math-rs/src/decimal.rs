@@ -80,6 +80,23 @@ impl Decimal {
     pub fn denominator(self) -> u128 {
         10u128.pow(self.scale.into())
     }
+
+    pub fn signed_addition(
+        lhs: &Decimal,
+        lhs_signed: bool,
+        rhs: &Decimal,
+        rhs_signed: bool,
+    ) -> (Self, bool) {
+        if lhs_signed && rhs_signed {
+            (lhs.add(*rhs).expect("double_negative"), true)
+        } else if lhs_signed && !rhs_signed {
+            rhs.sub_unsigned(*lhs).unwrap()
+        } else if !lhs_signed && !rhs_signed {
+            (lhs.add(*rhs).expect("double positive"), false)
+        } else {
+            lhs.sub_unsigned(*rhs).unwrap()
+        }
+    }
 }
 
 impl Mul<Decimal> for Decimal {
@@ -1469,5 +1486,104 @@ mod test {
             assert_eq!({ actual.value }, { expected.value });
             assert_eq!(actual.scale, expected.scale);
         }
+    }
+
+    #[test]
+    fn test_signed_addition() {
+        // -4 + -3 = -7
+        let lhs = Decimal::new(4, 0);
+        let lhs_signed = true;
+        let rhs = Decimal::new(3, 0);
+        let rhs_signed = true;
+        let expected = Decimal::new(7, 0);
+        let expected_signed = true;
+        assert_eq!(
+            Decimal::signed_addition(&lhs, lhs_signed, &rhs, rhs_signed),
+            (expected, expected_signed)
+        );
+
+        // -1 + 1 = 0
+        let lhs = Decimal::new(1, 0);
+        let lhs_signed = true;
+        let rhs = Decimal::new(1, 0);
+        let rhs_signed = false;
+        let expected = Decimal::new(0, 0);
+        let expected_signed = false;
+        assert_eq!(
+            Decimal::signed_addition(&lhs, lhs_signed, &rhs, rhs_signed),
+            (expected, expected_signed)
+        );
+
+        // 3 + -5 = -2
+        let lhs = Decimal::new(3, 0);
+        let lhs_signed = false;
+        let rhs = Decimal::new(5, 0);
+        let rhs_signed = true;
+        let expected = Decimal::new(2, 0);
+        let expected_signed = true;
+        assert_eq!(
+            Decimal::signed_addition(&lhs, lhs_signed, &rhs, rhs_signed),
+            (expected, expected_signed)
+        );
+
+        // -5 + 3 = -2
+        let lhs = Decimal::new(5, 0);
+        let lhs_signed = true;
+        let rhs = Decimal::new(3, 0);
+        let rhs_signed = false;
+        let expected = Decimal::new(2, 0);
+        let expected_signed = true;
+        assert_eq!(
+            Decimal::signed_addition(&lhs, lhs_signed, &rhs, rhs_signed),
+            (expected, expected_signed)
+        );
+
+        // 5 + -2 = 3
+        let lhs = Decimal::new(5, 0);
+        let lhs_signed = false;
+        let rhs = Decimal::new(2, 0);
+        let rhs_signed = true;
+        let expected = Decimal::new(3, 0);
+        let expected_signed = false;
+        assert_eq!(
+            Decimal::signed_addition(&lhs, lhs_signed, &rhs, rhs_signed),
+            (expected, expected_signed)
+        );
+
+        // -3 + 5 = 2
+        let lhs = Decimal::new(3, 0);
+        let lhs_signed = true;
+        let rhs = Decimal::new(5, 0);
+        let rhs_signed = false;
+        let expected = Decimal::new(2, 0);
+        let expected_signed = false;
+        assert_eq!(
+            Decimal::signed_addition(&lhs, lhs_signed, &rhs, rhs_signed),
+            (expected, expected_signed)
+        );
+
+        // 1 + -2 = -1
+        let lhs = Decimal::new(1, 0);
+        let lhs_signed = false;
+        let rhs = Decimal::new(2, 0);
+        let rhs_signed = true;
+        let expected = Decimal::new(1, 0);
+        let expected_signed = true;
+        assert_eq!(
+            Decimal::signed_addition(&lhs, lhs_signed, &rhs, rhs_signed),
+            (expected, expected_signed)
+        );
+
+        // 4 + 3 = 7
+        let lhs = Decimal::new(4, 0);
+        let lhs_signed = false;
+        let rhs = Decimal::new(3, 0);
+        let rhs_signed = false;
+        let expected = Decimal::new(7, 0);
+        let expected_signed = false;
+        assert_eq!(
+            Decimal::signed_addition(&lhs, lhs_signed, &rhs, rhs_signed),
+            (expected, expected_signed)
+        );
     }
 }
