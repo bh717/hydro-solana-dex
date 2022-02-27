@@ -779,6 +779,50 @@ mod test {
     }
 
     #[test]
+    fn test_advanced_examples() {
+        // power function with decimal exponent, scaled down (floor) at lower precision
+        // 42^1.5 = 272.191109
+        let base = Decimal::new(42_000000000000, 12);
+        let exp = Decimal::new(1500000000000, 12);
+        let result = base.pow(exp).to_scale(6);
+        let expected = Decimal {
+            value: 272_191109,
+            scale: 6,
+        };
+        assert_eq!(result, expected);
+
+        // power function with decimal exponent, scaled up (ceiling) at lower precision
+        // 42^1.5 = 272.191110
+        let base = Decimal::new(42_000000000000, 12);
+        let exp = Decimal::new(1500000000000, 12);
+        let result = base.pow(exp).to_scale_up(6);
+        let expected = Decimal {
+            value: 272_191110,
+            scale: 6,
+        };
+        assert_eq!(result, expected);
+
+        // square root of 2 with accuracy scaled to 12 decimal places
+        let n = Decimal::from_u64(2).to_scale(12);
+        let result = n.sqrt().unwrap();
+        let expected = Decimal::new(1_414_213_562_373u128, 12);
+        assert_eq!(result, expected);
+
+        // square root of 2 with accuracy scaled to 8 decimal places
+        let n = Decimal::from_u64(2).to_scale(8);
+        let result = n.sqrt().unwrap();
+        let expected = Decimal::new(1_414_213_56_u128, 8);
+        assert_eq!(result, expected);
+
+        // square root of 2 with accuracy scaled to 6 decimal places
+        // with last digit rounded up
+        let n = Decimal::from_u64(2).to_scale(8);
+        let result = n.sqrt().unwrap().to_scale_up(6);
+        let expected = Decimal::new(1_414_214u128, 6);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
     fn test_new() {
         {
             let value = 42;
@@ -1391,7 +1435,7 @@ mod test {
         };
         assert_eq!(result, expected);
 
-        // // 42^1.5 = 272.19110933313013
+        // 42^1.5 = 272.19110933313013
         let base = Decimal::new(42_000000000000, 12);
         let exp = Decimal::new(1500000000000, 12);
         let result = base.pow(exp);
