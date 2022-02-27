@@ -81,7 +81,7 @@ impl Decimal {
         10u128.pow(self.scale.into())
     }
 
-    pub fn signed_addition(
+    pub fn signed_add(
         lhs: &Decimal,
         lhs_signed: bool,
         rhs: &Decimal,
@@ -1500,7 +1500,7 @@ mod test {
     }
 
     #[test]
-    fn test_signed_addition() {
+    fn test_signed_add() {
         // -4 + -3 = -7
         let lhs = Decimal::new(4, 0);
         let lhs_signed = true;
@@ -1509,7 +1509,7 @@ mod test {
         let expected = Decimal::new(7, 0);
         let expected_signed = true;
         assert_eq!(
-            Decimal::signed_addition(&lhs, lhs_signed, &rhs, rhs_signed),
+            Decimal::signed_add(&lhs, lhs_signed, &rhs, rhs_signed),
             (expected, expected_signed)
         );
 
@@ -1521,7 +1521,7 @@ mod test {
         let expected = Decimal::new(0, 0);
         let expected_signed = false;
         assert_eq!(
-            Decimal::signed_addition(&lhs, lhs_signed, &rhs, rhs_signed),
+            Decimal::signed_add(&lhs, lhs_signed, &rhs, rhs_signed),
             (expected, expected_signed)
         );
 
@@ -1533,7 +1533,7 @@ mod test {
         let expected = Decimal::new(2, 0);
         let expected_signed = true;
         assert_eq!(
-            Decimal::signed_addition(&lhs, lhs_signed, &rhs, rhs_signed),
+            Decimal::signed_add(&lhs, lhs_signed, &rhs, rhs_signed),
             (expected, expected_signed)
         );
 
@@ -1545,7 +1545,7 @@ mod test {
         let expected = Decimal::new(2, 0);
         let expected_signed = true;
         assert_eq!(
-            Decimal::signed_addition(&lhs, lhs_signed, &rhs, rhs_signed),
+            Decimal::signed_add(&lhs, lhs_signed, &rhs, rhs_signed),
             (expected, expected_signed)
         );
 
@@ -1557,7 +1557,7 @@ mod test {
         let expected = Decimal::new(3, 0);
         let expected_signed = false;
         assert_eq!(
-            Decimal::signed_addition(&lhs, lhs_signed, &rhs, rhs_signed),
+            Decimal::signed_add(&lhs, lhs_signed, &rhs, rhs_signed),
             (expected, expected_signed)
         );
 
@@ -1569,7 +1569,7 @@ mod test {
         let expected = Decimal::new(2, 0);
         let expected_signed = false;
         assert_eq!(
-            Decimal::signed_addition(&lhs, lhs_signed, &rhs, rhs_signed),
+            Decimal::signed_add(&lhs, lhs_signed, &rhs, rhs_signed),
             (expected, expected_signed)
         );
 
@@ -1581,7 +1581,7 @@ mod test {
         let expected = Decimal::new(1, 0);
         let expected_signed = true;
         assert_eq!(
-            Decimal::signed_addition(&lhs, lhs_signed, &rhs, rhs_signed),
+            Decimal::signed_add(&lhs, lhs_signed, &rhs, rhs_signed),
             (expected, expected_signed)
         );
 
@@ -1593,7 +1593,7 @@ mod test {
         let expected = Decimal::new(7, 0);
         let expected_signed = false;
         assert_eq!(
-            Decimal::signed_addition(&lhs, lhs_signed, &rhs, rhs_signed),
+            Decimal::signed_add(&lhs, lhs_signed, &rhs, rhs_signed),
             (expected, expected_signed)
         );
     }
