@@ -262,6 +262,7 @@ impl DivScale<Decimal> for Decimal {
 
 impl Pow<u128> for Decimal {
     fn pow(self, exp: u128) -> Self {
+        // This function has been copied from SPL math checked_pow
         // For odd powers, start with a multiplication by base since we halve the
         // exponent at the start
         let value = if exp.checked_rem(2).unwrap() == 0 {
@@ -291,6 +292,57 @@ impl Pow<u128> for Decimal {
             current_exponent = current_exponent.checked_div(2).unwrap();
         }
         return result;
+    }
+}
+
+impl Pow<Decimal> for Decimal {
+    fn pow(self, exp: Decimal) -> Self {
+        // 0.25 to scale
+        let divisor = Decimal::from_u64(1)
+            .to_scale(self.scale)
+            .div(Decimal::from_u64(4).to_scale(self.scale));
+
+        let quotient = exp.div(divisor).to_scale(0).value as i32;
+
+        // index of exponent/0.25
+        match quotient {
+            0 => {
+                // x^0 = 1
+                Decimal::new(1, self.scale)
+            }
+            1 => {
+                // x^1/4 = x^0.25 = ⁴√x = √(√x) = sqrt(sqrt(x))
+                self.sqrt().unwrap().sqrt().unwrap()
+            }
+            2 => {
+                // x^1/2 = x^0.5 = √x = sqrt(x)
+                self.sqrt().unwrap()
+            }
+            4 => {
+                // x^1 = x
+                self.clone()
+            }
+            5 => {
+                // x^5/4 = x^1.25 = x(√(√x)) = x(sqrt(sqrt(x)))
+                self.mul(self.sqrt().unwrap().sqrt().unwrap())
+            }
+            6 => {
+                // x^3/2 = x^1.50 = x(√x) = x(sqrt(x))
+                self.mul(self.sqrt().unwrap())
+            }
+            8 => {
+                // x^2 = 2x
+                self.mul(self)
+            }
+            _ => {
+                assert!(
+                    false,
+                    "compute_pow not implemented for base: {} exponent: {}",
+                    self.value, exp.value
+                );
+                Decimal::new(0, 0)
+            }
+        }
     }
 }
 
@@ -1251,13 +1303,13 @@ mod test {
     }
 
     #[test]
-    fn test_pow_with_accuracy() {
+    fn test_pow_with_integer_exp() {
         // 0**n = 0
         {
             let decimal: u8 = AMOUNT_SCALE;
             let base = Decimal::new(0, decimal);
             let exp: u128 = 100;
-            let result = base.pow_with_accuracy(exp);
+            let result = base.pow(exp);
             let expected = Decimal::new(0, decimal);
             assert_eq!(result, expected);
         }
@@ -1266,7 +1318,7 @@ mod test {
         let decimal: u8 = AMOUNT_SCALE;
         let base = Decimal::from_u64(10).to_scale(decimal);
         let exp: u128 = 0;
-        let result = base.pow_with_accuracy(exp);
+        let result = base.pow(exp);
         let expected = Decimal::from_u64(1).to_scale(decimal);
         assert_eq!(result, expected);
 
@@ -1275,22 +1327,89 @@ mod test {
             let decimal: u8 = AMOUNT_SCALE;
             let base = Decimal::from_u64(2).to_scale(decimal);
             let exp: u128 = 18;
-            let result = base.pow_with_accuracy(exp);
+            let result = base.pow(exp);
             let expected = Decimal::from_u64(262_144).to_scale(decimal);
             assert_eq!(result, expected);
         }
 
         // // 3.41200000**8 = 18368.43602322
-        // {
-        //     let base = Decimal::from_amount(341200000);
-        //     let exp: u128 = 8;
-        //     let result1 = base.pow_with_accuracy(exp);
-        //     let result2 = base.pow(exp);
-        //     println!("result1: {}", result1.value);
-        //     println!("result2: {}", result2.value);
-        //     let expected = Decimal::from_amount(18368_43602322);
-        //     assert_eq!(result1, expected);
-        // }
+        {
+            let base = Decimal::from_amount(341200000);
+            let exp: u128 = 8;
+            let result = base.pow(exp);
+            let expected = Decimal::from_amount(18368_43602280);
+            assert_eq!(result, expected);
+        }
+    }
+
+    #[test]
+    fn test_pow_with_decimal_exp() {
+        // 42^0 = 1
+        let base = Decimal::new(42, 6);
+        let exp = Decimal::new(0, 6);
+        let result = base.pow(exp);
+        let expected = Decimal::new(1, 6);
+        assert_eq!(result, expected);
+
+        // 42^0.25 = 2.545729895021831
+        let base = Decimal::new(42_000000000000, 12);
+        let exp = Decimal::new(250000000000, 12);
+        let result = base.pow(exp);
+        let expected = Decimal {
+            value: 2_545_729_895_021u128,
+            scale: 12,
+        };
+        assert_eq!(result, expected);
+
+        // 42^0.5 = 6.48074069840786
+        let base = Decimal::new(42_000000000000, 12);
+        let exp = Decimal::new(500000000000, 12);
+        let result = base.pow(exp);
+        let expected = Decimal {
+            value: 6_480_740_698_407u128,
+            scale: 12,
+        };
+        assert_eq!(result, expected);
+
+        // 42^1 = 42
+        let base = Decimal::new(42_000000000000, 12);
+        let exp = Decimal::new(1000000000000, 12);
+        let result = base.pow(exp);
+        let expected = Decimal {
+            value: 42_000000000000u128,
+            scale: 12,
+        };
+        assert_eq!(result, expected);
+
+        // 42^1.25 = 106.920655590916882
+        let base = Decimal::new(42_000000000000, 12);
+        let exp = Decimal::new(1250000000000, 12);
+        let result = base.pow(exp);
+        let expected = Decimal {
+            value: 106_920_655_590_882u128,
+            scale: 12,
+        };
+        assert_eq!(result, expected);
+
+        // // 42^1.5 = 272.19110933313013
+        let base = Decimal::new(42_000000000000, 12);
+        let exp = Decimal::new(1500000000000, 12);
+        let result = base.pow(exp);
+        let expected = Decimal {
+            value: 272_191_109_333_094,
+            scale: 12,
+        };
+        assert_eq!(result, expected);
+
+        // 42^2 = 1764
+        let base = Decimal::new(42_000000000000, 12);
+        let exp = Decimal::new(2000000000000, 12);
+        let result = base.pow(exp);
+        let expected = Decimal {
+            value: 1764_000000000000u128,
+            scale: 12,
+        };
+        assert_eq!(result, expected);
     }
 
     #[test]
