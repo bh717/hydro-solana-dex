@@ -960,6 +960,20 @@ mod test {
     }
 
     #[test]
+    fn test_sub_unsigned() {
+        {
+            let decimal = Decimal::new(10, 6);
+            let decrease_by = Decimal::new(30, 6);
+            let expected = Decimal::new(20, 6);
+            let expected_negative = true;
+            let (actual, negative) = decimal.sub_unsigned(decrease_by).unwrap();
+
+            assert_eq!(actual, expected);
+            assert_eq!(negative, expected_negative);
+        }
+    }
+
+    #[test]
     fn test_div() {
         {
             let decimal = Decimal::new(20, 8);
