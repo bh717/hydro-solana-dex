@@ -97,6 +97,17 @@ impl Decimal {
             lhs.sub_unsigned(*rhs).unwrap()
         }
     }
+
+    pub fn signed_mul(
+        lhs: &Decimal,
+        lhs_signed: bool,
+        rhs: &Decimal,
+        rhs_signed: bool,
+    ) -> (Decimal, bool) {
+        let result = lhs.mul(*rhs);
+        let result_signed = !(lhs_signed == rhs_signed);
+        (result, result_signed)
+    }
 }
 
 impl Mul<Decimal> for Decimal {
@@ -1583,6 +1594,57 @@ mod test {
         let expected_signed = false;
         assert_eq!(
             Decimal::signed_addition(&lhs, lhs_signed, &rhs, rhs_signed),
+            (expected, expected_signed)
+        );
+    }
+
+    #[test]
+    fn test_signed_mul() {
+        // -4 * -3 = 12
+        let lhs = Decimal::new(4, 0);
+        let lhs_signed = true;
+        let rhs = Decimal::new(3, 0);
+        let rhs_signed = true;
+        let expected = Decimal::new(12, 0);
+        let expected_signed = false;
+        assert_eq!(
+            Decimal::signed_mul(&lhs, lhs_signed, &rhs, rhs_signed),
+            (expected, expected_signed)
+        );
+
+        // -4 * 3 = -12
+        let lhs = Decimal::new(4, 0);
+        let lhs_signed = true;
+        let rhs = Decimal::new(3, 0);
+        let rhs_signed = false;
+        let expected = Decimal::new(12, 0);
+        let expected_signed = true;
+        assert_eq!(
+            Decimal::signed_mul(&lhs, lhs_signed, &rhs, rhs_signed),
+            (expected, expected_signed)
+        );
+
+        // 4 * -3 = -12
+        let lhs = Decimal::new(4, 0);
+        let lhs_signed = false;
+        let rhs = Decimal::new(3, 0);
+        let rhs_signed = true;
+        let expected = Decimal::new(12, 0);
+        let expected_signed = true;
+        assert_eq!(
+            Decimal::signed_mul(&lhs, lhs_signed, &rhs, rhs_signed),
+            (expected, expected_signed)
+        );
+
+        // 4 * 3 = 12
+        let lhs = Decimal::new(4, 0);
+        let lhs_signed = false;
+        let rhs = Decimal::new(3, 0);
+        let rhs_signed = false;
+        let expected = Decimal::new(12, 0);
+        let expected_signed = false;
+        assert_eq!(
+            Decimal::signed_mul(&lhs, lhs_signed, &rhs, rhs_signed),
             (expected, expected_signed)
         );
     }
