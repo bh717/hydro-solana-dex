@@ -24,6 +24,10 @@ export function createApi(ctx: Ctx) {
   };
 }
 
+function isNetwork(value: any): value is Network {
+  return typeof value === "string";
+}
+
 export type HydraAPI = ReturnType<typeof createApi>;
 
 /**
@@ -61,10 +65,16 @@ export const HydraSDK = {
   /**
    * Creates an SDK instance configured for tests using an anchor provider.
    * @param provider Anchor provider
-   * @param programIds Map of program ids to build off for testing
+   * @param programIdsOrNetwork Map of program ids to build off for testing or a network string
    * @returns HydraAPI
    */
-  createFromAnchorProvider(provider: Provider, programIds: ProgramIds) {
+  createFromAnchorProvider(
+    provider: Provider,
+    programIdsOrNetwork: ProgramIds | Network
+  ) {
+    const programIds = isNetwork(programIdsOrNetwork)
+      ? getProgramIds(programIdsOrNetwork)
+      : programIdsOrNetwork;
     const ctx = createCtxAnchor(provider, programIds);
     return createApi(ctx);
   },
