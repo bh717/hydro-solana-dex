@@ -45,10 +45,4 @@ function usePoolState() {
   useEffect(() => accounts.poolState.onChange(toState), [accounts.poolState]);
   return state;
 }
-
-// In node or elsewhere
-const stream = accounts.poolState.iter(commitment);
-for await (let value of stream) {
-  handle(value);
-}
 ```
