@@ -60,5 +60,15 @@
     "config-ts": "*",
     "@types/lodash.debounce": "^4.0.6",
     "sass": "^1.45.0"
+  },
+  "workspaces": {
+    "nohoist": [
+      "react",
+      "react/**",
+      "react-dom",
+      "react-dom/**",
+      "react-scripts",
+      "react-scripts/**"
+    ]
   }
 }
