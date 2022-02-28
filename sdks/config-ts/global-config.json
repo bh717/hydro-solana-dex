@@ -1,0 +1,33 @@
+{
+  "localnet": {
+    "programIds": {
+      "hydraStaking": "F1y1FTP91nwxbNUW3nXY6mKQzWawihwVYGwMsi7oKGyg",
+      "redeemableMint": "xhy1rv75cEJahTbsKnv2TpNhdR7KNUoDPavKuQDwhDU",
+      "tokenMint": "hyd3VthE9YPGBeg9HEgZsrM5qPniC6VoaEFeTGkVsJR"
+    }
+  },
+
+  "mainnet": {
+    "programIds": {
+      "hydraStaking": "",
+      "redeemableMint": "",
+      "tokenMint": ""
+    }
+  },
+
+  "testnet": {
+    "programIds": {
+      "hydraStaking": "F1y1FTP91nwxbNUW3nXY6mKQzWawihwVYGwMsi7oKGyg",
+      "redeemableMint": "xhy1rv75cEJahTbsKnv2TpNhdR7KNUoDPavKuQDwhDU",
+      "tokenMint": "hyd3VthE9YPGBeg9HEgZsrM5qPniC6VoaEFeTGkVsJR"
+    }
+  },
+
+  "devnet": {
+    "programIds": {
+      "hydraStaking": "F1y1FTP91nwxbNUW3nXY6mKQzWawihwVYGwMsi7oKGyg",
+      "redeemableMint": "xhy1rv75cEJahTbsKnv2TpNhdR7KNUoDPavKuQDwhDU",
+      "tokenMint": "hyd3VthE9YPGBeg9HEgZsrM5qPniC6VoaEFeTGkVsJR"
+    }
+  }
+}

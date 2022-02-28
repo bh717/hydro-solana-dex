@@ -8,13 +8,13 @@ set -x
 rm -rf ./target/deploy/*.so
 
 # remove old ts types
-rm -rf ./sdks/hydra-ts/codegen/types/*.ts
+rm -rf ./sdks/types-ts/codegen/types/*.ts
 
 # build new
 anchor build -- --features "localnet"
 
 # copy new
-cp ./target/types/*.ts ./sdks/hydra-ts/codegen/types
+cp ./target/types/*.ts ./sdks/types-ts/codegen/types
 
 # process new codegen and types files.
 

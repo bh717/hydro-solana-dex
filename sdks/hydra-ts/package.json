@@ -3,10 +3,14 @@
   "version": "0.0.0",
   "description": "",
   "main": "dist/index.js",
-  "types": "src/index.ts",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
+    "build-node": "tsc -p ./node.tsconfig.json",
+    "build-iso": "tsc",
+    "watch-node": "tsc -p ./node.tsconfig.json --watch",
+    "watch-iso": "tsc --watch",
+    "build": "yarn build-iso && yarn build-node",
+    "watch": "concurrently -r \"yarn watch-iso\" \"yarn watch-node\"",
     "test": "jest"
   },
   "author": "",
@@ -20,7 +24,10 @@
   },
   "dependencies": {
     "@project-serum/anchor": "^0.21.0",
+    "@solana/spl-token": "^0.2.0",
+    "concurrently": "^7.0.0",
     "hydra-math-rs": "*",
+    "target": "*",
     "wasm-loader-ts": "*"
   }
 }

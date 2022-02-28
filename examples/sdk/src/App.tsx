@@ -19,14 +19,8 @@ import {
   TorusWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import { clusterApiUrl } from "@solana/web3.js";
-import { createCtx, createSdk } from "hydra-ts";
+import { HydraSDK } from "hydra-ts";
 import { FC, ReactNode, useMemo } from "react";
-import HydraStakingIdl from "target/idl/hydra_staking.json";
-
-// TODO: Create a frontend build system that supports these addresses being injected correctly
-const ADDRESSES = {
-  hydraStaking: HydraStakingIdl.metadata.address,
-};
 
 require("./App.css");
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -76,24 +70,12 @@ const Content: FC = () => {
   const wallet = useAnchorWallet();
   const { connection } = useConnection();
 
-  const sdk = useMemo(() => {
-    if (!wallet || !connection) return;
-
-    ////////////////////////////////////////////
-    // EXAMPLE SDK BOOTSTRAP
-    ////////////////////////////////////////////
-
-    // Create the SDK context
-    const ctx = createCtx(wallet, connection, ADDRESSES);
-
-    // Create the sdk
-    const sdk = createSdk(ctx);
-
-    return sdk;
-  }, [wallet, connection]);
-
   const handleDemoClicked = async () => {
-    if (!sdk) return;
+    // Example of how you can create an instance of the sdk
+    // You don't want to do this in a production app.
+    // Instead you would want to create a context and provide to
+    // components that need the sdk via a custom hook
+    const sdk = HydraSDK.create("localnet", connection, wallet);
 
     // This is a wasm call
     const answer = await sdk.staking.calculatePoolTokensForDeposit(
@@ -105,15 +87,24 @@ const Content: FC = () => {
     // alert the answer
     alert(answer);
   };
+
+  const handleStakeClicked = async () => {
+    // Example of how you can create an instance of the sdk
+    // You don't want to do this in a production app.
+    // Instead you would want to create a context and provide to
+    // components that need the sdk via a custom hook
+    const sdk = HydraSDK.create("localnet", connection, wallet);
+
+    await sdk.staking.stake(1000n);
+  };
   return (
     <div className="App">
       <div style={{ display: "flex", flexDirection: "column" }}>
         <div style={{ marginBottom: 20 }}>
           <WalletMultiButton />
         </div>
-        {wallet && (
-          <button onClick={handleDemoClicked}>Demonstrate Calculate</button>
-        )}
+        <button onClick={handleDemoClicked}>Demonstrate Calculate</button>
+        <button onClick={handleStakeClicked}>Stake 1000</button>
       </div>
     </div>
   );
