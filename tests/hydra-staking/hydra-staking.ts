@@ -2,7 +2,6 @@ import * as anchor from "@project-serum/anchor";
 import * as localJsonIdl from "target/idl/hydra_staking.json";
 import { HydraStaking, IDL } from "types-ts/codegen/types/hydra_staking";
 import {
-  loadKey,
   createMintAndVault,
   createMint,
   transfer,
@@ -21,20 +20,12 @@ describe("hydra-staking", () => {
   );
   const program = new anchor.Program<HydraStaking>(IDL, programId);
 
-  let tokenMint: Keypair;
-  let redeemableMint: Keypair;
+  let tokenMint= anchor.web3.Keypair.generate();
+  let redeemableMint = anchor.web3.Keypair.generate();
   let TokenAccount = Keypair.generate();
   let sdk: HydraAPI;
 
   before(async () => {
-    // load mint keys
-    tokenMint = await loadKey(
-      "keys/localnet/staking/hyd3VthE9YPGBeg9HEgZsrM5qPniC6VoaEFeTGkVsJR.json"
-    );
-    redeemableMint = await loadKey(
-      "keys/localnet/staking/xhy1rv75cEJahTbsKnv2TpNhdR7KNUoDPavKuQDwhDU.json"
-    );
-
     sdk = HydraSDK.createFromAnchorProvider(provider, {
       hydraStaking: program.programId.toString(),
       redeemableMint: redeemableMint.publicKey.toString(),
