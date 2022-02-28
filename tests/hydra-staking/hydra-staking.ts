@@ -10,7 +10,7 @@ import {
 import { Keypair } from "@solana/web3.js";
 import { createTokenAccount } from "@project-serum/common";
 import * as assert from "assert";
-import { HydraAPI, createApi, createCtxAnchor } from "hydra-ts";
+import { HydraAPI, HydraSDK } from "hydra-ts";
 
 describe("hydra-staking", () => {
   const provider = anchor.Provider.env();
@@ -35,13 +35,11 @@ describe("hydra-staking", () => {
       "keys/localnet/staking/xhy1rv75cEJahTbsKnv2TpNhdR7KNUoDPavKuQDwhDU.json"
     );
 
-    sdk = createApi(
-      createCtxAnchor(provider, {
-        hydraStaking: program.programId.toString(),
-        redeemableMint: redeemableMint.publicKey.toString(),
-        tokenMint: tokenMint.publicKey.toString(),
-      })
-    );
+    sdk = HydraSDK.createFromAnchorProvider(provider, {
+      hydraStaking: program.programId.toString(),
+      redeemableMint: redeemableMint.publicKey.toString(),
+      tokenMint: tokenMint.publicKey.toString(),
+    });
 
     // create tokenMint
     await createMintAndVault(

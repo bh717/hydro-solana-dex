@@ -1,8 +1,9 @@
+import { Provider } from "@project-serum/anchor";
 import { Connection } from "@solana/web3.js";
 import { getProgramIds } from "./config/get-program-ids";
-import { createCtx, createReadonlyCtx } from "./ctx";
+import { createCtx, createReadonlyCtx, createCtxAnchor } from "./ctx";
 import staking from "./staking";
-import { Ctx, Network, Wallet } from "./types";
+import { Ctx, Network, ProgramIds, Wallet } from "./types";
 import * as utils from "./utils";
 import { inject } from "./utils/meta-utils";
 
@@ -55,5 +56,16 @@ export const HydraSDK = {
     const api = createApi(ctx);
 
     return api;
+  },
+
+  /**
+   * Creates an SDK instance configured for tests using an anchor provider.
+   * @param provider Anchor provider
+   * @param programIds Map of program ids to build off for testing
+   * @returns HydraAPI
+   */
+  createFromAnchorProvider(provider: Provider, programIds: ProgramIds) {
+    const ctx = createCtxAnchor(provider, programIds);
+    return createApi(ctx);
   },
 };
