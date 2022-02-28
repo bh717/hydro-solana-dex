@@ -6,6 +6,7 @@ import { tryGet } from "../../utils";
 export function unstake(ctx: Ctx) {
   return async (amount: BigInt) => {
     const acc = accounts(ctx);
+
     const redeemableMint = await acc.redeemableMint.key();
     const tokenMint = await acc.tokenMint.key();
     const tokenVault = await acc.tokenVault.key();

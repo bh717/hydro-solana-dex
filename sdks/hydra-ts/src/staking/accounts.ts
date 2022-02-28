@@ -1,18 +1,18 @@
 import { POOL_STATE_SEED, TOKEN_VAULT_SEED } from "../config/constants";
 import { Ctx } from "../types";
 import { Account } from "../types/account";
+import { accounts } from "../utils/meta-utils";
 
-// We will probably want to memoize this by ctx.wallet.publicKey
-export default function accounts(ctx: Ctx) {
+export default accounts((ctx: Ctx) => {
   return {
-    tokenVault: new Account(getTokenVaultAccount(ctx), ctx),
-    poolState: new Account(getPoolStateAccount(ctx), ctx),
-    redeemableMint: new Account(ctx.getKey("redeemableMint"), ctx),
-    tokenMint: new Account(ctx.getKey("tokenMint"), ctx),
-    userToken: new Account(getUserTokenAccount(ctx), ctx),
-    userRedeemable: new Account(getUserRedeemableAccount(ctx), ctx),
+    tokenVault: () => new Account(getTokenVaultAccount(ctx), ctx),
+    poolState: () => new Account(getPoolStateAccount(ctx), ctx),
+    redeemableMint: () => new Account(ctx.getKey("redeemableMint"), ctx),
+    tokenMint: () => new Account(ctx.getKey("tokenMint"), ctx),
+    userToken: () => new Account(getUserTokenAccount(ctx), ctx),
+    userRedeemable: () => new Account(getUserRedeemableAccount(ctx), ctx),
   };
-}
+});
 
 async function getUserTokenAccount(ctx: Ctx) {
   return await ctx.utils.getExistingOwnerTokenAccount(
