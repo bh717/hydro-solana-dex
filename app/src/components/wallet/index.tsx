@@ -1,7 +1,4 @@
-import WalletButton from './walletButton';
-import WalletModal from './walletModal';
+import WalletButton from "./walletButton";
+import WalletModal from "./walletModal";
 
-export {
-    WalletButton,
-    WalletModal
-}
+export { WalletButton, WalletModal };
