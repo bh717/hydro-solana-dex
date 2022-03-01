@@ -1,11 +1,7 @@
 import * as anchor from "@project-serum/anchor";
 import * as localJsonIdl from "target/idl/hydra_staking.json";
 import { HydraStaking, IDL } from "types-ts/codegen/types/hydra_staking";
-import {
-  createMintAndVault,
-  createMint,
-  transfer,
-} from "hydra-ts/node";
+import { createMintAndVault, createMint, transfer } from "hydra-ts/node";
 import { Keypair } from "@solana/web3.js";
 import { createTokenAccount } from "@project-serum/common";
 import * as assert from "assert";
@@ -20,7 +16,7 @@ describe("hydra-staking", () => {
   );
   const program = new anchor.Program<HydraStaking>(IDL, programId);
 
-  let tokenMint= anchor.web3.Keypair.generate();
+  let tokenMint = anchor.web3.Keypair.generate();
   let redeemableMint = anchor.web3.Keypair.generate();
   let TokenAccount = Keypair.generate();
   let sdk: HydraAPI;
