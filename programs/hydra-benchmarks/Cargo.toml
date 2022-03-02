@@ -12,9 +12,6 @@ name = "hydra_benchmarks"
 no-entrypoint = []
 no-idl = []
 cpi = ["no-entrypoint"]
-mainnet = []
-testnet = []
-devnet = []
 localnet = []
 
 default = ["localnet"]
