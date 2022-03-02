@@ -11,7 +11,8 @@
     "build": "turbo run build",
     "test": "turbo run test --parallel",
     "watch": "turbo run watch --parallel",
-    "lint": "prettier --check ."
+    "lint": "prettier --check .",
+    "clean": "turbo run clean"
   },
   "license": "UNLICENSED",
   "dependencies": {

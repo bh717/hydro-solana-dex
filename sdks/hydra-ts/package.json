@@ -11,7 +11,8 @@
     "watch-iso": "tsc --watch",
     "build": "yarn build-iso && yarn build-node",
     "watch": "concurrently -r \"yarn watch-iso\" \"yarn watch-node\"",
-    "test": "jest"
+    "test": "jest",
+    "clean": "rm -rf dist"
   },
   "author": "",
   "license": "ISC",
