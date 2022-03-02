@@ -9,7 +9,7 @@ use anchor_lang::solana_program::log::sol_log_compute_units;
 declare_id!("HYSp5N2QA69XKtyWkgF1FzVM4DaiHuXyur52XedeT9Sn");
 
 #[program]
-pub mod hydra_bencmarks {
+pub mod hydra_benchmarks {
     use super::*;
     use hydra_math_rs::decimal::{Decimal, Ln};
 
@@ -36,7 +36,7 @@ pub mod hydra_bencmarks {
 #[derive(Accounts)]
 pub struct Initialize<'info> {
     #[account(init, payer = user, space = 8 + 512)]
-    pub benchmark_result: Account<'info, BechmarkResult>,
+    pub benchmark_result: Account<'info, BenchmarkResult>,
     #[account(mut)]
     pub user: Signer<'info>,
     pub system_program: Program<'info, System>,
@@ -45,12 +45,12 @@ pub struct Initialize<'info> {
 #[derive(Accounts)]
 pub struct Swap<'info> {
     #[account(mut, has_one = authority)]
-    pub benchmark_result: Account<'info, BechmarkResult>,
+    pub benchmark_result: Account<'info, BenchmarkResult>,
     pub authority: Signer<'info>,
 }
 
 #[account]
-pub struct BechmarkResult {
+pub struct BenchmarkResult {
     pub authority: Pubkey,
     pub result: u64,
 }
