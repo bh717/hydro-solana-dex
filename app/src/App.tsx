@@ -1,17 +1,20 @@
-import { useMemo, useState, useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { makeStyles } from '@mui/styles';
-import { Box } from '@mui/material';
-import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
+import { useMemo, useState, useEffect } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { makeStyles } from "@mui/styles";
+import { Box } from "@mui/material";
+import {
+  ConnectionProvider,
+  WalletProvider,
+} from "@solana/wallet-adapter-react";
 // import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import {
-    getLedgerWallet,
-    getPhantomWallet,
-    // getSolletExtensionWallet,
-    // getSolletWallet,
-    getSolongWallet,
-    getBloctoWallet
-} from '@solana/wallet-adapter-wallets';
+  getLedgerWallet,
+  getPhantomWallet,
+  // getSolletExtensionWallet,
+  // getSolletWallet,
+  getSolongWallet,
+  getBloctoWallet,
+} from "@solana/wallet-adapter-wallets";
 // import { clusterApiUrl } from '@solana/web3.js';
 
 import { SvgGradient } from "./components/icons";
@@ -91,22 +94,25 @@ const networks = [
 function App() {
   const classes = useStyles();
 
-    // Can be set to 'devnet', 'testnet', or 'mainnet-beta'
-    // const network = WalletAdapterNetwork.Devnet;
+  // Can be set to 'devnet', 'testnet', or 'mainnet-beta'
+  // const network = WalletAdapterNetwork.Devnet;
 
-    // You can also provide a custom RPC endpoint
-    // const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+  // You can also provide a custom RPC endpoint
+  // const endpoint = useMemo(() => clusterApiUrl(network), [network]);
 
-    // @solana/wallet-adapter-wallets includes all the adapters but supports tree shaking --
-    // Only the wallets you configure here will be compiled into your application
-    const wallets = useMemo(() => [
-        getLedgerWallet(),
-        getPhantomWallet(),
-        // getSolletExtensionWallet({ network }),
-        // getSolletWallet({ network }),
-        getSolongWallet(),
-        getBloctoWallet()
-    ], []);
+  // @solana/wallet-adapter-wallets includes all the adapters but supports tree shaking --
+  // Only the wallets you configure here will be compiled into your application
+  const wallets = useMemo(
+    () => [
+      getLedgerWallet(),
+      getPhantomWallet(),
+      // getSolletExtensionWallet({ network }),
+      // getSolletWallet({ network }),
+      getSolongWallet(),
+      getBloctoWallet(),
+    ],
+    []
+  );
 
   const [address, setAddress] = useState("");
   const [currentRPC, setCurrentRPC] = useState<RPC>({
@@ -115,34 +121,57 @@ function App() {
   });
   const [openWalletModal, setOpenWalletModal] = useState(false);
 
-    useEffect(() => {
-        setCurrentRPC(networks[4]);
-    }, [])
+  useEffect(() => {
+    setCurrentRPC(networks[4]);
+  }, []);
 
-    return (
-        <ConnectionProvider endpoint={"http://127.0.0.1:8899"}>
-            <WalletProvider wallets={wallets}>
-                <div className="layout">
-                    <SvgGradient />
-                    <Sidebar openWalletModal={() => setOpenWalletModal(true)} address={address} rpc={currentRPC} changeRPC={setCurrentRPC} networks={networks} />
-                    <Box component="main" className="container">
-                        <Box className={classes.walletWrapper}>
-                            <WalletButton openWalletModal={() => setOpenWalletModal(true)} updateAddress={setAddress} />
-                        </Box>
-                        <Box className={classes.contentWrapper}>
-                            <Routes>
-                                <Route path="/swap" element={<Swap openWalletConnect={() => setOpenWalletModal(true)} />} />
-                                <Route path="/pools" element={<Pools />} />
-                                <Route path="/stake" element={<Stake openWalletConnect={() => setOpenWalletModal(true)} />} />
-                                <Route path="*" element={<Navigate replace to="/swap" />} />
-                            </Routes>
-                        </Box>
-                    </Box>
-                    <WalletModal open={openWalletModal} onClose={() => setOpenWalletModal(false)} address={address} />
-                </div>
-            </WalletProvider>
-        </ConnectionProvider>
-    );
+  return (
+    <ConnectionProvider endpoint={"http://127.0.0.1:8899"}>
+      <WalletProvider wallets={wallets}>
+        <div className="layout">
+          <SvgGradient />
+          <Sidebar
+            openWalletModal={() => setOpenWalletModal(true)}
+            address={address}
+            rpc={currentRPC}
+            changeRPC={setCurrentRPC}
+            networks={networks}
+          />
+          <Box component="main" className="container">
+            <Box className={classes.walletWrapper}>
+              <WalletButton
+                openWalletModal={() => setOpenWalletModal(true)}
+                updateAddress={setAddress}
+              />
+            </Box>
+            <Box className={classes.contentWrapper}>
+              <Routes>
+                <Route
+                  path="/swap"
+                  element={
+                    <Swap openWalletConnect={() => setOpenWalletModal(true)} />
+                  }
+                />
+                <Route path="/pools" element={<Pools />} />
+                <Route
+                  path="/stake"
+                  element={
+                    <Stake openWalletConnect={() => setOpenWalletModal(true)} />
+                  }
+                />
+                <Route path="*" element={<Navigate replace to="/swap" />} />
+              </Routes>
+            </Box>
+          </Box>
+          <WalletModal
+            open={openWalletModal}
+            onClose={() => setOpenWalletModal(false)}
+            address={address}
+          />
+        </div>
+      </WalletProvider>
+    </ConnectionProvider>
+  );
 }
 
 export default App;

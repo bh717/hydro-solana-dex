@@ -1,6 +1,6 @@
-import { FC } from 'react';
-import { makeStyles } from '@mui/styles';
-import { Box, Typography, Button } from '@mui/material';
+import { FC } from "react";
+import { makeStyles } from "@mui/styles";
+import { Box, Typography, Button } from "@mui/material";
 
 import HYSD from "../../../assets/images/symbols/hysd.png";
 import Diamond from "../../../assets/images/stake/diamond.png";
@@ -107,35 +107,33 @@ const useStyles = makeStyles({
 });
 
 interface StakeStatusProps {
-    balance: number;
+  balance: number;
 }
 
 const StakeStatus: FC<StakeStatusProps> = ({ balance }) => {
-    const classes = useStyles();
+  const classes = useStyles();
 
-    return (
-        <Box className={classes.statusContainer}>
-            <Box className={classes.statusContent}>
-                <Box className={classes.stakedPart}>
-                    <Typography>Your staked HYSD</Typography>
-                    <Box className={classes.stakedBalance}>
-                        <img src={HYSD} alt="HYSD" />
-                        <span>{balance.toFixed(2)}</span>
-                    </Box>
-                    <Typography> ≈ 0 USDC</Typography>
-                </Box>
-                <Box className={classes.rewardPart}>
-                    <Typography>Your reward</Typography>
-                    <Box className={classes.rewardedBalance}>
-                        <img src={Diamond} alt="Diamond" />
-                        <span>0</span>
-                    </Box>
-                    <Button className={classes.harvestButton}>
-                        Harvest
-                    </Button>
-                </Box>
-            </Box>
+  return (
+    <Box className={classes.statusContainer}>
+      <Box className={classes.statusContent}>
+        <Box className={classes.stakedPart}>
+          <Typography>Your staked HYSD</Typography>
+          <Box className={classes.stakedBalance}>
+            <img src={HYSD} alt="HYSD" />
+            <span>{balance.toFixed(2)}</span>
+          </Box>
+          <Typography> ≈ 0 USDC</Typography>
         </Box>
+        <Box className={classes.rewardPart}>
+          <Typography>Your reward</Typography>
+          <Box className={classes.rewardedBalance}>
+            <img src={Diamond} alt="Diamond" />
+            <span>0</span>
+          </Box>
+          <Button className={classes.harvestButton}>Harvest</Button>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 

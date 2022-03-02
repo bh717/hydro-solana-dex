@@ -1,18 +1,18 @@
-import { FC, useEffect, useState } from 'react';
-import { makeStyles } from '@mui/styles'
-import { Box, Typography } from '@mui/material';
-import { Connection, PublicKey, Commitment } from '@solana/web3.js';
-import { Idl, Program, Provider, web3, utils, BN } from '@project-serum/anchor';
-import { TOKEN_PROGRAM_ID } from '@project-serum/serum/lib/token-instructions';
-import { useWallet } from '@solana/wallet-adapter-react';
-import { toast } from 'react-toastify';
+import { FC, useEffect, useState } from "react";
+import { makeStyles } from "@mui/styles";
+import { Box, Typography } from "@mui/material";
+import { Connection, PublicKey, Commitment } from "@solana/web3.js";
+import { Idl, Program, Provider, web3, utils, BN } from "@project-serum/anchor";
+import { TOKEN_PROGRAM_ID } from "@project-serum/serum/lib/token-instructions";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { toast } from "react-toastify";
 
-import { Deposit } from '../../components/icons';
-import Banner from '../../assets/images/stake/banner.png';
-import Diamond from '../../assets/images/stake/diamond.png';
-import StakeUnstake from './stakeUnstake';
-import StakeStatus from './stakeStatus';
-import idl from '../../idls/hydra_staking.json';
+import { Deposit } from "../../components/icons";
+import Banner from "../../assets/images/stake/banner.png";
+import Diamond from "../../assets/images/stake/diamond.png";
+import StakeUnstake from "./stakeUnstake";
+import StakeStatus from "./stakeStatus";
+import idl from "../../idls/hydra_staking.json";
 
 const useStyles = makeStyles({
   stakeContainer: {
@@ -157,201 +157,241 @@ const useStyles = makeStyles({
 });
 
 const opts = {
-    preflightCommitment: "recent" as Commitment
-}
+  preflightCommitment: "recent" as Commitment,
+};
 const programID = new PublicKey(idl.metadata.address);
 const utf8 = utils.bytes.utf8;
-const tokenMint = new PublicKey(process.env.REACT_APP_MINT_ADDRESS || '');
-const redeemableMint = new PublicKey(process.env.REACT_APP_REDEEM_ADDRESS || '');
-const SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID = new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL');
+const tokenMint = new PublicKey(process.env.REACT_APP_MINT_ADDRESS || "");
+const redeemableMint = new PublicKey(
+  process.env.REACT_APP_REDEEM_ADDRESS || ""
+);
+const SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID = new PublicKey(
+  "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+);
 
 interface StakeProps {
   openWalletConnect(): void;
 }
 
 const Stake: FC<StakeProps> = ({ openWalletConnect }) => {
-    const classes = useStyles();
-    const wallet = useWallet();
+  const classes = useStyles();
+  const wallet = useWallet();
 
-    const [userPubKey, setUserPubKey] = useState<PublicKey>();
-    const [redeemPubKey, setRedeemPubKey] = useState<PublicKey>();
-    const [userBalance, setUserBalance] = useState(0);
-    const [redeemBalance, setRedeemBalance] = useState(0);
-    const [staking, setStaking] = useState(false);
-    const [unstaking, setUnstaking] = useState(false);
+  const [userPubKey, setUserPubKey] = useState<PublicKey>();
+  const [redeemPubKey, setRedeemPubKey] = useState<PublicKey>();
+  const [userBalance, setUserBalance] = useState(0);
+  const [redeemBalance, setRedeemBalance] = useState(0);
+  const [staking, setStaking] = useState(false);
+  const [unstaking, setUnstaking] = useState(false);
 
-    const getProvider = async () => {
-        /* create the provider and return it to the caller */
-        /* network set to local network for now */
-        const network = "http://127.0.0.1:8899";
-        const connection = new Connection(network, opts.preflightCommitment);
+  const getProvider = async () => {
+    /* create the provider and return it to the caller */
+    /* network set to local network for now */
+    const network = "http://127.0.0.1:8899";
+    const connection = new Connection(network, opts.preflightCommitment);
 
-        const provider = new Provider(
-            // @ts-ignore
-            connection, wallet, opts.preflightCommitment,
-        );
-        return provider;
-    }
+    const provider = new Provider(
+      // @ts-ignore
+      connection,
+      wallet,
+      opts.preflightCommitment
+    );
+    return provider;
+  };
 
-    useEffect(() => {
-        (async function initialize() {
-            if(wallet.publicKey) {
-                const provider = await getProvider();
-
-                const tempUserPubKey = await findassociatedTokenAddress(provider.wallet.publicKey, tokenMint);
-                const tempRedeemPubKey = await findassociatedTokenAddress(provider.wallet.publicKey, redeemableMint);
-                setUserPubKey(tempUserPubKey);
-                setRedeemPubKey(tempRedeemPubKey);
-                
-                getBalances(provider, tempUserPubKey, tempRedeemPubKey);
-            }
-        })();
-
-        // eslint-disable-next-line
-    }, [wallet]);
-
-    const getBalances = async (provider: Provider, userPubKey: PublicKey, redeemPubKey: PublicKey) => {
-        const tempUserBalance = await provider.connection.getTokenAccountBalance(userPubKey);
-        const tempRedeemBalance = await provider.connection.getTokenAccountBalance(redeemPubKey);
-
-        setUserBalance(tempUserBalance.value.uiAmount || 0);
-        setRedeemBalance(tempRedeemBalance.value.uiAmount || 0);
-    }
-    
-
-    const findassociatedTokenAddress = async (walletAddress: PublicKey, tokenAddress: PublicKey): Promise<PublicKey> => {
-        return (await PublicKey.findProgramAddress(
-            [
-                walletAddress.toBuffer(),
-                TOKEN_PROGRAM_ID.toBuffer(),
-                tokenAddress.toBuffer()
-            ],
-            SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID
-        ))[0];
-    };
-
-    const stake = async (amount: number) => {
+  useEffect(() => {
+    (async function initialize() {
+      if (wallet.publicKey) {
         const provider = await getProvider();
 
-        /* create the program interface combining the idl, program ID, and provider */
-        const program = new Program(idl as Idl, programID, provider);
-
-        const [poolStatePubkey] = await web3.PublicKey.findProgramAddress(
-            [utf8.encode("pool_state_seed"), tokenMint.toBuffer(), redeemableMint.toBuffer()],
-            program.programId
+        const tempUserPubKey = await findassociatedTokenAddress(
+          provider.wallet.publicKey,
+          tokenMint
         );
-
-        const [tokenVaultPubkey] = await web3.PublicKey.findProgramAddress(
-            [utf8.encode("token_vault_seed"), tokenMint.toBuffer(), redeemableMint.toBuffer()],
-            program.programId
+        const tempRedeemPubKey = await findassociatedTokenAddress(
+          provider.wallet.publicKey,
+          redeemableMint
         );
-        
-        if(userPubKey && redeemPubKey) {
-            try {
-                setStaking(true);
+        setUserPubKey(tempUserPubKey);
+        setRedeemPubKey(tempRedeemPubKey);
 
-                await program.rpc.stake(new BN(amount * Math.pow(10, 9)), {
-                    accounts: {
-                        poolState: poolStatePubkey ,
-                        tokenMint: tokenMint,
-                        redeemableMint: redeemableMint,
-                        userFrom: userPubKey,
-                        userFromAuthority: program.provider.wallet.publicKey,
-                        tokenVault: tokenVaultPubkey,
-                        redeemableTo: redeemPubKey,
-                        tokenProgram: TOKEN_PROGRAM_ID
-                    }
-                });
-                await getBalances(provider, userPubKey, redeemPubKey);
+        getBalances(provider, tempUserPubKey, tempRedeemPubKey);
+      }
+    })();
 
-                toast.success(`You staked ${amount} HYSD successfully!`);
-                setStaking(false);
-            } catch(e) {
-                console.log(e);
-                toast.error(`Something went wrong!`);
+    // eslint-disable-next-line
+  }, [wallet]);
 
-                setStaking(false);
-            }
-        }
-    }
+  const getBalances = async (
+    provider: Provider,
+    userPubKey: PublicKey,
+    redeemPubKey: PublicKey
+  ) => {
+    const tempUserBalance = await provider.connection.getTokenAccountBalance(
+      userPubKey
+    );
+    const tempRedeemBalance = await provider.connection.getTokenAccountBalance(
+      redeemPubKey
+    );
 
-    const unstake = async (amount: number) => {
-        const provider = await getProvider();
+    setUserBalance(tempUserBalance.value.uiAmount || 0);
+    setRedeemBalance(tempRedeemBalance.value.uiAmount || 0);
+  };
 
-        /* create the program interface combining the idl, program ID, and provider */
-        const program = new Program(idl as Idl, programID, provider);
-
-        const [poolStatePubkey] = await web3.PublicKey.findProgramAddress(
-            [utf8.encode("pool_state_seed"), tokenMint.toBuffer(), redeemableMint.toBuffer()],
-            program.programId
-        );
-
-        const [tokenVaultPubkey] = await web3.PublicKey.findProgramAddress(
-            [utf8.encode("token_vault_seed"), tokenMint.toBuffer(), redeemableMint.toBuffer()],
-            program.programId
-        );
-        
-        if(userPubKey && redeemPubKey) {
-            try {
-                setUnstaking(true);
-
-                await program.rpc.unstake(new BN(amount * Math.pow(10, 9)), {
-                    accounts: {
-                        poolState: poolStatePubkey ,
-                        tokenMint: tokenMint,
-                        redeemableMint: redeemableMint,
-                        userTo: userPubKey,
-                        tokenVault: tokenVaultPubkey,
-                        redeemableFrom: redeemPubKey,
-                        redeemableFromAuthority: program.provider.wallet.publicKey,
-                        tokenProgram: TOKEN_PROGRAM_ID
-                    }
-                });
-                await getBalances(provider, userPubKey, redeemPubKey);
-
-                toast.success(`You staked ${amount} HYSD successfully!`);
-                setUnstaking(false);
-            } catch(e) {
-                console.log(e);
-
-                toast.error(`Something went wrong!`);
-                setUnstaking(false);
-            }
-        }
-    }
-
+  const findassociatedTokenAddress = async (
+    walletAddress: PublicKey,
+    tokenAddress: PublicKey
+  ): Promise<PublicKey> => {
     return (
-      <Box className={classes.stakeContainer}>
-        <Box className={classes.stakeBanner}>
-          <Box className={classes.bannerLeft}>
-            <img src={Diamond} alt="Diamond" />
-            <Box className={classes.bannerTitle}>
-              <Typography>Simply stake tokens to earn.</Typography>
-              <Typography>Stake your HYSD maximize your yield. No Impermanent Loss.</Typography>
-            </Box>
-            <img src={Diamond} alt="Diamond" />
+      await PublicKey.findProgramAddress(
+        [
+          walletAddress.toBuffer(),
+          TOKEN_PROGRAM_ID.toBuffer(),
+          tokenAddress.toBuffer(),
+        ],
+        SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID
+      )
+    )[0];
+  };
+
+  const stake = async (amount: number) => {
+    const provider = await getProvider();
+
+    /* create the program interface combining the idl, program ID, and provider */
+    const program = new Program(idl as Idl, programID, provider);
+
+    const [poolStatePubkey] = await web3.PublicKey.findProgramAddress(
+      [
+        utf8.encode("pool_state_seed"),
+        tokenMint.toBuffer(),
+        redeemableMint.toBuffer(),
+      ],
+      program.programId
+    );
+
+    const [tokenVaultPubkey] = await web3.PublicKey.findProgramAddress(
+      [
+        utf8.encode("token_vault_seed"),
+        tokenMint.toBuffer(),
+        redeemableMint.toBuffer(),
+      ],
+      program.programId
+    );
+
+    if (userPubKey && redeemPubKey) {
+      try {
+        setStaking(true);
+
+        await program.rpc.stake(new BN(amount * Math.pow(10, 9)), {
+          accounts: {
+            poolState: poolStatePubkey,
+            tokenMint: tokenMint,
+            redeemableMint: redeemableMint,
+            userFrom: userPubKey,
+            userFromAuthority: program.provider.wallet.publicKey,
+            tokenVault: tokenVaultPubkey,
+            redeemableTo: redeemPubKey,
+            tokenProgram: TOKEN_PROGRAM_ID,
+          },
+        });
+        await getBalances(provider, userPubKey, redeemPubKey);
+
+        toast.success(`You staked ${amount} HYSD successfully!`);
+        setStaking(false);
+      } catch (e) {
+        console.log(e);
+        toast.error(`Something went wrong!`);
+
+        setStaking(false);
+      }
+    }
+  };
+
+  const unstake = async (amount: number) => {
+    const provider = await getProvider();
+
+    /* create the program interface combining the idl, program ID, and provider */
+    const program = new Program(idl as Idl, programID, provider);
+
+    const [poolStatePubkey] = await web3.PublicKey.findProgramAddress(
+      [
+        utf8.encode("pool_state_seed"),
+        tokenMint.toBuffer(),
+        redeemableMint.toBuffer(),
+      ],
+      program.programId
+    );
+
+    const [tokenVaultPubkey] = await web3.PublicKey.findProgramAddress(
+      [
+        utf8.encode("token_vault_seed"),
+        tokenMint.toBuffer(),
+        redeemableMint.toBuffer(),
+      ],
+      program.programId
+    );
+
+    if (userPubKey && redeemPubKey) {
+      try {
+        setUnstaking(true);
+
+        await program.rpc.unstake(new BN(amount * Math.pow(10, 9)), {
+          accounts: {
+            poolState: poolStatePubkey,
+            tokenMint: tokenMint,
+            redeemableMint: redeemableMint,
+            userTo: userPubKey,
+            tokenVault: tokenVaultPubkey,
+            redeemableFrom: redeemPubKey,
+            redeemableFromAuthority: program.provider.wallet.publicKey,
+            tokenProgram: TOKEN_PROGRAM_ID,
+          },
+        });
+        await getBalances(provider, userPubKey, redeemPubKey);
+
+        toast.success(`You staked ${amount} HYSD successfully!`);
+        setUnstaking(false);
+      } catch (e) {
+        console.log(e);
+
+        toast.error(`Something went wrong!`);
+        setUnstaking(false);
+      }
+    }
+  };
+
+  return (
+    <Box className={classes.stakeContainer}>
+      <Box className={classes.stakeBanner}>
+        <Box className={classes.bannerLeft}>
+          <img src={Diamond} alt="Diamond" />
+          <Box className={classes.bannerTitle}>
+            <Typography>Simply stake tokens to earn.</Typography>
+            <Typography>
+              Stake your HYSD maximize your yield. No Impermanent Loss.
+            </Typography>
           </Box>
-          <Box className={classes.bannerRight}>
-            <Deposit />
-            <Typography>Total Staked</Typography>
-            <Typography>$12.56 m</Typography>
-          </Box>
+          <img src={Diamond} alt="Diamond" />
         </Box>
-        <Box className={classes.stakeContent}>
-          <StakeUnstake
-            walletConnect={openWalletConnect}
-            balance={userBalance}
-            xBalance={redeemBalance}
-            onStake={stake}
-            onUnstake={unstake}
-            staking={staking}
-            unstaking={unstaking}
-          />
-          <StakeStatus
-            balance={redeemBalance}
-          />
+        <Box className={classes.bannerRight}>
+          <Deposit />
+          <Typography>Total Staked</Typography>
+          <Typography>$12.56 m</Typography>
         </Box>
       </Box>
+      <Box className={classes.stakeContent}>
+        <StakeUnstake
+          walletConnect={openWalletConnect}
+          balance={userBalance}
+          xBalance={redeemBalance}
+          onStake={stake}
+          onUnstake={unstake}
+          staking={staking}
+          unstaking={unstaking}
+        />
+        <StakeStatus balance={redeemBalance} />
+      </Box>
+    </Box>
   );
 };
 

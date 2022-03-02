@@ -93,56 +93,76 @@ const useStyles = makeStyles({
 });
 
 interface TabPanelProps {
-    type: string;
-    balance: number;
-    status: boolean;
-    amount: string;
-    setAmount(value: string): void;
-    onWalletConnect(): void;
-    onAction(): void;
+  type: string;
+  balance: number;
+  status: boolean;
+  amount: string;
+  setAmount(value: string): void;
+  onWalletConnect(): void;
+  onAction(): void;
 }
 
-const TabPanel: FC<TabPanelProps> = ({ type, balance, status, amount, setAmount, onWalletConnect, onAction }) => {
-    const classes = useStyles();
+const TabPanel: FC<TabPanelProps> = ({
+  type,
+  balance,
+  status,
+  amount,
+  setAmount,
+  onWalletConnect,
+  onAction,
+}) => {
+  const classes = useStyles();
 
   const { connected } = useWallet();
 
-    return (
-        <Box className={classes.tabPanel}>
-            <Box className={classes.inputDetail}>
-                <Typography>{type === 'stake' ? 'Balance' : 'Avail'}</Typography>
-                <Typography>{balance}</Typography>
-            </Box>
-            <TextField
-                className={classes.panelInput}
-                hiddenLabel
-                type="number"
-                InputProps={{
-                    endAdornment: <InputAdornment position="end">{type === 'stake' ? 'HYSD' : 'xHYSD'}</InputAdornment>
-                }}
-                value={amount}
-                onChangeCapture={(
-                    event: React.ChangeEvent<HTMLInputElement>
-                ) => setAmount(event.target.value)}
-            />
-            {connected ? (
-                <Button
-                    className={classes.panelButton}
-                    onClick={onAction}
-                    disabled={!amount || parseFloat(amount) === 0 || parseFloat(amount) > balance || status}
-                >
-                    {type === 'stake' ? status ? 'Staking' : 'Stake' : status ? 'Unstaking' : 'Unstake'}
-                </Button>
-            ) : (
-                <Button
-                    className={classes.panelButton}
-                    onClick={onWalletConnect}
-                >
-                    Connect Wallet
-                </Button>
-            )}
-        </Box>
-    )
-}
+  return (
+    <Box className={classes.tabPanel}>
+      <Box className={classes.inputDetail}>
+        <Typography>{type === "stake" ? "Balance" : "Avail"}</Typography>
+        <Typography>{balance}</Typography>
+      </Box>
+      <TextField
+        className={classes.panelInput}
+        hiddenLabel
+        type="number"
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              {type === "stake" ? "HYSD" : "xHYSD"}
+            </InputAdornment>
+          ),
+        }}
+        value={amount}
+        onChangeCapture={(event: React.ChangeEvent<HTMLInputElement>) =>
+          setAmount(event.target.value)
+        }
+      />
+      {connected ? (
+        <Button
+          className={classes.panelButton}
+          onClick={onAction}
+          disabled={
+            !amount ||
+            parseFloat(amount) === 0 ||
+            parseFloat(amount) > balance ||
+            status
+          }
+        >
+          {type === "stake"
+            ? status
+              ? "Staking"
+              : "Stake"
+            : status
+            ? "Unstaking"
+            : "Unstake"}
+        </Button>
+      ) : (
+        <Button className={classes.panelButton} onClick={onWalletConnect}>
+          Connect Wallet
+        </Button>
+      )}
+    </Box>
+  );
+};
 
 export default TabPanel;

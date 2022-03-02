@@ -1,16 +1,16 @@
-import React, { FC, useState, useEffect } from 'react';
-import { makeStyles } from '@mui/styles';
-import { Box, IconButton, Typography } from '@mui/material';
+import React, { FC, useState, useEffect } from "react";
+import { makeStyles } from "@mui/styles";
+import { Box, IconButton, Typography } from "@mui/material";
 
-import { Gear } from '../../components/icons';
-import USDT from '../../assets/images/symbols/usdt.png';
-import { Asset } from '../../interfaces';
-import SwapAsset from './swapAsset';
-import SwapSettingModal from './modals/swapSetting';
-import AssetListModal from './modals/assetList';
-import ConfirmSwapModal from './modals/confirmSwap';
-import SwapStatus from './modals/swapStatus';
-import useSwap from './useSwap';
+import { Gear } from "../../components/icons";
+import USDT from "../../assets/images/symbols/usdt.png";
+import { Asset } from "../../interfaces";
+import SwapAsset from "./swapAsset";
+import SwapSettingModal from "./modals/swapSetting";
+import AssetListModal from "./modals/assetList";
+import ConfirmSwapModal from "./modals/confirmSwap";
+import SwapStatus from "./modals/swapStatus";
+import useSwap from "./useSwap";
 
 const useStyles = makeStyles({
   swapContent: {
@@ -83,9 +83,9 @@ const useStyles = makeStyles({
     },
     "&:last-of-type": {
       marginRight: "0",
-    }
-  }
-})
+    },
+  },
+});
 
 const initialAsset = {
   icon: "",
@@ -120,9 +120,8 @@ const Swap: FC<SwapProps> = ({ openWalletConnect }) => {
   }, [setFromAsset, assets]);
 
   const handleSettingModal = () => {
-      if(parseFloat(slippage) > 0)
-          setOpenSettingModal(false)
-  }
+    if (parseFloat(slippage) > 0) setOpenSettingModal(false);
+  };
 
   const exchangeAssets = () => {
     const tempAsset = JSON.parse(JSON.stringify(fromAsset));
@@ -159,7 +158,7 @@ const Swap: FC<SwapProps> = ({ openWalletConnect }) => {
   const handleSwapApprove = () => {
     setOpenConfirmSwapModal(false);
     setOpenSwapStatusModal(true);
-  }
+  };
 
   return (
     <>
@@ -186,11 +185,9 @@ const Swap: FC<SwapProps> = ({ openWalletConnect }) => {
             walletConnect={openWalletConnect}
           />
         </Box>
-        {fromAsset.symbol !== '' && toAsset.symbol !== '' && (
+        {fromAsset.symbol !== "" && toAsset.symbol !== "" && (
           <Box className={classes.routeContainer}>
-            <Typography className={classes.routeTitle}>
-              Route
-            </Typography>
+            <Typography className={classes.routeTitle}>Route</Typography>
             <Box className={classes.routeDetail}>
               <Box className={classes.assetItem}>
                 <img src={fromAsset.icon} alt="Asset" />
@@ -198,7 +195,7 @@ const Swap: FC<SwapProps> = ({ openWalletConnect }) => {
               </Box>
               <Box className={classes.assetItem}>
                 <img src={USDT} alt="Asset" />
-                <span>{'USDT >'}</span>
+                <span>{"USDT >"}</span>
               </Box>
               <Box className={classes.assetItem}>
                 <img src={toAsset.icon} alt="Asset" />

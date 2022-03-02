@@ -77,17 +77,25 @@ const useStyles = makeStyles({
 });
 
 interface StakeUnstakeProps {
-    walletConnect(): void;
-    balance: number;
-    xBalance: number;
-    onStake(amount: number): void;
-    onUnstake(amount: number): void;
-    staking: boolean;
-    unstaking: boolean;
+  walletConnect(): void;
+  balance: number;
+  xBalance: number;
+  onStake(amount: number): void;
+  onUnstake(amount: number): void;
+  staking: boolean;
+  unstaking: boolean;
 }
 
-const StakeUnstake: FC<StakeUnstakeProps> = ({ walletConnect, balance, xBalance, onStake, onUnstake, staking, unstaking }) => {
-    const classes = useStyles();
+const StakeUnstake: FC<StakeUnstakeProps> = ({
+  walletConnect,
+  balance,
+  xBalance,
+  onStake,
+  onUnstake,
+  staking,
+  unstaking,
+}) => {
+  const classes = useStyles();
 
   const [tab, setTab] = useState(0);
   const [stakeAmount, setStakeAmount] = useState("0");
@@ -97,48 +105,50 @@ const StakeUnstake: FC<StakeUnstakeProps> = ({ walletConnect, balance, xBalance,
     setTab(newValue);
   };
 
-    return (
-        <Box className={classes.stakeContainer}>
-            <Box className={classes.stakeContent}>
-                <Box className={classes.contentHeader}>
-                    <Tabs
-                        className={classes.optionTabs}
-                        value={tab}
-                        onChange={handleChange}
-                        TabIndicatorProps={{ children: <span className="MuiTabs-indicatorSpan" /> }}
-                    >
-                        <Tab label="Stake" />
-                        <Tab label="Unstake" />
-                    </Tabs>
-                    <Box className={classes.stakePercent}>
-                        <Typography>APR:</Typography>
-                        <Typography>59%</Typography>
-                    </Box>
-                </Box>
-                {tab === 0 && (
-                    <TabPanel
-                        type={'stake'}
-                        balance={balance}
-                        status={staking}
-                        amount={stakeAmount}
-                        setAmount={setStakeAmount}
-                        onWalletConnect={walletConnect}
-                        onAction={() => onStake(Number(stakeAmount))}
-                    />
-                )}
-                {tab === 1 && (
-                    <TabPanel
-                        type={'unstake'}
-                        balance={xBalance}
-                        status={unstaking}
-                        amount={unstakeAmount}
-                        setAmount={setUnstakeAmount}
-                        onWalletConnect={walletConnect}
-                        onAction={() => onUnstake(Number(unstakeAmount))}
-                    />
-                )}
-            </Box>
+  return (
+    <Box className={classes.stakeContainer}>
+      <Box className={classes.stakeContent}>
+        <Box className={classes.contentHeader}>
+          <Tabs
+            className={classes.optionTabs}
+            value={tab}
+            onChange={handleChange}
+            TabIndicatorProps={{
+              children: <span className="MuiTabs-indicatorSpan" />,
+            }}
+          >
+            <Tab label="Stake" />
+            <Tab label="Unstake" />
+          </Tabs>
+          <Box className={classes.stakePercent}>
+            <Typography>APR:</Typography>
+            <Typography>59%</Typography>
+          </Box>
         </Box>
+        {tab === 0 && (
+          <TabPanel
+            type={"stake"}
+            balance={balance}
+            status={staking}
+            amount={stakeAmount}
+            setAmount={setStakeAmount}
+            onWalletConnect={walletConnect}
+            onAction={() => onStake(Number(stakeAmount))}
+          />
+        )}
+        {tab === 1 && (
+          <TabPanel
+            type={"unstake"}
+            balance={xBalance}
+            status={unstaking}
+            amount={unstakeAmount}
+            setAmount={setUnstakeAmount}
+            onWalletConnect={walletConnect}
+            onAction={() => onUnstake(Number(unstakeAmount))}
+          />
+        )}
+      </Box>
+    </Box>
   );
 };
 
