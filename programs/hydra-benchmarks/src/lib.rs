@@ -6,7 +6,7 @@ use instructions::*;
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::log::sol_log_compute_units;
 
-declare_id!("HYSp5N2QA69XKtyWkgF1FzVM4DaiHuXyur52XedeT9Sn");
+declare_id!("HYS93RLjsDvKqAN9BFbUHG8L76E9Xtg8HarmGc6LSe5s");
 
 #[program]
 pub mod hydra_benchmarks {
