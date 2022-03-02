@@ -300,16 +300,19 @@ const Content: FC<ContentProps> = ({ address }) => {
     if (wallet && !connected) {
       const adapter = wallet.adapter;
 
-      adapter.ready().then((result) => {
-        if (result) {
-          setStatus("connecting");
-          adapter.connect().catch((error) => {
-            console.log(error);
-          });
-        } else {
-          setStatus("install");
-        }
-      });
+      console.log(adapter.name, " : ", adapter.readyState, " : ", adapter.url);
+
+      if (
+        adapter.readyState === "Installed" ||
+        adapter.readyState === "Loadable"
+      ) {
+        setStatus("connecting");
+        adapter.connect().catch((error) => {
+          console.log(error);
+        });
+      } else {
+        setStatus("install");
+      }
     }
 
     if (connected) {
@@ -335,7 +338,7 @@ const Content: FC<ContentProps> = ({ address }) => {
 
   const handleWalletInstall = () => {
     if (wallet && window) {
-      window.open(wallet.url, "_blank");
+      window.open(wallet.adapter.url, "_blank");
     }
   };
 
@@ -390,10 +393,10 @@ const Content: FC<ContentProps> = ({ address }) => {
               <IconButton
                 className={classes.walletItem}
                 key={index}
-                onClick={() => select(wallet.name)}
+                onClick={() => select(wallet.adapter.name)}
               >
-                <img src={wallet.icon} alt="Wallet" />
-                <Typography>{wallet.name}</Typography>
+                <img src={wallet.adapter.icon} alt="Wallet" />
+                <Typography>{wallet.adapter.name}</Typography>
               </IconButton>
             ))}
           </Box>
@@ -403,11 +406,11 @@ const Content: FC<ContentProps> = ({ address }) => {
         <>
           <Typography className={classes.connectTitle}>Connecting</Typography>
           <Typography className={classes.connectSubTitle}>
-            Please unlock your {wallet.name} wallet
+            Please unlock your {wallet.adapter.name} wallet
           </Typography>
           <Box className={classes.connectWrapper}>
             <Box className={classes.connectContent}>
-              <img src={wallet.icon} alt="Wallet" />
+              <img src={wallet.adapter.icon} alt="Wallet" />
               <span className={classes.connectBridge}>......</span>
               <Hydraswap />
             </Box>
@@ -424,7 +427,7 @@ const Content: FC<ContentProps> = ({ address }) => {
             Wallet is not installed
           </Typography>
           <Box className={classes.installWrapper}>
-            <img src={wallet.icon} alt="Wallet" />
+            <img src={wallet.adapter.icon} alt="Wallet" />
             <Button
               className={classes.installButton}
               onClick={handleWalletInstall}
@@ -433,9 +436,9 @@ const Content: FC<ContentProps> = ({ address }) => {
             </Button>
             <Typography className={classes.installGuide}>
               Make sure you only install their wallet from the{" "}
-              {wallet.url.includes("chrome.google.com")
+              {wallet.adapter.url.includes("chrome.google.com")
                 ? "Google Chrome Web Store"
-                : `official ${wallet.url} website`}
+                : `official ${wallet.adapter.url} website`}
               .
             </Typography>
           </Box>

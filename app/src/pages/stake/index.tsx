@@ -191,8 +191,8 @@ const Stake: FC<StakeProps> = ({ openWalletConnect }) => {
     const connection = new Connection(network, opts.preflightCommitment);
 
     const provider = new Provider(
-      // @ts-ignore
       connection,
+      // @ts-ignore
       wallet,
       opts.preflightCommitment
     );

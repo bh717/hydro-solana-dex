@@ -8,12 +8,12 @@ import {
 } from "@solana/wallet-adapter-react";
 // import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import {
-  getLedgerWallet,
-  getPhantomWallet,
-  // getSolletExtensionWallet,
-  // getSolletWallet,
-  getSolongWallet,
-  getBloctoWallet,
+  LedgerWalletAdapter,
+  PhantomWalletAdapter,
+  // SolletExtensionWalletAdapter,
+  // SolletWalletAdapter
+  SolongWalletAdapter,
+  BloctoWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 // import { clusterApiUrl } from '@solana/web3.js';
 
@@ -104,12 +104,12 @@ function App() {
   // Only the wallets you configure here will be compiled into your application
   const wallets = useMemo(
     () => [
-      getLedgerWallet(),
-      getPhantomWallet(),
-      // getSolletExtensionWallet({ network }),
-      // getSolletWallet({ network }),
-      getSolongWallet(),
-      getBloctoWallet(),
+      new LedgerWalletAdapter(),
+      new PhantomWalletAdapter(),
+      // new SolletExtensionWalletAdapter({ network }),
+      // new SolletWalletAdapter({ network })
+      new SolongWalletAdapter(),
+      new BloctoWalletAdapter(),
     ],
     []
   );
