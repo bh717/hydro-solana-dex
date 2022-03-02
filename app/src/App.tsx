@@ -14,82 +14,82 @@ import {
 } from '@solana/wallet-adapter-wallets';
 // import { clusterApiUrl } from '@solana/web3.js';
 
-import { SvgGradient } from './components/icons';
-import Sidebar from './components/sidebar';
-import { WalletButton, WalletModal } from './components/wallet';
-import Swap from './pages/swap';
-import Pools from './pages/pools';
-import Stake from './pages/stake';
-import { RPC } from './interfaces';
+import { SvgGradient } from "./components/icons";
+import Sidebar from "./components/sidebar";
+import { WalletButton, WalletModal } from "./components/wallet";
+import Swap from "./pages/swap";
+import Pools from "./pages/pools";
+import Stake from "./pages/stake";
+import { RPC } from "./interfaces";
 
 const useStyles = makeStyles({
-    walletWrapper: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        padding: '24px',
-        '& .wallet-adapter-button': {
-            background: '#25262f',
-            borderRadius: '18px',
-            height: '36px',
-            fontSize: '13px',
-            '& svg': {
-                width: '24px',
-                height: '24px',
-                marginRight: '8px'
-            }
-        },
-        '& .wallet-adapter-dropdown-list': {
-            '& .wallet-adapter-dropdown-list-item': {
-                padding: '0 15px',
-                height: '32px',
-                fontSize: '13px'
-            }
-        },
-        '@media (max-width:600px)': {
-            display: 'none'
-        }
+  walletWrapper: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    padding: "24px",
+    "& .wallet-adapter-button": {
+      background: "#25262f",
+      borderRadius: "18px",
+      height: "36px",
+      fontSize: "13px",
+      "& svg": {
+        width: "24px",
+        height: "24px",
+        marginRight: "8px",
+      },
     },
-    contentWrapper: {
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'center',
-        margin: '0 24px 20px',
-        height: 'calc(100vh - 116px)',
-        overflow: 'auto',
-        '@media (max-width:600px)': {
-            margin: '20px 10px',
-            height: 'calc(100vh - 100px)',
-            maxHeight: 'initial'
-        }
-    }
-})
+    "& .wallet-adapter-dropdown-list": {
+      "& .wallet-adapter-dropdown-list-item": {
+        padding: "0 15px",
+        height: "32px",
+        fontSize: "13px",
+      },
+    },
+    "@media (max-width:600px)": {
+      display: "none",
+    },
+  },
+  contentWrapper: {
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "center",
+    margin: "0 24px 20px",
+    height: "calc(100vh - 116px)",
+    overflow: "auto",
+    "@media (max-width:600px)": {
+      margin: "20px 10px",
+      height: "calc(100vh - 100px)",
+      maxHeight: "initial",
+    },
+  },
+});
 
 const networks = [
-    {
-        name: 'MainNet Beta RPC',
-        url: 'https://api.mainnet-beta.solana.com'
-    },
-    {
-        name: 'Serum RPC',
-        url: 'https://solana-api.projectserum.com'
-    },
-    {
-        name: 'TestNet RPC',
-        url: 'https://api.testnet.solana.com'
-    },
-    {
-        name: 'DevNet RPC',
-        url: 'https://api.devnet.solana.com'
-    },
-    {
-        name: 'LocalNet RPC',
-        url: 'http://localhost:8899'
-    }
-]
+  {
+    name: "MainNet Beta RPC",
+    url: "https://api.mainnet-beta.solana.com",
+  },
+  {
+    name: "Serum RPC",
+    url: "https://solana-api.projectserum.com",
+  },
+  {
+    name: "TestNet RPC",
+    url: "https://api.testnet.solana.com",
+  },
+  {
+    name: "DevNet RPC",
+    url: "https://api.devnet.solana.com",
+  },
+  {
+    name: "LocalNet RPC",
+    url: "http://localhost:8899",
+  },
+];
 
 function App() {
-    const classes = useStyles();
+  const classes = useStyles();
 
     // Can be set to 'devnet', 'testnet', or 'mainnet-beta'
     // const network = WalletAdapterNetwork.Devnet;
@@ -108,12 +108,12 @@ function App() {
         getBloctoWallet()
     ], []);
 
-    const [address, setAddress] = useState('');
-    const [currentRPC, setCurrentRPC] = useState<RPC>({
-        name: '',
-        url: ''
-    });
-    const [openWalletModal, setOpenWalletModal] = useState(false);
+  const [address, setAddress] = useState("");
+  const [currentRPC, setCurrentRPC] = useState<RPC>({
+    name: "",
+    url: "",
+  });
+  const [openWalletModal, setOpenWalletModal] = useState(false);
 
     useEffect(() => {
         setCurrentRPC(networks[4]);

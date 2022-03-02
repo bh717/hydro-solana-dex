@@ -1,221 +1,91 @@
 import * as anchor from "@project-serum/anchor";
-import { Program } from "@project-serum/anchor";
-import * as localJsonIdl from "../../target/idl/hydra_staking.json";
-import {
-  HydraStaking,
-  IDL,
-} from "../../sdks/hydra-ts/codegen/types/hydra_staking";
-import {
-  loadKey,
-  createMintAndVault,
-  createMint,
-  getTokenBalance,
-  transfer,
-} from "../../sdks/hydra-ts/src/utils/utils";
-import { TokenInstructions } from "@project-serum/serum";
+import * as localJsonIdl from "target/idl/hydra_staking.json";
+import { HydraStaking, IDL } from "types-ts/codegen/types/hydra_staking";
+import { createMintAndVault, createMint, transfer } from "hydra-ts/node";
 import { Keypair } from "@solana/web3.js";
-import { createTokenAccount, NodeWallet } from "@project-serum/common";
-import { TOKEN_PROGRAM_ID } from "@project-serum/serum/lib/token-instructions";
+import { createTokenAccount } from "@project-serum/common";
 import * as assert from "assert";
-const utf8 = anchor.utils.bytes.utf8;
+import { HydraAPI, HydraSDK } from "hydra-ts";
 
 describe("hydra-staking", () => {
-  const hydraStaking = new anchor.web3.PublicKey(
+  const provider = anchor.Provider.env();
+  anchor.setProvider(provider);
+
+  const programId = new anchor.web3.PublicKey(
     localJsonIdl["metadata"]["address"]
   );
-  const program = new anchor.Program(
-    IDL,
-    hydraStaking
-  ) as Program<HydraStaking>;
-  const provider = anchor.Provider.env();
+  const program = new anchor.Program<HydraStaking>(IDL, programId);
 
-  const tokenMint = Keypair.generate();
-  const redeemableMint = Keypair.generate();
-
-  let tokenVaultPubkey;
-  let tokenVaultBump;
-
+  let tokenMint = anchor.web3.Keypair.generate();
+  let redeemableMint = anchor.web3.Keypair.generate();
   let TokenAccount = Keypair.generate();
-  let redeemableTokenAccount;
+  let sdk: HydraAPI;
 
-  let poolStatePubkey;
-  let poolStateBump;
+  before(async () => {
+    sdk = HydraSDK.createFromAnchorProvider(provider, {
+      hydraStaking: program.programId.toString(),
+      redeemableMint: redeemableMint.publicKey.toString(),
+      tokenMint: tokenMint.publicKey.toString(),
+    });
 
-  it("should create tokenMint", async () => {
+    // create tokenMint
     await createMintAndVault(
       program.provider,
       tokenMint,
       TokenAccount,
       new anchor.BN(100_000_000)
     );
-  });
 
-  it("should get PDA for tokenVault", async () => {
-    [tokenVaultPubkey, tokenVaultBump] =
-      await anchor.web3.PublicKey.findProgramAddress(
-        [
-          utf8.encode("token_vault_seed"),
-          tokenMint.publicKey.toBuffer(),
-          redeemableMint.publicKey.toBuffer(),
-        ],
-        program.programId
-      );
-  });
+    // get PDA for tokenVault
+    const tokenVaultPubkey = await sdk.staking.accounts.tokenVault.key();
+    const tokenVaultBump = await sdk.staking.accounts.tokenVault.bump();
 
-  it("should create redeemableMint and redeemableTokenAccount", async () => {
+    // create redeemableMint and redeemableTokenAccount
     await createMint(program.provider, redeemableMint, tokenVaultPubkey);
-    redeemableTokenAccount = await createTokenAccount(
+    await createTokenAccount(
       program.provider,
       redeemableMint.publicKey,
       program.provider.wallet.publicKey
     );
-  });
 
-  it("should get PDA for statePool", async () => {
-    [poolStatePubkey, poolStateBump] =
-      await anchor.web3.PublicKey.findProgramAddress(
-        [
-          utf8.encode("pool_state_seed"),
-          tokenMint.publicKey.toBuffer(),
-          redeemableMint.publicKey.toBuffer(),
-        ],
-        program.programId
-      );
-  });
+    // get PDA for statePool
+    const poolStateBump = await sdk.staking.accounts.poolState.bump();
 
-  it("should initialize hydra-staking contract", async () => {
-    await program.rpc.initialize(tokenVaultBump, poolStateBump, {
-      accounts: {
-        authority: program.provider.wallet.publicKey,
-        tokenMint: tokenMint.publicKey,
-        redeemableMint: redeemableMint.publicKey,
-        poolState: poolStatePubkey,
-        tokenVault: tokenVaultPubkey,
-        payer: program.provider.wallet.publicKey,
-        systemProgram: anchor.web3.SystemProgram.programId,
-        tokenProgram: TokenInstructions.TOKEN_PROGRAM_ID,
-        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-      },
-      signers: [(program.provider.wallet as NodeWallet).payer],
-    });
+    // initialize
+    await sdk.staking.initialize(tokenVaultBump, poolStateBump);
   });
 
   it("should stake tokens into token_vault for the first time", async () => {
-    await program.rpc.stake(new anchor.BN(1000), {
-      accounts: {
-        poolState: poolStatePubkey,
-        tokenMint: tokenMint.publicKey,
-        redeemableMint: redeemableMint.publicKey,
-        userFrom: TokenAccount.publicKey,
-        userFromAuthority: program.provider.wallet.publicKey,
-        tokenVault: tokenVaultPubkey,
-        redeemableTo: redeemableTokenAccount,
-        tokenProgram: TOKEN_PROGRAM_ID,
-      },
-      signers: [(program.provider.wallet as NodeWallet).payer],
-    });
-    assert.strictEqual(
-      (
-        await getTokenBalance(program.provider, redeemableTokenAccount)
-      ).toNumber(),
-      1000
-    );
-    assert.strictEqual(
-      (await getTokenBalance(program.provider, tokenVaultPubkey)).toNumber(),
-      1000
-    );
-    assert.strictEqual(
-      (
-        await getTokenBalance(program.provider, TokenAccount.publicKey)
-      ).toNumber(),
-      99999000
-    );
+    await sdk.staking.stake(1000n);
+    assert.strictEqual(await sdk.staking.accounts.userRedeemable.bal(), 1000n);
+    assert.strictEqual(await sdk.staking.accounts.tokenVault.bal(), 1000n);
+    assert.strictEqual(await sdk.staking.accounts.userToken.bal(), 99999000n);
   });
 
   it("should stake tokens into the token_vault for a second time", async () => {
-    await program.rpc.stake(new anchor.BN(4000), {
-      accounts: {
-        poolState: poolStatePubkey,
-        tokenMint: tokenMint.publicKey,
-        redeemableMint: redeemableMint.publicKey,
-        userFrom: TokenAccount.publicKey,
-        userFromAuthority: program.provider.wallet.publicKey,
-        tokenVault: tokenVaultPubkey,
-        redeemableTo: redeemableTokenAccount,
-        tokenProgram: TOKEN_PROGRAM_ID,
-      },
-    });
-    assert.strictEqual(
-      (
-        await getTokenBalance(program.provider, redeemableTokenAccount)
-      ).toNumber(),
-      5000
-    );
-    assert.strictEqual(
-      (await getTokenBalance(program.provider, tokenVaultPubkey)).toNumber(),
-      5000
-    );
-    assert.strictEqual(
-      (
-        await getTokenBalance(program.provider, TokenAccount.publicKey)
-      ).toNumber(),
-      99995000
-    );
+    await sdk.staking.stake(4000n);
+    assert.strictEqual(await sdk.staking.accounts.userRedeemable.bal(), 5000n);
+    assert.strictEqual(await sdk.staking.accounts.tokenVault.bal(), 5000n);
+    assert.strictEqual(await sdk.staking.accounts.userToken.bal(), 99995000n);
   });
 
   it("should transfer tokens into the vault directly", async () => {
     await transfer(
       program.provider,
-      TokenAccount.publicKey,
-      tokenVaultPubkey,
+      await sdk.staking.accounts.userToken.key(),
+      await sdk.staking.accounts.tokenVault.key(),
       99995000
     );
-    assert.strictEqual(
-      (await getTokenBalance(program.provider, tokenVaultPubkey)).toNumber(),
-      100000000
-    );
-    assert.strictEqual(
-      (
-        await getTokenBalance(program.provider, redeemableTokenAccount)
-      ).toNumber(),
-      5000
-    );
-    assert.strictEqual(
-      (
-        await getTokenBalance(program.provider, TokenAccount.publicKey)
-      ).toNumber(),
-      0
-    );
+    assert.strictEqual(await sdk.staking.accounts.tokenVault.bal(), 100000000n);
+    assert.strictEqual(await sdk.staking.accounts.userRedeemable.bal(), 5000n);
+    assert.strictEqual(await sdk.staking.accounts.userToken.bal(), 0n);
   });
 
   it("should unStake 100% of the vault", async () => {
-    await program.rpc.unstake(new anchor.BN(5000), {
-      accounts: {
-        poolState: poolStatePubkey,
-        tokenMint: tokenMint.publicKey,
-        redeemableMint: redeemableMint.publicKey,
-        userTo: TokenAccount.publicKey,
-        tokenVault: tokenVaultPubkey,
-        redeemableFrom: redeemableTokenAccount,
-        redeemableFromAuthority: program.provider.wallet.publicKey,
-        tokenProgram: TOKEN_PROGRAM_ID,
-      },
-    });
-    assert.strictEqual(
-      (
-        await getTokenBalance(program.provider, redeemableTokenAccount)
-      ).toNumber(),
-      0
-    );
-    assert.strictEqual(
-      (await getTokenBalance(program.provider, tokenVaultPubkey)).toNumber(),
-      0
-    );
-    assert.strictEqual(
-      (
-        await getTokenBalance(program.provider, TokenAccount.publicKey)
-      ).toNumber(),
-      100000000
-    );
+    await sdk.staking.unstake(5000n);
+
+    assert.strictEqual(await sdk.staking.accounts.tokenVault.bal(), 0n);
+    assert.strictEqual(await sdk.staking.accounts.userRedeemable.bal(), 0n);
+    assert.strictEqual(await sdk.staking.accounts.userToken.bal(), 100000000n);
   });
 });

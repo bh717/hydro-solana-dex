@@ -4,18 +4,16 @@ import * as localJsonIdl from "../../target/idl/hydra_liquidity_pools.json";
 import {
   HydraLiquidityPools,
   IDL,
-} from "hydra-ts/codegen/types/hydra_liquidity_pools";
+} from "types-ts/codegen/types/hydra_liquidity_pools";
 import assert from "assert";
 import { TokenInstructions } from "@project-serum/serum";
 import { createMintAndVault, createTokenAccount } from "@project-serum/common";
-import {
-  createMint,
-  getTokenBalance,
-} from "hydra-ts/src/utils/utils";
-import { Keypair } from "@solana/web3.js";
+import { getTokenBalance } from "hydra-ts/src/utils";
+import { Keypair, PublicKey } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "@project-serum/serum/lib/token-instructions";
 const utf8 = anchor.utils.bytes.utf8;
-import { btcdMintAmount, usddMintAmount } from "hydra-ts/src/const";
+import { btcdMintAmount, usddMintAmount } from "./constants";
+import { createMint } from "hydra-ts/node";
 
 describe("hydra-liquidity-pool", () => {
   // Configure the client to use the local cluster.
@@ -30,17 +28,17 @@ describe("hydra-liquidity-pool", () => {
   ) as Program<HydraLiquidityPools>;
   const provider = anchor.Provider.env();
 
-  let btcdMint: anchor.web3.PublicKey;
-  let usddMint: anchor.web3.PublicKey;
-  let btcdAccount: anchor.web3.PublicKey;
-  let usddAccount: anchor.web3.PublicKey;
+  let btcdMint: PublicKey;
+  let usddMint: PublicKey;
+  let btcdAccount: PublicKey;
+  let usddAccount: PublicKey;
   const lpTokenMint = Keypair.generate();
-  let lpTokenAccount: anchor.web3.PublicKey;
+  let lpTokenAccount: PublicKey;
 
-  let poolState: anchor.web3.PublicKey;
-  let tokenAVault: anchor.web3.PublicKey;
-  let tokenBVault: anchor.web3.PublicKey;
-  let lpTokenVault: anchor.web3.PublicKey;
+  let poolState: PublicKey;
+  let tokenAVault: PublicKey;
+  let tokenBVault: PublicKey;
+  let lpTokenVault: PublicKey;
 
   let poolStateBump: number;
   let tokenAVaultBump: number;

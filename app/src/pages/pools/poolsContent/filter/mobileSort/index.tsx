@@ -1,18 +1,14 @@
-import { FC } from 'react';
-import Modal from '../../../../../components/modal';
-import Content from './content';
+import { FC } from "react";
+import Modal from "../../../../../components/modal";
+import Content from "./content";
 
 interface MobileSortModalProps {
-    open: boolean;
-    onClose(): void;
+  open: boolean;
+  onClose(): void;
 }
 
 const MobileSortModal: FC<MobileSortModalProps> = ({ open, onClose }) => (
-    <Modal
-        content={<Content />}
-        open={open}
-        onClose={onClose}
-    />
-)
+  <Modal content={<Content />} open={open} onClose={onClose} />
+);
 
 export default MobileSortModal;
