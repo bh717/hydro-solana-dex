@@ -100,17 +100,6 @@ impl Decimal {
     pub fn denominator(self) -> u128 {
         10u128.pow(self.scale.into())
     }
-
-    pub fn signed_mul(
-        lhs: &Decimal,
-        lhs_signed: bool,
-        rhs: &Decimal,
-        rhs_signed: bool,
-    ) -> (Decimal, bool) {
-        let result = lhs.mul(*rhs);
-        let result_signed = !(lhs_signed == rhs_signed);
-        (result, result_signed)
-    }
 }
 
 impl Mul<Decimal> for Decimal {
@@ -123,7 +112,7 @@ impl Mul<Decimal> for Decimal {
                 .checked_div(rhs.denominator())
                 .expect("checked_div"),
             scale: self.scale,
-            negative: self.negative,
+            negative: !(self.negative == rhs.negative),
         }
     }
 }
@@ -152,7 +141,7 @@ impl MulUp<Decimal> for Decimal {
                 .checked_div(denominator)
                 .expect("checked_div"),
             scale: self.scale,
-            negative: self.negative,
+            negative: !(self.negative == rhs.negative),
         }
     }
 }
@@ -217,7 +206,7 @@ impl Div<Decimal> for Decimal {
                 .checked_div(rhs.value)
                 .expect("checked_div"),
             scale: self.scale,
-            negative: self.negative,
+            negative: !(self.negative == rhs.negative),
         }
     }
 }
@@ -234,7 +223,7 @@ impl DivUp<Decimal> for Decimal {
                 .checked_div(rhs.value)
                 .unwrap(),
             scale: self.scale,
-            negative: self.negative,
+            negative: !(self.negative == rhs.negative),
         }
     }
 }
@@ -264,7 +253,7 @@ impl DivScale<Decimal> for Decimal {
         Self {
             value,
             scale: to_scale,
-            negative: self.negative,
+            negative: !(self.negative == rhs.negative),
         }
     }
 }
@@ -1744,51 +1733,54 @@ mod test {
     #[test]
     fn test_signed_mul() {
         // -4 * -3 = 12
-        let lhs = Decimal::new(4, 0, false);
-        let lhs_signed = true;
-        let rhs = Decimal::new(3, 0, false);
-        let rhs_signed = true;
+        let lhs = Decimal::new(4, 0, true);
+        let rhs = Decimal::new(3, 0, true);
         let expected = Decimal::new(12, 0, false);
-        let expected_signed = false;
-        assert_eq!(
-            Decimal::signed_mul(&lhs, lhs_signed, &rhs, rhs_signed),
-            (expected, expected_signed)
-        );
+        assert_eq!(lhs.mul(rhs), expected);
 
         // -4 * 3 = -12
-        let lhs = Decimal::new(4, 0, false);
-        let lhs_signed = true;
+        let lhs = Decimal::new(4, 0, true);
         let rhs = Decimal::new(3, 0, false);
-        let rhs_signed = false;
-        let expected = Decimal::new(12, 0, false);
-        let expected_signed = true;
-        assert_eq!(
-            Decimal::signed_mul(&lhs, lhs_signed, &rhs, rhs_signed),
-            (expected, expected_signed)
-        );
+        let expected = Decimal::new(12, 0, true);
+        assert_eq!(lhs.mul(rhs), expected);
 
         // 4 * -3 = -12
         let lhs = Decimal::new(4, 0, false);
-        let lhs_signed = false;
-        let rhs = Decimal::new(3, 0, false);
-        let rhs_signed = true;
-        let expected = Decimal::new(12, 0, false);
-        let expected_signed = true;
-        assert_eq!(
-            Decimal::signed_mul(&lhs, lhs_signed, &rhs, rhs_signed),
-            (expected, expected_signed)
-        );
+        let rhs = Decimal::new(3, 0, true);
+        let expected = Decimal::new(12, 0, true);
+        assert_eq!(lhs.mul(rhs), expected);
 
         // 4 * 3 = 12
         let lhs = Decimal::new(4, 0, false);
-        let lhs_signed = false;
         let rhs = Decimal::new(3, 0, false);
-        let rhs_signed = false;
         let expected = Decimal::new(12, 0, false);
-        let expected_signed = false;
-        assert_eq!(
-            Decimal::signed_mul(&lhs, lhs_signed, &rhs, rhs_signed),
-            (expected, expected_signed)
-        );
+        assert_eq!(lhs.mul(rhs), expected);
+    }
+
+    #[test]
+    fn test_signed_div() {
+        // -12 / -3 = 4
+        let lhs = Decimal::new(12, 0, true);
+        let rhs = Decimal::new(3, 0, true);
+        let expected = Decimal::new(4, 0, false);
+        assert_eq!(lhs.div(rhs), expected);
+
+        // -12 / 3 = -4
+        let lhs = Decimal::new(12, 0, true);
+        let rhs = Decimal::new(3, 0, false);
+        let expected = Decimal::new(4, 0, true);
+        assert_eq!(lhs.div(rhs), expected);
+
+        // 12 / -3 = -4
+        let lhs = Decimal::new(12, 0, false);
+        let rhs = Decimal::new(3, 0, true);
+        let expected = Decimal::new(4, 0, true);
+        assert_eq!(lhs.div(rhs), expected);
+
+        // 12 / 3 = 4
+        let lhs = Decimal::new(12, 0, false);
+        let rhs = Decimal::new(3, 0, false);
+        let expected = Decimal::new(4, 0, false);
+        assert_eq!(lhs.div(rhs), expected);
     }
 }
