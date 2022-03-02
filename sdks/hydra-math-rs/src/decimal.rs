@@ -52,9 +52,9 @@ impl Decimal {
         self.value.try_into().unwrap()
     }
 
-    pub fn from_amount(price: u128) -> Self {
+    pub fn from_amount(amount: u128) -> Self {
         Decimal {
-            value: price,
+            value: amount,
             scale: AMOUNT_SCALE,
             ..Decimal::default()
         }
@@ -876,8 +876,8 @@ mod test {
 
     #[test]
     fn test_from_amount() {
-        let price: u128 = 42;
-        let actual = Decimal::from_amount(price);
+        let amount: u128 = 42;
+        let actual = Decimal::from_amount(amount);
         let expected = Decimal {
             value: 42,
             scale: 8,
