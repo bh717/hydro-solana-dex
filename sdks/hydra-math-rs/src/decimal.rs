@@ -101,23 +101,6 @@ impl Decimal {
         10u128.pow(self.scale.into())
     }
 
-    pub fn signed_add(
-        lhs: &Decimal,
-        lhs_signed: bool,
-        rhs: &Decimal,
-        rhs_signed: bool,
-    ) -> (Self, bool) {
-        if lhs_signed && rhs_signed {
-            (lhs.add(*rhs).expect("double_negative"), true)
-        } else if lhs_signed && !rhs_signed {
-            rhs.sub_unsigned(*lhs).unwrap()
-        } else if !lhs_signed && !rhs_signed {
-            (lhs.add(*rhs).expect("double positive"), false)
-        } else {
-            lhs.sub_unsigned(*rhs).unwrap()
-        }
-    }
-
     pub fn signed_mul(
         lhs: &Decimal,
         lhs_signed: bool,
@@ -179,11 +162,23 @@ impl Add<Decimal> for Decimal {
         if !(self.scale == rhs.scale) {
             return Err(ErrorCode::DifferentScale.into());
         } else {
-            Ok(Self {
-                value: self.value.checked_add(rhs.value).expect("checked_add"),
-                scale: self.scale,
-                negative: self.negative,
-            })
+            if self.negative && rhs.negative {
+                Ok(Self {
+                    value: self.value.checked_add(rhs.value).expect("checked_add"),
+                    scale: self.scale,
+                    negative: true, // -a + -b = -(a + b)
+                })
+            } else if self.negative && !rhs.negative {
+                rhs.sub(self) // -a + b = b - a
+            } else if !self.negative && !rhs.negative {
+                Ok(Self {
+                    value: self.value.checked_add(rhs.value).expect("checked_add"),
+                    scale: self.scale,
+                    negative: false, // a + b = a + b
+                })
+            } else {
+                self.sub(rhs) // a + -b = a - b
+            }
         }
     }
 }
@@ -193,37 +188,21 @@ impl Sub<Decimal> for Decimal {
         if !(self.scale == rhs.scale) {
             return Err(ErrorCode::DifferentScale.into());
         } else {
-            Ok(Self {
-                value: self.value.checked_sub(rhs.value).expect("checked_sub"),
-                scale: self.scale,
-                negative: self.negative,
-            })
-        }
-    }
-}
-
-impl SubUnsigned<Decimal> for Decimal {
-    /// Performs a subtraction, returning the result and whether the result is negative
-    fn sub_unsigned(self, rhs: Decimal) -> Result<(Self, bool)> {
-        if rhs.gt(self).unwrap() {
-            // result is negative
-            Ok((
-                Self {
+            if rhs.gt(self).unwrap() {
+                // result must be negative
+                Ok(Self {
                     value: rhs.value.checked_sub(self.value).expect("checked_sub"),
                     scale: self.scale,
-                    negative: self.negative,
-                },
-                true,
-            ))
-        } else {
-            Ok((
-                Self {
+                    negative: true,
+                })
+            } else {
+                // result can be negative depending on self
+                Ok(Self {
                     value: self.value.checked_sub(rhs.value).expect("checked_sub"),
                     scale: self.scale,
                     negative: self.negative,
-                },
-                false,
-            ))
+                })
+            }
         }
     }
 }
@@ -713,10 +692,6 @@ pub trait Sub<T>: Sized {
     fn sub(self, rhs: T) -> Result<Self>;
 }
 
-pub trait SubUnsigned<T>: Sized {
-    fn sub_unsigned(self, rhs: T) -> Result<(Self, bool)>;
-}
-
 pub trait Add<T>: Sized {
     fn add(self, rhs: T) -> Result<Self>;
 }
@@ -1119,27 +1094,23 @@ mod test {
 
             assert_eq!({ actual.value }, { expected.value });
         }
-    }
 
-    #[test]
-    #[should_panic(expected = "checked_sub")]
-    fn test_sub_panic() {
-        let decimal = Decimal::new(1, 1, false);
-        let decrease_by = Decimal::new(2, 1, false);
-        assert!(decimal.sub(decrease_by).is_err());
-    }
-
-    #[test]
-    fn test_sub_unsigned() {
         {
             let decimal = Decimal::new(10, 6, false);
-            let decrease_by = Decimal::new(30, 6, false);
-            let expected = Decimal::new(20, 6, false);
-            let expected_negative = true;
-            let (actual, negative) = decimal.sub_unsigned(decrease_by).unwrap();
+            let decrease_by = Decimal::new(15, 6, false);
+            let actual = decimal.sub(decrease_by).unwrap();
+            let expected = Decimal::new(5, 6, true);
 
-            assert_eq!(actual, expected);
-            assert_eq!(negative, expected_negative);
+            assert_eq!({ actual.negative }, { expected.negative });
+        }
+
+        {
+            let decimal = Decimal::new(10, 6, true);
+            let decrease_by = Decimal::new(15, 6, true);
+            let actual = decimal.sub(decrease_by).unwrap();
+            let expected = Decimal::new(25, 6, true);
+
+            assert_eq!({ actual.negative }, { expected.negative });
         }
     }
 
@@ -1722,100 +1693,52 @@ mod test {
     #[test]
     fn test_signed_add() {
         // -4 + -3 = -7
-        let lhs = Decimal::new(4, 0, false);
-        let lhs_signed = true;
-        let rhs = Decimal::new(3, 0, false);
-        let rhs_signed = true;
-        let expected = Decimal::new(7, 0, false);
-        let expected_signed = true;
-        assert_eq!(
-            Decimal::signed_add(&lhs, lhs_signed, &rhs, rhs_signed),
-            (expected, expected_signed)
-        );
+        let lhs = Decimal::new(4, 0, true);
+        let rhs = Decimal::new(3, 0, true);
+        let expected = Decimal::new(7, 0, true);
+        assert_eq!(lhs.add(rhs).unwrap(), expected);
 
         // -1 + 1 = 0
-        let lhs = Decimal::new(1, 0, false);
-        let lhs_signed = true;
+        let lhs = Decimal::new(1, 0, true);
         let rhs = Decimal::new(1, 0, false);
-        let rhs_signed = false;
         let expected = Decimal::new(0, 0, false);
-        let expected_signed = false;
-        assert_eq!(
-            Decimal::signed_add(&lhs, lhs_signed, &rhs, rhs_signed),
-            (expected, expected_signed)
-        );
+        assert_eq!(lhs.add(rhs).unwrap(), expected);
 
         // 3 + -5 = -2
         let lhs = Decimal::new(3, 0, false);
-        let lhs_signed = false;
-        let rhs = Decimal::new(5, 0, false);
-        let rhs_signed = true;
-        let expected = Decimal::new(2, 0, false);
-        let expected_signed = true;
-        assert_eq!(
-            Decimal::signed_add(&lhs, lhs_signed, &rhs, rhs_signed),
-            (expected, expected_signed)
-        );
+        let rhs = Decimal::new(5, 0, true);
+        let expected = Decimal::new(2, 0, true);
+        assert_eq!(lhs.add(rhs).unwrap(), expected);
 
         // -5 + 3 = -2
-        let lhs = Decimal::new(5, 0, false);
-        let lhs_signed = true;
+        let lhs = Decimal::new(5, 0, true);
         let rhs = Decimal::new(3, 0, false);
-        let rhs_signed = false;
-        let expected = Decimal::new(2, 0, false);
-        let expected_signed = true;
-        assert_eq!(
-            Decimal::signed_add(&lhs, lhs_signed, &rhs, rhs_signed),
-            (expected, expected_signed)
-        );
+        let expected = Decimal::new(2, 0, true);
+        assert_eq!(lhs.add(rhs).unwrap(), expected);
 
         // 5 + -2 = 3
         let lhs = Decimal::new(5, 0, false);
-        let lhs_signed = false;
-        let rhs = Decimal::new(2, 0, false);
-        let rhs_signed = true;
+        let rhs = Decimal::new(2, 0, true);
         let expected = Decimal::new(3, 0, false);
-        let expected_signed = false;
-        assert_eq!(
-            Decimal::signed_add(&lhs, lhs_signed, &rhs, rhs_signed),
-            (expected, expected_signed)
-        );
+        assert_eq!(lhs.add(rhs).unwrap(), expected);
 
         // -3 + 5 = 2
-        let lhs = Decimal::new(3, 0, false);
-        let lhs_signed = true;
+        let lhs = Decimal::new(3, 0, true);
         let rhs = Decimal::new(5, 0, false);
-        let rhs_signed = false;
         let expected = Decimal::new(2, 0, false);
-        let expected_signed = false;
-        assert_eq!(
-            Decimal::signed_add(&lhs, lhs_signed, &rhs, rhs_signed),
-            (expected, expected_signed)
-        );
+        assert_eq!(lhs.add(rhs).unwrap(), expected);
 
         // 1 + -2 = -1
         let lhs = Decimal::new(1, 0, false);
-        let lhs_signed = false;
-        let rhs = Decimal::new(2, 0, false);
-        let rhs_signed = true;
-        let expected = Decimal::new(1, 0, false);
-        let expected_signed = true;
-        assert_eq!(
-            Decimal::signed_add(&lhs, lhs_signed, &rhs, rhs_signed),
-            (expected, expected_signed)
-        );
+        let rhs = Decimal::new(2, 0, true);
+        let expected = Decimal::new(1, 0, true);
+        assert_eq!(lhs.add(rhs).unwrap(), expected);
 
         // 4 + 3 = 7
         let lhs = Decimal::new(4, 0, false);
-        let lhs_signed = false;
         let rhs = Decimal::new(3, 0, false);
-        let rhs_signed = false;
         let expected = Decimal::new(7, 0, false);
-        let expected_signed = false;
-        assert_eq!(
-            Decimal::signed_add(&lhs, lhs_signed, &rhs, rhs_signed),
-            (expected, expected_signed)
-        );
+        assert_eq!(lhs.add(rhs).unwrap(), expected);
     }
 
     #[test]
