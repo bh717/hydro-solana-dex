@@ -53,16 +53,21 @@ watch:
 	cargo watch -- anchor build -- --features "localnet"
 
 anchor-ci:
-	yarn install
 	solana-keygen new --no-bip39-passphrase || true
 	cargo check
 	cargo test
 	anchor build
+	yarn --frozen-lockfile
+	yarn lint
+	yarn deploy-to-create-idl
+	yarn turbo run build --concurrency=1
+	yarn test
 	anchor test
 	cargo fmt -- --check
 
 react-ci-cd:
-	cd app; yarn install
+	yarn --frozen-lockfile
+	yarn lint
 	cd app; yarn build
 	#cd app; CI=true yarn test # Broke with inital UI
 	cd app; ipd -C build/

@@ -6,7 +6,7 @@
   "types": "src/index.ts",
   "scripts": {
     "build": "tsc",
-    "dev": "tsc --watch",
+    "watch": "tsc --watch",
     "build-test": "cd wasm-test && yarn build",
     "test": "yarn build-test && jest"
   },

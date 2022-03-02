@@ -1,4 +1,6 @@
-import * as Buffer from "buffer";
+/**
+ * THE FOLLOWING IS BUILD WITH A NODE COMPILE TARGET
+ */
 import { URL } from "url";
 import * as fs from "fs";
 import * as anchor from "@project-serum/anchor";
@@ -113,10 +115,4 @@ export async function createMintAndVault(
   );
   await provider.send(tx, [mint, vault]);
   return [mint.publicKey, vault.publicKey];
-}
-
-export async function getTokenBalance(provider: Provider, pubkey: PublicKey) {
-  return new BN(
-    (await provider.connection.getTokenAccountBalance(pubkey)).value.amount
-  );
 }

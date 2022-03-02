@@ -7,16 +7,22 @@
     "build:devnet": "anchor build -- --features \"devnet\"",
     "build:testnet": "anchor build -- --features \"testnet\"",
     "build:mainnet": "anchor build -- --features \"mainnet\"",
+    "deploy-to-create-idl": "concurrently -rks first \"anchor build && solana-test-validator\" \"wait-on tcp:8899 && anchor deploy\"",
     "build": "turbo run build",
     "test": "turbo run test --parallel",
-    "dev": "turbo run dev --parallel"
+    "watch": "turbo run watch --parallel",
+    "lint": "prettier --check .",
+    "clean": "turbo run clean"
   },
   "license": "UNLICENSED",
   "dependencies": {
     "@project-serum/anchor": "^0.20.1",
     "@project-serum/common": "^0.0.1-beta.3",
     "@project-serum/serum": "^0.13.61",
-    "@project-serum/tokens": "^0.0.7"
+    "@project-serum/tokens": "^0.0.7",
+    "concurrently": "^7.0.0",
+    "prettier": "^2.5.1",
+    "wait-on": "^6.0.1"
   },
   "devDependencies": {
     "@types/expand-tilde": "^2.0.0",
@@ -24,6 +30,7 @@
     "arg": "^5.0.1",
     "chai": "^4.3.4",
     "expand-tilde": "^2.0.2",
+    "hydra-ts": "*",
     "mocha": "^9.0.3",
     "toml": "^3.0.0",
     "ts-mocha": "^9.0.0",
@@ -60,5 +67,6 @@
       "**/jest/**",
       "**/jest-*"
     ]
-  }
+  },
+  "packageManager": "yarn@1.22.17"
 }

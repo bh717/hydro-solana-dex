@@ -30,4 +30,3 @@ After running benchmarks, check your local `target/criterion/report/index.html` 
 Code is fully documented:
 
     $ cargo doc --document-private-items --open
-
