@@ -1,7 +1,7 @@
 {
   "extends": "./base.tsconfig.json",
   "compilerOptions": {
-    "declaration": true,
-    "declarationMap": true
+    "declaration": false,
+    "declarationMap": false
   }
 }
