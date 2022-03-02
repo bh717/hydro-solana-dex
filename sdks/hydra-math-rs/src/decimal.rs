@@ -2,8 +2,11 @@ use anchor_lang::prelude::*;
 use ndarray::{arr2, Array2};
 use std::convert::TryInto;
 
+/// Default precision for a [Decimal] expressed as an amount.
 pub const AMOUNT_SCALE: u8 = 8;
+// TODO: add more constants for default precision on other types e.g. fees, percentages
 
+/// Error codes related to [Decimal].
 #[error]
 pub enum ErrorCode {
     #[msg("Scale is different")]
@@ -14,6 +17,8 @@ pub enum ErrorCode {
     ExceedsPrecisionRange = 3,
 }
 
+/// [Decimal] representation of a number with a value, scale (precision in terms of number of decimal places
+/// and a negative boolean to handle signed arithmetic.
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct Decimal {
     pub value: u128,
@@ -21,6 +26,7 @@ pub struct Decimal {
     pub negative: bool,
 }
 
+/// Defaults for [Decimal] assumes numbers are positive by default and no decimal places.
 impl Default for Decimal {
     fn default() -> Self {
         Self {
@@ -32,6 +38,7 @@ impl Default for Decimal {
 }
 
 impl Decimal {
+    /// Create a new [Decimal] from its value, scale and negative parts.
     pub fn new(value: u128, scale: u8, negative: bool) -> Self {
         Self {
             value,
@@ -40,6 +47,7 @@ impl Decimal {
         }
     }
 
+    /// Create a [Decimal] from an unsigned integer, assumed positive by default.
     pub fn from_u64(integer: u64) -> Self {
         Decimal {
             value: integer.into(),
@@ -48,10 +56,13 @@ impl Decimal {
         }
     }
 
+    /// Convert a [Decimal] to an unsigned integer, assumed positive by default.
     pub fn to_u64(self) -> u64 {
         self.value.try_into().unwrap()
     }
 
+    /// Create a [Decimal] from an unsigned integer expressed as an amount
+    /// with precision defined by constant and assumed positive by default.
     pub fn from_amount(amount: u128) -> Self {
         Decimal {
             value: amount,
@@ -60,10 +71,12 @@ impl Decimal {
         }
     }
 
+    /// Convert a [Decimal] to an unsigned integer expressed as an amount.
     pub fn to_amount(self) -> Decimal {
         self.to_scale(AMOUNT_SCALE)
     }
 
+    /// Modify the scale (precision) of a [Decimal] to a different scale.
     pub fn to_scale(self, scale: u8) -> Self {
         Self {
             value: if self.scale > scale {
@@ -80,6 +93,8 @@ impl Decimal {
         }
     }
 
+    /// Modify the scale (precision) of a [Decimal] to a different scale
+    /// and round up (ceiling) the value.
     pub fn to_scale_up(self, scale: u8) -> Self {
         let decimal = Self::new(self.value, scale, self.negative);
         if self.scale >= scale {
@@ -97,11 +112,13 @@ impl Decimal {
         }
     }
 
+    /// Show the scale of a [Decimal] expressed as a power of 10.
     pub fn denominator(self) -> u128 {
         10u128.pow(self.scale.into())
     }
 }
 
+/// Multiply another [Decimal] value against itself, including signed multiplication.
 impl Mul<Decimal> for Decimal {
     fn mul(self, rhs: Decimal) -> Self {
         Self {
@@ -117,6 +134,7 @@ impl Mul<Decimal> for Decimal {
     }
 }
 
+/// Multiply an unsigned integer value against itself.
 impl Mul<u128> for Decimal {
     fn mul(self, rhs: u128) -> Self {
         Self {
@@ -127,6 +145,8 @@ impl Mul<u128> for Decimal {
     }
 }
 
+/// Multiply another [Decimal] value against itself, including signed multiplication
+/// and round up (ceiling) the value.
 impl MulUp<Decimal> for Decimal {
     fn mul_up(self, rhs: Decimal) -> Self {
         let denominator = rhs.denominator();
@@ -146,6 +166,7 @@ impl MulUp<Decimal> for Decimal {
     }
 }
 
+/// Add another [Decimal] value to itself, including signed addition.
 impl Add<Decimal> for Decimal {
     fn add(self, rhs: Decimal) -> Result<Self> {
         if !(self.scale == rhs.scale) {
@@ -172,6 +193,7 @@ impl Add<Decimal> for Decimal {
     }
 }
 
+/// Subtract another [Decimal] value from itself, including signed subtraction.
 impl Sub<Decimal> for Decimal {
     fn sub(self, rhs: Decimal) -> Result<Self> {
         if !(self.scale == rhs.scale) {
@@ -196,6 +218,7 @@ impl Sub<Decimal> for Decimal {
     }
 }
 
+/// Divide a [Decimal] over another [Decimal], including signed division.
 impl Div<Decimal> for Decimal {
     fn div(self, rhs: Decimal) -> Self {
         Self {
@@ -211,6 +234,8 @@ impl Div<Decimal> for Decimal {
     }
 }
 
+/// Divide a [Decimal] over another [Decimal], including signed division.
+/// and round up (ceiling) the value.
 impl DivUp<Decimal> for Decimal {
     fn div_up(self, rhs: Decimal) -> Self {
         Self {
@@ -228,6 +253,8 @@ impl DivUp<Decimal> for Decimal {
     }
 }
 
+/// Divide another [Decimal] value under itself, including signed division
+/// and modify the scale (precision)
 impl DivScale<Decimal> for Decimal {
     fn div_to_scale(self, rhs: Decimal, to_scale: u8) -> Self {
         let decimal_difference = (self.scale as i32)
@@ -258,42 +285,7 @@ impl DivScale<Decimal> for Decimal {
     }
 }
 
-impl Pow<u128> for Decimal {
-    fn pow(self, exp: u128) -> Self {
-        // This function has been copied from SPL math checked_pow
-        // For odd powers, start with a multiplication by base since we halve the
-        // exponent at the start
-        let value = if exp.checked_rem(2).unwrap() == 0 {
-            self.denominator()
-        } else {
-            self.value
-        };
-
-        let mut result = Decimal {
-            value,
-            scale: self.scale,
-            negative: self.negative,
-        };
-
-        // To minimize the number of operations, we keep squaring the base, and
-        // only push to the result on odd exponents, like a binary decomposition
-        // of the exponent.
-        let mut squared_base = self.clone();
-        let mut current_exponent = exp.checked_div(2).unwrap();
-        while current_exponent != 0 {
-            squared_base = squared_base.mul(squared_base);
-
-            // For odd exponents, "push" the base onto the value
-            if current_exponent.checked_rem(2).unwrap() != 0 {
-                result = result.mul(squared_base);
-            }
-
-            current_exponent = current_exponent.checked_div(2).unwrap();
-        }
-        return result;
-    }
-}
-
+/// Calculate the power of a [Decimal] with another [Decimal] as the exponent.
 impl Pow<Decimal> for Decimal {
     fn pow(self, exp: Decimal) -> Self {
         // 0.25 to scale
@@ -345,8 +337,9 @@ impl Pow<Decimal> for Decimal {
     }
 }
 
-impl PowAccuracy<u128> for Decimal {
-    fn pow_with_accuracy(self, exp: u128) -> Self {
+/// Calculate the power of a [Decimal] with an unsigned integer as the exponent.
+impl Pow<u128> for Decimal {
+    fn pow(self, exp: u128) -> Self {
         let one = Decimal {
             value: self.denominator(),
             scale: self.scale,
@@ -372,19 +365,23 @@ impl PowAccuracy<u128> for Decimal {
     }
 }
 
+/// Convert a [Decimal] into an unsigned 64-bit integer.
 impl Into<u64> for Decimal {
     fn into(self) -> u64 {
         self.value.try_into().unwrap()
     }
 }
 
+/// Convert a [Decimal] into an unsigned 128-bit integer.
 impl Into<u128> for Decimal {
     fn into(self) -> u128 {
         self.value.try_into().unwrap()
     }
 }
 
+/// Compare two [Decimal] values/scale with comparison query operators.
 impl Compare<Decimal> for Decimal {
+    /// Show if two [Decimal] values equal each other
     fn eq(self, other: Decimal) -> Result<bool> {
         if !(self.scale == other.scale) {
             return Err(ErrorCode::DifferentScale.into());
@@ -393,6 +390,7 @@ impl Compare<Decimal> for Decimal {
         }
     }
 
+    /// Show if one [Decimal] value is less than another.
     fn lt(self, other: Decimal) -> Result<bool> {
         if !(self.scale == other.scale) {
             return Err(ErrorCode::DifferentScale.into());
@@ -401,6 +399,7 @@ impl Compare<Decimal> for Decimal {
         }
     }
 
+    /// Show if one [Decimal] value is greater than another.
     fn gt(self, other: Decimal) -> Result<bool> {
         if !(self.scale == other.scale) {
             return Err(ErrorCode::DifferentScale.into());
@@ -409,6 +408,7 @@ impl Compare<Decimal> for Decimal {
         }
     }
 
+    /// Show if one [Decimal] value is greater than or equal to another.
     fn gte(self, other: Decimal) -> Result<bool> {
         if !(self.scale == other.scale) {
             return Err(ErrorCode::DifferentScale.into());
@@ -417,6 +417,7 @@ impl Compare<Decimal> for Decimal {
         }
     }
 
+    /// Show if one [Decimal] value is less than or equal to another.
     fn lte(self, other: Decimal) -> Result<bool> {
         if !(self.scale == other.scale) {
             return Err(ErrorCode::DifferentScale.into());
@@ -426,6 +427,20 @@ impl Compare<Decimal> for Decimal {
     }
 }
 
+/// Private function of pre calculated log table values.
+/// These can be calculated from an index expressed as:
+// 1.1	1.01	1.001	1.0001	1.00001	1.000001	1.0000001	1.00000001	1.000000001
+// 1.2	1.02	1.002	1.0002	1.00002	1.000002	1.0000002	1.00000002	1.000000002
+// 1.3	1.03	1.003	1.0003	1.00003	1.000003	1.0000003	1.00000003	1.000000003
+// 1.4	1.04	1.004	1.0004	1.00004	1.000004	1.0000004	1.00000004	1.000000004
+// 1.5	1.05	1.005	1.0005	1.00005	1.000005	1.0000005	1.00000005	1.000000005
+// 1.6	1.06	1.006	1.0006	1.00006	1.000006	1.0000006	1.00000006	1.000000006
+// 1.7	1.07	1.007	1.0007	1.00007	1.000007	1.0000007	1.00000007	1.000000007
+// 1.8	1.08	1.008	1.0008	1.00008	1.000008	1.0000008	1.00000008	1.000000008
+// 1.9	1.09	1.009	1.0009	1.00009	1.000009	1.0000009	1.00000009	1.000000009
+// with each column, row determined by the function:
+// INT(LN(index)*scale)
+// where scale is a predetermined precision e.g. 10^12
 fn log_table(row: usize, col: usize) -> u128 {
     let table: Array2<u128> = arr2(&[
         [
@@ -559,6 +574,8 @@ fn log_table(row: usize, col: usize) -> u128 {
     table[[row, col]]
 }
 
+/// Private function to return a pre calculated log table value based on scale, column
+/// and s and t values.
 fn log_table_value(
     s_value: Decimal,
     t_value: Decimal,
@@ -581,6 +598,8 @@ fn log_table_value(
     (s_value, t_value, lx_value)
 }
 
+/// Calculate the natural logarithm of a [Decimal] value. For full algorithm please refer to:
+// https://docs.google.com/spreadsheets/d/19mgYjGQlpsuaTk1zXujn-yCSdbAL25sP/edit?pli=1#gid=2070648638
 impl Ln<Decimal> for Decimal {
     fn ln(self) -> Result<Self> {
         let scale = self.scale;
@@ -621,6 +640,8 @@ impl Ln<Decimal> for Decimal {
     }
 }
 
+/// Calculate the square root of a [Decimal] value. For full algorithm please refer to:
+// https://docs.google.com/spreadsheets/d/1dw7HaR_YsgvT7iA_4kv2rgWb-EvSyQGM/edit#gid=432909162
 impl Sqrt<Decimal> for Decimal {
     fn sqrt(self) -> Result<Self> {
         let zero = Decimal::new(0, self.scale, false);
@@ -711,10 +732,6 @@ pub trait Ln<T>: Sized {
 
 pub trait Pow<T>: Sized {
     fn pow(self, rhs: T) -> Self;
-}
-
-pub trait PowAccuracy<T>: Sized {
-    fn pow_with_accuracy(self, rhs: T) -> Self;
 }
 
 pub trait Sqrt<T>: Sized {
