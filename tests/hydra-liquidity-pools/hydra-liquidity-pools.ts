@@ -11,8 +11,9 @@ import { createMintAndVault, createTokenAccount } from "@project-serum/common";
 import { getTokenBalance } from "hydra-ts/src/utils";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "@project-serum/serum/lib/token-instructions";
+
 const utf8 = anchor.utils.bytes.utf8;
-import { btcdMintAmount, usddMintAmount } from "./constants";
+import { btcdMintAmount, usddMintAmount } from "../constants";
 import { createMint } from "hydra-ts/node";
 
 describe("hydra-liquidity-pool", () => {
@@ -36,13 +37,13 @@ describe("hydra-liquidity-pool", () => {
   let lpTokenAccount: PublicKey;
 
   let poolState: PublicKey;
-  let tokenAVault: PublicKey;
-  let tokenBVault: PublicKey;
+  let baseTokenVault: PublicKey;
+  let quoteTokenVault: PublicKey;
   let lpTokenVault: PublicKey;
 
   let poolStateBump: number;
-  let tokenAVaultBump: number;
-  let tokenBVaultBump: number;
+  let baseTokenVaultBump: number;
+  let quoteTokenVaultBump: number;
   let lpTokenVaultBump: number;
   let poolStateAccount: any;
 
@@ -81,7 +82,7 @@ describe("hydra-liquidity-pool", () => {
   });
 
   it("should get the PDA for the TokenAVault", async () => {
-    [tokenAVault, tokenAVaultBump] =
+    [baseTokenVault, baseTokenVaultBump] =
       await anchor.web3.PublicKey.findProgramAddress(
         [
           utf8.encode("token_vault_seed"),
@@ -93,7 +94,7 @@ describe("hydra-liquidity-pool", () => {
   });
 
   it("should get the PDA for the TokenBVault", async () => {
-    [tokenBVault, tokenBVaultBump] =
+    [quoteTokenVault, quoteTokenVaultBump] =
       await anchor.web3.PublicKey.findProgramAddress(
         [
           utf8.encode("token_vault_seed"),
@@ -118,8 +119,8 @@ describe("hydra-liquidity-pool", () => {
 
   it("should initialize a liquidity-pool", async () => {
     await program.rpc.initialize(
-      tokenAVaultBump,
-      tokenBVaultBump,
+      baseTokenVaultBump,
+      quoteTokenVaultBump,
       poolStateBump,
       lpTokenVaultBump,
       {
@@ -127,12 +128,12 @@ describe("hydra-liquidity-pool", () => {
           authority: provider.wallet.publicKey,
           payer: provider.wallet.publicKey,
           poolState: poolState,
-          tokenAMint: btcdMint,
-          tokenBMint: usddMint,
+          baseTokenMint: btcdMint,
+          quoteTokenMint: usddMint,
           lpTokenMint: lpTokenMint.publicKey,
-          tokenAVault: tokenAVault,
-          tokenBVault: tokenBVault,
-          lpTokenVault: lpTokenVault,
+          baseTokenVault,
+          quoteTokenVault,
+          lpTokenVault,
           systemProgram: anchor.web3.SystemProgram.programId,
           tokenProgram: TokenInstructions.TOKEN_PROGRAM_ID,
           rent: anchor.web3.SYSVAR_RENT_PUBKEY,
@@ -147,22 +148,29 @@ describe("hydra-liquidity-pool", () => {
       provider.wallet.publicKey.toString()
     );
     assert.equal(
-      poolStateAccount.tokenAVault.toString(),
-      tokenAVault.toString()
+      poolStateAccount.baseTokenVault.toString(),
+      baseTokenVault.toString()
     );
     assert.equal(
-      poolStateAccount.tokenBVault.toString(),
-      tokenBVault.toString()
+      poolStateAccount.quoteTokenVault.toString(),
+      quoteTokenVault.toString()
     );
-    assert.equal(poolStateAccount.tokenAMint.toString(), btcdMint.toString());
-    assert.equal(poolStateAccount.tokenBMint.toString(), usddMint.toString());
+
+    assert.equal(
+      poolStateAccount.baseTokenMint.toString(),
+      btcdMint.toString()
+    );
+    assert.equal(
+      poolStateAccount.quoteTokenMint.toString(),
+      usddMint.toString()
+    );
     assert.equal(
       poolStateAccount.lpTokenMint.toString(),
       lpTokenMint.publicKey.toString()
     );
     assert.equal(poolStateAccount.poolStateBump, poolStateBump);
-    assert.equal(poolStateAccount.tokenAVaultBump, tokenAVaultBump);
-    assert.equal(poolStateAccount.tokenBVaultBump, tokenBVaultBump);
+    assert.equal(poolStateAccount.baseTokenVaultBump, baseTokenVaultBump);
+    assert.equal(poolStateAccount.quoteTokenVaultBump, quoteTokenVaultBump);
   });
 
   it("should add-liquidity to pool for the first time", async () => {
@@ -174,12 +182,12 @@ describe("hydra-liquidity-pool", () => {
         accounts: {
           poolState: poolState,
           lpTokenMint: lpTokenMint.publicKey,
-          userTokenA: btcdAccount,
-          userTokenB: usddAccount,
+          userBaseToken: btcdAccount,
+          userQuoteToken: usddAccount,
           user: provider.wallet.publicKey,
-          tokenAVault: tokenAVault,
-          tokenBVault: tokenBVault,
-          lpTokenVault: lpTokenVault,
+          baseTokenVault,
+          quoteTokenVault,
+          lpTokenVault,
           lpTokenTo: lpTokenAccount,
           tokenProgram: TOKEN_PROGRAM_ID,
         },
@@ -202,11 +210,11 @@ describe("hydra-liquidity-pool", () => {
       100
     );
     assert.strictEqual(
-      (await getTokenBalance(provider, tokenAVault)).toNumber(),
+      (await getTokenBalance(provider, baseTokenVault)).toNumber(),
       6000000
     );
     assert.strictEqual(
-      (await getTokenBalance(provider, tokenBVault)).toNumber(),
+      (await getTokenBalance(provider, quoteTokenVault)).toNumber(),
       255575287200
     );
   });
@@ -220,12 +228,12 @@ describe("hydra-liquidity-pool", () => {
         accounts: {
           poolState: poolState,
           lpTokenMint: lpTokenMint.publicKey,
-          userTokenA: btcdAccount,
-          userTokenB: usddAccount,
+          userBaseToken: btcdAccount,
+          userQuoteToken: usddAccount,
           user: provider.wallet.publicKey,
-          tokenAVault: tokenAVault,
-          tokenBVault: tokenBVault,
-          lpTokenVault: lpTokenVault,
+          baseTokenVault,
+          quoteTokenVault,
+          lpTokenVault,
           lpTokenTo: lpTokenAccount,
           tokenProgram: TOKEN_PROGRAM_ID,
         },
@@ -250,11 +258,11 @@ describe("hydra-liquidity-pool", () => {
       100
     );
     assert.strictEqual(
-      (await getTokenBalance(provider, tokenAVault)).toNumber(),
+      (await getTokenBalance(provider, baseTokenVault)).toNumber(),
       6000000
     );
     assert.strictEqual(
-      (await getTokenBalance(provider, tokenBVault)).toNumber(),
+      (await getTokenBalance(provider, quoteTokenVault)).toNumber(),
       255575287200
     );
   });
@@ -268,12 +276,12 @@ describe("hydra-liquidity-pool", () => {
         accounts: {
           poolState: poolState,
           lpTokenMint: lpTokenMint.publicKey,
-          userTokenA: btcdAccount,
-          userTokenB: usddAccount,
+          userBaseToken: btcdAccount,
+          userQuoteToken: usddAccount,
           user: provider.wallet.publicKey,
-          tokenAVault: tokenAVault,
-          tokenBVault: tokenBVault,
-          lpTokenVault: lpTokenVault,
+          baseTokenVault,
+          quoteTokenVault,
+          lpTokenVault,
           lpTokenTo: lpTokenAccount,
           tokenProgram: TOKEN_PROGRAM_ID,
         },
@@ -296,11 +304,11 @@ describe("hydra-liquidity-pool", () => {
       100
     ); // no change
     assert.strictEqual(
-      (await getTokenBalance(provider, tokenAVault)).toNumber(),
+      (await getTokenBalance(provider, baseTokenVault)).toNumber(),
       6000000 + 16000000
     );
     assert.strictEqual(
-      (await getTokenBalance(provider, tokenBVault)).toNumber(),
+      (await getTokenBalance(provider, quoteTokenVault)).toNumber(),
       255575287200 + 681534099132
     );
   });
@@ -315,12 +323,12 @@ describe("hydra-liquidity-pool", () => {
           accounts: {
             poolState: poolState,
             lpTokenMint: lpTokenMint.publicKey,
-            userTokenA: btcdAccount,
-            userTokenB: usddAccount,
+            userBaseToken: btcdAccount,
+            userQuoteToken: usddAccount,
             user: provider.wallet.publicKey,
-            tokenAVault: tokenAVault,
-            tokenBVault: tokenBVault,
-            lpTokenVault: lpTokenVault,
+            baseTokenVault,
+            quoteTokenVault,
+            lpTokenVault,
             lpTokenTo: lpTokenAccount,
             tokenProgram: TOKEN_PROGRAM_ID,
           },
@@ -355,11 +363,11 @@ describe("hydra-liquidity-pool", () => {
     );
     // no change
     assert.strictEqual(
-      (await getTokenBalance(provider, tokenAVault)).toNumber(),
+      (await getTokenBalance(provider, baseTokenVault)).toNumber(),
       6000000 + 16000000
     );
     assert.strictEqual(
-      (await getTokenBalance(provider, tokenBVault)).toNumber(),
+      (await getTokenBalance(provider, quoteTokenVault)).toNumber(),
       255575287200 + 681534099132
     );
   });
@@ -370,10 +378,10 @@ describe("hydra-liquidity-pool", () => {
         poolState: poolState,
         user: provider.wallet.publicKey,
         userRedeemableLpTokens: lpTokenAccount,
-        userTokenAAccount: btcdAccount,
-        userTokenBAccount: usddAccount,
-        tokenAVault: tokenAVault,
-        tokenBVault: tokenBVault,
+        userBaseTokenAccount: btcdAccount,
+        userQuoteTokenAccount: usddAccount,
+        baseTokenVault,
+        quoteTokenVault,
         lpTokenMint: lpTokenMint.publicKey,
         tokenProgram: TOKEN_PROGRAM_ID,
       },
@@ -400,10 +408,10 @@ describe("hydra-liquidity-pool", () => {
           poolState: poolState,
           user: provider.wallet.publicKey,
           userRedeemableLpTokens: lpTokenAccount,
-          userTokenAAccount: btcdAccount,
-          userTokenBAccount: usddAccount,
-          tokenAVault: tokenAVault,
-          tokenBVault: tokenBVault,
+          userBaseTokenAccount: btcdAccount,
+          userQuoteTokenAccount: usddAccount,
+          baseTokenVault,
+          quoteTokenVault,
           lpTokenMint: lpTokenMint.publicKey,
           tokenProgram: TOKEN_PROGRAM_ID,
         },
