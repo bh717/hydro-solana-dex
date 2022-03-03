@@ -1,2 +1,2 @@
-pub mod hydra_lp_tokens;
-pub mod hydra_staking;
+pub mod liquidity_pools;
+pub mod staking;

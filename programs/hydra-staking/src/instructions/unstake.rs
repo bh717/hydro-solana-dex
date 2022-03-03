@@ -5,7 +5,7 @@ use crate::utils::price::calculate_price;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
 use anchor_spl::token::{Burn, Mint, Token, TokenAccount, Transfer};
-use hydra_math_rs::programs::hydra_staking::calculate_pool_tokens_for_withdraw;
+use hydra_math_rs::programs::staking::hydra_staking::calculate_pool_tokens_for_withdraw;
 
 #[derive(Accounts)]
 pub struct UnStake<'info> {
