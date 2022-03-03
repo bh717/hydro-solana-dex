@@ -14,7 +14,7 @@ describe("hydra-benchmarks", () => {
       hydraBenchmarks
   ) as Program<HydraBenchmarks>;
 
-  it("Is initialized!", async () => {
+  it("runs the benchmarked functions on chain", async () => {
     // Add your test here.
     const tx = await program.rpc.initialize({});
     console.log("Your transaction signature", tx);
