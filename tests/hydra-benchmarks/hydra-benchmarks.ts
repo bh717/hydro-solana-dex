@@ -7,11 +7,11 @@ describe("hydra-benchmarks", () => {
   anchor.setProvider(anchor.Provider.env());
 
   const hydraBenchmarks = new anchor.web3.PublicKey(
-      localJsonIdl["metadata"]["address"]
+    localJsonIdl["metadata"]["address"]
   );
   const program = new anchor.Program(
-      IDL,
-      hydraBenchmarks
+    IDL,
+    hydraBenchmarks
   ) as Program<HydraBenchmarks>;
 
   it("runs the benchmarked functions on chain", async () => {
