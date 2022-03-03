@@ -428,20 +428,22 @@ impl<'a> Pool<'a> {
         // calculate ticks that will be used to track position
         let lower_tick = self.rp_to_possible_tick(rpa, false);
         let upper_tick = self.rp_to_possible_tick(rpb, false);
-        let tk = self.glbl_tick();
+        let rpa_used = Pool::tick_to_rp(lower_tick);
+        let rpb_used = Pool::tick_to_rp(upper_tick);
+        let rp_used = self.glbl_rp();
 
         // TODO should we use Oracle price here instead? or real price as param
         // ? only when no liquidity in range?
 
-        let mut liq = Pool::liq_from_x_y_tick_rng(x, y, tk, lower_tick, upper_tick);
+        let mut liq = Pool::liq_from_x_y_rp_rng(x, y, rp_used, rpa_used, rpb_used);
         // round down to avoid float rounding vulnerabilities
         // TODO choose what precision to round down to
         if Self::FLOOR_LIQ {
             liq = liq.floor()
         };
 
-        let x_in = Pool::x_from_l_tick_rng(liq, tk, lower_tick, upper_tick).min(x);
-        let y_in = Pool::y_from_l_tick_rng(liq, tk, lower_tick, upper_tick).min(y);
+        let x_in = Pool::x_from_l_rp_rng(liq, rp_used, rpa_used, rpb_used);
+        let y_in = Pool::y_from_l_rp_rng(liq, rp_used, rpa_used, rpb_used);
         if x_in > x {
             panic!("used x amt cannot exceed provided amount");
         }
@@ -475,22 +477,24 @@ impl<'a> Pool<'a> {
     pub fn withdraw(&mut self, user_id: &'a str, liq: f64, rpa: f64, rpb: f64) {
         // interface to withdraw liquidity from pool
         if liq < 0.0 {
-            panic!("")
+            panic!("can only withdraw positive amounts")
         }
 
         // calculate ticks that will be used to track position
         let lower_tick = self.rp_to_possible_tick(rpa, false);
         let upper_tick = self.rp_to_possible_tick(rpb, false);
+        let rpa_used = Pool::tick_to_rp(lower_tick);
+        let rpb_used = Pool::tick_to_rp(upper_tick);
 
         let (fees_x, fees_y, adj_x, adj_y) =
             self._set_position(user_id, lower_tick, upper_tick, -liq);
-        let tk = self.glbl_tick();
+        let rp_used = self.glbl_rp();
 
         // TODO should we use Oracle price here instead? or real price as param
         // ? only when no liquidity in range?
 
-        let mut x_out = Pool::x_from_l_tick_rng(liq, tk, lower_tick, upper_tick);
-        let mut y_out = Pool::y_from_l_tick_rng(liq, tk, lower_tick, upper_tick);
+        let mut x_out = Pool::x_from_l_rp_rng(liq, rp_used, rpa_used, rpb_used);
+        let mut y_out = Pool::y_from_l_rp_rng(liq, rp_used, rpa_used, rpb_used);
         // round down amount withdrawn if necessary, as precation
         x_out *= 1.0 - Pool::ADJ_WITHDRAWAL;
         y_out *= 1.0 - Pool::ADJ_WITHDRAWAL;
