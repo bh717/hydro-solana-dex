@@ -78,6 +78,15 @@ After `anchor deploy` you can run:
 
 We would like to make this experience more seamless.
 
+#### Dependencies
+
+wasm-pack via:
+```
+curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+cargo install wasm-bindgen-cli
+```
+
+
 ### Deploy
 
 `anchor deploy`

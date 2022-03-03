@@ -1,39 +1,22 @@
-import * as anchor from '@project-serum/anchor';
-import { Program } from '@project-serum/anchor';
-import { HydraBenchmarks } from '../../target/types/hydra_benchmarks';
-// @ts-ignore
-import assert from "assert";
+import * as anchor from "@project-serum/anchor";
+import { Program } from "@project-serum/anchor";
+import * as localJsonIdl from "../../target/idl/hydra_benchmarks.json";
+import { HydraBenchmarks, IDL } from "types-ts/codegen/types/hydra_benchmarks";
 
-describe('hydra-benchmarks', () => {
+describe("hydra-benchmarks", () => {
   anchor.setProvider(anchor.Provider.env());
 
-  const { SystemProgram } = anchor.web3;
-  const program = anchor.workspace.HydraBenchmarks as Program<HydraBenchmarks>;
-  const provider = anchor.Provider.env();
-  const benchAccount = anchor.web3.Keypair.generate();
+  const hydraBenchmarks = new anchor.web3.PublicKey(
+      localJsonIdl["metadata"]["address"]
+  );
+  const program = new anchor.Program(
+      IDL,
+      hydraBenchmarks
+  ) as Program<HydraBenchmarks>;
 
-  it('Is initialized!', async () => {
-    await program.rpc.initialize(provider.wallet.publicKey, {
-      accounts: {
-        benchmarkResult: benchAccount.publicKey,
-        user: provider.wallet.publicKey,
-        systemProgram: SystemProgram.programId,
-      },
-      signers: [benchAccount],
-    });
-
-    const benchmarkResult = await program.account.benchmarkResult.fetch(benchAccount.publicKey);
-
-    // @ts-ignore
-    assert.ok(benchmarkResult.xNew.eq(new anchor.BN(0)));
-  });
-
-  it('Runs on chain benchmarks', async () => {
-    await program.rpc.lnBenchmark({
-      accounts: {
-        benchmarkResult: benchAccount.publicKey,
-        authority: provider.wallet.publicKey,
-      },
-    });
+  it("Is initialized!", async () => {
+    // Add your test here.
+    const tx = await program.rpc.initialize({});
+    console.log("Your transaction signature", tx);
   });
 });

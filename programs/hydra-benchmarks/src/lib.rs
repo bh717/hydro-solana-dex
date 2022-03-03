@@ -1,56 +1,14 @@
-pub mod instructions;
-pub mod state;
-
-use instructions::*;
-
 use anchor_lang::prelude::*;
-use anchor_lang::solana_program::log::sol_log_compute_units;
 
 declare_id!("HYS93RLjsDvKqAN9BFbUHG8L76E9Xtg8HarmGc6LSe5s");
 
 #[program]
 pub mod hydra_benchmarks {
     use super::*;
-    use hydra_math_rs::decimal::{Decimal, Ln};
-
-    pub fn init_benchmark(ctx: Context<InitialiseBenchmark>, data: i64) -> ProgramResult {
-        instructions::init_benchmark::handle(ctx, data)
-    }
-
-    pub fn initialize(ctx: Context<Initialize>, authority: Pubkey) -> ProgramResult {
-        let benchmark = &mut ctx.accounts.benchmark_result;
-        benchmark.authority = authority;
-        Ok(())
-    }
-
-    pub fn ln_benchmark(_ctx: Context<Swap>) -> ProgramResult {
-        let decimal = Decimal::new(10, 6, false);
-        sol_log_compute_units();
-        let ln_result = decimal.ln().unwrap();
-        sol_log_compute_units();
-        msg!("ln result is: {:?}", ln_result.to_u64());
+    pub fn initialize(_ctx: Context<Initialize>) -> ProgramResult {
         Ok(())
     }
 }
 
 #[derive(Accounts)]
-pub struct Initialize<'info> {
-    #[account(init, payer = user, space = 8 + 512)]
-    pub benchmark_result: Account<'info, BenchmarkResult>,
-    #[account(mut)]
-    pub user: Signer<'info>,
-    pub system_program: Program<'info, System>,
-}
-
-#[derive(Accounts)]
-pub struct Swap<'info> {
-    #[account(mut, has_one = authority)]
-    pub benchmark_result: Account<'info, BenchmarkResult>,
-    pub authority: Signer<'info>,
-}
-
-#[account]
-pub struct BenchmarkResult {
-    pub authority: Pubkey,
-    pub result: u64,
-}
+pub struct Initialize {}
