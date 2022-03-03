@@ -1601,7 +1601,6 @@ dependencies = [
 name = "hydra-proto"
 version = "0.1.0"
 dependencies = [
- "hydra-math",
  "ndarray",
  "num-derive",
  "num-traits",

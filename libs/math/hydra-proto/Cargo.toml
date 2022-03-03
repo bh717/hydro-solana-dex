@@ -6,7 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-hydra-math = { path = "../hmm" }
 spl-math = { version = "0.1.0", features = ["no-entrypoint"] }
 solana-program = "1.9.0"
 uint = "0.9"
