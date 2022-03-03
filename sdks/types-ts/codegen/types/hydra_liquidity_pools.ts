@@ -21,12 +21,12 @@ export type HydraLiquidityPools = {
           "isSigner": false
         },
         {
-          "name": "tokenAMint",
+          "name": "baseTokenMint",
           "isMut": false,
           "isSigner": false
         },
         {
-          "name": "tokenBMint",
+          "name": "quoteTokenMint",
           "isMut": false,
           "isSigner": false
         },
@@ -36,12 +36,12 @@ export type HydraLiquidityPools = {
           "isSigner": false
         },
         {
-          "name": "tokenAVault",
+          "name": "baseTokenVault",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tokenBVault",
+          "name": "quoteTokenVault",
           "isMut": true,
           "isSigner": false
         },
@@ -104,22 +104,22 @@ export type HydraLiquidityPools = {
           "isSigner": false
         },
         {
-          "name": "userTokenA",
+          "name": "userBaseToken",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "userTokenB",
+          "name": "userQuoteToken",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tokenAVault",
+          "name": "baseTokenVault",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tokenBVault",
+          "name": "quoteTokenVault",
           "isMut": true,
           "isSigner": false
         },
@@ -173,22 +173,22 @@ export type HydraLiquidityPools = {
           "isSigner": false
         },
         {
-          "name": "userTokenAAccount",
+          "name": "userBaseTokenAccount",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "userTokenBAccount",
+          "name": "userQuoteTokenAccount",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tokenAVault",
+          "name": "baseTokenVault",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tokenBVault",
+          "name": "quoteTokenVault",
           "isMut": true,
           "isSigner": false
         },
@@ -222,19 +222,19 @@ export type HydraLiquidityPools = {
             "type": "publicKey"
           },
           {
-            "name": "tokenAVault",
+            "name": "baseTokenVault",
             "type": "publicKey"
           },
           {
-            "name": "tokenBVault",
+            "name": "quoteTokenVault",
             "type": "publicKey"
           },
           {
-            "name": "tokenAMint",
+            "name": "baseTokenMint",
             "type": "publicKey"
           },
           {
-            "name": "tokenBMint",
+            "name": "quoteTokenMint",
             "type": "publicKey"
           },
           {
@@ -246,11 +246,11 @@ export type HydraLiquidityPools = {
             "type": "u8"
           },
           {
-            "name": "tokenAVaultBump",
+            "name": "baseTokenVaultBump",
             "type": "u8"
           },
           {
-            "name": "tokenBVaultBump",
+            "name": "quoteTokenVaultBump",
             "type": "u8"
           },
           {
@@ -370,12 +370,12 @@ export const IDL: HydraLiquidityPools = {
           "isSigner": false
         },
         {
-          "name": "tokenAMint",
+          "name": "baseTokenMint",
           "isMut": false,
           "isSigner": false
         },
         {
-          "name": "tokenBMint",
+          "name": "quoteTokenMint",
           "isMut": false,
           "isSigner": false
         },
@@ -385,12 +385,12 @@ export const IDL: HydraLiquidityPools = {
           "isSigner": false
         },
         {
-          "name": "tokenAVault",
+          "name": "baseTokenVault",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tokenBVault",
+          "name": "quoteTokenVault",
           "isMut": true,
           "isSigner": false
         },
@@ -453,22 +453,22 @@ export const IDL: HydraLiquidityPools = {
           "isSigner": false
         },
         {
-          "name": "userTokenA",
+          "name": "userBaseToken",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "userTokenB",
+          "name": "userQuoteToken",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tokenAVault",
+          "name": "baseTokenVault",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tokenBVault",
+          "name": "quoteTokenVault",
           "isMut": true,
           "isSigner": false
         },
@@ -522,22 +522,22 @@ export const IDL: HydraLiquidityPools = {
           "isSigner": false
         },
         {
-          "name": "userTokenAAccount",
+          "name": "userBaseTokenAccount",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "userTokenBAccount",
+          "name": "userQuoteTokenAccount",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tokenAVault",
+          "name": "baseTokenVault",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tokenBVault",
+          "name": "quoteTokenVault",
           "isMut": true,
           "isSigner": false
         },
@@ -571,19 +571,19 @@ export const IDL: HydraLiquidityPools = {
             "type": "publicKey"
           },
           {
-            "name": "tokenAVault",
+            "name": "baseTokenVault",
             "type": "publicKey"
           },
           {
-            "name": "tokenBVault",
+            "name": "quoteTokenVault",
             "type": "publicKey"
           },
           {
-            "name": "tokenAMint",
+            "name": "baseTokenMint",
             "type": "publicKey"
           },
           {
-            "name": "tokenBMint",
+            "name": "quoteTokenMint",
             "type": "publicKey"
           },
           {
@@ -595,11 +595,11 @@ export const IDL: HydraLiquidityPools = {
             "type": "u8"
           },
           {
-            "name": "tokenAVaultBump",
+            "name": "baseTokenVaultBump",
             "type": "u8"
           },
           {
-            "name": "tokenBVaultBump",
+            "name": "quoteTokenVaultBump",
             "type": "u8"
           },
           {

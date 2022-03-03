@@ -1,2 +1,2 @@
-pub mod math;
+pub mod decimal;
 pub mod programs;

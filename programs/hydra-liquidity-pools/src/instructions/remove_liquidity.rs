@@ -4,7 +4,7 @@ use crate::state::pool_state::PoolState;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
 use anchor_spl::token::{Burn, Mint, Token, TokenAccount, Transfer};
-use hydra_math_rs::programs::hydra_lp_tokens::calculate_x_y;
+use hydra_math_rs::programs::liquidity_pools::hydra_lp_tokens::*;
 
 #[derive(Accounts)]
 pub struct RemoveLiquidity<'info> {
@@ -12,8 +12,8 @@ pub struct RemoveLiquidity<'info> {
         mut,
         seeds = [ POOL_STATE_SEED, pool_state.lp_token_mint.key().as_ref() ],
         bump = pool_state.pool_state_bump,
-        has_one = token_a_vault.key(),
-        has_one = token_b_vault.key(),
+        has_one = base_token_vault.key(),
+        has_one = quote_token_vault.key(),
         has_one = lp_token_mint.key(),
     )]
     pub pool_state: Box<Account<'info, PoolState>>,
@@ -30,35 +30,35 @@ pub struct RemoveLiquidity<'info> {
 
     #[account(
         mut,
-        constraint = user_token_a_account.mint == pool_state.token_a_mint.key(),
-        constraint = user_token_a_account.owner == user.key()
+        constraint = user_base_token_account.mint == pool_state.base_token_mint.key(),
+        constraint = user_base_token_account.owner == user.key()
     )]
     /// the token account to send token_a's back to
-    pub user_token_a_account: Box<Account<'info, TokenAccount>>,
+    pub user_base_token_account: Box<Account<'info, TokenAccount>>,
 
     #[account(
         mut,
-        constraint = user_token_b_account.mint == pool_state.token_b_mint.key(),
-        constraint = user_token_b_account.owner == user.key()
+        constraint = user_quote_token_account.mint == pool_state.quote_token_mint.key(),
+        constraint = user_quote_token_account.owner == user.key()
     )]
     ///  the token account to send token_b's back to
-    pub user_token_b_account: Box<Account<'info, TokenAccount>>,
+    pub user_quote_token_account: Box<Account<'info, TokenAccount>>,
 
     #[account(
         mut,
-        seeds = [ TOKEN_VAULT_SEED, pool_state.token_a_mint.key().as_ref(), pool_state.lp_token_mint.key().as_ref() ],
+        seeds = [ TOKEN_VAULT_SEED, pool_state.base_token_mint.key().as_ref(), pool_state.lp_token_mint.key().as_ref() ],
         bump,
-        constraint = token_a_vault.key() == pool_state.token_a_vault.key()
+        constraint = base_token_vault.key() == pool_state.base_token_vault.key()
     )]
-    pub token_a_vault: Box<Account<'info, TokenAccount>>,
+    pub base_token_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(
         mut,
-        seeds = [ TOKEN_VAULT_SEED, pool_state.token_b_mint.key().as_ref(), pool_state.lp_token_mint.key().as_ref() ],
+        seeds = [ TOKEN_VAULT_SEED, pool_state.quote_token_mint.key().as_ref(), pool_state.lp_token_mint.key().as_ref() ],
         bump,
-        constraint = token_b_vault.key() == pool_state.token_b_vault.key()
+        constraint = quote_token_vault.key() == pool_state.quote_token_vault.key()
     )]
-    pub token_b_vault: Box<Account<'info, TokenAccount>>,
+    pub quote_token_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(
         mut,
@@ -75,14 +75,14 @@ impl<'info> RemoveLiquidity<'info> {
             msg!("Account balances before transfer...");
             msg!(
                 "user_token_a_to_receive.amount: {}",
-                self.user_token_a_account.amount
+                self.user_base_token_account.amount
             );
-            msg!("token_a_vault.amount: {}", self.token_a_vault.amount);
+            msg!("token_a_vault.amount: {}", self.base_token_vault.amount);
         }
 
         let cpi_accounts = Transfer {
-            from: self.token_a_vault.to_account_info(),
-            to: self.user_token_a_account.to_account_info(),
+            from: self.base_token_vault.to_account_info(),
+            to: self.user_base_token_account.to_account_info(),
             authority: self.pool_state.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();
@@ -94,14 +94,14 @@ impl<'info> RemoveLiquidity<'info> {
             msg!("Account balances before transfer...");
             msg!(
                 "user_token_b_to_receive.amount: {}",
-                self.user_token_b_account.amount
+                self.user_quote_token_account.amount
             );
-            msg!("token_b_vault.amount: {}", self.token_b_vault.amount);
+            msg!("token_b_vault.amount: {}", self.quote_token_vault.amount);
         }
 
         let cpi_accounts = Transfer {
-            from: self.token_b_vault.to_account_info(),
-            to: self.user_token_b_account.to_account_info(),
+            from: self.quote_token_vault.to_account_info(),
+            to: self.user_quote_token_account.to_account_info(),
             authority: self.pool_state.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();
@@ -124,8 +124,8 @@ impl<'info> RemoveLiquidity<'info> {
     ) -> (u64, u64) {
         calculate_x_y(
             lp_tokens_to_burn,
-            self.token_a_vault.amount,
-            self.token_b_vault.amount,
+            self.base_token_vault.amount,
+            self.quote_token_vault.amount,
             self.lp_token_mint.supply,
         )
     }
