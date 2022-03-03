@@ -4,8 +4,11 @@
 
 ## Overview
 
-Hydra Protocol, formally known as [HydraSwap](https://www.hydraswap.io) is a Solana-based decentralized exchange that is dedicated to providing users with a CEX-level trading experience. Empowered by its game-changing Hydra Market Maker (HMM) core, it is a high-performance AMM focused on maximizing the returns for liquidity providers.
-Our vision is to attract more liquidity into decentralized exchanges and bring the trading experience of the average DeFi user to the same level as centralized exchanges.
+Hydra Protocol, formally known as [HydraSwap](https://www.hydraswap.io) is a Solana-based decentralized exchange that is
+dedicated to providing users with a CEX-level trading experience. Empowered by its game-changing Hydra Market Maker (
+HMM) core, it is a high-performance AMM focused on maximizing the returns for liquidity providers. Our vision is to
+attract more liquidity into decentralized exchanges and bring the trading experience of the average DeFi user to the
+same level as centralized exchanges.
 
 ## Note
 
@@ -70,7 +73,8 @@ anchor-cli 0.22.0
 
 ### Build TypeScript components
 
-To build the javascript components you need to have built and deployed anchor to a local `solana-test-validator` so that your IDLs contain programIds.
+To build the javascript components you need to have built and deployed anchor to a local `solana-test-validator` so that
+your IDLs contain programIds.
 
 After `anchor deploy` you can run:
 
@@ -81,11 +85,11 @@ We would like to make this experience more seamless.
 #### Dependencies
 
 wasm-pack via:
+
 ```
 curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 cargo install wasm-bindgen-cli
 ```
-
 
 ### Deploy
 
