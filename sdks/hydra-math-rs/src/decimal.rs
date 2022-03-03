@@ -1,20 +1,20 @@
-use anchor_lang::prelude::*;
 use ndarray::{arr2, Array2};
 use std::convert::TryInto;
+use thiserror::Error;
 
 /// Default precision for a [Decimal] expressed as an amount.
 pub const AMOUNT_SCALE: u8 = 8;
 // TODO: add more constants for default precision on other types e.g. fees, percentages
 
 /// Error codes related to [Decimal].
-#[error]
+#[derive(Error, Debug)]
 pub enum ErrorCode {
-    #[msg("Scale is different")]
-    DifferentScale = 1,
-    #[msg("Exceeds allowable range for value")]
-    ExceedsRange = 2,
-    #[msg("Exceeds allowable range for precision")]
-    ExceedsPrecisionRange = 3,
+    #[error("Scale is different")]
+    DifferentScale,
+    #[error("Exceeds allowable range for value")]
+    ExceedsRange,
+    #[error("Exceeds allowable range for precision")]
+    ExceedsPrecisionRange,
 }
 
 /// [Decimal] representation of a number with a value, scale (precision in terms of number of decimal places
@@ -168,7 +168,7 @@ impl MulUp<Decimal> for Decimal {
 
 /// Add another [Decimal] value to itself, including signed addition.
 impl Add<Decimal> for Decimal {
-    fn add(self, rhs: Decimal) -> Result<Self> {
+    fn add(self, rhs: Decimal) -> Result<Self, ErrorCode> {
         if !(self.scale == rhs.scale) {
             return Err(ErrorCode::DifferentScale.into());
         } else {
@@ -195,7 +195,7 @@ impl Add<Decimal> for Decimal {
 
 /// Subtract another [Decimal] value from itself, including signed subtraction.
 impl Sub<Decimal> for Decimal {
-    fn sub(self, rhs: Decimal) -> Result<Self> {
+    fn sub(self, rhs: Decimal) -> Result<Self, ErrorCode> {
         if !(self.scale == rhs.scale) {
             return Err(ErrorCode::DifferentScale.into());
         } else {
@@ -382,7 +382,7 @@ impl Into<u128> for Decimal {
 /// Compare two [Decimal] values/scale with comparison query operators.
 impl Compare<Decimal> for Decimal {
     /// Show if two [Decimal] values equal each other
-    fn eq(self, other: Decimal) -> Result<bool> {
+    fn eq(self, other: Decimal) -> Result<bool, ErrorCode> {
         if !(self.scale == other.scale) {
             return Err(ErrorCode::DifferentScale.into());
         } else {
@@ -391,7 +391,7 @@ impl Compare<Decimal> for Decimal {
     }
 
     /// Show if one [Decimal] value is less than another.
-    fn lt(self, other: Decimal) -> Result<bool> {
+    fn lt(self, other: Decimal) -> Result<bool, ErrorCode> {
         if !(self.scale == other.scale) {
             return Err(ErrorCode::DifferentScale.into());
         } else {
@@ -400,7 +400,7 @@ impl Compare<Decimal> for Decimal {
     }
 
     /// Show if one [Decimal] value is greater than another.
-    fn gt(self, other: Decimal) -> Result<bool> {
+    fn gt(self, other: Decimal) -> Result<bool, ErrorCode> {
         if !(self.scale == other.scale) {
             return Err(ErrorCode::DifferentScale.into());
         } else {
@@ -409,7 +409,7 @@ impl Compare<Decimal> for Decimal {
     }
 
     /// Show if one [Decimal] value is greater than or equal to another.
-    fn gte(self, other: Decimal) -> Result<bool> {
+    fn gte(self, other: Decimal) -> Result<bool, ErrorCode> {
         if !(self.scale == other.scale) {
             return Err(ErrorCode::DifferentScale.into());
         } else {
@@ -418,7 +418,7 @@ impl Compare<Decimal> for Decimal {
     }
 
     /// Show if one [Decimal] value is less than or equal to another.
-    fn lte(self, other: Decimal) -> Result<bool> {
+    fn lte(self, other: Decimal) -> Result<bool, ErrorCode> {
         if !(self.scale == other.scale) {
             return Err(ErrorCode::DifferentScale.into());
         } else {
@@ -601,7 +601,7 @@ fn log_table_value(
 /// Calculate the natural logarithm of a [Decimal] value. For full algorithm please refer to:
 // https://docs.google.com/spreadsheets/d/19mgYjGQlpsuaTk1zXujn-yCSdbAL25sP/edit?pli=1#gid=2070648638
 impl Ln<Decimal> for Decimal {
-    fn ln(self) -> Result<Self> {
+    fn ln(self) -> Result<Self, ErrorCode> {
         let scale = self.scale;
         let value_bit_length = (128u32 - (self.to_scale(0).to_u64() as u128).leading_zeros())
             .checked_sub(1)
@@ -643,7 +643,7 @@ impl Ln<Decimal> for Decimal {
 /// Calculate the square root of a [Decimal] value. For full algorithm please refer to:
 // https://docs.google.com/spreadsheets/d/1dw7HaR_YsgvT7iA_4kv2rgWb-EvSyQGM/edit#gid=432909162
 impl Sqrt<Decimal> for Decimal {
-    fn sqrt(self) -> Result<Self> {
+    fn sqrt(self) -> Result<Self, ErrorCode> {
         let zero = Decimal::new(0, self.scale, false);
         let one = Decimal::from_u64(1).to_scale(self.scale);
         let max = Decimal::from_u64(std::u64::MAX).to_scale(self.scale);
@@ -699,11 +699,11 @@ impl Sqrt<Decimal> for Decimal {
 }
 
 pub trait Sub<T>: Sized {
-    fn sub(self, rhs: T) -> Result<Self>;
+    fn sub(self, rhs: T) -> Result<Self, ErrorCode>;
 }
 
 pub trait Add<T>: Sized {
-    fn add(self, rhs: T) -> Result<Self>;
+    fn add(self, rhs: T) -> Result<Self, ErrorCode>;
 }
 
 pub trait Div<T>: Sized {
@@ -727,7 +727,7 @@ pub trait MulUp<T>: Sized {
 }
 
 pub trait Ln<T>: Sized {
-    fn ln(self) -> Result<Self>;
+    fn ln(self) -> Result<Self, ErrorCode>;
 }
 
 pub trait Pow<T>: Sized {
@@ -735,15 +735,15 @@ pub trait Pow<T>: Sized {
 }
 
 pub trait Sqrt<T>: Sized {
-    fn sqrt(self) -> Result<Self>;
+    fn sqrt(self) -> Result<Self, ErrorCode>;
 }
 
 pub trait Compare<T>: Sized {
-    fn eq(self, rhs: T) -> Result<bool>;
-    fn lt(self, rhs: T) -> Result<bool>;
-    fn gt(self, rhs: T) -> Result<bool>;
-    fn gte(self, rhs: T) -> Result<bool>;
-    fn lte(self, rhs: T) -> Result<bool>;
+    fn eq(self, rhs: T) -> Result<bool, ErrorCode>;
+    fn lt(self, rhs: T) -> Result<bool, ErrorCode>;
+    fn gt(self, rhs: T) -> Result<bool, ErrorCode>;
+    fn gte(self, rhs: T) -> Result<bool, ErrorCode>;
+    fn lte(self, rhs: T) -> Result<bool, ErrorCode>;
 }
 
 #[cfg(test)]
