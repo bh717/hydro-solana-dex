@@ -9,6 +9,7 @@ mod utils;
 use instructions::add_liquidity::*;
 use instructions::initialize::*;
 use instructions::remove_liquidity::*;
+use instructions::swap_cpmm::*;
 
 use anchor_lang::prelude::*;
 // use anchor_lang::solana_program::log::sol_log_compute_units;
@@ -68,6 +69,14 @@ pub mod hydra_liquidity_pools {
         lp_tokens_to_burn: u64, // calculate the % client side
     ) -> ProgramResult {
         instructions::remove_liquidity::handle(ctx, lp_tokens_to_burn)
+    }
+
+    pub fn swap_cpmm(
+        ctx: Context<SwapCpmm>,
+        base_token_max_amount: u64,
+        quote_token_max_amount: u64,
+    ) -> ProgramResult {
+        instructions::swap_cpmm::handle(ctx)
     }
 
     // pub fn swap_amm(ctx: Context<Swap>) -> ProgramResult {
