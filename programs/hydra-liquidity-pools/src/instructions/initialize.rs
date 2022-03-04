@@ -70,8 +70,8 @@ pub struct Initialize<'info> {
 
 pub fn handle(
     ctx: Context<Initialize>,
-    token_a_vault_bump: u8,
-    token_b_vault_bump: u8,
+    base_token_vault_bump: u8,
+    quote_token_vault_bump: u8,
     pool_state_bump: u8,
     lp_token_vault_bump: u8,
 ) -> ProgramResult {
@@ -91,8 +91,8 @@ pub fn handle(
 
     // save pool_state_bump, token_a_vault_bump and token_a_vault_bump
     ctx.accounts.pool_state.pool_state_bump = pool_state_bump;
-    ctx.accounts.pool_state.base_token_vault_bump = token_a_vault_bump;
-    ctx.accounts.pool_state.quote_token_vault_bump = token_b_vault_bump;
+    ctx.accounts.pool_state.base_token_vault_bump = base_token_vault_bump;
+    ctx.accounts.pool_state.quote_token_vault_bump = quote_token_vault_bump;
     ctx.accounts.pool_state.lp_token_vault_bump = lp_token_vault_bump;
 
     ctx.accounts.pool_state.debug = DEBUG_MODE;

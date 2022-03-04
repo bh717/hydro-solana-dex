@@ -35,15 +35,15 @@ pub mod hydra_liquidity_pools {
     /// initialize a new empty pool
     pub fn initialize(
         ctx: Context<Initialize>,
-        token_a_vault_bump: u8,
-        token_b_vault_bump: u8,
+        base_token_vault_bump: u8,
+        quote_token_vault_bump: u8,
         pool_state_bump: u8,
         lp_token_vault_bump: u8,
     ) -> ProgramResult {
         instructions::initialize::handle(
             ctx,
-            token_a_vault_bump,
-            token_b_vault_bump,
+            base_token_vault_bump,
+            quote_token_vault_bump,
             pool_state_bump,
             lp_token_vault_bump,
         )
@@ -51,14 +51,14 @@ pub mod hydra_liquidity_pools {
 
     pub fn add_liquidity(
         ctx: Context<AddLiquidity>,
-        tokens_a_max_amount: u64, // slippage handling: token_a_amount * (1 + TOLERATED_SLIPPAGE) --> calculated client side
-        tokens_b_max_amount: u64, // slippage handling: token_b_amount * (1 + TOLERATED_SLIPPAGE) --> calculated client side
+        base_tokens_max_amount: u64, // slippage handling: token_a_amount * (1 + TOLERATED_SLIPPAGE) --> calculated client side
+        quote_tokens_max_amount: u64, // slippage handling: token_b_amount * (1 + TOLERATED_SLIPPAGE) --> calculated client side
         expected_lp_tokens: u64,
     ) -> ProgramResult {
         instructions::add_liquidity::handle(
             ctx,
-            tokens_a_max_amount,
-            tokens_b_max_amount,
+            base_tokens_max_amount,
+            quote_tokens_max_amount,
             expected_lp_tokens,
         )
     }
@@ -73,7 +73,7 @@ pub mod hydra_liquidity_pools {
     // pub fn swap_amm(ctx: Context<Swap>) -> ProgramResult {
     //     let swap_result = &mut ctx.accounts.swap_result;
     //     let swap = SwapCalculator::new(1000, 1000, 0, 1);
-    //     let swap_x_to_y_amm = swap.swap_x_to_y_amm(5);
+    // let swap_x_to_y_amm = swap.swap_x_to_y_amm(5);
     //     sol_log_compute_units();
     //     msg!("delta Y is: {:?}", swap_x_to_y_amm.delta_y.value.0);
     //     swap_result.x_new = swap_x_to_y_amm.x_new.to_imprecise().unwrap();
