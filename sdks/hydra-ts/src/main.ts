@@ -4,8 +4,8 @@ import { getProgramIds } from "./config/get-program-ids";
 import { createCtx, createReadonlyCtx, createCtxAnchor } from "./ctx";
 import staking from "./staking";
 import { Ctx, Network, ProgramIds, Wallet } from "./types";
-import * as utils from "./utils";
 import { inject } from "./utils/meta-utils";
+import common from "./common";
 
 /**
  * Create an instance of the sdk API
@@ -13,14 +13,14 @@ import { inject } from "./utils/meta-utils";
  * @returns An Sdk instance
  */
 export function createApi(ctx: Ctx) {
+  const namespaceFns = {
+    staking,
+    common,
+  };
+
   return {
-    ...inject(
-      {
-        staking,
-      },
-      ctx
-    ),
-    utils,
+    ...inject(namespaceFns, ctx),
+    ctx,
   };
 }
 
@@ -28,7 +28,7 @@ function isNetwork(value: any): value is Network {
   return typeof value === "string";
 }
 
-export type HydraAPI = ReturnType<typeof createApi>;
+export type HydraSDK = ReturnType<typeof createApi>;
 
 /**
  * Base object for instantiating the SDK for use on the client.
@@ -47,18 +47,14 @@ export const HydraSDK = {
     wallet?: Wallet
   ) {
     const programIds = getProgramIds(network);
-
     const connection =
       typeof connectionOrEndpoint === "string"
         ? new Connection(connectionOrEndpoint)
         : connectionOrEndpoint;
-
     const ctx = wallet
       ? createCtx(wallet, connection, programIds)
       : createReadonlyCtx(connection, programIds);
-
     const api = createApi(ctx);
-
     return api;
   },
 

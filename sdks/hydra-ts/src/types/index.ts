@@ -1,6 +1,13 @@
 import { Transaction, PublicKey } from "@solana/web3.js";
 import { createCtxAnchor } from "../ctx";
+export * from "./account";
 
+export type SPLAccountInfo = {
+  address: PublicKey;
+  owner: PublicKey;
+  mint: PublicKey;
+  amount: BigInt;
+};
 export type Wallet = {
   signTransaction(tx: Transaction): Promise<Transaction>;
   signAllTransactions(txs: Transaction[]): Promise<Transaction[]>;

@@ -21,7 +21,7 @@
     "wasm-test": "*"
   },
   "dependencies": {
-    "@project-serum/anchor": "^0.21.0",
+    "@project-serum/anchor": "^0.20.1",
     "hydra-math-rs": "*",
     "typescript": "^4.5.5"
   }

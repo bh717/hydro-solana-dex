@@ -3,14 +3,6 @@ import { BN, Provider } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
 import { Ctx, Option } from "../types";
 
-// TODO:  This should return BigInt as we are going to be using BigInt over BN
-//        because wasm requires us to use BigInt and it is therefore available
-export async function getTokenBalance(provider: Provider, pubkey: PublicKey) {
-  return new BN(
-    (await provider.connection.getTokenAccountBalance(pubkey)).value.amount
-  );
-}
-
 /**
  * Gets a PDA derived based on seed
  * @param programId ProgramID to derive this key from

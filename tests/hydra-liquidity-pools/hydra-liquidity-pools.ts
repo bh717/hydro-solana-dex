@@ -1,6 +1,6 @@
 import * as anchor from "@project-serum/anchor";
 import { BN, Program } from "@project-serum/anchor";
-import * as localJsonIdl from "../../target/idl/hydra_liquidity_pools.json";
+import * as localJsonIdl from "target/idl/hydra_liquidity_pools.json";
 import {
   HydraLiquidityPools,
   IDL,
@@ -8,17 +8,30 @@ import {
 import assert from "assert";
 import { TokenInstructions } from "@project-serum/serum";
 import { createMintAndVault, createTokenAccount } from "@project-serum/common";
-import { getTokenBalance } from "hydra-ts/src/utils";
+// import { getTokenBalance } from "hydra-ts/src/utils";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "@project-serum/serum/lib/token-instructions";
 
 const utf8 = anchor.utils.bytes.utf8;
 import { btcdMintAmount, usddMintAmount } from "../constants";
-import { createMint } from "hydra-ts/node";
+// import { createMint } from "hydra-ts/node";
 
+import { HydraSDK } from "hydra-ts";
+
+const getTokenBalance = async (
+  provider: anchor.Provider,
+  pubkey: PublicKey
+) => {
+  return new BN(
+    (await provider.connection.getTokenAccountBalance(pubkey)).value.amount
+  );
+};
 describe("hydra-liquidity-pool", () => {
   // Configure the client to use the local cluster.
-  anchor.setProvider(anchor.Provider.env());
+  const provider = anchor.Provider.env();
+  anchor.setProvider(provider);
+
+  const sdk = HydraSDK.createFromAnchorProvider(provider, "localnet");
 
   const hydraLiquidityPoolsProgramId = new anchor.web3.PublicKey(
     localJsonIdl["metadata"]["address"]
@@ -27,7 +40,6 @@ describe("hydra-liquidity-pool", () => {
     IDL,
     hydraLiquidityPoolsProgramId
   ) as Program<HydraLiquidityPools>;
-  const provider = anchor.Provider.env();
 
   let btcdMint: PublicKey;
   let usddMint: PublicKey;
@@ -73,7 +85,7 @@ describe("hydra-liquidity-pool", () => {
   });
 
   it("should create lpTokenMint with poolState as the authority and a lpTokenAccount", async () => {
-    await createMint(provider, lpTokenMint, poolState, 9);
+    await sdk.common.createMint(lpTokenMint, poolState, 9);
     lpTokenAccount = await createTokenAccount(
       provider,
       lpTokenMint.publicKey,
