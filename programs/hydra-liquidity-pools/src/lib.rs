@@ -73,10 +73,10 @@ pub mod hydra_liquidity_pools {
 
     pub fn swap_cpmm(
         ctx: Context<SwapCpmm>,
-        base_token_max_amount: u64,
-        quote_token_max_amount: u64,
+        amount_in: u64,
+        minimum_amount_out: u64,
     ) -> ProgramResult {
-        instructions::swap_cpmm::handle(ctx)
+        instructions::swap_cpmm::handle(ctx, amount_in, minimum_amount_out)
     }
 
     // pub fn swap_amm(ctx: Context<Swap>) -> ProgramResult {
