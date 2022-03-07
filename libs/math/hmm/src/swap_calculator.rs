@@ -20,6 +20,7 @@ fn half() -> PreciseNumber {
 }
 
 /// Swap calculator input parameters
+#[derive(Debug)]
 pub struct SwapCalculator {
     /// Number of tokens x currently in liquidity pool
     x0: PreciseNumber,
