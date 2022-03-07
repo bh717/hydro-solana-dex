@@ -224,12 +224,12 @@ export type HydraLiquidityPools = {
           isSigner: false;
         },
         {
-          name: "userBaseToken";
+          name: "userFromToken";
           isMut: true;
           isSigner: false;
         },
         {
-          name: "userQuoteToken";
+          name: "userToToken";
           isMut: true;
           isSigner: false;
         },
@@ -623,12 +623,12 @@ export const IDL: HydraLiquidityPools = {
           isSigner: false,
         },
         {
-          name: "userBaseToken",
+          name: "userFromToken",
           isMut: true,
           isSigner: false,
         },
         {
-          name: "userQuoteToken",
+          name: "userToToken",
           isMut: true,
           isSigner: false,
         },
