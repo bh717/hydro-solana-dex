@@ -37,13 +37,17 @@ export default async function (provider: anchor.Provider) {
   console.log("Creating mint and vault...");
 
   // create tokenMint
-  await sdk.common.createMintAndVault(tokenMint, userToken, 100_000_000n);
+  await sdk.common.createMintAndVault(
+    tokenMint,
+    userToken,
+    100_000_000_000_000n
+  );
 
   const tokenVaultPubkey = await sdk.staking.accounts.tokenVault.key();
   const tokenVaultBump = await sdk.staking.accounts.tokenVault.bump();
 
   console.log("Creating mint...");
-  await sdk.common.createMint(redeemableMint, tokenVaultPubkey);
+  await sdk.common.createMint(redeemableMint, tokenVaultPubkey, 9);
 
   const receiveAcc = await sdk.common.createTokenAccount(
     redeemableMint.publicKey,
