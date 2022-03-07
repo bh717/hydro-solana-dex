@@ -4,7 +4,7 @@
 
 this package contains the math to be used by future hydraswap smart contracts, currently in dev. Also different math related tests and prototypes
 
------------
+---
 
 ## Concentrated liquidity pool design
 
@@ -50,7 +50,7 @@ pub struct GlobalState {
 }
 ```
 
-- the global state determing the liquidity that is currently in range (==> the reserves available for swaps ) as well as the current price level ( the sqrt of the price to be precise), and the corresponding 'tick'. 
+- the global state determing the liquidity that is currently in range (==> the reserves available for swaps ) as well as the current price level ( the sqrt of the price to be precise), and the corresponding 'tick'.
 - it also keeps tracks on the total fees earned globally by the pools
 
 ### Tick State: One per active tick
@@ -67,13 +67,13 @@ pub struct TickState {
 }
 ```
 
-- A tick represent a price level that is used as one edge of an interval (or range) by at least one user. The user provide liquidity only in that range or interval ( say ETHUSD between 3000 and 4000), ie the tokens he provides are only used in swaps when the price is within that range.  
+- A tick represent a price level that is used as one edge of an interval (or range) by at least one user. The user provide liquidity only in that range or interval ( say ETHUSD between 3000 and 4000), ie the tokens he provides are only used in swaps when the price is within that range.
 
-- The pool/program needs to keep track of all those 'initialized' ticks. In order. As swaps occurs and price move , tick are 'crossed' ===> liquidity from different users /positions/ ranges gets 'kickeed-in and kicked out of the global current liquidity.  
+- The pool/program needs to keep track of all those 'initialized' ticks. In order. As swaps occurs and price move , tick are 'crossed' ===> liquidity from different users /positions/ ranges gets 'kickeed-in and kicked out of the global current liquidity.
 
 - Also plays a crucial part in the book-keeping for fees. an LP earns fees only on swaps that occurs within the intervall where he provides liquidity
 
-- the pool defines beforehand the tick-spacing, which determines which price level are eligible to be ticks. Most granular possible is every 1 basis point (0.01%), although in practice it is sth like every, 0.05% 0.30% or 0.60% or even every 1% , 2% depending how volatile the pair is.  
+- the pool defines beforehand the tick-spacing, which determines which price level are eligible to be ticks. Most granular possible is every 1 basis point (0.01%), although in practice it is sth like every, 0.05% 0.30% or 0.60% or even every 1% , 2% depending how volatile the pair is.
 
 ### Position State: one per user (LP) per range (pair of ticks)
 
@@ -107,7 +107,8 @@ pub struct PositionKey<'a>(&'a str, u32, u32);
 - if during a swap, the price needs to go beyond the closed tick above or below the current price in order to have enough liquidity to fill the swap order, swapping is 'paused' at that tick, and the tick is 'crossed' before swapping resumes.
 
 - the crossing of a tick:
-  - updates the liquidity in-range by kicking in and out the liquidity that come in range or goes out of range at that price-level. this is why the TickState keeps track on the 'liquidity delta' (positive or negative depending on the direction of travel)  ==> **GlobalState written to, Liquidity changes**
+
+  - updates the liquidity in-range by kicking in and out the liquidity that come in range or goes out of range at that price-level. this is why the TickState keeps track on the 'liquidity delta' (positive or negative depending on the direction of travel) ==> **GlobalState written to, Liquidity changes**
   - updates in the TickState a snapshot of the global fees earned so far ===> **that particular TickState written to**
 
 - after crossing, the swap resumes in the next interval, with liquidity constant and only price moves ( and reserves X and Y )
