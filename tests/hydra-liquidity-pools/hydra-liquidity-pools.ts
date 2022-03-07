@@ -451,13 +451,17 @@ describe("hydra-liquidity-pool", () => {
     });
   });
 
-  // it("should swap tokens", async () => {
-  //   await program.rpc.swapCpmm({
-  //     accounts: {
-  //       user: provider.wallet.publicKey,
-  //       poolState: poolState,
-  //       userBaseToken
-  //     },
-  //   });
-  // });
+  it("should swap tokens", async () => {
+    await program.rpc.swapCpmm(new BN(1), new BN(2), {
+      accounts: {
+        user: provider.wallet.publicKey,
+        poolState: poolState,
+        userFromToken: btcdAccount,
+        userToToken: usddAccount,
+        baseTokenVault,
+        quoteTokenVault,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      },
+    });
+  });
 });
