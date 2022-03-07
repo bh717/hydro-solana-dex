@@ -118,6 +118,7 @@ const Content: FC = () => {
   const { connection } = useConnection();
 
   const [stakeAmount, setStakeAmount] = useState<string>("0");
+  const [unstakeAmount, setUnstakeAmount] = useState<string>("0");
 
   const sdk = useMemo(
     () => HydraSDK.create("localnet", connection, wallet),
@@ -135,9 +136,22 @@ const Content: FC = () => {
     []
   );
 
+  const handleUnstakeAmountUpdated = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setUnstakeAmount(e.target.value);
+    },
+    []
+  );
+
   const handleStakeClicked = useCallback(async () => {
     await sdk.staking.stake(BigInt(stakeAmount));
+    setStakeAmount("0");
   }, [sdk, stakeAmount]);
+
+  const handleUnstakeClicked = useCallback(async () => {
+    await sdk.staking.unstake(BigInt(unstakeAmount));
+    setUnstakeAmount("0");
+  }, [sdk, unstakeAmount]);
 
   const handleDemoClicked = useCallback(async () => {
     const answer = await sdk.staking.calculatePoolTokensForDeposit(
@@ -238,13 +252,26 @@ const Content: FC = () => {
               </TableBody>
             </Table>
             <Box>
-              <Button onClick={handleStakeClicked}>Stake</Button>
               <Input
                 type="number"
                 onChange={handleStakeAmountUpdated}
                 value={stakeAmount}
                 placeholder="amount"
               />
+              <Button variant="contained" onClick={handleStakeClicked}>
+                Stake
+              </Button>
+            </Box>
+            <Box>
+              <Input
+                type="number"
+                onChange={handleUnstakeAmountUpdated}
+                value={unstakeAmount}
+                placeholder="amount"
+              />
+              <Button variant="contained" onClick={handleUnstakeClicked}>
+                Unstake
+              </Button>
             </Box>
           </Paper>
 
