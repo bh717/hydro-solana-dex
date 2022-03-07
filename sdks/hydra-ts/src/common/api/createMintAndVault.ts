@@ -14,7 +14,7 @@ export function createMintAndVault(ctx: Ctx) {
     vault = Keypair.generate(),
     amount: BigInt,
     owner?: PublicKey,
-    decimals = 9
+    decimals = 6
   ): Promise<[PublicKey, PublicKey]> => {
     if (owner === undefined) {
       owner = ctx.provider.wallet.publicKey;

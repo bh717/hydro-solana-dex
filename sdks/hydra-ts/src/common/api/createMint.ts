@@ -6,7 +6,7 @@ export function createMint(ctx: Ctx) {
   return async (
     mint = Keypair.generate(),
     authority?: PublicKey,
-    decimals = 9
+    decimals = 6
   ): Promise<PublicKey> => {
     if (authority === undefined) {
       authority = ctx.provider.wallet.publicKey;
