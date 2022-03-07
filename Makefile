@@ -79,5 +79,4 @@ start:
 	anchor deploy
 	yarn
 	yarn build
-	anchor test --skip-deploy --skip-build
 	make migrate

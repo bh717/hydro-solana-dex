@@ -1,11 +1,9 @@
 import * as anchor from "@project-serum/anchor";
 import * as localJsonIdl from "target/idl/hydra_staking.json";
 import { HydraStaking, IDL } from "types-ts/codegen/types/hydra_staking";
-import { createMintAndVault, createMint, transfer } from "hydra-ts/node";
 import { Keypair } from "@solana/web3.js";
-import { createTokenAccount } from "@project-serum/common";
 import * as assert from "assert";
-import { HydraAPI, HydraSDK } from "hydra-ts";
+import { HydraSDK } from "hydra-ts";
 
 describe("hydra-staking", () => {
   const provider = anchor.Provider.env();
@@ -18,8 +16,8 @@ describe("hydra-staking", () => {
 
   let tokenMint = anchor.web3.Keypair.generate();
   let redeemableMint = anchor.web3.Keypair.generate();
-  let TokenAccount = Keypair.generate();
-  let sdk: HydraAPI;
+  let userAccount = Keypair.generate();
+  let sdk: HydraSDK;
 
   before(async () => {
     sdk = HydraSDK.createFromAnchorProvider(provider, {
@@ -29,21 +27,15 @@ describe("hydra-staking", () => {
     });
 
     // create tokenMint
-    await createMintAndVault(
-      program.provider,
-      tokenMint,
-      TokenAccount,
-      new anchor.BN(100_000_000)
-    );
+    await sdk.common.createMintAndVault(tokenMint, userAccount, 100_000_000n);
 
     // get PDA for tokenVault
     const tokenVaultPubkey = await sdk.staking.accounts.tokenVault.key();
     const tokenVaultBump = await sdk.staking.accounts.tokenVault.bump();
 
     // create redeemableMint and redeemableTokenAccount
-    await createMint(program.provider, redeemableMint, tokenVaultPubkey);
-    await createTokenAccount(
-      program.provider,
+    await sdk.common.createMint(redeemableMint, tokenVaultPubkey);
+    await sdk.common.createTokenAccount(
       redeemableMint.publicKey,
       program.provider.wallet.publicKey
     );
@@ -53,6 +45,15 @@ describe("hydra-staking", () => {
 
     // initialize
     await sdk.staking.initialize(tokenVaultBump, poolStateBump);
+  });
+
+  it("should be setup correctly", async () => {
+    assert.strictEqual(await sdk.staking.accounts.userRedeemable.bal(), 0n);
+    assert.strictEqual(await sdk.staking.accounts.tokenVault.bal(), 0n);
+    assert.strictEqual(
+      await sdk.staking.accounts.userToken.bal(),
+      100_000_000n
+    );
   });
 
   it("should stake tokens into token_vault for the first time", async () => {
@@ -70,8 +71,7 @@ describe("hydra-staking", () => {
   });
 
   it("should transfer tokens into the vault directly", async () => {
-    await transfer(
-      program.provider,
+    await sdk.common.transfer(
       await sdk.staking.accounts.userToken.key(),
       await sdk.staking.accounts.tokenVault.key(),
       99995000

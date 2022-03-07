@@ -1601,7 +1601,8 @@ dependencies = [
 name = "hydra-proto"
 version = "0.1.0"
 dependencies = [
- "hydra-math",
+ "hydra-math-rs",
+ "ndarray",
  "num-derive",
  "num-traits",
  "solana-program",

@@ -1,6 +1,6 @@
 import * as anchor from "@project-serum/anchor";
 import { Program } from "@project-serum/anchor";
-import * as localJsonIdl from "../../target/idl/hydra_farming.json";
+import * as localJsonIdl from "target/idl/hydra_farming.json";
 import { HydraFarming, IDL } from "types-ts/codegen/types/hydra_farming";
 
 describe("hydra-farming", () => {
