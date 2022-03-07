@@ -141,7 +141,7 @@ describe("HydraSDK", () => {
       assert.deepEqual(stringifyMintInfo(mintInfo), {
         mintAuthority: sdk.ctx.provider.wallet.publicKey.toString(),
         supply: "100000000",
-        decimals: "9",
+        decimals: "6",
         isInitialized: "true",
         freezeAuthority: "null",
       });

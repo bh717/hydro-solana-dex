@@ -40,11 +40,6 @@ export function getTokenAccountInfoStream(ctx: Ctx) {
   return function (pubkey: PublicKey) {
     return new Observable<SPLAccountInfo>((subscriber) => {
       const handler = (info: AccountInfo<Buffer> | null) => {
-        console.log(
-          `getTokenAccountInfoStream::handler`,
-          pubkey.toString(),
-          info
-        );
         if (info) subscriber.next(decodeTokenAccountInfo(pubkey, info));
       };
 
