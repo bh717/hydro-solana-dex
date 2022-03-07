@@ -30,19 +30,19 @@ pub struct RemoveLiquidity<'info> {
 
     #[account(
         mut,
-        constraint = user_base_token_account.mint == pool_state.base_token_mint.key(),
-        constraint = user_base_token_account.owner == user.key()
+        constraint = user_base_token.mint == pool_state.base_token_mint.key(),
+        constraint = user_base_token.owner == user.key()
     )]
     /// the token account to send token_a's back to
-    pub user_base_token_account: Box<Account<'info, TokenAccount>>,
+    pub user_base_token: Box<Account<'info, TokenAccount>>,
 
     #[account(
         mut,
-        constraint = user_quote_token_account.mint == pool_state.quote_token_mint.key(),
-        constraint = user_quote_token_account.owner == user.key()
+        constraint = user_quote_token.mint == pool_state.quote_token_mint.key(),
+        constraint = user_quote_token.owner == user.key()
     )]
     ///  the token account to send token_b's back to
-    pub user_quote_token_account: Box<Account<'info, TokenAccount>>,
+    pub user_quote_token: Box<Account<'info, TokenAccount>>,
 
     #[account(
         mut,
@@ -75,14 +75,14 @@ impl<'info> RemoveLiquidity<'info> {
             msg!("Account balances before transfer...");
             msg!(
                 "user_token_a_to_receive.amount: {}",
-                self.user_base_token_account.amount
+                self.user_base_token.amount
             );
             msg!("token_a_vault.amount: {}", self.base_token_vault.amount);
         }
 
         let cpi_accounts = Transfer {
             from: self.base_token_vault.to_account_info(),
-            to: self.user_base_token_account.to_account_info(),
+            to: self.user_base_token.to_account_info(),
             authority: self.pool_state.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();
@@ -94,14 +94,14 @@ impl<'info> RemoveLiquidity<'info> {
             msg!("Account balances before transfer...");
             msg!(
                 "user_token_b_to_receive.amount: {}",
-                self.user_quote_token_account.amount
+                self.user_quote_token.amount
             );
             msg!("token_b_vault.amount: {}", self.quote_token_vault.amount);
         }
 
         let cpi_accounts = Transfer {
             from: self.quote_token_vault.to_account_info(),
-            to: self.user_quote_token_account.to_account_info(),
+            to: self.user_quote_token.to_account_info(),
             authority: self.pool_state.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();

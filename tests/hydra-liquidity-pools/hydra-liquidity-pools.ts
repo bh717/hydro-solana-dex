@@ -390,8 +390,8 @@ describe("hydra-liquidity-pool", () => {
         poolState: poolState,
         user: provider.wallet.publicKey,
         userRedeemableLpTokens: lpTokenAccount,
-        userBaseTokenAccount: btcdAccount,
-        userQuoteTokenAccount: usddAccount,
+        userBaseToken: btcdAccount,
+        userQuoteToken: usddAccount,
         baseTokenVault,
         quoteTokenVault,
         lpTokenMint: lpTokenMint.publicKey,
@@ -420,8 +420,8 @@ describe("hydra-liquidity-pool", () => {
           poolState: poolState,
           user: provider.wallet.publicKey,
           userRedeemableLpTokens: lpTokenAccount,
-          userBaseTokenAccount: btcdAccount,
-          userQuoteTokenAccount: usddAccount,
+          userBaseToken: btcdAccount,
+          userQuoteToken: usddAccount,
           baseTokenVault,
           quoteTokenVault,
           lpTokenMint: lpTokenMint.publicKey,
@@ -450,4 +450,14 @@ describe("hydra-liquidity-pool", () => {
       );
     });
   });
+
+  // it("should swap tokens", async () => {
+  //   await program.rpc.swapCpmm({
+  //     accounts: {
+  //       user: provider.wallet.publicKey,
+  //       poolState: poolState,
+  //       userBaseToken
+  //     },
+  //   });
+  // });
 });
