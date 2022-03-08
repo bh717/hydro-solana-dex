@@ -81,7 +81,7 @@ pub fn handle(ctx: Context<SwapCpmm>, amount_in: u64, minimum_amount_out: u64) -
         ctx.accounts.base_token_vault.amount as u128,
         ctx.accounts.quote_token_vault.amount as u128,
         ctx.accounts.pool_state.compensation_parameter as u128,
-        1,
+        10000, // TODO: build in Oracle. However this didnt make any diff in my testing?
     );
 
     let result = swap.swap_x_to_y_amm(amount_in as u128);
