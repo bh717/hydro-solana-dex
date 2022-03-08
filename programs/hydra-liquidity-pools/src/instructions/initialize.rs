@@ -75,7 +75,7 @@ pub fn handle(
     pool_state_bump: u8,
     lp_token_vault_bump: u8,
     compensation_parameter: u16,
-) -> ProgramResult {
+) -> Result<()> {
     // save authority
     ctx.accounts.pool_state.authority = *ctx.accounts.authority.to_account_info().key;
 

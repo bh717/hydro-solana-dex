@@ -5,9 +5,9 @@ _ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 list:
 	@awk -F: '/^[A-z]/ {print $$1}' Makefile | sort
 
-# install our fork of anchor
 install_anchor:
-	cargo install --git https://github.com/project-serum/anchor anchor-cli
+	@avm use latest || cargo install --git https://github.com/project-serum/anchor avm --locked --force && avm use latest
+	@anchor -V
 
 install_solana:
 	sh -c "$$(curl -sSfL https://release.solana.com/v1.9.6/install)"	
@@ -46,8 +46,11 @@ validator-logs:
 migrate:
 	yarn ts-node scripts/migrate.ts
 
-watch-test:
+watch-anchor-test:
 	cargo watch -c -- anchor test -- --features "localnet"
+
+watch-test:
+	cargo watch -cx test
 
 watch:
 	cargo watch -- anchor build -- --features "localnet"

@@ -82,6 +82,10 @@ export type HydraLiquidityPools = {
         {
           name: "lpTokenVaultBump";
           type: "u8";
+        },
+        {
+          name: "compensationParameter";
+          type: "u16";
         }
       ];
     },
@@ -319,19 +323,6 @@ export type HydraLiquidityPools = {
       };
     }
   ];
-  types: [
-    {
-      name: "ErrorCode";
-      type: {
-        kind: "enum";
-        variants: [
-          {
-            name: "SlippageExceeded";
-          }
-        ];
-      };
-    }
-  ];
   events: [
     {
       name: "LiquidityAdded";
@@ -397,6 +388,18 @@ export type HydraLiquidityPools = {
           index: false;
         }
       ];
+    }
+  ];
+  errors: [
+    {
+      code: 6000;
+      name: "SlippageExceeded";
+      msg: "Slippage Amount Exceeded";
+    },
+    {
+      code: 6001;
+      name: "InvalidCompensationParameter";
+      msg: "Invalid Compensation Parameter";
     }
   ];
 };
@@ -485,6 +488,10 @@ export const IDL: HydraLiquidityPools = {
         {
           name: "lpTokenVaultBump",
           type: "u8",
+        },
+        {
+          name: "compensationParameter",
+          type: "u16",
         },
       ],
     },
@@ -722,19 +729,6 @@ export const IDL: HydraLiquidityPools = {
       },
     },
   ],
-  types: [
-    {
-      name: "ErrorCode",
-      type: {
-        kind: "enum",
-        variants: [
-          {
-            name: "SlippageExceeded",
-          },
-        ],
-      },
-    },
-  ],
   events: [
     {
       name: "LiquidityAdded",
@@ -800,6 +794,18 @@ export const IDL: HydraLiquidityPools = {
           index: false,
         },
       ],
+    },
+  ],
+  errors: [
+    {
+      code: 6000,
+      name: "SlippageExceeded",
+      msg: "Slippage Amount Exceeded",
+    },
+    {
+      code: 6001,
+      name: "InvalidCompensationParameter",
+      msg: "Invalid Compensation Parameter",
     },
   ],
 };

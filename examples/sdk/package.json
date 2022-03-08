@@ -61,18 +61,11 @@
   },
   "workspaces": {
     "nohoist": [
+      "babel-loader",
       "react-scripts",
       "react-scripts/**",
       "react-app-rewired",
-      "react-app-rewired/**",
-      "@solana/wallet-adapter-base",
-      "@solana/wallet-adapter-base/**",
-      "@solana/wallet-adapter-react-ui",
-      "@solana/wallet-adapter-react-ui/**",
-      "@solana/wallet-adapter-react",
-      "@solana/wallet-adapter-react/**",
-      "@solana/wallet-adapter-wallets",
-      "@solana/wallet-adapter-wallets/**"
+      "react-app-rewired/**"
     ]
   }
 }

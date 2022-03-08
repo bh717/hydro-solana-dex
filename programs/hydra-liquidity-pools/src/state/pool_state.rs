@@ -1,4 +1,4 @@
-use crate::errors::*;
+use crate::errors::ErrorCode;
 use anchor_lang::prelude::*;
 use derivative::Derivative;
 use std::io::Write;
@@ -23,10 +23,10 @@ pub struct PoolState {
 }
 
 impl PoolState {
-    pub fn set_compensation_parameter(value: u16) -> Result<u16, ProgramError> {
+    // TODO this is doggy fix me
+    pub fn set_compensation_parameter(value: u16) -> Result<u16> {
         match value {
-            0 => Ok(000),
-            000 => Ok(000),
+            0 => Ok(0),
             025 => Ok(025),
             050 => Ok(050),
             075 => Ok(075),
@@ -39,6 +39,32 @@ impl PoolState {
             200 => Ok(200),
             _ => err!(ErrorCode::InvalidCompensationParameter),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::state::pool_state::PoolState;
+
+    #[test]
+    fn test_set_compensation_parameter0() {
+        let expected: u16 = 0;
+        let result = PoolState::set_compensation_parameter(0).unwrap();
+        assert_eq!(expected, result)
+    }
+
+    #[test]
+    fn test_set_compensation_parameter025() {
+        let expected: u16 = 025;
+        let result = PoolState::set_compensation_parameter(025).unwrap();
+        assert_eq!(expected, result)
+    }
+
+    #[test]
+    fn test_set_compensation_parameter050() {
+        let expected: u16 = 050;
+        let result = PoolState::set_compensation_parameter(050).unwrap();
+        assert_eq!(expected, result)
     }
 }
 

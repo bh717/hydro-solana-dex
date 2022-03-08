@@ -135,6 +135,7 @@ describe("hydra-liquidity-pool", () => {
       quoteTokenVaultBump,
       poolStateBump,
       lpTokenVaultBump,
+      0, // TODO need to hand this code better after talking with the math kids about it more.
       {
         accounts: {
           authority: provider.wallet.publicKey,
@@ -348,11 +349,7 @@ describe("hydra-liquidity-pool", () => {
       );
       assert.ok(false);
     } catch (err: any) {
-      // TODO; error handle is broken with anchor 0.22
-      // ref: https://github.com/project-serum/anchor/issues/1494
-      // const errMsg = "Slippage Amount Exceeded";
-      const errMsg =
-        "Error: failed to send transaction: Transaction simulation failed: Error processing Instruction 0: custom program error: 0x1770";
+      const errMsg = "Slippage Amount Exceeded";
       assert.equal(err.toString(), errMsg);
     }
 

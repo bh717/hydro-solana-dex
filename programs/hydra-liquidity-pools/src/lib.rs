@@ -40,13 +40,15 @@ pub mod hydra_liquidity_pools {
         quote_token_vault_bump: u8,
         pool_state_bump: u8,
         lp_token_vault_bump: u8,
-    ) -> ProgramResult {
+        compensation_parameter: u16,
+    ) -> Result<()> {
         instructions::initialize::handle(
             ctx,
             base_token_vault_bump,
             quote_token_vault_bump,
             pool_state_bump,
             lp_token_vault_bump,
+            compensation_parameter,
         )
     }
 
@@ -55,7 +57,7 @@ pub mod hydra_liquidity_pools {
         base_tokens_max_amount: u64, // slippage handling: token_a_amount * (1 + TOLERATED_SLIPPAGE) --> calculated client side
         quote_tokens_max_amount: u64, // slippage handling: token_b_amount * (1 + TOLERATED_SLIPPAGE) --> calculated client side
         expected_lp_tokens: u64,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         instructions::add_liquidity::handle(
             ctx,
             base_tokens_max_amount,
@@ -67,7 +69,7 @@ pub mod hydra_liquidity_pools {
     pub fn remove_liquidity(
         ctx: Context<RemoveLiquidity>,
         lp_tokens_to_burn: u64, // calculate the % client side
-    ) -> ProgramResult {
+    ) -> Result<()> {
         instructions::remove_liquidity::handle(ctx, lp_tokens_to_burn)
     }
 
@@ -75,7 +77,7 @@ pub mod hydra_liquidity_pools {
         ctx: Context<SwapCpmm>,
         amount_in: u64,
         minimum_amount_out: u64,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         instructions::swap_cpmm::handle(ctx, amount_in, minimum_amount_out)
     }
 
