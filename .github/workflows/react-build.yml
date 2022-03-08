@@ -42,7 +42,7 @@ jobs:
         run: npm install -g serve
 
       - id: install-playwright
-        run: yarn playwright install
+        run: npx playwright install
 
       - id: install-node-yarn-cache
         uses: actions/setup-node@v2
