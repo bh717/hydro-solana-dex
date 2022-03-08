@@ -72,7 +72,7 @@ react-ci-cd:
 	yarn --frozen-lockfile
 	yarn lint
 	cd app; yarn build
-	#cd app; CI=true yarn test # Broke with inital UI
+	cd app; yarn serve-e2e
 	cd app; ipd -C build/
 
 # start the local development stack
