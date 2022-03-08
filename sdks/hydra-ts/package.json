@@ -31,5 +31,14 @@
     "rxjs": "^7.5.4",
     "target": "*",
     "wasm-loader-ts": "*"
+  },
+  "workspaces": {
+    "nohoist": [
+      "@jest",
+      "@jest/**",
+      "jest",
+      "jest/**",
+      "jest-*"
+    ]
   }
 }
