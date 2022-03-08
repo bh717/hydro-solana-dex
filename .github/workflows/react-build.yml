@@ -35,6 +35,12 @@ jobs:
       - id: install-yarn
         run: npm install -g yarn
 
+      - id: install-concurrently
+        run: npm install -g concurrently
+
+      - id: install-serve
+        run: npm install -g serve
+
       - id: install-playwright
         run: yarn playwright install
 

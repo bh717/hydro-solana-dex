@@ -22,8 +22,10 @@
   },
   "scripts": {
     "start": "react-app-rewired start",
+    "serve": "serve -s build",
     "build": "react-app-rewired build",
-    "test": "playwright test",
+    "test": "react-scripts test --watchAll=false --passWithNoTests",
+    "e2e": "playwright test",
     "eject": "react-app-rewired eject"
   },
   "eslintConfig": {
