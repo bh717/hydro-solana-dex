@@ -69,7 +69,7 @@ react-ci-cd:
 	yarn --frozen-lockfile
 	yarn lint
 	cd app; yarn build
-	cd app; concurrently -rks first "yarn serve" "yarn e2e"
+	cd app; yarn serve-e2e
 	cd app; ipd -C build/
 
 # start the local development stack
