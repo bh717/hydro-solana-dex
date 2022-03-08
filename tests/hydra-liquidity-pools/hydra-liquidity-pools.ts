@@ -448,11 +448,28 @@ describe("hydra-liquidity-pool", () => {
     });
   });
 
-  it("should swap tokens", async () => {
-    console.log((await getTokenBalance(provider, baseTokenVault)).toNumber());
-    console.log((await getTokenBalance(provider, quoteTokenVault)).toNumber());
+  it("should fail token swap due to slippage error", async () => {
+    try {
+      await program.rpc.swapCpmm(new BN(1_000_000), new BN(36_510_755_315), {
+        accounts: {
+          user: provider.wallet.publicKey,
+          poolState: poolState,
+          userFromToken: btcdAccount,
+          userToToken: usddAccount,
+          baseTokenVault,
+          quoteTokenVault,
+          tokenProgram: TOKEN_PROGRAM_ID,
+        },
+      });
+      assert.ok(false);
+    } catch (err: any) {
+      const errMsg = "Slippage Amount Exceeded";
+      assert.equal(err.toString(), errMsg);
+    }
+  });
 
-    await program.rpc.swapCpmm(new BN(1_000_000), new BN(2), {
+  it("should swap", async () => {
+    await program.rpc.swapCpmm(new BN(1_000_000), new BN(36_510_755_314), {
       accounts: {
         user: provider.wallet.publicKey,
         poolState: poolState,
@@ -463,5 +480,25 @@ describe("hydra-liquidity-pool", () => {
         tokenProgram: TOKEN_PROGRAM_ID,
       },
     });
+
+    assert.strictEqual(
+      (await getTokenBalance(provider, baseTokenVault)).toNumber(),
+      6_000_000 + 1_000_000
+    );
+
+    assert.strictEqual(
+      (await getTokenBalance(provider, quoteTokenVault)).toNumber(),
+      255_575_287_200 - 36_510_755_314
+    );
+
+    assert.strictEqual(
+      (await getTokenBalance(provider, btcdAccount)).toNumber(),
+      20_999_993_000_000
+    );
+
+    assert.strictEqual(
+      (await getTokenBalance(provider, usddAccount)).toNumber(),
+      99_780_935_468_114
+    );
   });
 });

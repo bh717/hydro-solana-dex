@@ -15,3 +15,13 @@ pub struct SwapResult {
     /// Amount of destination token swapped expressed as delta_x
     pub delta_y: PreciseNumber,
 }
+
+impl SwapResult {
+    pub fn delta_y(&self) -> Option<u64> {
+        Some(self.delta_y.to_imprecise()? as u64)
+    }
+
+    pub fn delta_x(&self) -> Option<u64> {
+        Some(self.delta_x.to_imprecise()? as u64)
+    }
+}
