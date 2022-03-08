@@ -5,9 +5,6 @@ _ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 list:
 	@awk -F: '/^[A-z]/ {print $$1}' Makefile | sort
 
-x:
-	true || echo test
-
 install_anchor:
 	@avm use latest || cargo install --git https://github.com/project-serum/anchor avm --locked --force && avm use latest
 	@anchor -V
