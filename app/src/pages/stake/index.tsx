@@ -165,13 +165,9 @@ const Stake: FC<StakeProps> = ({ openWalletConnect }) => {
   const [staking, setStaking] = useState(false);
   const [unstaking, setUnstaking] = useState(false);
 
-  const stake = async (amount: number) => {
-    
-  };
+  const stake = async (amount: number) => {};
 
-  const unstake = async (amount: number) => {
-    
-  };
+  const unstake = async (amount: number) => {};
 
   return (
     <Box className={classes.stakeContainer}>
