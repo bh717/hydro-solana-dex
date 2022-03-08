@@ -6,5 +6,5 @@ members = [
     "libs/math/hmm",
     "libs/math/hydra-proto",
     "libs/math/sim",
-    "tools/*"
+#    "tools/*" # Removed until we have the space to build this out.
 ]

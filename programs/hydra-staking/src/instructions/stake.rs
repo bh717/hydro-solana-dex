@@ -16,19 +16,19 @@ pub struct Stake<'info> {
     pub pool_state: Box<Account<'info, PoolState>>,
 
     #[account(
-        constraint = token_mint.key() == pool_state.token_mint.key()
+        constraint = token_mint.key() == pool_state.token_mint,
     )]
     pub token_mint: Box<Account<'info, Mint>>,
 
     #[account(
         mut,
-        constraint = redeemable_mint.key() == pool_state.redeemable_mint.key()
+        constraint = redeemable_mint.key() == pool_state.redeemable_mint,
     )]
     pub redeemable_mint: Box<Account<'info, Mint>>,
 
     #[account(
         mut,
-        constraint = user_from.mint == pool_state.token_mint.key(),
+        constraint = user_from.mint == pool_state.token_mint,
         constraint = user_from.owner == user_from_authority.key()
     )]
     /// the token account to withdraw from
@@ -41,13 +41,13 @@ pub struct Stake<'info> {
         mut,
         seeds = [ TOKEN_VAULT_SEED, token_mint.key().as_ref(), redeemable_mint.key().as_ref() ],
         bump,
-        constraint = token_vault.key() == pool_state.token_vault.key()
+        constraint = token_vault.key() == pool_state.token_vault,
     )]
     pub token_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(
         mut,
-        constraint = redeemable_to.mint == pool_state.redeemable_mint.key(),
+        constraint = redeemable_to.mint == pool_state.redeemable_mint,
     )]
     pub redeemable_to: Box<Account<'info, TokenAccount>>,
 
@@ -82,15 +82,15 @@ impl<'info> Stake<'info> {
     }
 }
 
-pub fn handle(ctx: Context<Stake>, amount: u64) -> ProgramResult {
+pub fn handle(ctx: Context<Stake>, amount: u64) -> Result<()> {
     let total_token_vault = ctx.accounts.token_vault.amount;
     let total_redeemable_tokens = ctx.accounts.redeemable_mint.supply;
 
     let old_price = ctx.accounts.calculate_price();
     msg!("old_price: {}", old_price);
 
-    let token_mint_key = ctx.accounts.pool_state.token_mint.key();
-    let redeemable_mint_key = ctx.accounts.pool_state.redeemable_mint.key();
+    let token_mint_key = ctx.accounts.pool_state.token_mint;
+    let redeemable_mint_key = ctx.accounts.pool_state.redeemable_mint;
 
     let seeds = &[
         TOKEN_VAULT_SEED,
