@@ -452,7 +452,10 @@ describe("hydra-liquidity-pool", () => {
   });
 
   it("should swap tokens", async () => {
-    await program.rpc.swapCpmm(new BN(1), new BN(2), {
+    console.log((await getTokenBalance(provider, baseTokenVault)).toNumber());
+    console.log((await getTokenBalance(provider, quoteTokenVault)).toNumber());
+
+    await program.rpc.swapCpmm(new BN(1_000_000), new BN(2), {
       accounts: {
         user: provider.wallet.publicKey,
         poolState: poolState,

@@ -251,11 +251,11 @@ export type HydraLiquidityPools = {
       ];
       args: [
         {
-          name: "baseTokenMaxAmount";
+          name: "amountIn";
           type: "u64";
         },
         {
-          name: "quoteTokenMaxAmount";
+          name: "minimumAmountOut";
           type: "u64";
         }
       ];
@@ -306,6 +306,10 @@ export type HydraLiquidityPools = {
           {
             name: "lpTokenVaultBump";
             type: "u8";
+          },
+          {
+            name: "compensationParameter";
+            type: "u16";
           },
           {
             name: "debug";
@@ -650,11 +654,11 @@ export const IDL: HydraLiquidityPools = {
       ],
       args: [
         {
-          name: "baseTokenMaxAmount",
+          name: "amountIn",
           type: "u64",
         },
         {
-          name: "quoteTokenMaxAmount",
+          name: "minimumAmountOut",
           type: "u64",
         },
       ],
@@ -705,6 +709,10 @@ export const IDL: HydraLiquidityPools = {
           {
             name: "lpTokenVaultBump",
             type: "u8",
+          },
+          {
+            name: "compensationParameter",
+            type: "u16",
           },
           {
             name: "debug",

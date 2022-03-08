@@ -55,7 +55,7 @@ pub fn handle(ctx: Context<SwapCpmm>, amount_in: u64, _minimum_amount_out: u64) 
     let swap = SwapCalculator::new(
         ctx.accounts.base_token_vault.amount as u128,
         ctx.accounts.quote_token_vault.amount as u128,
-        0,
+        ctx.accounts.pool_state.compensation_parameter as u128,
         1,
     );
 

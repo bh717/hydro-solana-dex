@@ -74,6 +74,7 @@ pub fn handle(
     quote_token_vault_bump: u8,
     pool_state_bump: u8,
     lp_token_vault_bump: u8,
+    compensation_parameter: u16,
 ) -> ProgramResult {
     // save authority
     ctx.accounts.pool_state.authority = *ctx.accounts.authority.to_account_info().key;
@@ -96,6 +97,9 @@ pub fn handle(
     ctx.accounts.pool_state.lp_token_vault_bump = lp_token_vault_bump;
 
     ctx.accounts.pool_state.debug = DEBUG_MODE;
+
+    ctx.accounts.pool_state.compensation_parameter =
+        PoolState::set_compensation_parameter(compensation_parameter)?;
 
     Ok(())
 }

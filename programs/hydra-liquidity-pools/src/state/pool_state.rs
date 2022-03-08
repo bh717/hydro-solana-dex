@@ -1,3 +1,4 @@
+use crate::errors::*;
 use anchor_lang::prelude::*;
 use derivative::Derivative;
 use std::io::Write;
@@ -15,11 +16,31 @@ pub struct PoolState {
     pub base_token_vault_bump: u8,
     pub quote_token_vault_bump: u8,
     pub lp_token_vault_bump: u8,
+    pub compensation_parameter: u16, // Range from (0 - 200) / 100 = c. With only 025 increments
     #[derivative(Default(value = "false"))]
     pub debug: bool,
     pub reserved: PoolStateReserve,
 }
-impl PoolState {}
+
+impl PoolState {
+    pub fn set_compensation_parameter(value: u16) -> Result<u16, ProgramError> {
+        match value {
+            0 => Ok(000),
+            000 => Ok(000),
+            025 => Ok(025),
+            050 => Ok(050),
+            075 => Ok(075),
+            1 => Ok(100),
+            100 => Ok(100),
+            125 => Ok(125),
+            150 => Ok(150),
+            175 => Ok(175),
+            2 => Ok(200),
+            200 => Ok(200),
+            _ => err!(ErrorCode::InvalidCompensationParameter),
+        }
+    }
+}
 
 const POOL_STATE_RESERVE_SIZE: usize = 512;
 
