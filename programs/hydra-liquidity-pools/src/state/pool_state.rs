@@ -1,4 +1,3 @@
-use crate::errors::ErrorCode;
 use anchor_lang::prelude::*;
 use derivative::Derivative;
 use std::io::Write;
