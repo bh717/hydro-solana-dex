@@ -78,9 +78,23 @@ const useStyles = makeStyles({
 
 interface StakeUnstakeProps {
   walletConnect(): void;
+  balance: number;
+  xBalance: number;
+  onStake(amount: number): void;
+  onUnstake(amount: number): void;
+  staking: boolean;
+  unstaking: boolean;
 }
 
-const StakeUnstake: FC<StakeUnstakeProps> = ({ walletConnect }) => {
+const StakeUnstake: FC<StakeUnstakeProps> = ({
+  walletConnect,
+  balance,
+  xBalance,
+  onStake,
+  onUnstake,
+  staking,
+  unstaking,
+}) => {
   const classes = useStyles();
 
   const [tab, setTab] = useState(0);
@@ -89,10 +103,6 @@ const StakeUnstake: FC<StakeUnstakeProps> = ({ walletConnect }) => {
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setTab(newValue);
-  };
-
-  const handleAction = (type: string) => {
-    console.log(type);
   };
 
   return (
@@ -118,21 +128,23 @@ const StakeUnstake: FC<StakeUnstakeProps> = ({ walletConnect }) => {
         {tab === 0 && (
           <TabPanel
             type={"stake"}
-            balance={"890,240,380.5219"}
+            balance={balance}
+            status={staking}
             amount={stakeAmount}
             setAmount={setStakeAmount}
             onWalletConnect={walletConnect}
-            onAction={handleAction}
+            onAction={() => onStake(Number(stakeAmount))}
           />
         )}
         {tab === 1 && (
           <TabPanel
             type={"unstake"}
-            balance={"890,240,380.5219"}
+            balance={xBalance}
+            status={unstaking}
             amount={unstakeAmount}
             setAmount={setUnstakeAmount}
             onWalletConnect={walletConnect}
-            onAction={handleAction}
+            onAction={() => onUnstake(Number(unstakeAmount))}
           />
         )}
       </Box>
