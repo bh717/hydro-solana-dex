@@ -35,18 +35,6 @@ jobs:
       - id: install-yarn
         run: npm install -g yarn
 
-      - id: install-concurrently
-        run: npm install -g concurrently
-
-      - id: install-serve
-        run: npm install -g serve
-
-      - id: install-playwright
-        run: npx playwright install
-
-      - id: install-ipfs-deploy
-        run: npm install -g ipfs-deploy
-
       - id: install-node-yarn-cache
         uses: actions/setup-node@v2
         with:
@@ -68,6 +56,18 @@ jobs:
 
       - id: install-os-deps
         run: sudo apt-get update && sudo apt-get install -y pkg-config build-essential libudev-dev tree make
+
+      - id: install-concurrently
+        run: npm install -g concurrently
+
+      - id: install-serve
+        run: npm install -g serve
+
+      - id: install-playwright
+        run: npx playwright install
+
+      - id: install-ipfs-deploy
+        run: npm install -g ipfs-deploy
 
       - uses: actions/checkout@v2
         with:

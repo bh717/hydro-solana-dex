@@ -1,8 +1,12 @@
-import { FC, useEffect, useState } from "react";
+import {
+  FC,
+  // useEffect,
+  // useState
+} from "react";
 import { makeStyles } from "@mui/styles";
 import { Box, Typography } from "@mui/material";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { toast } from "react-toastify";
+// import { useWallet } from "@solana/wallet-adapter-react";
+// import { toast } from "react-toastify";
 
 import { Deposit } from "../../components/icons";
 import Banner from "../../assets/images/stake/banner.png";
@@ -158,12 +162,16 @@ interface StakeProps {
 
 const Stake: FC<StakeProps> = ({ openWalletConnect }) => {
   const classes = useStyles();
-  const wallet = useWallet();
+  // const wallet = useWallet();
 
-  const [userBalance, setUserBalance] = useState(0);
-  const [redeemBalance, setRedeemBalance] = useState(0);
-  const [staking, setStaking] = useState(false);
-  const [unstaking, setUnstaking] = useState(false);
+  // const [userBalance, setUserBalance] = useState(0);
+  // const [redeemBalance, setRedeemBalance] = useState(0);
+  // const [staking, setStaking] = useState(false);
+  // const [unstaking, setUnstaking] = useState(false);
+  const userBalance = 0;
+  const redeemBalance = 0;
+  const staking = false;
+  const unstaking = false;
 
   const stake = async (amount: number) => {};
 
