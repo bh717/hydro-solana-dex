@@ -8,8 +8,6 @@
     "@emotion/styled": "^11.6.0",
     "@mui/material": "^5.2.4",
     "@mui/styles": "^5.2.3",
-    "@project-serum/anchor": "^0.22.1",
-    "@project-serum/serum": "^0.13.61",
     "@solana/wallet-adapter-base": "^0.9.4",
     "@solana/wallet-adapter-react": "^0.15.3",
     "@solana/wallet-adapter-wallets": "^0.15.4",
@@ -25,7 +23,7 @@
   "scripts": {
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
-    "test": "react-app-rewired test --watchAll=false --passWithNoTests",
+    "test": "playwright test",
     "eject": "react-app-rewired eject"
   },
   "eslintConfig": {
@@ -47,6 +45,7 @@
     ]
   },
   "devDependencies": {
+    "@playwright/test": "^1.19.2",
     "@testing-library/jest-dom": "^5.16.2",
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",

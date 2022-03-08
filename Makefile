@@ -68,8 +68,9 @@ anchor-ci:
 react-ci-cd:
 	yarn --frozen-lockfile
 	yarn lint
+	cd app; yarn start
 	cd app; yarn build
-	#cd app; CI=true yarn test # Broke with inital UI
+	cd app; CI=true yarn test
 	cd app; ipd -C build/
 
 # start the local development stack
