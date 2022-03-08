@@ -61,6 +61,10 @@
   },
   "workspaces": {
     "nohoist": [
+      "react",
+      "react/**",
+      "react-dom",
+      "react-dom/**",
       "react-scripts",
       "react-scripts/**",
       "react-app-rewired",
