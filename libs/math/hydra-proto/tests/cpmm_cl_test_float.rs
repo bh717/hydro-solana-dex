@@ -108,14 +108,12 @@ mod tests {
         let (x, x_adj, x_fee) = pool.x_info();
         let (y, y_adj, y_fee) = pool.y_info();
 
-        if Pool::ADJ_WHOLE_FILL == 0.0 {
-            if Pool::FLOOR_LIQ {
-                assert_eq!(x, 1.9984356160643284_f64); // with liq.floor() in deposit
-                assert_eq!(y, 3998.3195353714877_f64); // with liq.floor() in deposit
-            } else {
-                assert_eq!(x, 1.999275544022923_f64); // without flooring
-                assert_eq!(y, 4000_f64); // without flooring
-            }
+        if Pool::FLOOR_LIQ {
+            assert_eq!(x, 1.9984356160643284_f64); // with liq.floor() in deposit
+            assert_eq!(y, 3998.3195353714877_f64); // with liq.floor() in deposit
+        } else {
+            assert_eq!(x, 1.999275544022923_f64); // without flooring
+            assert_eq!(y, 4000_f64); // without flooring
         }
 
         assert_eq!(x_adj, 0_f64);
@@ -304,7 +302,7 @@ mod tests {
         let mut pool = Pool::new("SOL", 12, "USDC", 6, 150_f64.sqrt(), 1, 0.0, 0.0);
         pool.deposit("dude", 4.0, 600.0, 180_f64.sqrt(), 230_f64.sqrt());
 
-        // no x should be have been deposited in pool, given range.
+        // no y should be have been deposited in pool, given range.
         assert!(pool.x_info().0 > 0.0);
         assert_eq!(pool.y_info().0, 0.0);
         assert_eq!(pool.glbl_liq(), 0.0); // no liq in range

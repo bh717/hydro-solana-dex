@@ -49,6 +49,11 @@ mod tests {
         assert_eq!(hmm_pool.glbl_tick(), cpmm_pool.glbl_tick());
         assert_eq!(hmm_pool.glbl_rp(), cpmm_pool.glbl_rp());
 
+        if Pool::ADJ_WHOLE_FILL == 0.0 && !Pool::FLOOR_LIQ {
+            assert_eq!(hmm_pool.y_info().1, 300.0419098796583_f64);
+            assert_eq!(hmm_pool.glbl_rp(), 1332.937255554048_f64.sqrt());
+            assert_eq!(rez_h.avg_price(), 1510.2149015898015_f64);
+        }
         if Pool::ADJ_WHOLE_FILL == 1.0e-12 && Pool::FLOOR_LIQ {
             assert_eq!(hmm_pool.y_info().1, 299.9158574252024_f64);
             assert_eq!(hmm_pool.glbl_rp(), 1332.937255554048_f64.sqrt());
@@ -77,9 +82,15 @@ mod tests {
         assert_eq!(hmm_pool.glbl_tick(), cpmm_pool.glbl_tick());
         assert_eq!(hmm_pool.glbl_rp(), cpmm_pool.glbl_rp());
 
+        if Pool::ADJ_WHOLE_FILL == 0.0 && !Pool::FLOOR_LIQ {
+            assert_eq!(hmm_pool.x_info().1, 0.13387105926908927_f64);
+            assert_eq!(hmm_pool.y_info().1, 300.0419098796583_f64); // same as after 1st swap
+            assert_eq!(hmm_pool.glbl_rp(), 1991.582634658289_f64.sqrt());
+            assert_eq!(res_h.avg_price(), 1724.4121583231515_f64);
+        }
         if Pool::ADJ_WHOLE_FILL == 1.0e-12 && Pool::FLOOR_LIQ {
             assert_eq!(hmm_pool.x_info().1, 0.13381481787398464_f64);
-            assert_eq!(hmm_pool.y_info().1, 299.9158574252024_f64); // still same
+            assert_eq!(hmm_pool.y_info().1, 299.9158574252024_f64); // same as after 1st swap
             assert_eq!(hmm_pool.glbl_rp(), 1991.8871664747417_f64.sqrt());
             assert_eq!(res_h.avg_price(), 1724.5093970632417_f64);
         }
@@ -175,10 +186,14 @@ mod tests {
 
         let rez_split = split.execute_swap_from_x(3.0, 1500_f64.sqrt());
 
-        // whether liquidity is provided in one interval or 2 adjacents intervals makes no diff
+        // whether liquidity is provided in one interval or 2 adjacents intervals makes no diff to swap_from_x
+        // here deposited amount in x in sligthly different due to:
+        //  _ in 'single', liq_x_only and liq_y_only are compared and the min is taken (in this case liq_y_only is taken)
+        //  _ in 'split' no comparaison is done so input x & y taken in as given
+        // in this case X reserves are slightly different
+        // but this doesnt affect the result on a swap_from_x
+
         assert_eq!(rez_single, rez_split);
-        assert_eq!(single.x_info(), split.x_info());
-        assert_eq!(single.y_info(), split.y_info());
     }
 
     #[test]

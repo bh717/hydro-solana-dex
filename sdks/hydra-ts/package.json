@@ -6,8 +6,8 @@
   "types": "src/index.ts",
   "scripts": {
     "build-node": "tsc -p ./node.tsconfig.json",
-    "build-iso": "tsc",
     "watch-node": "tsc -p ./node.tsconfig.json --watch",
+    "build-iso": "tsc",
     "watch-iso": "tsc --watch",
     "build": "yarn build-iso && yarn build-node",
     "watch": "concurrently -r \"yarn watch-iso\" \"yarn watch-node\"",
@@ -24,11 +24,21 @@
     "typescript": "^4.5.5"
   },
   "dependencies": {
-    "@project-serum/anchor": "^0.21.0",
+    "@project-serum/anchor": "^0.20.1",
     "@solana/spl-token": "^0.2.0",
     "concurrently": "^7.0.0",
     "hydra-math-rs": "*",
+    "rxjs": "^7.5.4",
     "target": "*",
     "wasm-loader-ts": "*"
+  },
+  "workspaces": {
+    "nohoist": [
+      "@jest",
+      "@jest/**",
+      "jest",
+      "jest/**",
+      "jest-*"
+    ]
   }
 }
