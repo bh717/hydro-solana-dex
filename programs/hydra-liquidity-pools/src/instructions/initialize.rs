@@ -98,8 +98,8 @@ pub fn handle(
 
     ctx.accounts.pool_state.debug = DEBUG_MODE;
 
-    ctx.accounts.pool_state.compensation_parameter =
-        PoolState::set_compensation_parameter(compensation_parameter)?;
+    // TODO: Review this and add some error handling once @correkt-horse refactors the math crate
+    ctx.accounts.pool_state.compensation_parameter = compensation_parameter;
 
     Ok(())
 }
