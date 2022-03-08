@@ -16,19 +16,19 @@ pub struct UnStake<'info> {
     pub pool_state: Box<Account<'info, PoolState>>,
 
     #[account(
-        constraint = token_mint.key() == pool_state.token_mint.key()
+        constraint = token_mint.key() == pool_state.token_mint,
     )]
     pub token_mint: Box<Account<'info, Mint>>,
 
     #[account(
         mut,
-        constraint = redeemable_mint.key() == pool_state.redeemable_mint.key()
+        constraint = redeemable_mint.key() == pool_state.redeemable_mint,
     )]
     pub redeemable_mint: Box<Account<'info, Mint>>,
 
     #[account(
         mut,
-        constraint = user_to.mint == pool_state.token_mint.key(),
+        constraint = user_to.mint == pool_state.token_mint,
     )]
     /// the token account to withdraw from
     pub user_to: Box<Account<'info, TokenAccount>>,
@@ -42,7 +42,7 @@ pub struct UnStake<'info> {
 
     #[account(
         mut,
-        constraint = redeemable_from.mint == pool_state.redeemable_mint.key(),
+        constraint = redeemable_from.mint == pool_state.redeemable_mint,
     )]
     pub redeemable_from: Box<Account<'info, TokenAccount>>,
 
@@ -80,7 +80,7 @@ impl<'info> UnStake<'info> {
     }
 }
 
-pub fn handle(ctx: Context<UnStake>, amount: u64) -> ProgramResult {
+pub fn handle(ctx: Context<UnStake>, amount: u64) -> Result<()> {
     let total_tokens = ctx.accounts.token_vault.amount;
     let total_redeemable_token_supply = ctx.accounts.redeemable_mint.supply;
 
@@ -94,8 +94,8 @@ pub fn handle(ctx: Context<UnStake>, amount: u64) -> ProgramResult {
     let token_share =
         calculate_pool_tokens_for_withdraw(amount, total_tokens, total_redeemable_token_supply);
 
-    let token_mint_key = ctx.accounts.pool_state.token_mint.key();
-    let redeemable_mint_key = ctx.accounts.pool_state.redeemable_mint.key();
+    let token_mint_key = ctx.accounts.pool_state.token_mint;
+    let redeemable_mint_key = ctx.accounts.pool_state.redeemable_mint;
     let seeds = &[
         TOKEN_VAULT_SEED,
         token_mint_key.as_ref(),

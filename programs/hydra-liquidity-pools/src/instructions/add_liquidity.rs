@@ -15,19 +15,19 @@ pub struct AddLiquidity<'info> {
 
     #[account(
         mut,
-        seeds = [ POOL_STATE_SEED, pool_state.lp_token_mint.key().as_ref() ],
+        seeds = [ POOL_STATE_SEED, pool_state.lp_token_mint.as_ref() ],
         bump = pool_state.pool_state_bump,
     )]
     pub pool_state: Box<Account<'info, PoolState>>,
 
     #[account(
         mut,
-        constraint = lp_token_mint.key() == pool_state.lp_token_mint.key()
+        constraint = lp_token_mint.key() == pool_state.lp_token_mint,
     )]
     pub lp_token_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
-        constraint = user_base_token.mint == pool_state.base_token_mint.key(),
+        constraint = user_base_token.mint == pool_state.base_token_mint,
         constraint = user_base_token.owner == user.key()
     )]
     /// the token account to withdraw from
@@ -35,7 +35,7 @@ pub struct AddLiquidity<'info> {
 
     #[account(
         mut,
-        constraint = user_quote_token.mint == pool_state.quote_token_mint.key(),
+        constraint = user_quote_token.mint == pool_state.quote_token_mint,
         constraint = user_quote_token.owner == user.key()
     )]
     /// the token account to withdraw from
@@ -43,17 +43,17 @@ pub struct AddLiquidity<'info> {
 
     #[account(
         mut,
-        seeds = [ TOKEN_VAULT_SEED, pool_state.base_token_mint.key().as_ref(), lp_token_mint.key().as_ref() ],
+        seeds = [ TOKEN_VAULT_SEED, pool_state.base_token_mint.as_ref(), lp_token_mint.key().as_ref() ],
         bump,
-        constraint = base_token_vault.key() == pool_state.base_token_vault.key()
+        constraint = base_token_vault.key() == pool_state.base_token_vault,
     )]
     pub base_token_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(
         mut,
-        seeds = [ TOKEN_VAULT_SEED, pool_state.quote_token_mint.key().as_ref(), lp_token_mint.key().as_ref() ],
+        seeds = [ TOKEN_VAULT_SEED, pool_state.quote_token_mint.as_ref(), lp_token_mint.key().as_ref() ],
         bump,
-        constraint = quote_token_vault.key() == pool_state.quote_token_vault.key()
+        constraint = quote_token_vault.key() == pool_state.quote_token_vault,
     )]
     pub quote_token_vault: Box<Account<'info, TokenAccount>>,
 
@@ -66,7 +66,7 @@ pub struct AddLiquidity<'info> {
 
     #[account(
         mut,
-        constraint = lp_token_to.mint == pool_state.lp_token_mint.key(),
+        constraint = lp_token_to.mint == pool_state.lp_token_mint,
     )]
     pub lp_token_to: Box<Account<'info, TokenAccount>>,
 
@@ -164,7 +164,7 @@ pub fn handle(
     base_token_max_amount: u64, // slippage handling: token_a_amount * (1 + TOLERATED_SLIPPAGE) --> calculated in UI
     quote_token_max_amount: u64, // slippage handling: token_b_amount * (1 + TOLERATED_SLIPPAGE) --> calculated in UI
     expected_lp_tokens: u64,     // not used for first deposit.
-) -> ProgramResult {
+) -> Result<()> {
     if ctx.accounts.pool_state.debug {
         msg!("expected_lp_tokens: {}", expected_lp_tokens);
         msg!("base_token_max_amount: {}", base_token_max_amount);

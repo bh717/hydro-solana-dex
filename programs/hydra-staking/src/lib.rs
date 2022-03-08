@@ -24,15 +24,15 @@ pub mod hydra_staking {
         ctx: Context<Initialize>,
         token_vault_bump: u8,
         pool_state_bump: u8,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         instructions::initialize::handle(ctx, token_vault_bump, pool_state_bump)
     }
 
-    pub fn stake(ctx: Context<Stake>, amount: u64) -> ProgramResult {
+    pub fn stake(ctx: Context<Stake>, amount: u64) -> Result<()> {
         instructions::stake::handle(ctx, amount)
     }
 
-    pub fn unstake(ctx: Context<UnStake>, amount: u64) -> ProgramResult {
+    pub fn unstake(ctx: Context<UnStake>, amount: u64) -> Result<()> {
         instructions::unstake::handle(ctx, amount)
     }
 }
