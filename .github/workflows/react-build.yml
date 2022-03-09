@@ -42,11 +42,6 @@ jobs:
         with:
           toolchain: stable
 
-      - id: install-wasm-pack
-        name: install-wasm-pack
-        if: steps.cache-cli-deps.outputs.cache-hit != 'true'
-        run: make install_wasm_pack
-
       - id: install-solana-tools
         name: install-solana-tools
         if: steps.cache-cli-deps.outputs.cache-hit != 'true'
@@ -100,6 +95,10 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
+
+      - id: install-wasm-pack
+        name: install-wasm-pack
+        run: make install_wasm_pack
 
       # https://dev.to/mpocock1/how-to-cache-nodemodules-in-github-actions-with-yarn-24eh
       - id: cache-node-modules

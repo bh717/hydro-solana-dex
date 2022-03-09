@@ -59,6 +59,7 @@ watch:
 
 anchor-ci:
 	solana-keygen new --no-bip39-passphrase || true
+	cargo fmt -- --check
 	cargo check
 	cargo test
 	anchor build
@@ -68,7 +69,6 @@ anchor-ci:
 	yarn turbo run build --concurrency=1
 	yarn test
 	anchor test
-	cargo fmt -- --check
 
 react-ci-cd:
 	solana-keygen new --no-bip39-passphrase || true
