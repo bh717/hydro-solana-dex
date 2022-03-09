@@ -56,7 +56,7 @@ jobs:
 
       - id: install-wasm-pack
         name: install-wasm-pack
-        run: install_wasm_pack
+        run: make install_wasm_pack
 
       - id: install-yarn
         name: install-yarn
