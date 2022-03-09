@@ -341,24 +341,23 @@ mod tests {
             i: Decimal::from_u128(0),
         };
         let result = swap.compute_k();
-        let simulator = model.sim_k();
-        let expected = Decimal::from_u128(simulator);
+        let value = model.sim_k();
+        let expected = Decimal::new(value, 0, false);
         assert_eq!(result, expected, "check_k");
     }
-    //
-    // fn check_xi(model: &Model, x0: u128, y0: u128, i: u128) {
-    //     let swap = SwapCalculator {
-    //         x0: PreciseNumber::new(x0).unwrap(),
-    //         y0: PreciseNumber::new(y0).unwrap(),
-    //         c: PreciseNumber {
-    //             value: Default::default(),
-    //         },
-    //         i: PreciseNumber::new(i).unwrap(),
-    //     };
-    //     let result = swap.compute_xi();
-    //     let expected = model.sim_xi();
-    //     assert_eq!(result, expected.0, "check_xi");
-    // }
+
+    fn check_xi(model: &Model, x0: u128, y0: u128, i: u128) {
+        let swap = SwapCalculator {
+            x0: Decimal::from_u128(x0),
+            y0: Decimal::from_u128(y0),
+            c: Decimal::from_u128(0),
+            i: Decimal::from_u128(i),
+        };
+        let result = swap.compute_xi();
+        let (value, negative) = model.sim_xi();
+        let expected = Decimal::new(value, 12, negative).to_scale(0);
+        assert_eq!(result, expected, "check_xi");
+    }
     //
     // fn check_delta_y_amm(model: &Model, x0: u128, y0: u128, delta_x: u128) {
     //     let swap = SwapCalculator {
@@ -485,7 +484,7 @@ mod tests {
             for (c_numer, c_denom, _c) in coefficient_allowed_values(AMOUNT_SCALE).get(c) {
                 let model = Model::new(x0, y0, *c_numer, *c_denom, i);
                 check_k(&model, x0, y0);
-                // check_xi(&model, x0, y0, i);
+                check_xi(&model, x0, y0, i);
                 // check_delta_y_amm(&model, x0, y0, delta_x);
                 // check_swap_x_to_y_amm(&model, x0, y0, delta_x);
             }
