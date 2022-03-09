@@ -6,7 +6,7 @@ list:
 	@awk -F: '/^[A-z]/ {print $$1}' Makefile | sort
 
 install_anchor:
-	@avm use latest || cargo install --git https://github.com/project-serum/anchor avm --locked --force && avm use latest
+	@avm use latest || cargo install --git https://github.com/project-serum/anchor avm --locked --force && avm install latest && avm use latest
 	@anchor -V
 
 install_solana:
