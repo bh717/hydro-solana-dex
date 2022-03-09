@@ -5,12 +5,17 @@ _ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 list:
 	@awk -F: '/^[A-z]/ {print $$1}' Makefile | sort
 
-install_anchor:
+install_anchor_avm:
 	@avm use latest || cargo install --git https://github.com/project-serum/anchor avm --locked --force && avm use latest
-	@anchor -V
+
+install_anchor:
+	cargo install --git https://github.com/project-serum/anchor --tag v0.22.1 anchor-cli --locked
 
 install_solana:
-	sh -c "$$(curl -sSfL https://release.solana.com/v1.9.6/install)"	
+	sh -c "$$(curl -sSfL https://release.solana.com/v1.9.6/install)"
+
+install_wasm_pack:
+	cargo install wasm-pack
 
 # build
 build-idl-types:
@@ -69,9 +74,13 @@ anchor-ci:
 	cargo fmt -- --check
 
 react-ci-cd:
+	solana-keygen new --no-bip39-passphrase || true
+	cargo check
+	cargo test
 	yarn --frozen-lockfile
 	yarn lint
-	cd app; yarn build
+	yarn deploy-to-create-idl
+	yarn build
 	cd app; yarn serve-e2e
 	cd app; ipd -C build/
 
