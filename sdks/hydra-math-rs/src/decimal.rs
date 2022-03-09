@@ -61,6 +61,20 @@ impl Decimal {
         self.value.try_into().unwrap()
     }
 
+    /// Create a [Decimal] from an unsigned integer, assumed positive by default.
+    pub fn from_u128(integer: u128) -> Self {
+        Decimal {
+            value: integer,
+            scale: 0,
+            ..Decimal::default()
+        }
+    }
+
+    /// Convert a [Decimal] to an unsigned integer, assumed positive by default.
+    pub fn to_u128(self) -> u128 {
+        self.value
+    }
+
     /// Create a [Decimal] from an unsigned integer expressed as an amount
     /// with precision defined by constant and assumed positive by default.
     pub fn from_amount(amount: u128) -> Self {
@@ -799,6 +813,29 @@ mod test {
 
     #[test]
     fn test_advanced_examples() {
+        // large number multiplication
+        let lhs = Decimal::from_u128(17134659154348278833);
+        let rhs = Decimal::from_u128(11676758639919526015);
+        let result = lhs.mul(rhs);
+        let expected = Decimal::from_u128(200077279322612464128594731044417340495);
+        assert_eq!(result, expected);
+
+        let lhs = Decimal::from_u64(17134659154348278833);
+        let rhs = Decimal::from_u64(11676758639919526015);
+        let result = lhs.mul(rhs);
+        let expected = Decimal::from_u128(200077279322612464128594731044417340495);
+        assert_eq!(result, expected);
+
+        let lhs = Decimal::from_amount(17134659154348278833);
+        let rhs = Decimal::from_amount(11676758639919526015);
+        let result = lhs.mul(rhs);
+        let expected = Decimal::from_amount(
+            200077279322612464128594731044417340495u128
+                .checked_div(10u128.pow(8))
+                .expect("scaled_down"),
+        );
+        assert_eq!(result, expected);
+
         // power function with decimal exponent, scaled down (floor) at lower precision
         // 42^1.5 = 272.191109
         let base = Decimal::new(42_000000000000, 12, false);
