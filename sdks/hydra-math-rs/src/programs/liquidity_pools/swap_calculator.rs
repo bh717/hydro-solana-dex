@@ -342,9 +342,6 @@ mod tests {
         };
         let result = swap.compute_k();
         let simulator = model.sim_k();
-        println!("x * y    : {} * {}", x0, y0);
-        println!("result   : {:?}", result);
-        println!("simulator: {:?}", simulator);
         let expected = Decimal::from_u128(simulator);
         assert_eq!(result, expected, "check_k");
     }
