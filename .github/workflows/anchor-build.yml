@@ -24,7 +24,7 @@ jobs:
             ~/.cargo/bin/anchor
             ~/.cargo/bin/wasm-pack
 
-      -id: checkout
+      - id: checkout
         name: checkout
         uses: actions/checkout@v2
         with:
