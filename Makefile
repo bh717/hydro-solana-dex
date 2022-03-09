@@ -68,7 +68,7 @@ anchor-ci:
 react-ci-cd:
 	yarn --frozen-lockfile
 	yarn lint
-	cd app; yarn build
+	yarn build
 	cd app; yarn serve-e2e
 	cd app; ipd -C build/
 
