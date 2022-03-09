@@ -27,7 +27,7 @@ jobs:
       - id: install-os-deps
         name: install-os-deps
         if: steps.cache-cli-deps.outputs.cache-hit != 'true'
-        run: sudo apt-get update && sudo apt-get install -y pkg-config build-essential libudev-dev tree make
+        run: sudo apt-get update && sudo apt-get install -y pkg-config build-essential libudev-dev tree make cat
 
       - id: install-rust-toolchain
         name: install-rust-toolchain
@@ -39,7 +39,8 @@ jobs:
       - id: install-solana-tools
         name: install-solana-tools
         if: steps.cache-cli-deps.outputs.cache-hit != 'true'
-        run: make install_solana
+        run: cat Makefile
+#        run: make install_solana
 
       - run: echo "PATH=$HOME/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_ENV
 
