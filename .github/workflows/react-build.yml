@@ -92,7 +92,9 @@ jobs:
 
       - id: install-wasm-pack
         name: install-wasm-pack
-        run: make install_wasm_pack
+        uses: jetli/wasm-pack-action@v0.3.0
+        with:
+          version: "v0.10.2"
 
       # https://dev.to/mpocock1/how-to-cache-nodemodules-in-github-actions-with-yarn-24eh
       - id: cache-node-modules

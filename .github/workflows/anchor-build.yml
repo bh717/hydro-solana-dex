@@ -44,8 +44,9 @@ jobs:
 
       - id: install-wasm-pack
         name: install-wasm-pack
-        if: steps.cache-cli-deps.outputs.cache-hit != 'true'
-        run: make install_wasm_pack
+        uses: jetli/wasm-pack-action@v0.3.0
+        with:
+          version: "v0.10.2"
 
       - id: install-solana-tools
         name: install-solana-tools
