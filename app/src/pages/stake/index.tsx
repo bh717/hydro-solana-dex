@@ -1,12 +1,12 @@
-import {
-  FC,
-  // useEffect,
-  // useState
-} from "react";
+import { FC, useEffect, useState, useMemo } from "react";
 import { makeStyles } from "@mui/styles";
 import { Box, Typography } from "@mui/material";
-// import { useWallet } from "@solana/wallet-adapter-react";
-// import { toast } from "react-toastify";
+import { useConnection, useAnchorWallet } from "@solana/wallet-adapter-react";
+import { HydraSDK, SPLAccountInfo } from "hydra-ts";
+import { Observable } from "rxjs";
+import { useObservable } from "react-use";
+import { PublicKey } from "@solana/web3.js";
+import { toast } from "react-toastify";
 
 import { Deposit } from "../../components/icons";
 import Banner from "../../assets/images/stake/banner.png";
@@ -156,26 +156,101 @@ const useStyles = makeStyles({
   },
 });
 
+const useMyAccounts = (sdk: HydraSDK) => {
+  type MyAccounts = {
+    account1: SPLAccountInfo;
+    account2: SPLAccountInfo;
+  };
+
+  const [myAccounts, setMyAccounts] = useState<Array<PublicKey>>([]);
+
+  useEffect(() => {
+    sdk.common.getTokenAccounts().then(setMyAccounts);
+  }, [sdk]);
+
+  const accounts$ = useMemo(() => {
+    if (myAccounts.length === 0) return new Observable<void>((s) => s.next());
+
+    const [account1, account2] = myAccounts;
+
+    return sdk.common.getTokenAccountInfoStreams({
+      account1,
+      account2,
+    });
+  }, [myAccounts, sdk]);
+
+  return useObservable<void | MyAccounts>(accounts$);
+};
+
+const useContractAccounts = (sdk: HydraSDK) => {
+  type ContractAccounts = {
+    tokenVault: SPLAccountInfo;
+  };
+
+  const [tokenVaultKey, setTokenVaultKey] = useState<PublicKey>();
+
+  useEffect(() => {
+    sdk.staking.accounts.tokenVault.key().then(setTokenVaultKey);
+  }, [sdk]);
+
+  const contractAccounts$ = useMemo(() => {
+    if (!tokenVaultKey) return new Observable<void>((s) => s.next());
+
+    return sdk.common.getTokenAccountInfoStreams({
+      tokenVault: tokenVaultKey,
+    });
+  }, [tokenVaultKey, sdk]);
+
+  return useObservable<void | ContractAccounts>(contractAccounts$);
+};
+
 interface StakeProps {
   openWalletConnect(): void;
 }
 
 const Stake: FC<StakeProps> = ({ openWalletConnect }) => {
   const classes = useStyles();
-  // const wallet = useWallet();
+  const wallet = useAnchorWallet();
+  const { connection } = useConnection();
 
-  // const [userBalance, setUserBalance] = useState(0);
-  // const [redeemBalance, setRedeemBalance] = useState(0);
-  // const [staking, setStaking] = useState(false);
-  // const [unstaking, setUnstaking] = useState(false);
-  const userBalance = 0;
-  const redeemBalance = 0;
-  const staking = false;
-  const unstaking = false;
+  const [staking, setStaking] = useState(false);
+  const [unstaking, setUnstaking] = useState(false);
 
-  const stake = async (amount: number) => {};
+  const sdk = useMemo(
+    () => HydraSDK.create("localnet", connection, wallet),
+    [connection, wallet]
+  );
 
-  const unstake = async (amount: number) => {};
+  const myAccounts = useMyAccounts(sdk);
+  const contractAccounts = useContractAccounts(sdk);
+
+  const stake = async (amount: string) => {
+    setStaking(true);
+
+    try {
+      await sdk.staking.stake(BigInt(amount));
+      toast.success(`You staked ${amount} HYSD successfully.`);
+    } catch (error) {
+      console.log(error);
+      toast.error(`Staking ${amount} HYSD failed.`);
+    }
+
+    setStaking(false);
+  };
+
+  const unstake = async (amount: string) => {
+    setUnstaking(true);
+
+    try {
+      await sdk.staking.unstake(BigInt(amount));
+      toast.success(`You unstaked ${amount} HYSD successfully.`);
+    } catch (error) {
+      console.log(error);
+      toast.error(`Unstaking ${amount} HYSD failed.`);
+    }
+
+    setUnstaking(false);
+  };
 
   return (
     <Box className={classes.stakeContainer}>
@@ -199,14 +274,20 @@ const Stake: FC<StakeProps> = ({ openWalletConnect }) => {
       <Box className={classes.stakeContent}>
         <StakeUnstake
           walletConnect={openWalletConnect}
-          balance={userBalance}
-          xBalance={redeemBalance}
+          balance={myAccounts ? myAccounts.account2.amount.toString() : "0"}
+          xBalance={myAccounts ? myAccounts.account1.amount.toString() : "0"}
           onStake={stake}
           onUnstake={unstake}
           staking={staking}
           unstaking={unstaking}
         />
-        <StakeStatus balance={redeemBalance} />
+        <StakeStatus
+          balance={
+            contractAccounts
+              ? contractAccounts.tokenVault.amount.toString()
+              : "0"
+          }
+        />
       </Box>
     </Box>
   );
