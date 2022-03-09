@@ -73,10 +73,6 @@ jobs:
         name: install-serve
         run: npm install -g serve
 
-      - id: install-playwright
-        name: install-playwright
-        run: npx playwright install
-
       - id: install-ipfs-deploy
         name: install-ipfs-deploy
         run: npm install -g ipfs-deploy
@@ -117,6 +113,10 @@ jobs:
         with:
           path: "**/.turbo"
           key: ${{ runner.os }}-turbo-files
+
+      - id: install-playwright
+        name: install-playwright
+        run: npx playwright install
 
       - run: make react-ci-cd
 
