@@ -23,10 +23,9 @@ class Curve:
         self.c = Decimal(c_numer)/Decimal(c_denom)
     self.i = Decimal(i)
 
-  def to_bigint_signed(self, decimal, rounding=ROUND_CEILING):
+  def to_int_signed(self, decimal, rounding=ROUND_CEILING):
     is_signed = decimal.is_signed()
-    uint = int((decimal.copy_abs() * 1_000_000_000_000).to_integral(rounding))
-    return (uint, is_signed)
+    return (int(decimal.copy_abs().to_integral(rounding)), decimal.is_signed())
 
   def to_int(self, decimal):
       return int(decimal.to_integral())
@@ -50,7 +49,7 @@ class Curve:
     return k/(self.x0 + delta_x) - k/self.x0
 
   def sim_delta_y_amm(self, delta_x):
-    return self.to_bigint_signed(self.delta_y_amm(delta_x))
+    return self.to_int_signed(self.delta_y_amm(delta_x))
 
   def delta_x_amm(self, delta_y):
     """
@@ -61,7 +60,7 @@ class Curve:
     return k/(self.y0 + delta_y) - k/self.y0
 
   def sim_delta_x_amm(self, delta_y):
-    return self.to_bigint_signed(self.delta_x_amm(delta_y))
+    return self.to_int_signed(self.delta_x_amm(delta_y))
 
   def swap_x_to_y_amm(self, delta_x):
     """
@@ -86,7 +85,7 @@ class Curve:
     return (k/self.i).sqrt()
 
   def sim_xi(self):
-    return self.to_bigint_signed(self.xi(), ROUND_FLOOR)
+    return self.to_int_signed(self.xi(), ROUND_FLOOR)
 
   def yi(self):
     """
@@ -96,7 +95,7 @@ class Curve:
     return (k/(1/self.i)).sqrt()
 
   def sim_yi(self):
-    return self.to_bigint_signed(self.yi(), ROUND_FLOOR)
+    return self.to_int_signed(self.yi(), ROUND_FLOOR)
 
   def integ(self, k, q0, q_new, qi, c):
     if c==1:
@@ -119,7 +118,7 @@ class Curve:
       return lhs + rhs
 
   def sim_delta_y_hmm(self, delta_x):
-    return self.to_bigint_signed(self.delta_y_hmm(delta_x), ROUND_FLOOR)
+    return self.to_int_signed(self.delta_y_hmm(delta_x), ROUND_FLOOR)
 
   def delta_x_hmm(self, delta_y):
     k = self.k()
@@ -136,4 +135,4 @@ class Curve:
       return lhs + rhs
 
   def sim_delta_x_hmm(self, delta_y):
-    return self.to_bigint_signed(self.delta_x_hmm(delta_y), ROUND_FLOOR)
+    return self.to_int_signed(self.delta_x_hmm(delta_y), ROUND_FLOOR)
