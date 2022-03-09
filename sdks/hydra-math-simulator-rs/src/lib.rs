@@ -49,14 +49,14 @@ impl Model {
         return result;
     }
 
-    pub fn sim_xi(&self) -> Decimal {
+    pub fn sim_xi(&self) -> (u128, bool) {
         let gil = Python::acquire_gil();
         let result: (u128, bool) = self
             .call0(gil.python(), "sim_xi")
             .unwrap()
             .extract(gil.python())
             .unwrap();
-        return Decimal::new(result.0, 0, result.1);
+        return result;
     }
 
     pub fn sim_delta_y_amm(&self, delta_x: u128) -> Decimal {
