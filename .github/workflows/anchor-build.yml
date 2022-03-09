@@ -80,19 +80,15 @@ jobs:
             ~/.cargo/bin/anchor
             ~/.cargo/bin/wasm-pack
 
-#      - id: install-os-deps
-#        name: install-os-deps
-#        run: sudo apt-get update && sudo apt-get install -y pkg-config build-essential libudev-dev tree make
-
       - run: echo "PATH=$HOME/.local/share/solana/install/active_release/bin:$HOME/.cargo/bin:$PATH" >> $GITHUB_ENV
+
+      - id: set-anchor-version
+        name: set-anchor-version
+        run: avm use latest
 
       - uses: actions/setup-node@v2
         with:
           node-version: "16"
-
-#      - id: install-yarn
-#        name: install-yarn
-#        run: npm install -g yarn
 
       - uses: actions/checkout@v2
         with:
