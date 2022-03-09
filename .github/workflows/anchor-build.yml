@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - id: cache-cli-deps
+        name: cache-cli-deps
         uses: actions/cache@v2
         with:
           key: $${{ env.cli-id }}
@@ -24,26 +25,31 @@ jobs:
             ~/.cargo/bin/wasm-pack
 
       - id: install-os-deps
+        name: install-os-deps
         if: steps.cache-cli-deps.outputs.cache-hit != 'true'
         run: sudo apt-get update && sudo apt-get install -y pkg-config build-essential libudev-dev tree make
 
       - id: install-rust-toolchain
+        name: install-rust-toolchain
         if: steps.cache-cli-deps.outputs.cache-hit != 'true'
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
 
       - id: install-solana-tools
+        name: install-solana-tools
         if: steps.cache-cli-deps.outputs.cache-hit != 'true'
         run: sh -c "$(curl -sSfL https://release.solana.com/stable/install)"
 
       - run: echo "PATH=$HOME/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_ENV
 
       - id: install-anchor-cli
+        name: install-anchor-cli
         if: steps.cache-cli-deps.outputs.cache-hit != 'true'
         run: cargo install --git https://github.com/project-serum/anchor.git anchor-cli --locked
 
       - id: install-wasm-pack
+        name: install-wasm-pack
         uses: jetli/wasm-pack-action@v0.3.0
         with:
           version: "v0.10.2"
@@ -52,6 +58,7 @@ jobs:
     needs: [build-cli-deps]
     steps:
       - id: cache-cli-deps
+        name: cache-cli-deps
         uses: actions/cache@v2
         with:
           key: $${{ env.cli-id }}
@@ -63,6 +70,7 @@ jobs:
             ~/.cargo/bin/wasm-pack
 
       - id: install-os-deps
+        name: install-os-deps
         run: sudo apt-get update && sudo apt-get install -y pkg-config build-essential libudev-dev tree make
 
       - run: echo "PATH=$HOME/.local/share/solana/install/active_release/bin:$HOME/.cargo/bin:$PATH" >> $GITHUB_ENV
@@ -72,6 +80,7 @@ jobs:
           node-version: "16"
 
       - id: install-yarn
+        name: install-yarn
         run: npm install -g yarn
 
       - uses: actions/checkout@v2
@@ -80,12 +89,14 @@ jobs:
 
       # https://dev.to/mpocock1/how-to-cache-nodemodules-in-github-actions-with-yarn-24eh
       - id: cache-node-modules
+        name: cache-node-modules
         uses: actions/cache@v2
         with:
           path: "**/node_modules"
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 
       - id: cache-turbo-folders
+        name: cache-turbo-folders
         uses: actions/cache@v2
         with:
           path: "**/.turbo"
