@@ -5,10 +5,11 @@ _ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 list:
 	@awk -F: '/^[A-z]/ {print $$1}' Makefile | sort
 
+install_anchor_avm:
+	@avm use latest || cargo install --git https://github.com/project-serum/anchor avm --locked --force && avm use latest
+
 install_anchor:
-	@avm use latest || cargo install --git https://github.com/project-serum/anchor avm --locked --force
-	anchor -V || avm install latest
-	avm use latest
+	cargo install --git https://github.com/project-serum/anchor --tag v0.22.1 anchor-cli --locked
 
 install_solana:
 	sh -c "$$(curl -sSfL https://release.solana.com/v1.9.6/install)"	
