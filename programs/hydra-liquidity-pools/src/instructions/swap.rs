@@ -24,7 +24,6 @@ pub struct Swap<'info> {
 
     #[account(
         mut,
-        constraint = user_from_token.mint == pool_state.token_x_mint,
         constraint = user_from_token.owner == user.key()
     )]
     /// the token account to withdraw from
@@ -32,7 +31,6 @@ pub struct Swap<'info> {
 
     #[account(
         mut,
-        constraint = user_to_token.mint == pool_state.token_y_mint,
         constraint = user_to_token.owner == user.key()
     )]
     /// the token account to withdraw from
@@ -80,11 +78,16 @@ impl<'info> Swap <'info> {
 }
 
 pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Result<()> {
+    // TODO: detect side.
+
+    // TODO: detect hmm or cpmm
+
+    // Calculate swap.
     let swap = SwapCalculator::new(
         ctx.accounts.token_x_vault.amount as u128,
         ctx.accounts.token_y_vault.amount as u128,
         ctx.accounts.pool_state.compensation_parameter as u128,
-        10000, // TODO: build in Oracle. However this didnt make any diff in my testing?
+        0,
     );
 
     let result = swap.swap_x_to_y_amm(amount_in as u128);
