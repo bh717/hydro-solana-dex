@@ -33,7 +33,7 @@ pub struct Swap<'info> {
         mut,
         constraint = user_to_token.owner == user.key()
     )]
-    /// the token account to withdraw from
+    /// token account to send too.  
     pub user_to_token: Box<Account<'info, TokenAccount>>,
 
     #[account(
