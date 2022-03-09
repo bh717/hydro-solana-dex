@@ -59,6 +59,11 @@ jobs:
         uses: jetli/wasm-pack-action@v0.3.0
         with:
           version: "v0.10.2"
+
+      - id: install-yarn
+        name: install-yarn
+        run: npm install -g yarn
+
   build:
     runs-on: ubuntu-latest
     needs: [build-cli-deps]
@@ -75,9 +80,9 @@ jobs:
             ~/.cargo/bin/anchor
             ~/.cargo/bin/wasm-pack
 
-      - id: install-os-deps
-        name: install-os-deps
-        run: sudo apt-get update && sudo apt-get install -y pkg-config build-essential libudev-dev tree make
+#      - id: install-os-deps
+#        name: install-os-deps
+#        run: sudo apt-get update && sudo apt-get install -y pkg-config build-essential libudev-dev tree make
 
       - run: echo "PATH=$HOME/.local/share/solana/install/active_release/bin:$HOME/.cargo/bin:$PATH" >> $GITHUB_ENV
 
@@ -85,9 +90,9 @@ jobs:
         with:
           node-version: "16"
 
-      - id: install-yarn
-        name: install-yarn
-        run: npm install -g yarn
+#      - id: install-yarn
+#        name: install-yarn
+#        run: npm install -g yarn
 
       - uses: actions/checkout@v2
         with:
