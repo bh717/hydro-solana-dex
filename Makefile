@@ -7,8 +7,8 @@ list:
 
 install_anchor:
 	@avm use latest || cargo install --git https://github.com/project-serum/anchor avm --locked --force
-	@anchor -V || avm install latest
-	@avm use latest
+	anchor -V || avm install latest
+	avm use latest
 
 install_solana:
 	sh -c "$$(curl -sSfL https://release.solana.com/v1.9.6/install)"	
