@@ -82,6 +82,10 @@ jobs:
 
       - run: echo "PATH=$HOME/.local/share/solana/install/active_release/bin:$HOME/.cargo/bin:$PATH" >> $GITHUB_ENV
 
+      - id: debuging
+        name: debuging
+        run: which anchor
+
       - id: set-anchor-version
         name: set-anchor-version
         run: avm use latest
