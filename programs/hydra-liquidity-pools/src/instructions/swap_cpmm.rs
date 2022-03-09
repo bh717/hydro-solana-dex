@@ -86,8 +86,13 @@ pub fn handle(ctx: Context<SwapCpmm>, amount_in: u64, minimum_amount_out: u64) -
 
     let result = swap.swap_x_to_y_amm(amount_in as u128);
 
-    // check slippage
+    // check slippage for amount_out
     if result.delta_y().unwrap() < minimum_amount_out {
+        return Err(ErrorCode::SlippageExceeded.into());
+    }
+
+    // check slippage for amount_in
+    if result.delta_x().unwrap() > amount_in {
         return Err(ErrorCode::SlippageExceeded.into());
     }
 
