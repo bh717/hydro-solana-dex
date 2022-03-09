@@ -24,4 +24,16 @@ impl SwapResult {
     pub fn delta_x(&self) -> Option<u64> {
         Some(self.delta_x.to_imprecise()? as u64)
     }
+
+    pub fn x_new(&self) -> Option<u64> {
+        Some(self.x_new.to_imprecise()? as u64)
+    }
+
+    pub fn y_new(&self) -> Option<u64> {
+        Some(self.y_new.to_imprecise()? as u64)
+    }
+
+    pub fn k(&self) -> Option<u64> {
+        Some(self.k.to_imprecise()? as u64)
+    }
 }

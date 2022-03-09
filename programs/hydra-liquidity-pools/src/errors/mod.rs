@@ -4,4 +4,7 @@ use anchor_lang::prelude::*;
 pub enum ErrorCode {
     #[msg("Slippage Amount Exceeded")]
     SlippageExceeded,
+
+    #[msg("Invalid vault to SwapResult amounts")]
+    InvalidVaultToSwapResultAmounts,
 }

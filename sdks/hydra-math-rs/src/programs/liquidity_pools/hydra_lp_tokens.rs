@@ -42,3 +42,15 @@ pub fn calculate_x_y(
 
     (x_debited, y_debited)
 }
+
+// TODO: Need to revist the correct formula to work with SwapCalculator
+// #[cfg(test)]
+// mod test {
+//     use super::*;
+//     #[test]
+//     fn test_calculate_k() {
+//         let expected: u64 = (6000000 * 255575287200) - 100;
+//         let result = calculate_k(6000000, 255575287200, 0).unwrap();
+//         assert_eq!(expected, result);
+//     }
+// }

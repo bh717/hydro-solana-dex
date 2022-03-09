@@ -228,6 +228,11 @@ export type HydraLiquidityPools = {
           isSigner: false;
         },
         {
+          name: "lpTokenMint";
+          isMut: true;
+          isSigner: false;
+        },
+        {
           name: "userFromToken";
           isMut: true;
           isSigner: false;
@@ -398,8 +403,8 @@ export type HydraLiquidityPools = {
     },
     {
       code: 6001;
-      name: "InvalidCompensationParameter";
-      msg: "Invalid Compensation Parameter";
+      name: "InvalidVaultToSwapResultAmounts";
+      msg: "Invalid vault to SwapResult amounts";
     }
   ];
 };
@@ -634,6 +639,11 @@ export const IDL: HydraLiquidityPools = {
           isSigner: false,
         },
         {
+          name: "lpTokenMint",
+          isMut: true,
+          isSigner: false,
+        },
+        {
           name: "userFromToken",
           isMut: true,
           isSigner: false,
@@ -804,8 +814,8 @@ export const IDL: HydraLiquidityPools = {
     },
     {
       code: 6001,
-      name: "InvalidCompensationParameter",
-      msg: "Invalid Compensation Parameter",
+      name: "InvalidVaultToSwapResultAmounts",
+      msg: "Invalid vault to SwapResult amounts",
     },
   ],
 };

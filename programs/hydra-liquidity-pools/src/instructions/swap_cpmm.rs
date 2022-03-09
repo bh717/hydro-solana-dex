@@ -3,7 +3,7 @@ use crate::errors::ErrorCode;
 use crate::state::pool_state::PoolState;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
-use anchor_spl::token::{Token, TokenAccount, Transfer};
+use anchor_spl::token::{Mint, Token, TokenAccount, Transfer};
 use hydra_math::swap_calculator::SwapCalculator;
 
 #[derive(Accounts)]
@@ -16,6 +16,11 @@ pub struct SwapCpmm<'info> {
         bump = pool_state.pool_state_bump,
     )]
     pub pool_state: Box<Account<'info, PoolState>>,
+    #[account(
+        mut,
+        constraint = lp_token_mint.key() == pool_state.lp_token_mint,
+    )]
+    pub lp_token_mint: Box<Account<'info, Mint>>,
 
     #[account(
         mut,
@@ -115,6 +120,22 @@ pub fn handle(ctx: Context<SwapCpmm>, amount_in: u64, minimum_amount_out: u64) -
         ctx.accounts.transfer_tokens_to_user().with_signer(&signer),
         result.delta_y().unwrap(),
     )?;
+
+    (&mut ctx.accounts.base_token_vault).reload()?;
+    (&mut ctx.accounts.quote_token_vault).reload()?;
+
+    if result.x_new().unwrap() != ctx.accounts.base_token_vault.amount {
+        return Err(ErrorCode::InvalidVaultToSwapResultAmounts.into());
+    }
+
+    if result.y_new().unwrap() != ctx.accounts.quote_token_vault.amount {
+        return Err(ErrorCode::InvalidVaultToSwapResultAmounts.into());
+    }
+
+    // TODO: This is broken as we are getting a different k value from the SwapCalculator
+    // if result.k().unwrap() != ctx.accounts.lp_token_mint.supply {
+    //     return Err(ErrorCode::InvalidVaultToSwapResultAmounts.into());
+    // }
 
     // TODO: Better handling of c value.
     // TODO: Price Oracle
