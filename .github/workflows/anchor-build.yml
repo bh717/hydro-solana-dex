@@ -34,7 +34,7 @@ jobs:
         name: kill-old-builds
         with:
           github_token: ${{secrets.GITHUB_TOKEN}}
-          workflows_filter: "CI|pr"
+          workflows_filter: "CI|pr|build-cli-deps"
 
       - id: install-os-deps
         name: install-os-deps
@@ -89,7 +89,7 @@ jobs:
         name: kill-old-builds
         with:
           github_token: ${{secrets.GITHUB_TOKEN}}
-          workflows_filter: "CI|pr"
+          workflows_filter: "CI|pr|build"
 
       - run: echo "PATH=$HOME/.local/share/solana/install/active_release/bin:$HOME/.cargo/bin:$PATH" >> $GITHUB_ENV
 
