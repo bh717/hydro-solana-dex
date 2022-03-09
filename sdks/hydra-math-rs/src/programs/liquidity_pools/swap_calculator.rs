@@ -355,26 +355,22 @@ mod tests {
         };
         let result = swap.compute_xi();
         let (value, negative) = model.sim_xi();
-        let expected = Decimal::new(value, 12, negative).to_scale(0);
+        let expected = Decimal::new(value, 0, negative);
         assert_eq!(result, expected, "check_xi");
     }
-    //
-    // fn check_delta_y_amm(model: &Model, x0: u128, y0: u128, delta_x: u128) {
-    //     let swap = SwapCalculator {
-    //         x0: PreciseNumber::new(x0).unwrap(),
-    //         y0: PreciseNumber::new(y0).unwrap(),
-    //         c: PreciseNumber {
-    //             value: Default::default(),
-    //         },
-    //         i: PreciseNumber {
-    //             value: Default::default(),
-    //         },
-    //     };
-    //     let result = swap.compute_delta_y_amm(&PreciseNumber::new(delta_x).unwrap());
-    //     let expected = model.sim_delta_y_amm(delta_x);
-    //     assert_eq!(result.0, expected.0, "check_delta_y_amm");
-    //     assert_eq!(result.1, expected.1, "check_delta_y_amm signed")
-    // }
+
+    fn check_delta_y_amm(model: &Model, x0: u128, y0: u128, delta_x: u128) {
+        let swap = SwapCalculator {
+            x0: Decimal::from_u128(x0),
+            y0: Decimal::from_u128(y0),
+            c: Decimal::from_u128(0),
+            i: Decimal::from_u128(0),
+        };
+        let result = swap.compute_delta_y_amm(&Decimal::from_u128(delta_x));
+        let (value, negative) = model.sim_delta_y_amm(delta_x);
+        let expected = Decimal::new(value, 0, negative);
+        assert_eq!(result, expected, "check_delta_y_amm");
+    }
     //
     // fn check_swap_x_to_y_amm(model: &Model, x0: u64, y0: u64, delta_x: u64) {
     //     let swap = SwapCalculator {
@@ -472,6 +468,22 @@ mod tests {
     //     assert_eq!(result.1, expected.1, "check_delta_x_hmm signed")
     // }
     //
+    #[test]
+    fn test_debug() {
+        // check_delta_y_amm; minimal failing input: x0 = 1, y0 = 1, c = "0.0", i = 1, delta_x = 1
+        let swap = SwapCalculator {
+            x0: Decimal::from_u128(1),
+            y0: Decimal::from_u128(5),
+            c: Decimal::from_u128(0),
+            i: Decimal::from_u128(1),
+        };
+        let result = swap.compute_delta_y_amm(&Decimal::from_u128(1));
+        let model = Model::new(swap.x0.value, swap.y0.value, 0, 0, swap.i.value);
+        let (value, negative) = model.sim_delta_y_amm(1);
+        let expected = Decimal::new(value, 0, negative);
+        assert_eq!(result, expected)
+    }
+
     proptest! {
         #[test]
         fn test_full_curve_math(
@@ -485,7 +497,7 @@ mod tests {
                 let model = Model::new(x0, y0, *c_numer, *c_denom, i);
                 check_k(&model, x0, y0);
                 check_xi(&model, x0, y0, i);
-                // check_delta_y_amm(&model, x0, y0, delta_x);
+                check_delta_y_amm(&model, x0, y0, delta_x);
                 // check_swap_x_to_y_amm(&model, x0, y0, delta_x);
             }
         }
