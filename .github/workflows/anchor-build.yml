@@ -84,7 +84,7 @@ jobs:
 
       - id: debuging
         name: debuging
-        run: which anchor
+        run: anchor -V
 
       - id: set-anchor-version
         name: set-anchor-version
