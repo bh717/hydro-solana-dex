@@ -12,7 +12,10 @@ install_anchor:
 	cargo install --git https://github.com/project-serum/anchor --tag v0.22.1 anchor-cli --locked
 
 install_solana:
-	sh -c "$$(curl -sSfL https://release.solana.com/v1.9.6/install)"	
+	sh -c "$$(curl -sSfL https://release.solana.com/v1.9.6/install)"
+
+install_wasm_pack:
+	cargo install wasm-pack
 
 # build
 build-idl-types:

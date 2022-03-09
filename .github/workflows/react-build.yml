@@ -56,9 +56,8 @@ jobs:
 
       - id: install-wasm-pack
         name: install-wasm-pack
-        uses: jetli/wasm-pack-action@v0.3.0
-        with:
-          version: "v0.10.2"
+        if: steps.cache-cli-deps.outputs.cache-hit != 'true'
+        run: install_wasm_pack
 
       - id: install-node
         name: install-node
