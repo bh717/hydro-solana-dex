@@ -66,8 +66,12 @@ anchor-ci:
 	cargo fmt -- --check
 
 react-ci-cd:
+	solana-keygen new --no-bip39-passphrase || true
+	cargo check
+	cargo test
 	yarn --frozen-lockfile
 	yarn lint
+	yarn deploy-to-create-idl
 	yarn build
 	cd app; yarn serve-e2e
 	cd app; ipd -C build/
