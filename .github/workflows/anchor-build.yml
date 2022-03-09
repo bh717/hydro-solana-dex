@@ -1,6 +1,6 @@
 name: anchor-build
 env:
-  cli-id: anchor
+  cli-id: anchor-20220305
 on:
   push:
     branches:
