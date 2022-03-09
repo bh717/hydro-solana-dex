@@ -73,9 +73,6 @@ jobs:
         name: install-serve
         run: npm install -g serve
 
-      - id: install-ipfs-deploy
-        name: install-ipfs-deploy
-        run: npm install -g ipfs-deploy
 
   build:
     runs-on: ubuntu-latest
@@ -117,6 +114,10 @@ jobs:
       - id: install-playwright
         name: install-playwright
         run: npx playwright install
+
+      - id: install-ipfs-deploy
+        name: install-ipfs-deploy
+        run: npm install -g ipfs-deploy
 
       - run: make react-ci-cd
 
