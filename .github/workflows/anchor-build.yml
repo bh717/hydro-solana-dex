@@ -1,6 +1,6 @@
 name: anchor-build
 env:
-  cache-id: anchor-20220305
+  cache-id: anchor-20220305a
 on:
   push:
     branches:

@@ -1,6 +1,6 @@
 name: react-build
 env:
-  cache-id: react-20220305
+  cache-id: react-20220305a
 on:
   push:
     branches:
