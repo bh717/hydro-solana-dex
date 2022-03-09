@@ -73,7 +73,6 @@ jobs:
         name: install-serve
         run: npm install -g serve
 
-
   build:
     runs-on: ubuntu-latest
     needs: [build-cli-deps]
