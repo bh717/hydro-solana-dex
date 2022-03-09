@@ -47,17 +47,17 @@ jobs:
         if: steps.cache-cli-deps.outputs.cache-hit != 'true'
         run: make install_wasm_pack
 
-      - id: install-anchor-cli
-        name: install-anchor-cli
-        if: steps.cache-cli-deps.outputs.cache-hit != 'true'
-        run: make install_anchor
-
       - id: install-solana-tools
         name: install-solana-tools
         if: steps.cache-cli-deps.outputs.cache-hit != 'true'
         run: make install_solana
 
       - run: echo "PATH=$HOME/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_ENV
+
+      - id: install-anchor-cli
+        name: install-anchor-cli
+        if: steps.cache-cli-deps.outputs.cache-hit != 'true'
+        run: make install_anchor
 
       - id: install-node
         name: install-node
