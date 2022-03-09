@@ -14,7 +14,7 @@ jobs:
     steps:
       - id: cache-cli-deps
         name: cache-cli-deps
-        uses: actions/checkout@v2
+        uses: actions/cache@v2
         with:
           key: $${{ env.cli-id }}
           path: |
