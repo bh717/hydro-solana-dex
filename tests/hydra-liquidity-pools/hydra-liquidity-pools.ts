@@ -141,11 +141,11 @@ describe("hydra-liquidity-pool", () => {
           authority: provider.wallet.publicKey,
           payer: provider.wallet.publicKey,
           poolState: poolState,
-          baseTokenMint: btcdMint,
-          quoteTokenMint: usddMint,
+          tokenXMint: btcdMint,
+          tokenYMint: usddMint,
           lpTokenMint: lpTokenMint.publicKey,
-          baseTokenVault,
-          quoteTokenVault,
+          tokenXVault: baseTokenVault,
+          tokenYVault: quoteTokenVault,
           lpTokenVault,
           systemProgram: anchor.web3.SystemProgram.programId,
           tokenProgram: TokenInstructions.TOKEN_PROGRAM_ID,
@@ -161,29 +161,23 @@ describe("hydra-liquidity-pool", () => {
       provider.wallet.publicKey.toString()
     );
     assert.equal(
-      poolStateAccount.baseTokenVault.toString(),
+      poolStateAccount.tokenXVault.toString(),
       baseTokenVault.toString()
     );
     assert.equal(
-      poolStateAccount.quoteTokenVault.toString(),
+      poolStateAccount.tokenYVault.toString(),
       quoteTokenVault.toString()
     );
 
-    assert.equal(
-      poolStateAccount.baseTokenMint.toString(),
-      btcdMint.toString()
-    );
-    assert.equal(
-      poolStateAccount.quoteTokenMint.toString(),
-      usddMint.toString()
-    );
+    assert.equal(poolStateAccount.tokenXMint.toString(), btcdMint.toString());
+    assert.equal(poolStateAccount.tokenYMint.toString(), usddMint.toString());
     assert.equal(
       poolStateAccount.lpTokenMint.toString(),
       lpTokenMint.publicKey.toString()
     );
     assert.equal(poolStateAccount.poolStateBump, poolStateBump);
-    assert.equal(poolStateAccount.baseTokenVaultBump, baseTokenVaultBump);
-    assert.equal(poolStateAccount.quoteTokenVaultBump, quoteTokenVaultBump);
+    assert.equal(poolStateAccount.tokenXVaultBump, baseTokenVaultBump);
+    assert.equal(poolStateAccount.tokenYVaultBump, quoteTokenVaultBump);
   });
 
   it("should add-liquidity to pool for the first time", async () => {
@@ -195,11 +189,11 @@ describe("hydra-liquidity-pool", () => {
         accounts: {
           poolState: poolState,
           lpTokenMint: lpTokenMint.publicKey,
-          userBaseToken: btcdAccount,
-          userQuoteToken: usddAccount,
+          userTokenX: btcdAccount,
+          userTokenY: usddAccount,
           user: provider.wallet.publicKey,
-          baseTokenVault,
-          quoteTokenVault,
+          tokenXVault: baseTokenVault,
+          tokenYVault: quoteTokenVault,
           lpTokenVault,
           lpTokenTo: lpTokenAccount,
           tokenProgram: TOKEN_PROGRAM_ID,
@@ -241,11 +235,11 @@ describe("hydra-liquidity-pool", () => {
         accounts: {
           poolState: poolState,
           lpTokenMint: lpTokenMint.publicKey,
-          userBaseToken: btcdAccount,
-          userQuoteToken: usddAccount,
+          userTokenX: btcdAccount,
+          userTokenY: usddAccount,
           user: provider.wallet.publicKey,
-          baseTokenVault,
-          quoteTokenVault,
+          tokenXVault: baseTokenVault,
+          tokenYVault: quoteTokenVault,
           lpTokenVault,
           lpTokenTo: lpTokenAccount,
           tokenProgram: TOKEN_PROGRAM_ID,
@@ -289,11 +283,11 @@ describe("hydra-liquidity-pool", () => {
         accounts: {
           poolState: poolState,
           lpTokenMint: lpTokenMint.publicKey,
-          userBaseToken: btcdAccount,
-          userQuoteToken: usddAccount,
+          userTokenX: btcdAccount,
+          userTokenY: usddAccount,
           user: provider.wallet.publicKey,
-          baseTokenVault,
-          quoteTokenVault,
+          tokenXVault: baseTokenVault,
+          tokenYVault: quoteTokenVault,
           lpTokenVault,
           lpTokenTo: lpTokenAccount,
           tokenProgram: TOKEN_PROGRAM_ID,
@@ -336,11 +330,11 @@ describe("hydra-liquidity-pool", () => {
           accounts: {
             poolState: poolState,
             lpTokenMint: lpTokenMint.publicKey,
-            userBaseToken: btcdAccount,
-            userQuoteToken: usddAccount,
+            userTokenX: btcdAccount,
+            userTokenY: usddAccount,
             user: provider.wallet.publicKey,
-            baseTokenVault,
-            quoteTokenVault,
+            tokenXVault: baseTokenVault,
+            tokenYVault: quoteTokenVault,
             lpTokenVault,
             lpTokenTo: lpTokenAccount,
             tokenProgram: TOKEN_PROGRAM_ID,
@@ -387,10 +381,10 @@ describe("hydra-liquidity-pool", () => {
         poolState: poolState,
         user: provider.wallet.publicKey,
         userRedeemableLpTokens: lpTokenAccount,
-        userBaseToken: btcdAccount,
-        userQuoteToken: usddAccount,
-        baseTokenVault,
-        quoteTokenVault,
+        userTokenX: btcdAccount,
+        userTokenY: usddAccount,
+        tokenXVault: baseTokenVault,
+        tokenYVault: quoteTokenVault,
         lpTokenMint: lpTokenMint.publicKey,
         tokenProgram: TOKEN_PROGRAM_ID,
       },
@@ -450,15 +444,15 @@ describe("hydra-liquidity-pool", () => {
 
   it("should fail token swap due to slippage error", async () => {
     try {
-      await program.rpc.swapCpmm(new BN(1_000_000), new BN(36_510_755_315), {
+      await program.rpc.swap(new BN(1_000_000), new BN(36_510_755_315), {
         accounts: {
           user: provider.wallet.publicKey,
           poolState: poolState,
           lpTokenMint: lpTokenMint.publicKey,
           userFromToken: btcdAccount,
           userToToken: usddAccount,
-          baseTokenVault,
-          quoteTokenVault,
+          tokenXVault: baseTokenVault,
+          tokenYVault: quoteTokenVault,
           tokenProgram: TOKEN_PROGRAM_ID,
         },
       });
@@ -470,15 +464,15 @@ describe("hydra-liquidity-pool", () => {
   });
 
   it("should swap", async () => {
-    await program.rpc.swapCpmm(new BN(1_000_000), new BN(36_510_755_314), {
+    await program.rpc.swap(new BN(1_000_000), new BN(36_510_755_314), {
       accounts: {
         user: provider.wallet.publicKey,
         poolState: poolState,
         lpTokenMint: lpTokenMint.publicKey,
         userFromToken: btcdAccount,
         userToToken: usddAccount,
-        baseTokenVault,
-        quoteTokenVault,
+        tokenXVault: baseTokenVault,
+        tokenYVault: quoteTokenVault,
         tokenProgram: TOKEN_PROGRAM_ID,
       },
     });

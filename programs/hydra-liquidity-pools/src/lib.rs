@@ -1,5 +1,3 @@
-extern crate core;
-
 mod errors;
 mod events;
 mod instructions;
@@ -9,7 +7,7 @@ mod utils;
 use instructions::add_liquidity::*;
 use instructions::initialize::*;
 use instructions::remove_liquidity::*;
-use instructions::swap_cpmm::*;
+use instructions::swap::*;
 
 use anchor_lang::prelude::*;
 // use anchor_lang::solana_program::log::sol_log_compute_units;
@@ -36,16 +34,16 @@ pub mod hydra_liquidity_pools {
     /// initialize a new empty pool
     pub fn initialize(
         ctx: Context<Initialize>,
-        base_token_vault_bump: u8,
-        quote_token_vault_bump: u8,
+        token_x_vault_bump: u8,
+        token_y_vault_bump: u8,
         pool_state_bump: u8,
         lp_token_vault_bump: u8,
         compensation_parameter: u16,
     ) -> Result<()> {
         instructions::initialize::handle(
             ctx,
-            base_token_vault_bump,
-            quote_token_vault_bump,
+            token_x_vault_bump,
+            token_y_vault_bump,
             pool_state_bump,
             lp_token_vault_bump,
             compensation_parameter,
@@ -54,14 +52,14 @@ pub mod hydra_liquidity_pools {
 
     pub fn add_liquidity(
         ctx: Context<AddLiquidity>,
-        base_tokens_max_amount: u64, // slippage handling: token_a_amount * (1 + TOLERATED_SLIPPAGE) --> calculated client side
-        quote_tokens_max_amount: u64, // slippage handling: token_b_amount * (1 + TOLERATED_SLIPPAGE) --> calculated client side
+        tokens_x_max_amount: u64, // slippage handling: token_a_amount * (1 + TOLERATED_SLIPPAGE) --> calculated client side
+        tokens_y_max_amount: u64, // slippage handling: token_b_amount * (1 + TOLERATED_SLIPPAGE) --> calculated client side
         expected_lp_tokens: u64,
     ) -> Result<()> {
         instructions::add_liquidity::handle(
             ctx,
-            base_tokens_max_amount,
-            quote_tokens_max_amount,
+            tokens_x_max_amount,
+            tokens_y_max_amount,
             expected_lp_tokens,
         )
     }
@@ -73,12 +71,8 @@ pub mod hydra_liquidity_pools {
         instructions::remove_liquidity::handle(ctx, lp_tokens_to_burn)
     }
 
-    pub fn swap_cpmm(
-        ctx: Context<SwapCpmm>,
-        amount_in: u64,
-        minimum_amount_out: u64,
-    ) -> Result<()> {
-        instructions::swap_cpmm::handle(ctx, amount_in, minimum_amount_out)
+    pub fn swap(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Result<()> {
+        instructions::swap::handle(ctx, amount_in, minimum_amount_out)
     }
 
     // pub fn swap_amm(ctx: Context<Swap>) -> ProgramResult {

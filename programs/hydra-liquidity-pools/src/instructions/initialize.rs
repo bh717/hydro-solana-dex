@@ -21,10 +21,10 @@ pub struct Initialize<'info> {
     pub pool_state: Box<Account<'info, PoolState>>,
 
     /// token_a_mint. Eg BTC
-    pub base_token_mint: Box<Account<'info, Mint>>,
+    pub token_x_mint: Box<Account<'info, Mint>>,
 
     // token_b_mint: Eg USDC
-    pub quote_token_mint: Box<Account<'info, Mint>>,
+    pub token_y_mint: Box<Account<'info, Mint>>,
 
     #[account(
         constraint = lp_token_mint.mint_authority.unwrap() == pool_state.key()
@@ -35,22 +35,22 @@ pub struct Initialize<'info> {
     #[account(
         init,
         payer = payer,
-        token::mint = base_token_mint,
+        token::mint = token_x_mint,
         token::authority = pool_state,
-        seeds = [ TOKEN_VAULT_SEED, base_token_mint.key().as_ref(), lp_token_mint.key().as_ref() ],
+        seeds = [ TOKEN_VAULT_SEED, token_x_mint.key().as_ref(), lp_token_mint.key().as_ref() ],
         bump,
     )]
-    pub base_token_vault: Box<Account<'info, TokenAccount>>,
+    pub token_x_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(
         init,
         payer = payer,
-        token::mint = quote_token_mint,
+        token::mint = token_y_mint,
         token::authority = pool_state,
-        seeds = [ TOKEN_VAULT_SEED, quote_token_mint.key().as_ref(), lp_token_mint.key().as_ref() ],
+        seeds = [ TOKEN_VAULT_SEED, token_y_mint.key().as_ref(), lp_token_mint.key().as_ref() ],
         bump,
     )]
-    pub quote_token_vault: Box<Account<'info, TokenAccount>>,
+    pub token_y_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(
         init,
@@ -70,8 +70,8 @@ pub struct Initialize<'info> {
 
 pub fn handle(
     ctx: Context<Initialize>,
-    base_token_vault_bump: u8,
-    quote_token_vault_bump: u8,
+    token_x_vault_bump: u8,
+    token_y_vault_bump: u8,
     pool_state_bump: u8,
     lp_token_vault_bump: u8,
     compensation_parameter: u16,
@@ -80,20 +80,18 @@ pub fn handle(
     ctx.accounts.pool_state.authority = *ctx.accounts.authority.to_account_info().key;
 
     // save token_a_mint, token_b_mint and lp_token_mint
-    ctx.accounts.pool_state.base_token_mint = *ctx.accounts.base_token_mint.to_account_info().key;
-    ctx.accounts.pool_state.quote_token_mint = *ctx.accounts.quote_token_mint.to_account_info().key;
+    ctx.accounts.pool_state.token_x_mint = *ctx.accounts.token_x_mint.to_account_info().key;
+    ctx.accounts.pool_state.token_y_mint = *ctx.accounts.token_y_mint.to_account_info().key;
     ctx.accounts.pool_state.lp_token_mint = *ctx.accounts.lp_token_mint.to_account_info().key;
 
     // save token_a_vault and token_b_vault Pubkeys
-    ctx.accounts.pool_state.base_token_vault =
-        ctx.accounts.base_token_vault.to_account_info().key();
-    ctx.accounts.pool_state.quote_token_vault =
-        ctx.accounts.quote_token_vault.to_account_info().key();
+    ctx.accounts.pool_state.token_x_vault = ctx.accounts.token_x_vault.to_account_info().key();
+    ctx.accounts.pool_state.token_y_vault = ctx.accounts.token_y_vault.to_account_info().key();
 
     // save pool_state_bump, token_a_vault_bump and token_a_vault_bump
     ctx.accounts.pool_state.pool_state_bump = pool_state_bump;
-    ctx.accounts.pool_state.base_token_vault_bump = base_token_vault_bump;
-    ctx.accounts.pool_state.quote_token_vault_bump = quote_token_vault_bump;
+    ctx.accounts.pool_state.token_x_vault_bump = token_x_vault_bump;
+    ctx.accounts.pool_state.token_y_vault_bump = token_y_vault_bump;
     ctx.accounts.pool_state.lp_token_vault_bump = lp_token_vault_bump;
 
     ctx.accounts.pool_state.debug = DEBUG_MODE;

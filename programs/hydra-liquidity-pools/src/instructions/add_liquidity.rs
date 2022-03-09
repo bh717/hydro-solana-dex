@@ -27,35 +27,35 @@ pub struct AddLiquidity<'info> {
     pub lp_token_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
-        constraint = user_base_token.mint == pool_state.base_token_mint,
-        constraint = user_base_token.owner == user.key()
+        constraint = user_token_x.mint == pool_state.token_x_mint,
+        constraint = user_token_x.owner == user.key()
     )]
     /// the token account to withdraw from
-    pub user_base_token: Box<Account<'info, TokenAccount>>,
+    pub user_token_x: Box<Account<'info, TokenAccount>>,
 
     #[account(
         mut,
-        constraint = user_quote_token.mint == pool_state.quote_token_mint,
-        constraint = user_quote_token.owner == user.key()
+        constraint = user_token_y.mint == pool_state.token_y_mint,
+        constraint = user_token_y.owner == user.key()
     )]
     /// the token account to withdraw from
-    pub user_quote_token: Box<Account<'info, TokenAccount>>,
+    pub user_token_y: Box<Account<'info, TokenAccount>>,
 
     #[account(
         mut,
-        seeds = [ TOKEN_VAULT_SEED, pool_state.base_token_mint.as_ref(), lp_token_mint.key().as_ref() ],
+        seeds = [ TOKEN_VAULT_SEED, pool_state.token_x_mint.as_ref(), lp_token_mint.key().as_ref() ],
         bump,
-        constraint = base_token_vault.key() == pool_state.base_token_vault,
+        constraint = token_x_vault.key() == pool_state.token_x_vault,
     )]
-    pub base_token_vault: Box<Account<'info, TokenAccount>>,
+    pub token_x_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(
         mut,
-        seeds = [ TOKEN_VAULT_SEED, pool_state.quote_token_mint.as_ref(), lp_token_mint.key().as_ref() ],
+        seeds = [ TOKEN_VAULT_SEED, pool_state.token_y_mint.as_ref(), lp_token_mint.key().as_ref() ],
         bump,
-        constraint = quote_token_vault.key() == pool_state.quote_token_vault,
+        constraint = token_y_vault.key() == pool_state.token_y_vault,
     )]
-    pub quote_token_vault: Box<Account<'info, TokenAccount>>,
+    pub token_y_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(
         mut,
@@ -79,13 +79,13 @@ impl<'info> AddLiquidity<'info> {
     ) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
         if self.pool_state.debug {
             msg!("Account balances before transfer...");
-            msg!("user_base_token.amount: {}", self.user_base_token.amount);
-            msg!("base_token_vault.amount: {}", self.base_token_vault.amount);
+            msg!("user_token_x.amount: {}", self.user_token_x.amount);
+            msg!("token_x_vault.amount: {}", self.token_x_vault.amount);
         }
 
         let cpi_accounts = Transfer {
-            from: self.user_base_token.to_account_info(),
-            to: self.base_token_vault.to_account_info(),
+            from: self.user_token_x.to_account_info(),
+            to: self.token_x_vault.to_account_info(),
             authority: self.user.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();
@@ -97,13 +97,13 @@ impl<'info> AddLiquidity<'info> {
     ) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
         if self.pool_state.debug {
             msg!("Account balances before transfer...");
-            msg!("user_token_b.amount: {}", self.user_quote_token.amount);
-            msg!("token_b_vault.amount: {}", self.quote_token_vault.amount);
+            msg!("user_token_y.amount: {}", self.user_token_y.amount);
+            msg!("token_y_vault.amount: {}", self.token_y_vault.amount);
         }
 
         let cpi_accounts = Transfer {
-            from: self.user_quote_token.to_account_info(),
-            to: self.quote_token_vault.to_account_info(),
+            from: self.user_token_y.to_account_info(),
+            to: self.token_y_vault.to_account_info(),
             authority: self.user.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();
@@ -135,14 +135,10 @@ impl<'info> AddLiquidity<'info> {
     /// AddLiquidity instruction. See python model here: https://colab.research.google.com/drive/1p0HToo1mxm2Z1e8dpzIvScGrMCrgN6qr?authuser=2#scrollTo=Awc9KZdYEpPn
     pub fn calculate_first_deposit_lp_tokens_to_mint(
         &self,
-        base_token_amount: u64,
-        quote_token_amount: u64,
+        token_x_amount: u64,
+        token_y_amount: u64,
     ) -> Option<u64> {
-        calculate_k(
-            base_token_amount,
-            quote_token_amount,
-            self.lp_token_mint.supply,
-        )
+        calculate_k(token_x_amount, token_y_amount, self.lp_token_mint.supply)
     }
 
     /// calculate a and b tokens (x/y) from expected_lp_tokens (k)
@@ -152,8 +148,8 @@ impl<'info> AddLiquidity<'info> {
     ) -> (u64, u64) {
         calculate_x_y(
             expected_lp_tokens_minted,
-            self.base_token_vault.amount,
-            self.quote_token_vault.amount,
+            self.token_x_vault.amount,
+            self.token_y_vault.amount,
             self.lp_token_mint.supply,
         )
     }
@@ -161,14 +157,14 @@ impl<'info> AddLiquidity<'info> {
 
 pub fn handle(
     ctx: Context<AddLiquidity>,
-    base_token_max_amount: u64, // slippage handling: token_a_amount * (1 + TOLERATED_SLIPPAGE) --> calculated in UI
-    quote_token_max_amount: u64, // slippage handling: token_b_amount * (1 + TOLERATED_SLIPPAGE) --> calculated in UI
-    expected_lp_tokens: u64,     // not used for first deposit.
+    token_x_max_amount: u64, // slippage handling: token_a_amount * (1 + TOLERATED_SLIPPAGE) --> calculated in UI
+    token_y_max_amount: u64, // slippage handling: token_b_amount * (1 + TOLERATED_SLIPPAGE) --> calculated in UI
+    expected_lp_tokens: u64, // not used for first deposit.
 ) -> Result<()> {
     if ctx.accounts.pool_state.debug {
         msg!("expected_lp_tokens: {}", expected_lp_tokens);
-        msg!("base_token_max_amount: {}", base_token_max_amount);
-        msg!("quote_token_max_amount: {}", quote_token_max_amount);
+        msg!("token_x_max_amount: {}", token_x_max_amount);
+        msg!("token_y_max_amount: {}", token_y_max_amount);
     }
 
     let seeds = &[
@@ -178,12 +174,12 @@ pub fn handle(
     ];
     let signer = [&seeds[..]];
 
-    let (base_token_to_debit, quote_token_to_debit, lp_tokens_to_mint);
+    let (token_x_to_debit, token_y_to_debit, lp_tokens_to_mint);
 
     // On first deposit
     if let Some(lp_tokens) = ctx
         .accounts
-        .calculate_first_deposit_lp_tokens_to_mint(base_token_max_amount, quote_token_max_amount)
+        .calculate_first_deposit_lp_tokens_to_mint(token_x_max_amount, token_y_max_amount)
     {
         // mint and lock lp tokens on first deposit
         let mut cpi_tx = ctx.accounts.mint_and_lock_lp_tokens_to_pool_state_account();
@@ -194,8 +190,8 @@ pub fn handle(
             msg!("lp_tokens_locked: {}", MIN_LIQUIDITY);
         }
 
-        base_token_to_debit = base_token_max_amount;
-        quote_token_to_debit = quote_token_max_amount;
+        token_x_to_debit = token_x_max_amount;
+        token_y_to_debit = token_y_max_amount;
         lp_tokens_to_mint = lp_tokens;
     } else {
         // On subsequent deposits
@@ -203,25 +199,23 @@ pub fn handle(
             .accounts
             .calculate_a_and_b_tokens_to_debit_from_expected_lp_tokens(expected_lp_tokens);
 
-        base_token_to_debit = debited.0;
-        quote_token_to_debit = debited.1;
+        token_x_to_debit = debited.0;
+        token_y_to_debit = debited.1;
         lp_tokens_to_mint = expected_lp_tokens;
 
-        if (base_token_to_debit > base_token_max_amount)
-            || (quote_token_to_debit > quote_token_max_amount)
-        {
+        if (token_x_to_debit > token_x_max_amount) || (token_y_to_debit > token_y_max_amount) {
             if ctx.accounts.pool_state.debug {
                 msg!("Error: SlippageExceeded");
-                msg!("base_token_to_debit: {}", base_token_to_debit);
-                msg!("base_token_max_amount: {}", base_token_max_amount);
-                msg!("quote_token_to_debit: {}", quote_token_to_debit);
-                msg!("quote_token_max_amount: {}", quote_token_max_amount);
+                msg!("token_x_to_debit: {}", token_x_to_debit);
+                msg!("token_x_max_amount: {}", token_x_max_amount);
+                msg!("token_y_to_debit: {}", token_y_to_debit);
+                msg!("token_y_max_amount: {}", token_y_max_amount);
             }
             emit!(SlippageExceeded {
-                base_token_to_debit,
-                quote_token_to_debit,
-                base_token_max_amount,
-                quote_token_max_amount,
+                token_x_to_debit,
+                token_y_to_debit,
+                token_x_max_amount,
+                token_y_max_amount,
             });
             return Err(ErrorCode::SlippageExceeded.into());
         }
@@ -238,25 +232,25 @@ pub fn handle(
     // transfer to vault
     token::transfer(
         ctx.accounts.transfer_user_base_token_to_vault(),
-        base_token_to_debit,
+        token_x_to_debit,
     )?;
 
     // transfer to vault
     token::transfer(
         ctx.accounts.transfer_user_quote_token_to_vault(),
-        quote_token_to_debit,
+        token_y_to_debit,
     )?;
 
     emit!(LiquidityAdded {
-        base_tokens_transferred: base_token_to_debit,
-        quote_tokens_transferred: quote_token_to_debit,
+        tokens_x_transferred: token_x_to_debit,
+        tokens_y_transferred: token_y_to_debit,
         lp_tokens_minted: lp_tokens_to_mint,
     });
 
     if ctx.accounts.pool_state.debug {
         msg!("lp_tokens_to_mint: {}", lp_tokens_to_mint);
-        msg!("base_token_to_debit: {}", base_token_to_debit);
-        msg!("quote_token_to_debit: {}", quote_token_to_debit);
+        msg!("token_x_to_debit: {}", token_x_to_debit);
+        msg!("token_y_to_debit: {}", token_y_to_debit);
     }
 
     Ok(())

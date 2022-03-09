@@ -7,7 +7,7 @@ use anchor_spl::token::{Mint, Token, TokenAccount, Transfer};
 use hydra_math::swap_calculator::SwapCalculator;
 
 #[derive(Accounts)]
-pub struct SwapCpmm<'info> {
+pub struct Swap<'info> {
     pub user: Signer<'info>,
 
     #[account(
@@ -24,7 +24,7 @@ pub struct SwapCpmm<'info> {
 
     #[account(
         mut,
-        constraint = user_from_token.mint == pool_state.base_token_mint,
+        constraint = user_from_token.mint == pool_state.token_x_mint,
         constraint = user_from_token.owner == user.key()
     )]
     /// the token account to withdraw from
@@ -32,7 +32,7 @@ pub struct SwapCpmm<'info> {
 
     #[account(
         mut,
-        constraint = user_to_token.mint == pool_state.quote_token_mint,
+        constraint = user_to_token.mint == pool_state.token_y_mint,
         constraint = user_to_token.owner == user.key()
     )]
     /// the token account to withdraw from
@@ -40,40 +40,38 @@ pub struct SwapCpmm<'info> {
 
     #[account(
         mut,
-        seeds = [ TOKEN_VAULT_SEED, pool_state.base_token_mint.as_ref(), pool_state.lp_token_mint.as_ref() ],
-        bump = pool_state.base_token_vault_bump,
-        constraint = base_token_vault.key() == pool_state.base_token_vault,
+        seeds = [ TOKEN_VAULT_SEED, pool_state.token_x_mint.as_ref(), pool_state.lp_token_mint.as_ref() ],
+        bump = pool_state.token_x_vault_bump,
+        constraint = token_x_vault.key() == pool_state.token_x_vault,
     )]
-    pub base_token_vault: Box<Account<'info, TokenAccount>>,
+    pub token_x_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(
         mut,
-        seeds = [ TOKEN_VAULT_SEED, pool_state.quote_token_mint.as_ref(), pool_state.lp_token_mint.as_ref() ],
-        bump = pool_state.quote_token_vault_bump,
-        constraint = quote_token_vault.key() == pool_state.quote_token_vault,
+        seeds = [ TOKEN_VAULT_SEED, pool_state.token_y_mint.as_ref(), pool_state.lp_token_mint.as_ref() ],
+        bump = pool_state.token_y_vault_bump,
+        constraint = token_y_vault.key() == pool_state.token_y_vault,
     )]
-    pub quote_token_vault: Box<Account<'info, TokenAccount>>,
+    pub token_y_vault: Box<Account<'info, TokenAccount>>,
 
     pub token_program: Program<'info, Token>,
 }
 
-impl<'info> SwapCpmm<'info> {
-    pub(crate) fn transfer_tokens_to_user(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
+impl<'info> Swap <'info> {
+    pub fn transfer_tokens_to_user(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
         let cpi_accounts = Transfer {
-            from: self.quote_token_vault.to_account_info(),
+            from: self.token_y_vault.to_account_info(),
             to: self.user_to_token.to_account_info(),
             authority: self.pool_state.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
     }
-}
 
-impl<'info> SwapCpmm<'info> {
     pub fn transfer_user_tokens_to_vault(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
         let cpi_accounts = Transfer {
             from: self.user_from_token.to_account_info(),
-            to: self.base_token_vault.to_account_info(),
+            to: self.token_x_vault.to_account_info(),
             authority: self.user.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();
@@ -81,10 +79,10 @@ impl<'info> SwapCpmm<'info> {
     }
 }
 
-pub fn handle(ctx: Context<SwapCpmm>, amount_in: u64, minimum_amount_out: u64) -> Result<()> {
+pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Result<()> {
     let swap = SwapCalculator::new(
-        ctx.accounts.base_token_vault.amount as u128,
-        ctx.accounts.quote_token_vault.amount as u128,
+        ctx.accounts.token_x_vault.amount as u128,
+        ctx.accounts.token_y_vault.amount as u128,
         ctx.accounts.pool_state.compensation_parameter as u128,
         10000, // TODO: build in Oracle. However this didnt make any diff in my testing?
     );
@@ -121,14 +119,14 @@ pub fn handle(ctx: Context<SwapCpmm>, amount_in: u64, minimum_amount_out: u64) -
         result.delta_y().unwrap(),
     )?;
 
-    (&mut ctx.accounts.base_token_vault).reload()?;
-    (&mut ctx.accounts.quote_token_vault).reload()?;
+    (&mut ctx.accounts.token_x_vault).reload()?;
+    (&mut ctx.accounts.token_y_vault).reload()?;
 
-    if result.x_new().unwrap() != ctx.accounts.base_token_vault.amount {
+    if result.x_new().unwrap() != ctx.accounts.token_x_vault.amount {
         return Err(ErrorCode::InvalidVaultToSwapResultAmounts.into());
     }
 
-    if result.y_new().unwrap() != ctx.accounts.quote_token_vault.amount {
+    if result.y_new().unwrap() != ctx.accounts.token_y_vault.amount {
         return Err(ErrorCode::InvalidVaultToSwapResultAmounts.into());
     }
 
