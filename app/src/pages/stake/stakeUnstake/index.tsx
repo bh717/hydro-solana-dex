@@ -78,10 +78,10 @@ const useStyles = makeStyles({
 
 interface StakeUnstakeProps {
   walletConnect(): void;
-  balance: number;
-  xBalance: number;
-  onStake(amount: number): void;
-  onUnstake(amount: number): void;
+  balance: string;
+  xBalance: string;
+  onStake(amount: string): void;
+  onUnstake(amount: string): void;
   staking: boolean;
   unstaking: boolean;
 }
@@ -133,7 +133,7 @@ const StakeUnstake: FC<StakeUnstakeProps> = ({
             amount={stakeAmount}
             setAmount={setStakeAmount}
             onWalletConnect={walletConnect}
-            onAction={() => onStake(Number(stakeAmount))}
+            onAction={() => onStake(stakeAmount)}
           />
         )}
         {tab === 1 && (
@@ -144,7 +144,7 @@ const StakeUnstake: FC<StakeUnstakeProps> = ({
             amount={unstakeAmount}
             setAmount={setUnstakeAmount}
             onWalletConnect={walletConnect}
-            onAction={() => onUnstake(Number(unstakeAmount))}
+            onAction={() => onUnstake(unstakeAmount)}
           />
         )}
       </Box>

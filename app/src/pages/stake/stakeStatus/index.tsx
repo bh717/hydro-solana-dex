@@ -107,7 +107,7 @@ const useStyles = makeStyles({
 });
 
 interface StakeStatusProps {
-  balance: number;
+  balance: string;
 }
 
 const StakeStatus: FC<StakeStatusProps> = ({ balance }) => {
@@ -120,7 +120,7 @@ const StakeStatus: FC<StakeStatusProps> = ({ balance }) => {
           <Typography>Your staked HYSD</Typography>
           <Box className={classes.stakedBalance}>
             <img src={HYSD} alt="HYSD" />
-            <span>{balance.toFixed(2)}</span>
+            <span>{parseFloat(balance).toFixed(2)}</span>
           </Box>
           <Typography> ≈ 0 USDC</Typography>
         </Box>

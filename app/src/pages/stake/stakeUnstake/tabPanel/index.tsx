@@ -94,7 +94,7 @@ const useStyles = makeStyles({
 
 interface TabPanelProps {
   type: string;
-  balance: number;
+  balance: string;
   status: boolean;
   amount: string;
   setAmount(value: string): void;
@@ -143,17 +143,17 @@ const TabPanel: FC<TabPanelProps> = ({
           onClick={onAction}
           disabled={
             !amount ||
-            parseFloat(amount) === 0 ||
-            parseFloat(amount) > balance ||
+            parseFloat(amount) <= 0 ||
+            parseFloat(amount) > parseFloat(balance) ||
             status
           }
         >
           {type === "stake"
             ? status
-              ? "Staking"
+              ? "Staking..."
               : "Stake"
             : status
-            ? "Unstaking"
+            ? "Unstaking..."
             : "Unstake"}
         </Button>
       ) : (
