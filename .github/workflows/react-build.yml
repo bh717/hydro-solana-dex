@@ -52,7 +52,7 @@ jobs:
       - id: install-anchor-cli
         name: install-anchor-cli
         if: steps.cache-cli-deps.outputs.cache-hit != 'true'
-        run: make install_anchor
+        run: cargo install --git https://github.com/project-serum/anchor.git anchor-cli --locked
 
       - id: install-wasm-pack
         name: install-wasm-pack
@@ -99,10 +99,6 @@ jobs:
             ~/.cargo/bin/wasm-pack
 
       - run: echo "PATH=$HOME/.local/share/solana/install/active_release/bin:$HOME/.cargo/bin:$PATH" >> $GITHUB_ENV
-
-      - id: set-anchor-version
-        name: set-anchor-version
-        run: avm use latest
 
       - uses: actions/checkout@v2
         with:
