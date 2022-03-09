@@ -12,6 +12,12 @@ jobs:
   build-cli-deps:
     runs-on: ubuntu-latest
     steps:
+      - uses: yellowmegaman/gh-build-canceller@v1.6
+        name: kill-old-builds
+        with:
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          workflows_filter: "CI|pr|build-cli-deps"
+
       - id: cache-cli-deps
         name: cache-cli-deps
         uses: actions/cache@v2
@@ -77,6 +83,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build-cli-deps]
     steps:
+      - uses: yellowmegaman/gh-build-canceller@v1.6
+        name: kill-old-builds
+        with:
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          workflows_filter: "CI|pr|build"
+
       - id: cache-cli-deps
         name: cache-cli-deps
         uses: actions/cache@v2
