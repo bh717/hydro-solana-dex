@@ -56,6 +56,7 @@ jobs:
 
       - id: install-wasm-pack
         name: install-wasm-pack
+        if: steps.cache-cli-deps.outputs.cache-hit != 'true'
         run: make install_wasm_pack
 
       - id: install-node
