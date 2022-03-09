@@ -1,6 +1,6 @@
 name: anchor-build
 env:
-  cli-id: anchor-20220305
+  cache-id: anchor-20220305
 on:
   push:
     branches:
@@ -16,7 +16,7 @@ jobs:
         name: cache-cli-deps
         uses: actions/cache@v2
         with:
-          key: $${{ env.cli-id }}
+          key: $${{ env.cache-id }}
           path: |
             ~/.local/share/solana
             ~/.cargo
@@ -72,7 +72,7 @@ jobs:
         name: cache-cli-deps
         uses: actions/cache@v2
         with:
-          key: $${{ env.cli-id }}
+          key: $${{ env.cache-id }}
           path: |
             ~/.local/share/solana
             ~/.cargo
