@@ -1,6 +1,6 @@
 name: react-build
 env:
-  cli-id: react-v17.0.2
+  cli-id: react
 on:
   push:
     branches:

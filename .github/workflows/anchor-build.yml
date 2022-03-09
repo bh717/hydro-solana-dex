@@ -1,6 +1,6 @@
 name: anchor-build
 env:
-  cli-id: anchor-v0.18.dev-7b86aed-solana-1.8.5
+  cli-id: anchor
 on:
   push:
     branches:
