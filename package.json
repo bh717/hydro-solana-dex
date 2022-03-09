@@ -12,7 +12,8 @@
     "test": "turbo run test --parallel",
     "watch": "turbo run watch --parallel",
     "lint": "prettier --check .",
-    "clean": "turbo run clean"
+    "clean": "turbo run clean",
+    "prepare": "husky install"
   },
   "license": "UNLICENSED",
   "dependencies": {
@@ -32,6 +33,7 @@
     "arg": "^5.0.1",
     "chai": "^4.3.4",
     "expand-tilde": "^2.0.2",
+    "husky": "^7.0.4",
     "hydra-ts": "*",
     "mocha": "^9.0.3",
     "toml": "^3.0.0",
