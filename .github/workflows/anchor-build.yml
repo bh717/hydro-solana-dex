@@ -56,7 +56,6 @@ jobs:
 
       - id: install-wasm-pack
         name: install-wasm-pack
-        if: steps.cache-cli-deps.outputs.cache-hit != 'true'
         run: install_wasm_pack
 
       - id: install-yarn
