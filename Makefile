@@ -65,7 +65,6 @@ anchor-ci:
 	anchor build
 	yarn --frozen-lockfile
 	yarn lint
-	yarn deploy-to-create-idl
 	yarn turbo run build --concurrency=1
 	yarn test
 	anchor test
@@ -76,7 +75,6 @@ react-ci-cd:
 	cargo test
 	yarn --frozen-lockfile
 	yarn lint
-	yarn deploy-to-create-idl
 	yarn build
 	cd app; yarn serve-e2e
 	cd app; ipd -C build/
