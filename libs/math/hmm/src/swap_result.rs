@@ -17,6 +17,16 @@ pub struct SwapResult {
 }
 
 impl SwapResult {
+    pub fn init() -> SwapResult {
+        SwapResult{
+            k: PreciseNumber::new(0 as u128).unwrap(),
+            x_new: PreciseNumber::new(0 as u128).unwrap(),
+            y_new: PreciseNumber::new(0 as u128).unwrap(),
+            delta_x: PreciseNumber::new(0 as u128).unwrap(),
+            delta_y: PreciseNumber::new(0 as u128).unwrap(),
+        }
+    }
+
     pub fn delta_y(&self) -> Option<u64> {
         Some(self.delta_y.to_imprecise()? as u64)
     }

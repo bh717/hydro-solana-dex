@@ -7,4 +7,6 @@ pub enum ErrorCode {
 
     #[msg("Invalid vault to SwapResult amounts")]
     InvalidVaultToSwapResultAmounts,
+
+    InvalidMintAddress,
 }

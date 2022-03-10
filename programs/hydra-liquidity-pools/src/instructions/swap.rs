@@ -5,6 +5,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token;
 use anchor_spl::token::{Mint, Token, TokenAccount, Transfer};
 use hydra_math::swap_calculator::SwapCalculator;
+use hydra_math::swap_result::SwapResult;
 
 #[derive(Accounts)]
 pub struct Swap<'info> {
@@ -75,14 +76,39 @@ impl<'info> Swap <'info> {
         let cpi_program = self.token_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
     }
+
+    // security check mint addresses are both correct as per the pool state object.
+    pub fn check_mint_addresses(&self) -> Result<()> {
+        let mut user_to_token_valid = false;
+        let mut user_from_token_valid = false;
+
+        if self.user_to_token.mint == self.pool_state.token_x_mint {
+            user_to_token_valid = true;
+        }
+
+        if self.user_to_token.mint == self.pool_state.token_y_mint {
+            user_to_token_valid = true;
+        }
+
+        if self.user_from_token.mint == self.pool_state.token_x_mint {
+            user_from_token_valid = true;
+        }
+
+        if self.user_from_token.mint == self.pool_state.token_y_mint {
+            user_from_token_valid = true;
+        }
+
+        // if both mint's arent valid return an error.
+        if !(user_to_token_valid && user_from_token_valid) {
+            return Err(ErrorCode::InvalidMintAddress.into())
+        }
+
+        Ok(())
+    }
 }
 
 pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Result<()> {
-    // TODO: detect side.
-
-    // TODO: detect hmm or cpmm
-
-    // Calculate swap.
+    // Setup SwapCalculate.
     let swap = SwapCalculator::new(
         ctx.accounts.token_x_vault.amount as u128,
         ctx.accounts.token_y_vault.amount as u128,
@@ -90,22 +116,59 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
         0,
     );
 
-    let result = swap.swap_x_to_y_amm(amount_in as u128);
+    let mut result= SwapResult::init();
+
+    let mut transfer_in_amount = 0;
+    let mut transfer_out_amount =0;
+
+    // check mint addresses for the user tokens match the pool_state.
+    ctx.accounts.check_mint_addresses()?;
+
+    // detect swap direction. x to y
+    if ctx.accounts.user_from_token.mint == ctx.accounts.pool_state.token_x_mint {
+        // confirm the other side matches pool state of y
+        if ctx.accounts.user_to_token.mint != ctx.accounts.pool_state.token_y_mint {
+            return Err(ErrorCode::InvalidMintAddress.into())
+        }
+
+        result = swap.swap_x_to_y_amm(amount_in as u128);
+
+        transfer_in_amount = result.delta_x().unwrap();
+        transfer_out_amount = result.delta_y().unwrap();
+
+    }
+
+    // detect swap direction y to x
+    if ctx.accounts.user_from_token.mint == ctx.accounts.pool_state.token_y_mint {
+        // confirm the other side matches the pool state of x
+        if ctx.accounts.user_to_token.mint != ctx.accounts.pool_state.token_x_mint {
+            return Err(ErrorCode::InvalidMintAddress.into())
+        }
+
+        result = swap.swap_y_to_x_amm(amount_in as u128);
+
+        transfer_in_amount = result.delta_y().unwrap();
+        transfer_out_amount = result.delta_x().unwrap();
+    }
+
+    // TODO: Pool fee
+
+
 
     // check slippage for amount_out
-    if result.delta_y().unwrap() < minimum_amount_out {
+    if transfer_out_amount < minimum_amount_out {
         return Err(ErrorCode::SlippageExceeded.into());
     }
 
     // check slippage for amount_in
-    if result.delta_x().unwrap() > amount_in {
+    if transfer_in_amount > amount_in {
         return Err(ErrorCode::SlippageExceeded.into());
     }
 
     // transfer base token into vault
     token::transfer(
         ctx.accounts.transfer_user_tokens_to_vault(),
-        result.delta_x().unwrap(),
+        transfer_in_amount
     )?;
 
     // signer
@@ -119,7 +182,7 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
     // transfer quote token to user
     token::transfer(
         ctx.accounts.transfer_tokens_to_user().with_signer(&signer),
-        result.delta_y().unwrap(),
+        transfer_out_amount
     )?;
 
     (&mut ctx.accounts.token_x_vault).reload()?;
@@ -137,11 +200,6 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
     // if result.k().unwrap() != ctx.accounts.lp_token_mint.supply {
     //     return Err(ErrorCode::InvalidVaultToSwapResultAmounts.into());
     // }
-
-    // TODO: Better handling of c value.
-    // TODO: Price Oracle
-    // TODO: Pool fee
-    // TODO: liquidity mining fee
 
     Ok(())
 }

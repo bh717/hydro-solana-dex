@@ -43,6 +43,10 @@ impl SwapCalculator {
         }
     }
 
+    pub fn swap_y_to_x_amm(&self, _delta_y: u128) -> SwapResult {
+        todo!("build me")
+    }
+
     /// Compute swap result from x to y using a constant product curve given delta x
     pub fn swap_x_to_y_amm(&self, delta_x: u128) -> SwapResult {
         let delta_x = PreciseNumber::new(delta_x).unwrap();
