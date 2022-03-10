@@ -1,685 +1,821 @@
 export type HydraLiquidityPools = {
-  version: "0.1.0";
-  name: "hydra_liquidity_pools";
-  instructions: [
+  "version": "0.1.0",
+  "name": "hydra_liquidity_pools",
+  "instructions": [
     {
-      name: "initialize";
-      accounts: [
+      "name": "initialize",
+      "accounts": [
         {
-          name: "authority";
-          isMut: false;
-          isSigner: true;
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
         },
         {
-          name: "payer";
-          isMut: true;
-          isSigner: true;
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
         },
         {
-          name: "poolState";
-          isMut: true;
-          isSigner: false;
+          "name": "poolState",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "baseTokenMint";
-          isMut: false;
-          isSigner: false;
+          "name": "tokenXMint",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "quoteTokenMint";
-          isMut: false;
-          isSigner: false;
+          "name": "tokenYMint",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "lpTokenMint";
-          isMut: false;
-          isSigner: false;
+          "name": "lpTokenMint",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "baseTokenVault";
-          isMut: true;
-          isSigner: false;
+          "name": "tokenXVault",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "quoteTokenVault";
-          isMut: true;
-          isSigner: false;
+          "name": "tokenYVault",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "lpTokenVault";
-          isMut: true;
-          isSigner: false;
+          "name": "lpTokenVault",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "systemProgram";
-          isMut: false;
-          isSigner: false;
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "tokenProgram";
-          isMut: false;
-          isSigner: false;
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "rent";
-          isMut: false;
-          isSigner: false;
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
         }
-      ];
-      args: [
+      ],
+      "args": [
         {
-          name: "tokenAVaultBump";
-          type: "u8";
+          "name": "tokenXVaultBump",
+          "type": "u8"
         },
         {
-          name: "tokenBVaultBump";
-          type: "u8";
+          "name": "tokenYVaultBump",
+          "type": "u8"
         },
         {
-          name: "poolStateBump";
-          type: "u8";
+          "name": "poolStateBump",
+          "type": "u8"
         },
         {
-          name: "lpTokenVaultBump";
-          type: "u8";
+          "name": "lpTokenVaultBump",
+          "type": "u8"
+        },
+        {
+          "name": "compensationParameter",
+          "type": "u16"
         }
-      ];
+      ]
     },
     {
-      name: "addLiquidity";
-      accounts: [
+      "name": "addLiquidity",
+      "accounts": [
         {
-          name: "user";
-          isMut: false;
-          isSigner: true;
+          "name": "user",
+          "isMut": false,
+          "isSigner": true
         },
         {
-          name: "poolState";
-          isMut: true;
-          isSigner: false;
+          "name": "poolState",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "lpTokenMint";
-          isMut: true;
-          isSigner: false;
+          "name": "lpTokenMint",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "userBaseToken";
-          isMut: true;
-          isSigner: false;
+          "name": "userTokenX",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "userQuoteToken";
-          isMut: true;
-          isSigner: false;
+          "name": "userTokenY",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "baseTokenVault";
-          isMut: true;
-          isSigner: false;
+          "name": "tokenXVault",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "quoteTokenVault";
-          isMut: true;
-          isSigner: false;
+          "name": "tokenYVault",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "lpTokenVault";
-          isMut: true;
-          isSigner: false;
+          "name": "lpTokenVault",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "lpTokenTo";
-          isMut: true;
-          isSigner: false;
+          "name": "lpTokenTo",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "tokenProgram";
-          isMut: false;
-          isSigner: false;
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
         }
-      ];
-      args: [
+      ],
+      "args": [
         {
-          name: "tokensAMaxAmount";
-          type: "u64";
+          "name": "tokensXMaxAmount",
+          "type": "u64"
         },
         {
-          name: "tokensBMaxAmount";
-          type: "u64";
+          "name": "tokensYMaxAmount",
+          "type": "u64"
         },
         {
-          name: "expectedLpTokens";
-          type: "u64";
+          "name": "expectedLpTokens",
+          "type": "u64"
         }
-      ];
+      ]
     },
     {
-      name: "removeLiquidity";
-      accounts: [
+      "name": "removeLiquidity",
+      "accounts": [
         {
-          name: "poolState";
-          isMut: true;
-          isSigner: false;
+          "name": "poolState",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "user";
-          isMut: false;
-          isSigner: true;
+          "name": "user",
+          "isMut": false,
+          "isSigner": true
         },
         {
-          name: "userRedeemableLpTokens";
-          isMut: true;
-          isSigner: false;
+          "name": "userRedeemableLpTokens",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "userBaseTokenAccount";
-          isMut: true;
-          isSigner: false;
+          "name": "userTokenX",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "userQuoteTokenAccount";
-          isMut: true;
-          isSigner: false;
+          "name": "userTokenY",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "baseTokenVault";
-          isMut: true;
-          isSigner: false;
+          "name": "tokenXVault",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "quoteTokenVault";
-          isMut: true;
-          isSigner: false;
+          "name": "tokenYVault",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "lpTokenMint";
-          isMut: true;
-          isSigner: false;
+          "name": "lpTokenMint",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "tokenProgram";
-          isMut: false;
-          isSigner: false;
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
         }
-      ];
-      args: [
+      ],
+      "args": [
         {
-          name: "lpTokensToBurn";
-          type: "u64";
+          "name": "lpTokensToBurn",
+          "type": "u64"
         }
-      ];
+      ]
+    },
+    {
+      "name": "swap",
+      "accounts": [
+        {
+          "name": "user",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "poolState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lpTokenMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userFromToken",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userToToken",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenXVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenYVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amountIn",
+          "type": "u64"
+        },
+        {
+          "name": "minimumAmountOut",
+          "type": "u64"
+        }
+      ]
     }
-  ];
-  accounts: [
+  ],
+  "accounts": [
     {
-      name: "poolState";
-      type: {
-        kind: "struct";
-        fields: [
+      "name": "poolState",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "authority";
-            type: "publicKey";
+            "name": "authority",
+            "type": "publicKey"
           },
           {
-            name: "baseTokenVault";
-            type: "publicKey";
+            "name": "tokenXVault",
+            "type": "publicKey"
           },
           {
-            name: "quoteTokenVault";
-            type: "publicKey";
+            "name": "tokenYVault",
+            "type": "publicKey"
           },
           {
-            name: "baseTokenMint";
-            type: "publicKey";
+            "name": "tokenXMint",
+            "type": "publicKey"
           },
           {
-            name: "quoteTokenMint";
-            type: "publicKey";
+            "name": "tokenYMint",
+            "type": "publicKey"
           },
           {
-            name: "lpTokenMint";
-            type: "publicKey";
+            "name": "lpTokenMint",
+            "type": "publicKey"
           },
           {
-            name: "poolStateBump";
-            type: "u8";
+            "name": "poolStateBump",
+            "type": "u8"
           },
           {
-            name: "baseTokenVaultBump";
-            type: "u8";
+            "name": "tokenXVaultBump",
+            "type": "u8"
           },
           {
-            name: "quoteTokenVaultBump";
-            type: "u8";
+            "name": "tokenYVaultBump",
+            "type": "u8"
           },
           {
-            name: "lpTokenVaultBump";
-            type: "u8";
+            "name": "lpTokenVaultBump",
+            "type": "u8"
           },
           {
-            name: "debug";
-            type: "bool";
+            "name": "compensationParameter",
+            "type": "u16"
+          },
+          {
+            "name": "debug",
+            "type": "bool"
           }
-        ];
-      };
+        ]
+      }
     }
-  ];
-  events: [
+  ],
+  "events": [
     {
-      name: "LiquidityAdded";
-      fields: [
+      "name": "LiquidityAdded",
+      "fields": [
         {
-          name: "baseTokensTransferred";
-          type: "u64";
-          index: false;
+          "name": "tokensXTransferred",
+          "type": "u64",
+          "index": false
         },
         {
-          name: "quoteTokensTransferred";
-          type: "u64";
-          index: false;
+          "name": "tokensYTransferred",
+          "type": "u64",
+          "index": false
         },
         {
-          name: "lpTokensMinted";
-          type: "u64";
-          index: false;
+          "name": "lpTokensMinted",
+          "type": "u64",
+          "index": false
         }
-      ];
+      ]
     },
     {
-      name: "LiquidityRemoved";
-      fields: [
+      "name": "LiquidityRemoved",
+      "fields": [
         {
-          name: "tokensACredited";
-          type: "u64";
-          index: false;
+          "name": "tokensXCredited",
+          "type": "u64",
+          "index": false
         },
         {
-          name: "tokensBCredited";
-          type: "u64";
-          index: false;
+          "name": "tokensYCredited",
+          "type": "u64",
+          "index": false
         },
         {
-          name: "lpTokensBurnt";
-          type: "u64";
-          index: false;
+          "name": "lpTokensBurnt",
+          "type": "u64",
+          "index": false
         }
-      ];
+      ]
     },
     {
-      name: "SlippageExceeded";
-      fields: [
+      "name": "SlippageExceeded",
+      "fields": [
         {
-          name: "baseTokenToDebit";
-          type: "u64";
-          index: false;
+          "name": "tokenXToDebit",
+          "type": "u64",
+          "index": false
         },
         {
-          name: "quoteTokenToDebit";
-          type: "u64";
-          index: false;
+          "name": "tokenYToDebit",
+          "type": "u64",
+          "index": false
         },
         {
-          name: "baseTokenMaxAmount";
-          type: "u64";
-          index: false;
+          "name": "tokenXMaxAmount",
+          "type": "u64",
+          "index": false
         },
         {
-          name: "quoteTokenMaxAmount";
-          type: "u64";
-          index: false;
+          "name": "tokenYMaxAmount",
+          "type": "u64",
+          "index": false
         }
-      ];
+      ]
     }
-  ];
-  errors: [
+  ],
+  "errors": [
     {
-      code: 6000;
-      name: "SlippageExceeded";
-      msg: "Slippage Amount Exceeded";
+      "code": 6000,
+      "name": "SlippageExceeded",
+      "msg": "Slippage Amount Exceeded"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidVaultToSwapResultAmounts",
+      "msg": "Invalid vault to SwapResult amounts"
     }
-  ];
+  ]
 };
 
 export const IDL: HydraLiquidityPools = {
-  version: "0.1.0",
-  name: "hydra_liquidity_pools",
-  instructions: [
+  "version": "0.1.0",
+  "name": "hydra_liquidity_pools",
+  "instructions": [
     {
-      name: "initialize",
-      accounts: [
+      "name": "initialize",
+      "accounts": [
         {
-          name: "authority",
-          isMut: false,
-          isSigner: true,
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
         },
         {
-          name: "payer",
-          isMut: true,
-          isSigner: true,
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
         },
         {
-          name: "poolState",
-          isMut: true,
-          isSigner: false,
+          "name": "poolState",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "baseTokenMint",
-          isMut: false,
-          isSigner: false,
+          "name": "tokenXMint",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "quoteTokenMint",
-          isMut: false,
-          isSigner: false,
+          "name": "tokenYMint",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "lpTokenMint",
-          isMut: false,
-          isSigner: false,
+          "name": "lpTokenMint",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "baseTokenVault",
-          isMut: true,
-          isSigner: false,
+          "name": "tokenXVault",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "quoteTokenVault",
-          isMut: true,
-          isSigner: false,
+          "name": "tokenYVault",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "lpTokenVault",
-          isMut: true,
-          isSigner: false,
+          "name": "lpTokenVault",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "systemProgram",
-          isMut: false,
-          isSigner: false,
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "tokenProgram",
-          isMut: false,
-          isSigner: false,
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "rent",
-          isMut: false,
-          isSigner: false,
-        },
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
       ],
-      args: [
+      "args": [
         {
-          name: "tokenAVaultBump",
-          type: "u8",
+          "name": "tokenXVaultBump",
+          "type": "u8"
         },
         {
-          name: "tokenBVaultBump",
-          type: "u8",
+          "name": "tokenYVaultBump",
+          "type": "u8"
         },
         {
-          name: "poolStateBump",
-          type: "u8",
+          "name": "poolStateBump",
+          "type": "u8"
         },
         {
-          name: "lpTokenVaultBump",
-          type: "u8",
+          "name": "lpTokenVaultBump",
+          "type": "u8"
         },
-      ],
+        {
+          "name": "compensationParameter",
+          "type": "u16"
+        }
+      ]
     },
     {
-      name: "addLiquidity",
-      accounts: [
+      "name": "addLiquidity",
+      "accounts": [
         {
-          name: "user",
-          isMut: false,
-          isSigner: true,
+          "name": "user",
+          "isMut": false,
+          "isSigner": true
         },
         {
-          name: "poolState",
-          isMut: true,
-          isSigner: false,
+          "name": "poolState",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "lpTokenMint",
-          isMut: true,
-          isSigner: false,
+          "name": "lpTokenMint",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "userBaseToken",
-          isMut: true,
-          isSigner: false,
+          "name": "userTokenX",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "userQuoteToken",
-          isMut: true,
-          isSigner: false,
+          "name": "userTokenY",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "baseTokenVault",
-          isMut: true,
-          isSigner: false,
+          "name": "tokenXVault",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "quoteTokenVault",
-          isMut: true,
-          isSigner: false,
+          "name": "tokenYVault",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "lpTokenVault",
-          isMut: true,
-          isSigner: false,
+          "name": "lpTokenVault",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "lpTokenTo",
-          isMut: true,
-          isSigner: false,
+          "name": "lpTokenTo",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "tokenProgram",
-          isMut: false,
-          isSigner: false,
-        },
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
       ],
-      args: [
+      "args": [
         {
-          name: "tokensAMaxAmount",
-          type: "u64",
+          "name": "tokensXMaxAmount",
+          "type": "u64"
         },
         {
-          name: "tokensBMaxAmount",
-          type: "u64",
+          "name": "tokensYMaxAmount",
+          "type": "u64"
         },
         {
-          name: "expectedLpTokens",
-          type: "u64",
-        },
-      ],
+          "name": "expectedLpTokens",
+          "type": "u64"
+        }
+      ]
     },
     {
-      name: "removeLiquidity",
-      accounts: [
+      "name": "removeLiquidity",
+      "accounts": [
         {
-          name: "poolState",
-          isMut: true,
-          isSigner: false,
+          "name": "poolState",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "user",
-          isMut: false,
-          isSigner: true,
+          "name": "user",
+          "isMut": false,
+          "isSigner": true
         },
         {
-          name: "userRedeemableLpTokens",
-          isMut: true,
-          isSigner: false,
+          "name": "userRedeemableLpTokens",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "userBaseTokenAccount",
-          isMut: true,
-          isSigner: false,
+          "name": "userTokenX",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "userQuoteTokenAccount",
-          isMut: true,
-          isSigner: false,
+          "name": "userTokenY",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "baseTokenVault",
-          isMut: true,
-          isSigner: false,
+          "name": "tokenXVault",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "quoteTokenVault",
-          isMut: true,
-          isSigner: false,
+          "name": "tokenYVault",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "lpTokenMint",
-          isMut: true,
-          isSigner: false,
+          "name": "lpTokenMint",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "tokenProgram",
-          isMut: false,
-          isSigner: false,
-        },
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
       ],
-      args: [
+      "args": [
         {
-          name: "lpTokensToBurn",
-          type: "u64",
-        },
-      ],
+          "name": "lpTokensToBurn",
+          "type": "u64"
+        }
+      ]
     },
+    {
+      "name": "swap",
+      "accounts": [
+        {
+          "name": "user",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "poolState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lpTokenMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userFromToken",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userToToken",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenXVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenYVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amountIn",
+          "type": "u64"
+        },
+        {
+          "name": "minimumAmountOut",
+          "type": "u64"
+        }
+      ]
+    }
   ],
-  accounts: [
+  "accounts": [
     {
-      name: "poolState",
-      type: {
-        kind: "struct",
-        fields: [
+      "name": "poolState",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "authority",
-            type: "publicKey",
+            "name": "authority",
+            "type": "publicKey"
           },
           {
-            name: "baseTokenVault",
-            type: "publicKey",
+            "name": "tokenXVault",
+            "type": "publicKey"
           },
           {
-            name: "quoteTokenVault",
-            type: "publicKey",
+            "name": "tokenYVault",
+            "type": "publicKey"
           },
           {
-            name: "baseTokenMint",
-            type: "publicKey",
+            "name": "tokenXMint",
+            "type": "publicKey"
           },
           {
-            name: "quoteTokenMint",
-            type: "publicKey",
+            "name": "tokenYMint",
+            "type": "publicKey"
           },
           {
-            name: "lpTokenMint",
-            type: "publicKey",
+            "name": "lpTokenMint",
+            "type": "publicKey"
           },
           {
-            name: "poolStateBump",
-            type: "u8",
+            "name": "poolStateBump",
+            "type": "u8"
           },
           {
-            name: "baseTokenVaultBump",
-            type: "u8",
+            "name": "tokenXVaultBump",
+            "type": "u8"
           },
           {
-            name: "quoteTokenVaultBump",
-            type: "u8",
+            "name": "tokenYVaultBump",
+            "type": "u8"
           },
           {
-            name: "lpTokenVaultBump",
-            type: "u8",
+            "name": "lpTokenVaultBump",
+            "type": "u8"
           },
           {
-            name: "debug",
-            type: "bool",
+            "name": "compensationParameter",
+            "type": "u16"
           },
-        ],
-      },
-    },
+          {
+            "name": "debug",
+            "type": "bool"
+          }
+        ]
+      }
+    }
   ],
-  events: [
+  "events": [
     {
-      name: "LiquidityAdded",
-      fields: [
+      "name": "LiquidityAdded",
+      "fields": [
         {
-          name: "baseTokensTransferred",
-          type: "u64",
-          index: false,
+          "name": "tokensXTransferred",
+          "type": "u64",
+          "index": false
         },
         {
-          name: "quoteTokensTransferred",
-          type: "u64",
-          index: false,
+          "name": "tokensYTransferred",
+          "type": "u64",
+          "index": false
         },
         {
-          name: "lpTokensMinted",
-          type: "u64",
-          index: false,
-        },
-      ],
+          "name": "lpTokensMinted",
+          "type": "u64",
+          "index": false
+        }
+      ]
     },
     {
-      name: "LiquidityRemoved",
-      fields: [
+      "name": "LiquidityRemoved",
+      "fields": [
         {
-          name: "tokensACredited",
-          type: "u64",
-          index: false,
+          "name": "tokensXCredited",
+          "type": "u64",
+          "index": false
         },
         {
-          name: "tokensBCredited",
-          type: "u64",
-          index: false,
+          "name": "tokensYCredited",
+          "type": "u64",
+          "index": false
         },
         {
-          name: "lpTokensBurnt",
-          type: "u64",
-          index: false,
-        },
-      ],
+          "name": "lpTokensBurnt",
+          "type": "u64",
+          "index": false
+        }
+      ]
     },
     {
-      name: "SlippageExceeded",
-      fields: [
+      "name": "SlippageExceeded",
+      "fields": [
         {
-          name: "baseTokenToDebit",
-          type: "u64",
-          index: false,
+          "name": "tokenXToDebit",
+          "type": "u64",
+          "index": false
         },
         {
-          name: "quoteTokenToDebit",
-          type: "u64",
-          index: false,
+          "name": "tokenYToDebit",
+          "type": "u64",
+          "index": false
         },
         {
-          name: "baseTokenMaxAmount",
-          type: "u64",
-          index: false,
+          "name": "tokenXMaxAmount",
+          "type": "u64",
+          "index": false
         },
         {
-          name: "quoteTokenMaxAmount",
-          type: "u64",
-          index: false,
-        },
-      ],
-    },
+          "name": "tokenYMaxAmount",
+          "type": "u64",
+          "index": false
+        }
+      ]
+    }
   ],
-  errors: [
+  "errors": [
     {
-      code: 6000,
-      name: "SlippageExceeded",
-      msg: "Slippage Amount Exceeded",
+      "code": 6000,
+      "name": "SlippageExceeded",
+      "msg": "Slippage Amount Exceeded"
     },
-  ],
+    {
+      "code": 6001,
+      "name": "InvalidVaultToSwapResultAmounts",
+      "msg": "Invalid vault to SwapResult amounts"
+    }
+  ]
 };

@@ -133,16 +133,17 @@ describe("hydra-liquidity-pool", () => {
       quoteTokenVaultBump,
       poolStateBump,
       lpTokenVaultBump,
+      0, // TODO need to hand this code better after talking with the math kids about it more.
       {
         accounts: {
           authority: provider.wallet.publicKey,
           payer: provider.wallet.publicKey,
           poolState: poolState,
-          baseTokenMint: btcdMint,
-          quoteTokenMint: usddMint,
+          tokenXMint: btcdMint,
+          tokenYMint: usddMint,
           lpTokenMint: lpTokenMint.publicKey,
-          baseTokenVault,
-          quoteTokenVault,
+          tokenXVault: baseTokenVault,
+          tokenYVault: quoteTokenVault,
           lpTokenVault,
           systemProgram: anchor.web3.SystemProgram.programId,
           tokenProgram: TokenInstructions.TOKEN_PROGRAM_ID,
@@ -158,29 +159,23 @@ describe("hydra-liquidity-pool", () => {
       provider.wallet.publicKey.toString()
     );
     assert.equal(
-      poolStateAccount.baseTokenVault.toString(),
+      poolStateAccount.tokenXVault.toString(),
       baseTokenVault.toString()
     );
     assert.equal(
-      poolStateAccount.quoteTokenVault.toString(),
+      poolStateAccount.tokenYVault.toString(),
       quoteTokenVault.toString()
     );
 
-    assert.equal(
-      poolStateAccount.baseTokenMint.toString(),
-      btcdMint.toString()
-    );
-    assert.equal(
-      poolStateAccount.quoteTokenMint.toString(),
-      usddMint.toString()
-    );
+    assert.equal(poolStateAccount.tokenXMint.toString(), btcdMint.toString());
+    assert.equal(poolStateAccount.tokenYMint.toString(), usddMint.toString());
     assert.equal(
       poolStateAccount.lpTokenMint.toString(),
       lpTokenMint.publicKey.toString()
     );
     assert.equal(poolStateAccount.poolStateBump, poolStateBump);
-    assert.equal(poolStateAccount.baseTokenVaultBump, baseTokenVaultBump);
-    assert.equal(poolStateAccount.quoteTokenVaultBump, quoteTokenVaultBump);
+    assert.equal(poolStateAccount.tokenXVaultBump, baseTokenVaultBump);
+    assert.equal(poolStateAccount.tokenYVaultBump, quoteTokenVaultBump);
   });
 
   it("should add-liquidity to pool for the first time", async () => {
@@ -192,11 +187,11 @@ describe("hydra-liquidity-pool", () => {
         accounts: {
           poolState: poolState,
           lpTokenMint: lpTokenMint.publicKey,
-          userBaseToken: btcdAccount,
-          userQuoteToken: usddAccount,
+          userTokenX: btcdAccount,
+          userTokenY: usddAccount,
           user: provider.wallet.publicKey,
-          baseTokenVault,
-          quoteTokenVault,
+          tokenXVault: baseTokenVault,
+          tokenYVault: quoteTokenVault,
           lpTokenVault,
           lpTokenTo: lpTokenAccount,
           tokenProgram: TOKEN_PROGRAM_ID,
@@ -238,11 +233,11 @@ describe("hydra-liquidity-pool", () => {
         accounts: {
           poolState: poolState,
           lpTokenMint: lpTokenMint.publicKey,
-          userBaseToken: btcdAccount,
-          userQuoteToken: usddAccount,
+          userTokenX: btcdAccount,
+          userTokenY: usddAccount,
           user: provider.wallet.publicKey,
-          baseTokenVault,
-          quoteTokenVault,
+          tokenXVault: baseTokenVault,
+          tokenYVault: quoteTokenVault,
           lpTokenVault,
           lpTokenTo: lpTokenAccount,
           tokenProgram: TOKEN_PROGRAM_ID,
@@ -286,11 +281,11 @@ describe("hydra-liquidity-pool", () => {
         accounts: {
           poolState: poolState,
           lpTokenMint: lpTokenMint.publicKey,
-          userBaseToken: btcdAccount,
-          userQuoteToken: usddAccount,
+          userTokenX: btcdAccount,
+          userTokenY: usddAccount,
           user: provider.wallet.publicKey,
-          baseTokenVault,
-          quoteTokenVault,
+          tokenXVault: baseTokenVault,
+          tokenYVault: quoteTokenVault,
           lpTokenVault,
           lpTokenTo: lpTokenAccount,
           tokenProgram: TOKEN_PROGRAM_ID,
@@ -333,11 +328,11 @@ describe("hydra-liquidity-pool", () => {
           accounts: {
             poolState: poolState,
             lpTokenMint: lpTokenMint.publicKey,
-            userBaseToken: btcdAccount,
-            userQuoteToken: usddAccount,
+            userTokenX: btcdAccount,
+            userTokenY: usddAccount,
             user: provider.wallet.publicKey,
-            baseTokenVault,
-            quoteTokenVault,
+            tokenXVault: baseTokenVault,
+            tokenYVault: quoteTokenVault,
             lpTokenVault,
             lpTokenTo: lpTokenAccount,
             tokenProgram: TOKEN_PROGRAM_ID,
@@ -384,10 +379,10 @@ describe("hydra-liquidity-pool", () => {
         poolState: poolState,
         user: provider.wallet.publicKey,
         userRedeemableLpTokens: lpTokenAccount,
-        userBaseTokenAccount: btcdAccount,
-        userQuoteTokenAccount: usddAccount,
-        baseTokenVault,
-        quoteTokenVault,
+        userTokenX: btcdAccount,
+        userTokenY: usddAccount,
+        tokenXVault: baseTokenVault,
+        tokenYVault: quoteTokenVault,
         lpTokenMint: lpTokenMint.publicKey,
         tokenProgram: TOKEN_PROGRAM_ID,
       },
@@ -407,41 +402,133 @@ describe("hydra-liquidity-pool", () => {
       (await getTokenBalance(provider, usddAccount)).toNumber(),
       usddMintAmount.iadd(new BN(681_534_099_132)).toNumber()
     );
+  });
 
-    it("should remove-liquidity second time", async () => {
-      await program.rpc.removeLiquidity(new BN(1238326078), {
+  it("should fail token swap due to slippage error", async () => {
+    try {
+      await program.rpc.swap(new BN(1_000_000), new BN(36_510_755_315), {
         accounts: {
-          poolState: poolState,
           user: provider.wallet.publicKey,
-          userRedeemableLpTokens: lpTokenAccount,
-          userBaseTokenAccount: btcdAccount,
-          userQuoteTokenAccount: usddAccount,
-          baseTokenVault,
-          quoteTokenVault,
+          poolState: poolState,
           lpTokenMint: lpTokenMint.publicKey,
+          userFromToken: btcdAccount,
+          userToToken: usddAccount,
+          tokenXVault: baseTokenVault,
+          tokenYVault: quoteTokenVault,
           tokenProgram: TOKEN_PROGRAM_ID,
         },
       });
+      assert.ok(false);
+    } catch (err: any) {
+      const errMsg = "Slippage Amount Exceeded";
+      assert.equal(err.toString(), errMsg);
+    }
+  });
 
-      assert.strictEqual(
-        (await getTokenBalance(provider, lpTokenAccount)).toNumber(),
-        0
-      );
-
-      assert.strictEqual(
-        (await getTokenBalance(provider, lpTokenVault)).toNumber(),
-        100
-      );
-
-      assert.strictEqual(
-        (await getTokenBalance(provider, btcdAccount)).toNumber(),
-        btcdMintAmount.iadd(new BN(6_000_000)).toNumber()
-      );
-
-      assert.strictEqual(
-        (await getTokenBalance(provider, usddAccount)).toNumber(),
-        usddMintAmount.iadd(new BN(255_575_287_200)).toNumber()
-      );
+  it("should swap (cpmm) btc to usd (x to y)", async () => {
+    await program.rpc.swap(new BN(1_000_000), new BN(36_510_755_314), {
+      accounts: {
+        user: provider.wallet.publicKey,
+        poolState: poolState,
+        lpTokenMint: lpTokenMint.publicKey,
+        userFromToken: btcdAccount,
+        userToToken: usddAccount,
+        tokenXVault: baseTokenVault,
+        tokenYVault: quoteTokenVault,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      },
     });
+
+    assert.strictEqual(
+      (await getTokenBalance(provider, baseTokenVault)).toNumber(),
+      6_000_000 + 1_000_000
+    );
+
+    assert.strictEqual(
+      (await getTokenBalance(provider, quoteTokenVault)).toNumber(),
+      255_575_287_200 - 36_510_755_314
+    );
+
+    assert.strictEqual(
+      (await getTokenBalance(provider, btcdAccount)).toNumber(),
+      20_999_993_000_000
+    );
+
+    assert.strictEqual(
+      (await getTokenBalance(provider, usddAccount)).toNumber(),
+      99_780_935_468_114
+    );
+  });
+
+  // TODO: uncomment once math functions implemented.
+  // it("should swap (cpmm) usd to btc (y to x)", async () => {
+  //   await program.rpc.swap(new BN(36_510_755_314), new BN(1_000_000), {
+  //     accounts: {
+  //       user: provider.wallet.publicKey,
+  //       poolState: poolState,
+  //       lpTokenMint: lpTokenMint.publicKey,
+  //       userFromToken: usddAccount,
+  //       userToToken: btcdAccount,
+  //       tokenXVault: baseTokenVault,
+  //       tokenYVault: quoteTokenVault,
+  //       tokenProgram: TOKEN_PROGRAM_ID,
+  //     },
+  //   });
+  //
+  //   assert.strictEqual(
+  //     (await getTokenBalance(provider, baseTokenVault)).toNumber(),
+  //     6_000_000 + 1_000_000
+  //   );
+  //
+  //   assert.strictEqual(
+  //     (await getTokenBalance(provider, quoteTokenVault)).toNumber(),
+  //     255_575_287_200 - 36_510_755_314
+  //   );
+  //
+  //   assert.strictEqual(
+  //     (await getTokenBalance(provider, btcdAccount)).toNumber(),
+  //     20_999_993_000_000
+  //   );
+  //
+  //   assert.strictEqual(
+  //     (await getTokenBalance(provider, usddAccount)).toNumber(),
+  //     99_780_935_468_114
+  //   );
+  // });
+
+  it("should remove-liquidity for the last time", async () => {
+    await program.rpc.removeLiquidity(new BN(1238326078), {
+      accounts: {
+        poolState: poolState,
+        user: provider.wallet.publicKey,
+        userRedeemableLpTokens: lpTokenAccount,
+        userTokenX: btcdAccount,
+        userTokenY: usddAccount,
+        tokenXVault: baseTokenVault,
+        tokenYVault: quoteTokenVault,
+        lpTokenMint: lpTokenMint.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      },
+    });
+
+    assert.strictEqual(
+      (await getTokenBalance(provider, lpTokenAccount)).toNumber(),
+      0
+    );
+
+    assert.strictEqual(
+      (await getTokenBalance(provider, lpTokenVault)).toNumber(),
+      100
+    );
+
+    assert.strictEqual(
+      (await getTokenBalance(provider, btcdAccount)).toNumber(),
+      21_000_000_000_000
+    );
+
+    assert.strictEqual(
+      (await getTokenBalance(provider, usddAccount)).toNumber(),
+      100_000_000_000_000 - 17690
+    );
   });
 });

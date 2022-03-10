@@ -6,20 +6,20 @@ use std::io::Write;
 #[derive(Default, Derivative)]
 pub struct PoolState {
     pub authority: Pubkey,
-    pub base_token_vault: Pubkey,
-    pub quote_token_vault: Pubkey,
-    pub base_token_mint: Pubkey,
-    pub quote_token_mint: Pubkey,
+    pub token_x_vault: Pubkey,
+    pub token_y_vault: Pubkey,
+    pub token_x_mint: Pubkey,
+    pub token_y_mint: Pubkey,
     pub lp_token_mint: Pubkey,
     pub pool_state_bump: u8,
-    pub base_token_vault_bump: u8,
-    pub quote_token_vault_bump: u8,
+    pub token_x_vault_bump: u8,
+    pub token_y_vault_bump: u8,
     pub lp_token_vault_bump: u8,
+    pub compensation_parameter: u16, // Range from (0 - 200) / 100 = c. With only 025 increments
     #[derivative(Default(value = "false"))]
     pub debug: bool,
     pub reserved: PoolStateReserve,
 }
-impl PoolState {}
 
 const POOL_STATE_RESERVE_SIZE: usize = 512;
 

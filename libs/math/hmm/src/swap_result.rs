@@ -15,3 +15,36 @@ pub struct SwapResult {
     /// Amount of destination token swapped expressed as delta_x
     pub delta_y: PreciseNumber,
 }
+
+impl SwapResult {
+    // TODO: Really should setup the Default trait with the new refactored version and this wont be needed.
+    pub fn init() -> SwapResult {
+        SwapResult {
+            k: PreciseNumber::new(0 as u128).unwrap(),
+            x_new: PreciseNumber::new(0 as u128).unwrap(),
+            y_new: PreciseNumber::new(0 as u128).unwrap(),
+            delta_x: PreciseNumber::new(0 as u128).unwrap(),
+            delta_y: PreciseNumber::new(0 as u128).unwrap(),
+        }
+    }
+
+    pub fn delta_y(&self) -> Option<u64> {
+        Some(self.delta_y.to_imprecise()? as u64)
+    }
+
+    pub fn delta_x(&self) -> Option<u64> {
+        Some(self.delta_x.to_imprecise()? as u64)
+    }
+
+    pub fn x_new(&self) -> Option<u64> {
+        Some(self.x_new.to_imprecise()? as u64)
+    }
+
+    pub fn y_new(&self) -> Option<u64> {
+        Some(self.y_new.to_imprecise()? as u64)
+    }
+
+    pub fn k(&self) -> Option<u64> {
+        Some(self.k.to_imprecise()? as u64)
+    }
+}

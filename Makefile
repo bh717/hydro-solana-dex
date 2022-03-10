@@ -51,8 +51,11 @@ validator-logs:
 migrate:
 	yarn ts-node scripts/migrate.ts
 
-watch-test:
+watch-anchor-test:
 	cargo watch -c -- anchor test -- --features "localnet"
+
+watch-test:
+	cargo watch -cx test
 
 watch:
 	cargo watch -- anchor build -- --features "localnet"
