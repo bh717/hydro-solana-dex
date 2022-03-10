@@ -70,17 +70,17 @@ userFrom?.account.data.amount; // 1000n
 One advantage of streams is that they are highly composable:
 
 ```ts
-const combinedVals = useObservable(
+const { userFromBal, redeemableTo } = useObservable(
   useMemo(() =>
     combineLatest({
-      userFrom: sdk.staking.accounts.userToken.stream(),
+      userFromBal: sdk.staking.accounts.userToken.stream().pipe(map(toBalance)),
       redeemableTo: sdk.staking.accounts.redeemableTo.stream(),
     })
   )
 );
 
-combinedVals.userToken.account.amount;
-combinedVals.redeemableTo.account.amount;
+userFromBal; // 100n
+redeemableTo.account.amount; // etc.
 ```
 
 If you need other accounts not defined as part of the anchor prject you might want to use your own `AccountLoader` passing in the public key.
