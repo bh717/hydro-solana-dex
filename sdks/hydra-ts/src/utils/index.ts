@@ -1,7 +1,20 @@
 import * as anchor from "@project-serum/anchor";
 import { BN, Provider } from "@project-serum/anchor";
-import { PublicKey } from "@solana/web3.js";
-import { Ctx, Option } from "../types";
+import {
+  Keypair,
+  PublicKey,
+  Signer,
+  SystemProgram,
+  Transaction,
+} from "@solana/web3.js";
+import { Option } from "../types";
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import * as SPLToken from "@solana/spl-token";
+import NodeWallet from "@project-serum/anchor/dist/cjs/nodewallet";
+
+const SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID: PublicKey = new PublicKey(
+  "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+);
 
 /**
  * Gets a PDA derived based on seed
@@ -39,26 +52,21 @@ export async function tryGet<T>(fn: Promise<T>): Promise<T | undefined> {
   }
 }
 
-// /**
-//  * Return the first tokenAccount publicKey for the given mint address or create a new one
-//  * @param provider anchor provider
-//  * @param mint mintAddress
-//  * @returns publicKey
-//  */
-// export async function getOrCreateOwnerTokenAccount(
-//   provider: Provider,
-//   mint: PublicKey
-// ): Promise<PublicKey> {
-//   const account = await getExistingOwnerTokenAccount(provider, mint);
+export function isDefaultProvider(provider: Provider) {
+  // TODO: use constant
+  return (
+    provider.wallet.publicKey.toString() === "11111111111111111111111111111111"
+  );
+}
 
-//   if (!account) {
-//     // XXX: createTokenAccount requires node to be bundled within the package
-//     // We need this functionality but commenting out for now to implement later
-//     // return await createTokenAccount(provider, mint, provider.wallet.publicKey);
-//   }
-
-//   return account;
-// }
+// Testing utility to stringify public keys
+export function stringifyProps<
+  T extends Record<string, { toString: Function }>
+>(obj: T): { [K in keyof T]: string } {
+  return Object.fromEntries(
+    Object.entries(obj).map(([k, v]) => [k, v.toString()])
+  ) as { [K in keyof T]: string };
+}
 
 /**
  * Return the first tokenAccount publicKey for the given mint address
@@ -82,4 +90,15 @@ export async function getExistingOwnerTokenAccount(
   }
   return undefined;
 }
-//
+
+export async function findAssociatedTokenAddress(
+  walletAddress: PublicKey,
+  tokenMintAddress: PublicKey
+): Promise<PublicKey> {
+  return await SPLToken.Token.getAssociatedTokenAddress(
+    SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID, // always associated token program id
+    TOKEN_PROGRAM_ID, // always token program id
+    tokenMintAddress, // mint
+    walletAddress // token account authority
+  );
+}

@@ -25,6 +25,8 @@
   },
   "dependencies": {
     "@project-serum/anchor": "^0.20.1",
+    "@solana/buffer-layout": "^4.0.0",
+    "@solana/buffer-layout-utils": "^0.2.0",
     "@solana/spl-token": "^0.2.0",
     "concurrently": "^7.0.0",
     "hydra-math-rs": "*",

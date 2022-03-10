@@ -3,6 +3,7 @@ use crate::events::*;
 use crate::state::pool_state::PoolState;
 use crate::utils::price::calculate_price;
 use anchor_lang::prelude::*;
+use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
 use anchor_spl::token::{Mint, MintTo, Token, TokenAccount, Transfer};
 use hydra_math_rs::programs::staking::hydra_staking::calculate_pool_tokens_for_deposit;
@@ -35,6 +36,7 @@ pub struct Stake<'info> {
     pub user_from: Box<Account<'info, TokenAccount>>,
 
     /// the authority allowed to transfer from token_from
+    #[account(mut)]
     pub user_from_authority: Signer<'info>,
 
     #[account(
@@ -46,12 +48,17 @@ pub struct Stake<'info> {
     pub token_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(
-        mut,
-        constraint = redeemable_to.mint == pool_state.redeemable_mint,
+        init_if_needed,
+        payer = user_from_authority,
+        associated_token::mint = redeemable_mint,
+        associated_token::authority = user_from_authority
     )]
     pub redeemable_to: Box<Account<'info, TokenAccount>>,
 
+    pub system_program: Program<'info, System>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program: Program<'info, Token>,
+    pub rent: Sysvar<'info, Rent>,
 }
 
 impl<'info> Stake<'info> {

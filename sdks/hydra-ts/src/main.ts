@@ -6,6 +6,7 @@ import staking from "./staking";
 import { Ctx, Network, ProgramIds, Wallet } from "./types";
 import { inject } from "./utils/meta-utils";
 import common from "./common";
+import user from "./user";
 
 /**
  * Create an instance of the sdk API
@@ -16,6 +17,7 @@ export function createApi(ctx: Ctx) {
   const namespaceFns = {
     staking,
     common,
+    user,
   };
 
   return {

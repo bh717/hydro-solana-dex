@@ -8,13 +8,11 @@ import {
 import assert from "assert";
 import { TokenInstructions } from "@project-serum/serum";
 import { createMintAndVault, createTokenAccount } from "@project-serum/common";
-// import { getTokenBalance } from "hydra-ts/src/utils";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "@project-serum/serum/lib/token-instructions";
 
 const utf8 = anchor.utils.bytes.utf8;
 import { btcdMintAmount, usddMintAmount } from "../constants";
-// import { createMint } from "hydra-ts/node";
 
 import { HydraSDK } from "hydra-ts";
 
