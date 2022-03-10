@@ -73,6 +73,7 @@ react-ci-cd:
 	solana-keygen new --no-bip39-passphrase || true
 	cargo check
 	cargo test
+	anchor build
 	yarn --frozen-lockfile
 	yarn lint
 	yarn turbo run build --concurrency=1
