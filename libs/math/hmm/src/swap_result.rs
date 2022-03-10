@@ -17,6 +17,7 @@ pub struct SwapResult {
 }
 
 impl SwapResult {
+    // TODO: Really should setup the Default trait with the new refactored version and this wont be needed.
     pub fn init() -> SwapResult {
         SwapResult {
             k: PreciseNumber::new(0 as u128).unwrap(),
