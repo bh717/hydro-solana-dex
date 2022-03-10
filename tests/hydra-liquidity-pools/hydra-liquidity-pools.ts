@@ -463,7 +463,7 @@ describe("hydra-liquidity-pool", () => {
     }
   });
 
-  it("should swap", async () => {
+  it("should swap (cpmm) btc to usd (x to y)", async () => {
     await program.rpc.swap(new BN(1_000_000), new BN(36_510_755_314), {
       accounts: {
         user: provider.wallet.publicKey,
@@ -497,4 +497,40 @@ describe("hydra-liquidity-pool", () => {
       99_780_935_468_114
     );
   });
+
+  // TODO: uncomment once math functions implemented.
+  // it("should swap (cpmm) usd to btc (y to x)", async () => {
+  //   await program.rpc.swap(new BN(36_510_755_314), new BN(1_000_000), {
+  //     accounts: {
+  //       user: provider.wallet.publicKey,
+  //       poolState: poolState,
+  //       lpTokenMint: lpTokenMint.publicKey,
+  //       userFromToken: usddAccount,
+  //       userToToken: btcdAccount,
+  //       tokenXVault: baseTokenVault,
+  //       tokenYVault: quoteTokenVault,
+  //       tokenProgram: TOKEN_PROGRAM_ID,
+  //     },
+  //   });
+  //
+  //   assert.strictEqual(
+  //     (await getTokenBalance(provider, baseTokenVault)).toNumber(),
+  //     6_000_000 + 1_000_000
+  //   );
+  //
+  //   assert.strictEqual(
+  //     (await getTokenBalance(provider, quoteTokenVault)).toNumber(),
+  //     255_575_287_200 - 36_510_755_314
+  //   );
+  //
+  //   assert.strictEqual(
+  //     (await getTokenBalance(provider, btcdAccount)).toNumber(),
+  //     20_999_993_000_000
+  //   );
+  //
+  //   assert.strictEqual(
+  //     (await getTokenBalance(provider, usddAccount)).toNumber(),
+  //     99_780_935_468_114
+  //   );
+  // });
 });
