@@ -18,6 +18,8 @@ Note the values change because they are reactive using `rxjs`.
 
 ## API Examples
 
+## API Docs
+
 Each namespace has a set of AccountLoader objects which act as
 a shorthand for getting accounts and account streams.
 These namespaced accounts are deterministic based on the context they are given
@@ -27,10 +29,35 @@ Usually they are:
 - PDAs based on particular seeds
 - ProgramIDs / Accounts directly from global config
 
-```ts
-//
-assert.strictEqual(await sdk.staking.accounts.userToken.balance(), 0n);
+Those accounts are available in the namespace for the module.
 
+```ts
+assert.strictEqual(await sdk.staking.accounts.userToken.balance(), 0n);
+```
+
+And are set within the `module/accounts.ts` file by named export:
+
+```ts
+export const tokenMint = (ctx: Ctx) => {
+  return AccountLoader.Mint(ctx, ctx.getKey("tokenMint"));
+};
+
+export const redeemableMint = (ctx: Ctx) => {
+  return AccountLoader.Mint(ctx, ctx.getKey("redeemableMint"));
+};
+
+export const userToken = (ctx: Ctx) => {
+  return AccountLoader.AssociatedToken(ctx, ctx.getKey("tokenMint"));
+};
+
+export const userRedeemable = (ctx: Ctx) => {
+  return AccountLoader.AssociatedToken(ctx, ctx.getKey("redeemableMint"));
+};
+
+// etc..
+```
+
+```ts
 // Use observables in React like so to get a stream of re-rendering flat values
 const userFrom = useObservable(
   useMemo(() => sdk.staking.accounts.userToken.stream(), [sdk])
