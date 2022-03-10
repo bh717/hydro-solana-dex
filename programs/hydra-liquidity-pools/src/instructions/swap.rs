@@ -30,6 +30,7 @@ pub struct Swap<'info> {
     /// the token account to withdraw from
     pub user_from_token: Box<Account<'info, TokenAccount>>,
 
+    // TODO: setup init_if_needed
     #[account(
         mut,
         constraint = user_to_token.owner == user.key()
