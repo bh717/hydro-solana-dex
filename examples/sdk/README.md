@@ -35,7 +35,7 @@ Those accounts are available in the namespace for the module.
 assert.strictEqual(await sdk.staking.accounts.userToken.balance(), 0n);
 ```
 
-And are set within the `module/accounts.ts` file by named export:
+And are set within the `my-module/accounts.ts` file by named export:
 
 ```ts
 export const tokenMint = (ctx: Ctx) => {
