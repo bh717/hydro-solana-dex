@@ -28,20 +28,55 @@ Usually they are:
 - ProgramIDs / Accounts directly from global config
 
 ```ts
-sdk.staking.accounts.userToken.balance();
+//
+assert.strictEqual(await sdk.staking.accounts.userToken.balance(), 0n);
+
+// Use observables in React like so to get a stream of re-rendering flat values
+const userFrom = useObservable(
+  useMemo(() => sdk.staking.accounts.userToken.stream(), [sdk])
+);
+
+userFrom?.pubkey; // PUblicKey
+userFrom?.account.data.amount; // 1000n
 ```
 
-If you need other accounts you might want to use your own `AccountLoader`
+One advantage of streams is that they are highly composable:
+
+```ts
+const combinedVals = useObservable(
+  useMemo(() =>
+    combineLatest({
+      userFrom: sdk.staking.accounts.userToken.stream(),
+      redeemableTo: sdk.staking.accounts.redeemableTo.stream(),
+    })
+  )
+);
+
+combinedVals.userToken.account.amount;
+combinedVals.redeemableTo.account.amount;
+```
+
+If you need other accounts not defined as part of the anchor prject you might want to use your own `AccountLoader` passing in the public key.
 
 ```ts
 import { AccountLoader } from "hydra-ts";
-type PublicKeyGetter = () => Promise<PublicKey | [number,Publickey]>;
-type ParserType = "token" | "mint";
-type Parser<T> = (AccountInfo<Buffer>) => T
-type ParserArg<T = any> = ParserType | Parser<T>
-const loader = new AccountLoader(fetchPublicKey, "token" | "mint" | CustomParser));
-const balance = await loader.balance(); // Returns the Token Balance (assuming it is a token) Will throw an error if it is not
-const key = await loader.key(); // Returns the public key
-const info = await loader.info(); // Get info with data parsed as if it is an SPLToken
-const stream$ = loader.stream(); // Returns a stream of info objects
+import { Keypair } from "@solana/web3.js";
+const myAccount = Keypair.generate();
+const sdk = HydraSDK.create("localnet", connection, wallet);
+
+// Get a mint loader
+const mintLoader = AccountLoader.Mint(ctx, ctx.getKey("tokenMint"));
+
+// Get the account named PoolState from the IDL
+// (unfortunately we still need to provide a type to cast to)
+const customParser = ctx.getParser<PoolState>(
+  ctx.programs.hydraStaking,
+  "PoolState"
+);
+
+const loaderWithCustomParser = AccountLoader(
+  sdk.ctx,
+  myAccount.publicKey,
+  customParser
+);
 ```
