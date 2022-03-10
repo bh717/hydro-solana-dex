@@ -75,7 +75,7 @@ react-ci-cd:
 	cargo test
 	yarn --frozen-lockfile
 	yarn lint
-	yarn build
+	yarn turbo run build --concurrency=1
 	cd app; yarn serve-e2e
 	cd app; ipd -C build/
 
