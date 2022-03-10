@@ -1,5 +1,5 @@
 import * as anchor from "@project-serum/anchor";
-import * as localJsonIdl from "target/idl/hydra_staking.json";
+import config from "config-ts/global-config.json";
 import { HydraStaking, IDL } from "types-ts/codegen/types/hydra_staking";
 import { Keypair } from "@solana/web3.js";
 import * as assert from "assert";
@@ -10,7 +10,7 @@ describe("hydra-staking", () => {
   anchor.setProvider(provider);
 
   const programId = new anchor.web3.PublicKey(
-    localJsonIdl["metadata"]["address"]
+    config.localnet.programIds.hydraStaking
   );
   const program = new anchor.Program<HydraStaking>(IDL, programId);
 

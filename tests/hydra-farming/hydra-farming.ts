@@ -1,6 +1,6 @@
 import * as anchor from "@project-serum/anchor";
 import { Program } from "@project-serum/anchor";
-import * as localJsonIdl from "target/idl/hydra_farming.json";
+import config from "config-ts/global-config.json";
 import { HydraFarming, IDL } from "types-ts/codegen/types/hydra_farming";
 
 describe("hydra-farming", () => {
@@ -8,7 +8,7 @@ describe("hydra-farming", () => {
   anchor.setProvider(anchor.Provider.env());
 
   const hydraFarming = new anchor.web3.PublicKey(
-    localJsonIdl["metadata"]["address"]
+    config.localnet.programIds.hydraFarming
   );
   const program = new anchor.Program(
     IDL,
