@@ -1,6 +1,9 @@
 {
   "localnet": {
     "programIds": {
+      "hydraBenchmarks": "HYS93RLjsDvKqAN9BFbUHG8L76E9Xtg8HarmGc6LSe5s",
+      "hydraFarming": "26Z7yPwdJjU8a15GVBW2MBhPGjERhQPC5z7xTtiQMpe1",
+      "hydraLiquidityPools": "BBjT5U42SuA6FcVZEofPgjAVZahvtWzHaQ8pJHyKkC5T",
       "hydraStaking": "F1y1FTP91nwxbNUW3nXY6mKQzWawihwVYGwMsi7oKGyg",
       "redeemableMint": "xhy1rv75cEJahTbsKnv2TpNhdR7KNUoDPavKuQDwhDU",
       "tokenMint": "hyd3VthE9YPGBeg9HEgZsrM5qPniC6VoaEFeTGkVsJR"
@@ -9,6 +12,9 @@
 
   "mainnet": {
     "programIds": {
+      "hydraBenchmarks": "",
+      "hydraFarming": "",
+      "hydraLiquidityPools": "",
       "hydraStaking": "",
       "redeemableMint": "",
       "tokenMint": ""
@@ -17,6 +23,9 @@
 
   "testnet": {
     "programIds": {
+      "hydraBenchmarks": "HYS93RLjsDvKqAN9BFbUHG8L76E9Xtg8HarmGc6LSe5s",
+      "hydraFarming": "26Z7yPwdJjU8a15GVBW2MBhPGjERhQPC5z7xTtiQMpe1",
+      "hydraLiquidityPools": "BBjT5U42SuA6FcVZEofPgjAVZahvtWzHaQ8pJHyKkC5T",
       "hydraStaking": "F1y1FTP91nwxbNUW3nXY6mKQzWawihwVYGwMsi7oKGyg",
       "redeemableMint": "xhy1rv75cEJahTbsKnv2TpNhdR7KNUoDPavKuQDwhDU",
       "tokenMint": "hyd3VthE9YPGBeg9HEgZsrM5qPniC6VoaEFeTGkVsJR"
@@ -25,6 +34,9 @@
 
   "devnet": {
     "programIds": {
+      "hydraBenchmarks": "HYS93RLjsDvKqAN9BFbUHG8L76E9Xtg8HarmGc6LSe5s",
+      "hydraFarming": "26Z7yPwdJjU8a15GVBW2MBhPGjERhQPC5z7xTtiQMpe1",
+      "hydraLiquidityPools": "BBjT5U42SuA6FcVZEofPgjAVZahvtWzHaQ8pJHyKkC5T",
       "hydraStaking": "F1y1FTP91nwxbNUW3nXY6mKQzWawihwVYGwMsi7oKGyg",
       "redeemableMint": "xhy1rv75cEJahTbsKnv2TpNhdR7KNUoDPavKuQDwhDU",
       "tokenMint": "hyd3VthE9YPGBeg9HEgZsrM5qPniC6VoaEFeTGkVsJR"

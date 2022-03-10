@@ -59,25 +59,24 @@ watch:
 
 anchor-ci:
 	solana-keygen new --no-bip39-passphrase || true
+	cargo fmt -- --check
 	cargo check
 	cargo test
 	anchor build
 	yarn --frozen-lockfile
 	yarn lint
-	yarn deploy-to-create-idl
 	yarn turbo run build --concurrency=1
 	yarn test
 	anchor test
-	cargo fmt -- --check
 
 react-ci-cd:
 	solana-keygen new --no-bip39-passphrase || true
 	cargo check
 	cargo test
+	anchor build
 	yarn --frozen-lockfile
 	yarn lint
-	yarn deploy-to-create-idl
-	yarn build
+	yarn turbo run build --concurrency=1
 	cd app; yarn serve-e2e
 	cd app; ipd -C build/
 
