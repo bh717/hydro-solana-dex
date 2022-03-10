@@ -8,10 +8,10 @@ import { withBump, withBalance } from "./utils";
 import { Getter, Parser, IAccountLoader } from "./types";
 
 export * from "./types";
-
+type KeyOrGetter = Getter<PublicKey> | PublicKey;
 export function AccountLoader<T>(
   ctx: Ctx,
-  getter: Getter<PublicKey> | PublicKey,
+  getter: KeyOrGetter,
   accountParser: Parser<T>
 ): IAccountLoader<T> {
   const getKey =
@@ -107,11 +107,11 @@ export function PDAToken(
   return withBalance(PDA(ctx, programId, seeds, TokenAccount.Parser));
 }
 
-export function Token(ctx: Ctx, getter: Getter<PublicKey>) {
+export function Token(ctx: Ctx, getter: KeyOrGetter) {
   return withBalance(AccountLoader(ctx, getter, TokenAccount.Parser));
 }
 
-export function Mint(ctx: Ctx, getter: Getter<PublicKey> | PublicKey) {
+export function Mint(ctx: Ctx, getter: KeyOrGetter) {
   return AccountLoader(ctx, getter, TokenMint.Parser);
 }
 

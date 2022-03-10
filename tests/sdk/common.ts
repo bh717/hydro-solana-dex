@@ -2,11 +2,8 @@ import * as anchor from "@project-serum/anchor";
 import { AccountInfo, Keypair } from "@solana/web3.js";
 import assert from "assert";
 import { HydraSDK } from "hydra-ts";
-import {
-  AccountPubkey,
-  getAccountLoader,
-} from "hydra-ts/src/types/account-loader";
-import * as TokenAccount from "hydra-ts/src/types/TokenAccount";
+import { TokenAccount } from "hydra-ts/src/types/token-account";
+import * as AccountLoader from "hydra-ts/src/utils/account-loader";
 import { take, toArray } from "rxjs/operators";
 
 describe("HydraSDK", () => {
@@ -39,7 +36,8 @@ describe("HydraSDK", () => {
 
     await sdk.common.createMintAndVault(mint, vault, 100_000_000n);
 
-    const { data } = await sdk.common.getTokenAccountInfo(vault.publicKey);
+    const loader = AccountLoader.Token(sdk.ctx, vault.publicKey);
+    const { data } = await loader.info();
 
     assert.strictEqual(data.amount, 100000000n);
     assert.strictEqual(`${data.mint}`, `${mint.publicKey}`);
@@ -54,15 +52,16 @@ describe("HydraSDK", () => {
       await sdk.common.createMintAndVault(mint, vault, 100_000_000n);
 
       const token = await sdk.common.createTokenAccount(mint.publicKey, owner);
+      const account = AccountLoader.Token(sdk.ctx, token);
 
-      const account = getAccountLoader(sdk.ctx, token, TokenAccount.Parser);
+      // const account = getAccountLoader(sdk.ctx, token, TokenAccount.Parser);
       return { account, mint, token, owner, vault };
     }
 
     it("should emit a value on subscription", async () => {
       const { account, mint, owner } = await setup();
       const [val] = await new Promise<
-        AccountPubkey<TokenAccount.TokenAccount>[]
+        AccountLoader.AccountPubkey<TokenAccount>[]
       >((resolve) => {
         account.stream().pipe(take(1), toArray()).subscribe(resolve);
       });
@@ -76,7 +75,7 @@ describe("HydraSDK", () => {
       const { account, vault, token } = await setup();
 
       const [val1, val2] = await new Promise<
-        AccountPubkey<TokenAccount.TokenAccount>[]
+        AccountLoader.AccountPubkey<TokenAccount>[]
       >((resolve) => {
         account.stream().pipe(take(2), toArray()).subscribe(resolve);
 

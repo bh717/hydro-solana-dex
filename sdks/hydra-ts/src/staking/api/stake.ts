@@ -1,6 +1,5 @@
 import { Ctx } from "../../types";
 import * as accounts from "../accounts";
-import { tryGet } from "../../utils";
 import { SystemProgram } from "@solana/web3.js";
 import { web3 } from "@project-serum/anchor";
 import * as SPLToken from "@solana/spl-token";

@@ -3,6 +3,7 @@ use crate::events::*;
 use crate::state::pool_state::PoolState;
 use crate::utils::price::calculate_price;
 use anchor_lang::prelude::*;
+use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
 use anchor_spl::token::{Burn, Mint, Token, TokenAccount, Transfer};
 use hydra_math_rs::programs::staking::hydra_staking::calculate_pool_tokens_for_withdraw;
@@ -27,8 +28,10 @@ pub struct UnStake<'info> {
     pub redeemable_mint: Box<Account<'info, Mint>>,
 
     #[account(
-        mut,
-        constraint = user_to.mint == pool_state.token_mint,
+        init_if_needed,
+        payer = redeemable_from_authority,
+        associated_token::mint = token_mint,
+        associated_token::authority = redeemable_from_authority
     )]
     /// the token account to withdraw from
     pub user_to: Box<Account<'info, TokenAccount>>,
@@ -47,9 +50,13 @@ pub struct UnStake<'info> {
     pub redeemable_from: Box<Account<'info, TokenAccount>>,
 
     /// the authority allowed to transfer from token_from
+    #[account(mut)]
     pub redeemable_from_authority: Signer<'info>,
 
+    pub system_program: Program<'info, System>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program: Program<'info, Token>,
+    pub rent: Sysvar<'info, Rent>,
 }
 
 impl<'info> UnStake<'info> {

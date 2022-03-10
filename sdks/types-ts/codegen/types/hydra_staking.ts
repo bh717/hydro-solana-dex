@@ -87,7 +87,7 @@ export type HydraStaking = {
         },
         {
           "name": "userFromAuthority",
-          "isMut": false,
+          "isMut": true,
           "isSigner": true
         },
         {
@@ -163,11 +163,26 @@ export type HydraStaking = {
         },
         {
           "name": "redeemableFromAuthority",
-          "isMut": false,
+          "isMut": true,
           "isSigner": true
         },
         {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
           "isMut": false,
           "isSigner": false
         }
@@ -326,7 +341,7 @@ export const IDL: HydraStaking = {
         },
         {
           "name": "userFromAuthority",
-          "isMut": false,
+          "isMut": true,
           "isSigner": true
         },
         {
@@ -402,11 +417,26 @@ export const IDL: HydraStaking = {
         },
         {
           "name": "redeemableFromAuthority",
-          "isMut": false,
+          "isMut": true,
           "isSigner": true
         },
         {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
           "isMut": false,
           "isSigner": false
         }
