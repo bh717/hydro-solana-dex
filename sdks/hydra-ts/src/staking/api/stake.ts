@@ -1,31 +1,20 @@
 import { Ctx } from "../../types";
-import { TOKEN_PROGRAM_ID } from "@project-serum/serum/lib/token-instructions";
-import accounts from "../accounts";
-import { tryGet } from "../../utils";
+import * as accounts from "../accounts";
+import { SystemProgram } from "@solana/web3.js";
+import { web3 } from "@project-serum/anchor";
+import * as SPLToken from "@solana/spl-token";
+import { inject } from "../../utils/meta-utils";
 
 export function stake(ctx: Ctx) {
   return async (amount: BigInt) => {
-    const acc = accounts(ctx);
+    const acc = inject(accounts, ctx);
     const redeemableMint = await acc.redeemableMint.key();
     const tokenMint = await acc.tokenMint.key();
     const tokenVault = await acc.tokenVault.key();
     const poolState = await acc.poolState.key();
-    const userFrom = await tryGet(acc.userToken.key());
-    const redeemableTo = await tryGet(acc.userRedeemable.key());
+    const userFrom = await acc.userToken.key();
+    const redeemableTo = await acc.userRedeemable.key();
     const userFromAuthority = ctx.wallet.publicKey;
-    const tokenProgram = TOKEN_PROGRAM_ID;
-
-    if (!userFrom) {
-      throw new Error(
-        `Token owner account for tokenMint ${tokenMint} does not exist.`
-      );
-    }
-
-    if (!redeemableTo) {
-      throw new Error(
-        `Token owner account for redeemableMint ${redeemableMint} does not exist.`
-      );
-    }
 
     await ctx.programs.hydraStaking.rpc.stake(ctx.utils.fromBigInt(amount), {
       accounts: {
@@ -36,7 +25,10 @@ export function stake(ctx: Ctx) {
         userFromAuthority,
         tokenVault,
         redeemableTo,
-        tokenProgram,
+        systemProgram: SystemProgram.programId,
+        tokenProgram: SPLToken.TOKEN_PROGRAM_ID,
+        associatedTokenProgram: SPLToken.ASSOCIATED_TOKEN_PROGRAM_ID,
+        rent: web3.SYSVAR_RENT_PUBKEY,
       },
     });
   };

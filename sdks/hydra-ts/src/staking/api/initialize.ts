@@ -3,18 +3,18 @@ import { TOKEN_PROGRAM_ID } from "@project-serum/serum/lib/token-instructions";
 import NodeWallet from "@project-serum/anchor/dist/cjs/nodewallet";
 import { web3 } from "@project-serum/anchor";
 import { SystemProgram } from "@solana/web3.js";
-import accounts from "../accounts";
+import * as accounts from "../accounts";
+import { inject } from "../../utils/meta-utils";
 
 export function initialize(ctx: Ctx) {
   return async (tokenVaultBump: number, poolStateBump: number) => {
-    const acc = accounts(ctx);
+    const acc = inject(accounts, ctx);
     const redeemableMint = await acc.redeemableMint.key();
     const tokenMint = await acc.tokenMint.key();
     const tokenVault = await acc.tokenVault.key();
     const poolState = await acc.poolState.key();
 
     const program = ctx.programs.hydraStaking;
-
     await program.rpc.initialize(tokenVaultBump, poolStateBump, {
       accounts: {
         authority: program.provider.wallet.publicKey,

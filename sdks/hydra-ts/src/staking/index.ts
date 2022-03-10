@@ -1,8 +1,10 @@
 import { Ctx } from "../types";
-import { inject, withAccounts } from "../utils/meta-utils";
-import accounts from "./accounts";
-import * as api from "./api";
+import { inject } from "../utils/meta-utils";
+import * as accountLoaders from "./accounts";
+import * as stakingMethods from "./api";
 
 export default (ctx: Ctx) => {
-  return withAccounts(inject(api, ctx), accounts, ctx);
+  const methods = inject(stakingMethods, ctx);
+  const accounts = inject(accountLoaders, ctx);
+  return { ...methods, accounts };
 };

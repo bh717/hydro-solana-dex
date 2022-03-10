@@ -4,8 +4,6 @@ import config from "config-ts/global-config.json";
 import { HydraStaking, IDL } from "types-ts/codegen/types/hydra_staking";
 import { loadKey } from "hydra-ts/node"; // these should be moved out of test
 import { HydraSDK } from "hydra-ts";
-// import { createMintAndVault, createMint } from "hydra-ts";
-// import { createTokenAccount } from "@project-serum/common";
 import { Keypair } from "@solana/web3.js";
 
 export default async function (provider: anchor.Provider) {
@@ -49,12 +47,6 @@ export default async function (provider: anchor.Provider) {
   console.log("Creating mint...");
   await sdk.common.createMint(redeemableMint, tokenVaultPubkey, 9);
 
-  const receiveAcc = await sdk.common.createTokenAccount(
-    redeemableMint.publicKey,
-    program.provider.wallet.publicKey
-  );
-
-  console.log("receiveAcc:", receiveAcc.toString());
   const poolStatePubkey = await sdk.staking.accounts.poolState.key();
   const poolStateBump = await sdk.staking.accounts.poolState.bump();
 
