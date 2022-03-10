@@ -7,7 +7,6 @@
     "build:devnet": "anchor build -- --features \"devnet\"",
     "build:testnet": "anchor build -- --features \"testnet\"",
     "build:mainnet": "anchor build -- --features \"mainnet\"",
-    "deploy-to-create-idl": "concurrently -rks first \"anchor build && solana-test-validator\" \"wait-on tcp:8899 && anchor deploy\"",
     "build": "turbo run build",
     "test": "turbo run test --parallel",
     "watch": "turbo run watch --parallel",
