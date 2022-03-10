@@ -8,7 +8,4 @@ tree shaking and the @serum-project/common package imports(accidentally) node on
 export * from "./createMint";
 export * from "./createMintAndVault";
 export * from "./createTokenAccount";
-export * from "./getMint";
-export * from "./getTokenAccountInfo";
-export * from "./getTokenBalance";
 export * from "./transfer";
