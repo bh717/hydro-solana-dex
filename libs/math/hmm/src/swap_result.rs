@@ -18,7 +18,7 @@ pub struct SwapResult {
 
 impl SwapResult {
     pub fn init() -> SwapResult {
-        SwapResult{
+        SwapResult {
             k: PreciseNumber::new(0 as u128).unwrap(),
             x_new: PreciseNumber::new(0 as u128).unwrap(),
             y_new: PreciseNumber::new(0 as u128).unwrap(),

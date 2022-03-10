@@ -56,7 +56,7 @@ pub struct Swap<'info> {
     pub token_program: Program<'info, Token>,
 }
 
-impl<'info> Swap <'info> {
+impl<'info> Swap<'info> {
     pub fn transfer_tokens_to_user(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
         let cpi_accounts = Transfer {
             from: self.token_y_vault.to_account_info(),
@@ -100,7 +100,7 @@ impl<'info> Swap <'info> {
 
         // if both mint's arent valid return an error.
         if !(user_to_token_valid && user_from_token_valid) {
-            return Err(ErrorCode::InvalidMintAddress.into())
+            return Err(ErrorCode::InvalidMintAddress.into());
         }
 
         Ok(())
@@ -116,10 +116,10 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
         0,
     );
 
-    let mut result= SwapResult::init();
+    let mut result = SwapResult::init();
 
     let mut transfer_in_amount = 0;
-    let mut transfer_out_amount =0;
+    let mut transfer_out_amount = 0;
 
     // check mint addresses for the user tokens match the pool_state.
     ctx.accounts.check_mint_addresses()?;
@@ -128,21 +128,20 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
     if ctx.accounts.user_from_token.mint == ctx.accounts.pool_state.token_x_mint {
         // confirm the other side matches pool state of y
         if ctx.accounts.user_to_token.mint != ctx.accounts.pool_state.token_y_mint {
-            return Err(ErrorCode::InvalidMintAddress.into())
+            return Err(ErrorCode::InvalidMintAddress.into());
         }
 
         result = swap.swap_x_to_y_amm(amount_in as u128);
 
         transfer_in_amount = result.delta_x().unwrap();
         transfer_out_amount = result.delta_y().unwrap();
-
     }
 
     // detect swap direction y to x
     if ctx.accounts.user_from_token.mint == ctx.accounts.pool_state.token_y_mint {
         // confirm the other side matches the pool state of x
         if ctx.accounts.user_to_token.mint != ctx.accounts.pool_state.token_x_mint {
-            return Err(ErrorCode::InvalidMintAddress.into())
+            return Err(ErrorCode::InvalidMintAddress.into());
         }
 
         result = swap.swap_y_to_x_amm(amount_in as u128);
@@ -152,8 +151,6 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
     }
 
     // TODO: Pool fee
-
-
 
     // check slippage for amount_out
     if transfer_out_amount < minimum_amount_out {
@@ -168,7 +165,7 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
     // transfer base token into vault
     token::transfer(
         ctx.accounts.transfer_user_tokens_to_vault(),
-        transfer_in_amount
+        transfer_in_amount,
     )?;
 
     // signer
@@ -182,7 +179,7 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
     // transfer quote token to user
     token::transfer(
         ctx.accounts.transfer_tokens_to_user().with_signer(&signer),
-        transfer_out_amount
+        transfer_out_amount,
     )?;
 
     (&mut ctx.accounts.token_x_vault).reload()?;

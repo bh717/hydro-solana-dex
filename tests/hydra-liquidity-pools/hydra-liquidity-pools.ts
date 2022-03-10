@@ -1,6 +1,6 @@
 import * as anchor from "@project-serum/anchor";
 import { BN, Program } from "@project-serum/anchor";
-import * as localJsonIdl from "target/idl/hydra_liquidity_pools.json";
+import config from "config-ts/global-config.json";
 import {
   HydraLiquidityPools,
   IDL,
@@ -34,7 +34,7 @@ describe("hydra-liquidity-pool", () => {
   const sdk = HydraSDK.createFromAnchorProvider(provider, "localnet");
 
   const hydraLiquidityPoolsProgramId = new anchor.web3.PublicKey(
-    localJsonIdl["metadata"]["address"]
+    config.localnet.programIds.hydraLiquidityPools
   );
   const program = new anchor.Program(
     IDL,
