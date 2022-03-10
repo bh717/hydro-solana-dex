@@ -58,6 +58,12 @@ pub struct Swap<'info> {
 }
 
 impl<'info> Swap<'info> {
+    pub(crate) fn deducted_fee(&self, transfer_out_amount: u64) -> u64 {
+        transfer_out_amount
+    }
+}
+
+impl<'info> Swap<'info> {
     pub fn transfer_tokens_to_user(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
         let cpi_accounts = Transfer {
             from: self.token_y_vault.to_account_info(),
@@ -149,6 +155,7 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
     }
 
     // TODO: Add Swap fee
+    transfer_out_amount = ctx.accounts.deducted_fee(transfer_out_amount);
 
     // check slippage for amount_out
     if transfer_out_amount < minimum_amount_out {

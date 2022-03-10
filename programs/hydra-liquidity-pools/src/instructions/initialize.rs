@@ -1,5 +1,5 @@
 use crate::constants::*;
-use crate::state::pool_state::PoolState;
+use crate::state::pool_state::*;
 use crate::DEBUG_MODE;
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
@@ -75,6 +75,7 @@ pub fn handle(
     pool_state_bump: u8,
     lp_token_vault_bump: u8,
     compensation_parameter: u16,
+    fees: crate::state::pool_state::Fees,
 ) -> Result<()> {
     // save authority
     ctx.accounts.pool_state.authority = *ctx.accounts.authority.to_account_info().key;
@@ -98,6 +99,8 @@ pub fn handle(
 
     // TODO: Review this and add some error handling once @correkt-horse refactors the math crate
     ctx.accounts.pool_state.compensation_parameter = compensation_parameter;
+
+    ctx.accounts.pool_state.fees = fees;
 
     Ok(())
 }

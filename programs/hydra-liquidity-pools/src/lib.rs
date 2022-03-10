@@ -40,6 +40,7 @@ pub mod hydra_liquidity_pools {
         pool_state_bump: u8,
         lp_token_vault_bump: u8,
         compensation_parameter: u16,
+        fees: crate::state::pool_state::Fees,
     ) -> Result<()> {
         instructions::initialize::handle(
             ctx,
@@ -48,6 +49,7 @@ pub mod hydra_liquidity_pools {
             pool_state_bump,
             lp_token_vault_bump,
             compensation_parameter,
+            fees,
         )
     }
 

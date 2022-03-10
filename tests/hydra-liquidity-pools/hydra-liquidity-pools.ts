@@ -57,6 +57,8 @@ describe("hydra-liquidity-pool", () => {
   let lpTokenVaultBump: number;
   let poolStateAccount: any;
 
+  let poolFees;
+
   it("should create btcdMint (21 million)", async () => {
     [btcdMint, btcdAccount] = await createMintAndVault(
       provider,
@@ -128,12 +130,18 @@ describe("hydra-liquidity-pool", () => {
   });
 
   it("should initialize a liquidity-pool", async () => {
+    poolFees = {
+      trade_fee_numerator: 1,
+      trade_fee_denominator: 2,
+    };
+
     await program.rpc.initialize(
       baseTokenVaultBump,
       quoteTokenVaultBump,
       poolStateBump,
       lpTokenVaultBump,
       0, // TODO need to hand this code better after talking with the math kids about it more.
+      poolFees,
       {
         accounts: {
           authority: provider.wallet.publicKey,

@@ -16,6 +16,7 @@ pub struct PoolState {
     pub token_y_vault_bump: u8,
     pub lp_token_vault_bump: u8,
     pub compensation_parameter: u16, // Range from (0 - 200) / 100 = c. With only 025 increments
+    pub fees: Fees,
     #[derivative(Default(value = "false"))]
     pub debug: bool,
     pub reserved: PoolStateReserve,
@@ -44,4 +45,11 @@ impl Default for PoolStateReserve {
             0: [0u8; POOL_STATE_RESERVE_SIZE],
         }
     }
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Default, Clone)]
+pub struct Fees {
+    pub trade_fee_numerator: u64,
+    /// Trade fee denominator
+    pub trade_fee_denominator: u64,
 }
