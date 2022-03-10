@@ -1,11 +1,9 @@
-import { FC, useEffect, useState, useMemo } from "react";
+import { FC, useState, useMemo } from "react";
 import { makeStyles } from "@mui/styles";
 import { Box, Typography } from "@mui/material";
 import { useConnection, useAnchorWallet } from "@solana/wallet-adapter-react";
-import { HydraSDK, SPLAccountInfo } from "hydra-ts";
-import { Observable } from "rxjs";
+import { HydraSDK } from "hydra-ts";
 import { useObservable } from "react-use";
-import { PublicKey } from "@solana/web3.js";
 import { toast } from "react-toastify";
 
 import { Deposit } from "../../components/icons";
@@ -156,54 +154,6 @@ const useStyles = makeStyles({
   },
 });
 
-const useMyAccounts = (sdk: HydraSDK) => {
-  type MyAccounts = {
-    account1: SPLAccountInfo;
-    account2: SPLAccountInfo;
-  };
-
-  const [myAccounts, setMyAccounts] = useState<Array<PublicKey>>([]);
-
-  useEffect(() => {
-    sdk.common.getTokenAccounts().then(setMyAccounts);
-  }, [sdk]);
-
-  const accounts$ = useMemo(() => {
-    if (myAccounts.length === 0) return new Observable<void>((s) => s.next());
-
-    const [account1, account2] = myAccounts;
-
-    return sdk.common.getTokenAccountInfoStreams({
-      account1,
-      account2,
-    });
-  }, [myAccounts, sdk]);
-
-  return useObservable<void | MyAccounts>(accounts$);
-};
-
-const useContractAccounts = (sdk: HydraSDK) => {
-  type ContractAccounts = {
-    tokenVault: SPLAccountInfo;
-  };
-
-  const [tokenVaultKey, setTokenVaultKey] = useState<PublicKey>();
-
-  useEffect(() => {
-    sdk.staking.accounts.tokenVault.key().then(setTokenVaultKey);
-  }, [sdk]);
-
-  const contractAccounts$ = useMemo(() => {
-    if (!tokenVaultKey) return new Observable<void>((s) => s.next());
-
-    return sdk.common.getTokenAccountInfoStreams({
-      tokenVault: tokenVaultKey,
-    });
-  }, [tokenVaultKey, sdk]);
-
-  return useObservable<void | ContractAccounts>(contractAccounts$);
-};
-
 interface StakeProps {
   openWalletConnect(): void;
 }
@@ -221,8 +171,17 @@ const Stake: FC<StakeProps> = ({ openWalletConnect }) => {
     [connection, wallet]
   );
 
-  const myAccounts = useMyAccounts(sdk);
-  const contractAccounts = useContractAccounts(sdk);
+  const userFrom = useObservable(
+    useMemo(() => sdk.staking.accounts.userToken.stream(), [sdk])
+  );
+
+  const userRedeemable = useObservable(
+    useMemo(() => sdk.staking.accounts.userRedeemable.stream(), [sdk])
+  );
+
+  const tokenVault = useObservable(
+    useMemo(() => sdk.staking.accounts.tokenVault.stream(), [sdk])
+  );
 
   const stake = async (amount: string) => {
     setStaking(true);
@@ -274,19 +233,17 @@ const Stake: FC<StakeProps> = ({ openWalletConnect }) => {
       <Box className={classes.stakeContent}>
         <StakeUnstake
           walletConnect={openWalletConnect}
-          balance={myAccounts ? myAccounts.account2.amount.toString() : "0"}
-          xBalance={myAccounts ? myAccounts.account1.amount.toString() : "0"}
+          balance={
+            userRedeemable ? `${userRedeemable.account.data.amount}` : "0"
+          }
+          xBalance={userFrom ? `${userFrom.account.data.amount}` : "0"}
           onStake={stake}
           onUnstake={unstake}
           staking={staking}
           unstaking={unstaking}
         />
         <StakeStatus
-          balance={
-            contractAccounts
-              ? contractAccounts.tokenVault.amount.toString()
-              : "0"
-          }
+          balance={tokenVault ? `${tokenVault.account.data.amount}` : "0"}
         />
       </Box>
     </Box>

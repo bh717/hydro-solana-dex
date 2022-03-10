@@ -1,11 +1,11 @@
 import { Ctx } from "../../types";
 import { TOKEN_PROGRAM_ID } from "@project-serum/serum/lib/token-instructions";
-import accounts from "../accounts";
+import * as accounts from "../accounts";
 import { tryGet } from "../../utils";
-
+import { inject } from "../../utils/meta-utils";
 export function unstake(ctx: Ctx) {
   return async (amount: BigInt) => {
-    const acc = accounts(ctx);
+    const acc = inject(accounts, ctx);
 
     const redeemableMint = await acc.redeemableMint.key();
     const tokenMint = await acc.tokenMint.key();

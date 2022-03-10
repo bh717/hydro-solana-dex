@@ -33,6 +33,9 @@ const iter = accounts.poolState.iter(commitment); // async iterator
 const info1 = await iter.next();
 const info2 = await iter.next();
 
+// Stream of account info values
+const userToken$ = sdk.staking.accounts.userToken.stream();
+
 const unsub = accounts.poolState.onChange(callback, commitment); // callback (commitment is optional)
 
 await stakedPromise; // ensure staked has resolved

@@ -5,10 +5,4 @@ We could not use this wholesale as this library does not control it's
 tree shaking and the @serum-project/common package imports(accidentally) node only packages
 */
 
-export * from "./createMint";
-export * from "./createMintAndVault";
-export * from "./createTokenAccount";
-export * from "./getMint";
-export * from "./getTokenAccountInfo";
-export * from "./getTokenBalance";
-export * from "./transfer";
+export * from "./getTokenAccounts";
