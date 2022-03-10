@@ -404,42 +404,6 @@ describe("hydra-liquidity-pool", () => {
       (await getTokenBalance(provider, usddAccount)).toNumber(),
       usddMintAmount.iadd(new BN(681_534_099_132)).toNumber()
     );
-
-    // it("should remove-liquidity second time", async () => {
-    //   await program.rpc.removeLiquidity(new BN(1238326078), {
-    //     accounts: {
-    //       poolState: poolState,
-    //       user: provider.wallet.publicKey,
-    //       userRedeemableLpTokens: lpTokenAccount,
-    //       userBaseToken: btcdAccount,
-    //       userQuoteToken: usddAccount,
-    //       baseTokenVault,
-    //       quoteTokenVault,
-    //       lpTokenMint: lpTokenMint.publicKey,
-    //       tokenProgram: TOKEN_PROGRAM_ID,
-    //     },
-    //   });
-    //
-    //   assert.strictEqual(
-    //     (await getTokenBalance(provider, lpTokenAccount)).toNumber(),
-    //     0
-    //   );
-    //
-    //   assert.strictEqual(
-    //     (await getTokenBalance(provider, lpTokenVault)).toNumber(),
-    //     100
-    //   );
-    //
-    //   assert.strictEqual(
-    //     (await getTokenBalance(provider, btcdAccount)).toNumber(),
-    //     btcdMintAmount.iadd(new BN(6_000_000)).toNumber()
-    //   );
-    //
-    //   assert.strictEqual(
-    //     (await getTokenBalance(provider, usddAccount)).toNumber(),
-    //     usddMintAmount.iadd(new BN(255_575_287_200)).toNumber()
-    //   );
-    // });
   });
 
   it("should fail token swap due to slippage error", async () => {
@@ -533,4 +497,40 @@ describe("hydra-liquidity-pool", () => {
   //     99_780_935_468_114
   //   );
   // });
+
+  it("should remove-liquidity for the last time", async () => {
+    await program.rpc.removeLiquidity(new BN(1238326078), {
+      accounts: {
+        poolState: poolState,
+        user: provider.wallet.publicKey,
+        userRedeemableLpTokens: lpTokenAccount,
+        userTokenX: btcdAccount,
+        userTokenY: usddAccount,
+        tokenXVault: baseTokenVault,
+        tokenYVault: quoteTokenVault,
+        lpTokenMint: lpTokenMint.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      },
+    });
+
+    assert.strictEqual(
+      (await getTokenBalance(provider, lpTokenAccount)).toNumber(),
+      0
+    );
+
+    assert.strictEqual(
+      (await getTokenBalance(provider, lpTokenVault)).toNumber(),
+      100
+    );
+
+    assert.strictEqual(
+      (await getTokenBalance(provider, btcdAccount)).toNumber(),
+      21_000_000_000_000
+    );
+
+    assert.strictEqual(
+      (await getTokenBalance(provider, usddAccount)).toNumber(),
+      100_000_000_000_000 - 17690
+    );
+  });
 });
