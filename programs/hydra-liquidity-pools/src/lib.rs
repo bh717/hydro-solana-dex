@@ -7,6 +7,7 @@ mod utils;
 use instructions::add_liquidity::*;
 use instructions::initialize::*;
 use instructions::remove_liquidity::*;
+use instructions::swap::check_mint_addresses;
 use instructions::swap::*;
 
 use anchor_lang::prelude::*;
@@ -71,6 +72,7 @@ pub mod hydra_liquidity_pools {
         instructions::remove_liquidity::handle(ctx, lp_tokens_to_burn)
     }
 
+    #[access_control(check_mint_addresses(&ctx))]
     pub fn swap(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Result<()> {
         instructions::swap::handle(ctx, amount_in, minimum_amount_out)
     }

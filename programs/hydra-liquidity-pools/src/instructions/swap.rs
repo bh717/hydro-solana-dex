@@ -77,35 +77,35 @@ impl<'info> Swap<'info> {
         let cpi_program = self.token_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
     }
+}
 
-    // security check mint addresses are both correct as per the pool state object.
-    pub fn check_mint_addresses(&self) -> Result<()> {
-        let mut user_to_token_valid = false;
-        let mut user_from_token_valid = false;
+// security check mint addresses are both correct as per the pool state object.
+pub fn check_mint_addresses(ctx: &Context<Swap>) -> Result<()> {
+    let mut user_to_token_valid = false;
+    let mut user_from_token_valid = false;
 
-        if self.user_to_token.mint == self.pool_state.token_x_mint {
-            user_to_token_valid = true;
-        }
-
-        if self.user_to_token.mint == self.pool_state.token_y_mint {
-            user_to_token_valid = true;
-        }
-
-        if self.user_from_token.mint == self.pool_state.token_x_mint {
-            user_from_token_valid = true;
-        }
-
-        if self.user_from_token.mint == self.pool_state.token_y_mint {
-            user_from_token_valid = true;
-        }
-
-        // if both mint's arent valid return an error.
-        if !(user_to_token_valid && user_from_token_valid) {
-            return Err(ErrorCode::InvalidMintAddress.into());
-        }
-
-        Ok(())
+    if ctx.accounts.user_to_token.mint == ctx.accounts.pool_state.token_x_mint {
+        user_to_token_valid = true;
     }
+
+    if ctx.accounts.user_to_token.mint == ctx.accounts.pool_state.token_y_mint {
+        user_to_token_valid = true;
+    }
+
+    if ctx.accounts.user_from_token.mint == ctx.accounts.pool_state.token_x_mint {
+        user_from_token_valid = true;
+    }
+
+    if ctx.accounts.user_from_token.mint == ctx.accounts.pool_state.token_y_mint {
+        user_from_token_valid = true;
+    }
+
+    // if both mint's arent valid return an error.
+    if !(user_to_token_valid && user_from_token_valid) {
+        return Err(ErrorCode::InvalidMintAddress.into());
+    }
+
+    Ok(())
 }
 
 pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Result<()> {
@@ -121,9 +121,6 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
 
     let mut transfer_in_amount = 0;
     let mut transfer_out_amount = 0;
-
-    // check mint addresses for the user tokens match the pool_state.
-    ctx.accounts.check_mint_addresses()?;
 
     // detect swap direction. x to y
     if ctx.accounts.user_from_token.mint == ctx.accounts.pool_state.token_x_mint {
