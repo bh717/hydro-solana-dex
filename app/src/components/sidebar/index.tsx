@@ -39,6 +39,7 @@ import ListItem from "./listItem";
 import { WalletButton } from "../wallet";
 import SelectRPCModal from "./modals/selectRPC";
 import { RPC } from "../../interfaces";
+import Config from "../../config";
 
 const useStyles = makeStyles({
   drawer: {
@@ -303,24 +304,28 @@ const SidebarItems = [
     icon: <Trading />,
     activeIcon: <ActiveTrading />,
     link: "#",
+    isActive: Config.trading_enabled,
   },
   {
     name: "Swap",
     icon: <Swap />,
     activeIcon: <ActiveSwap />,
     link: "/swap",
+    isActive: Config.swap_enabled,
   },
   {
     name: "Pools",
     icon: <Pools />,
     activeIcon: <ActivePools />,
     link: "/pools",
+    isActive: Config.pools_enabled,
   },
   {
     name: "Stake",
     icon: <Stake />,
     activeIcon: <ActiveStake />,
     link: "/stake",
+    isActive: Config.stake_enabled,
   },
 ];
 
@@ -403,15 +408,20 @@ const Sidebar: FC<SidebarProps> = ({
             </ListSubheader>
           }
         >
-          {SidebarItems.map((item, index) => (
-            <ListItem
-              icon={item.icon}
-              activeIcon={item.activeIcon}
-              name={item.name}
-              link={item.link}
-              key={index}
-            />
-          ))}
+          {SidebarItems.map((item, index) => {
+            if (item.isActive)
+              return (
+                <ListItem
+                  icon={item.icon}
+                  activeIcon={item.activeIcon}
+                  name={item.name}
+                  link={item.link}
+                  key={index}
+                />
+              );
+
+            return <></>;
+          })}
           {mobile && (
             <Box className={classes.bottomLinks}>
               <ListItem
