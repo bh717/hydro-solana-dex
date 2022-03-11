@@ -9,7 +9,7 @@ on:
     branches:
       - "*"
 jobs:
-  build-cli-deps:
+  build-anchor-deps:
     runs-on: ubuntu-latest
     steps:
       - id: cache-cli-deps
@@ -64,7 +64,7 @@ jobs:
         name: install-yarn
         run: npm install -g yarn
 
-  build:
+  build-anchor-stack:
     runs-on: ubuntu-latest
     needs: [build-cli-deps]
     steps:
