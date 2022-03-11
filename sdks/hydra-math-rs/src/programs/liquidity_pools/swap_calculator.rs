@@ -31,8 +31,8 @@ impl SwapCalculator {
     }
 
     /// Compute swap result from x to y using a constant product curve given delta x
-    pub fn swap_x_to_y_amm(&self, delta_x: u64) -> SwapResult {
-        let delta_x = Decimal::from_u64(delta_x);
+    pub fn swap_x_to_y_amm(&self, delta_x: u128) -> SwapResult {
+        let delta_x = Decimal::from_u128(delta_x);
 
         // k = x0 * y0
         let k = self.compute_k();
@@ -371,48 +371,37 @@ mod tests {
         let expected = Decimal::new(value, 0, negative);
         assert_eq!(result, expected, "check_delta_y_amm");
     }
-    //
-    // fn check_swap_x_to_y_amm(model: &Model, x0: u64, y0: u64, delta_x: u64) {
-    //     let swap = SwapCalculator {
-    //         x0: Decimal::from_u64(x0),
-    //         y0: Decimal::from_u64(y0),
-    //         c: Decimal::from_u64(0),
-    //         i: Decimal::from_u64(0),
-    //     };
-    //
-    //     let swap_x_to_y_amm = swap.swap_x_to_y_amm(delta_x);
-    //     let expected = model.sim_swap_x_to_y_amm(delta_x);
-    //     assert_eq!(
-    //         swap_x_to_y_amm.x_new.to_imprecise().unwrap(),
-    //         expected.0,
-    //         "x_new"
-    //     );
-    //     assert_eq!(
-    //         swap_x_to_y_amm.delta_x.to_imprecise().unwrap(),
-    //         expected.1,
-    //         "delta_x"
-    //     );
-    //     assert_eq!(
-    //         swap_x_to_y_amm
-    //             .y_new
-    //             .floor()
-    //             .unwrap()
-    //             .to_imprecise()
-    //             .unwrap(),
-    //         expected.2,
-    //         "y_new"
-    //     );
-    //     assert_eq!(
-    //         swap_x_to_y_amm
-    //             .delta_y
-    //             .floor()
-    //             .unwrap()
-    //             .to_imprecise()
-    //             .unwrap(),
-    //         expected.3,
-    //         "delta_y"
-    //     );
-    // }
+
+    fn check_swap_x_to_y_amm(model: &Model, x0: u128, y0: u128, delta_x: u128) {
+        let swap = SwapCalculator {
+            x0: Decimal::from_u128(x0),
+            y0: Decimal::from_u128(y0),
+            c: Decimal::from_u128(0),
+            i: Decimal::from_u128(0),
+        };
+
+        let swap_x_to_y_amm = swap.swap_x_to_y_amm(delta_x);
+        let expected = model.sim_swap_x_to_y_amm(delta_x);
+        assert_eq!(swap_x_to_y_amm.x_new.value, expected.0, "x_new");
+        assert_eq!(swap_x_to_y_amm.delta_x.value, expected.1, "delta_x");
+        assert!(
+            swap_x_to_y_amm
+                .y_new
+                .value
+                .saturating_sub(expected.2)
+                .lt(&2u128),
+            "y_new"
+        );
+        assert!(
+            swap_x_to_y_amm
+                .delta_y
+                .value
+                .saturating_sub(expected.3)
+                .lt(&2u128),
+            "delta_y"
+        );
+    }
+
     //
     // fn check_delta_y_hmm(
     //     model: &Model,
@@ -498,7 +487,7 @@ mod tests {
                 check_k(&model, x0, y0);
                 check_xi(&model, x0, y0, i);
                 check_delta_y_amm(&model, x0, y0, delta_x);
-                // check_swap_x_to_y_amm(&model, x0, y0, delta_x);
+                check_swap_x_to_y_amm(&model, x0, y0, delta_x);
             }
         }
     }
