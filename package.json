@@ -27,6 +27,7 @@
     "wait-on": "^6.0.1"
   },
   "devDependencies": {
+    "ipfs-deploy": "^11.2.0",
     "@types/expand-tilde": "^2.0.0",
     "@types/mocha": "^9.0.0",
     "arg": "^5.0.1",

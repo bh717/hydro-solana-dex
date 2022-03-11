@@ -73,7 +73,7 @@ anchor-ci:
 	yarn test
 	anchor test
 
-react-ci-cd:
+react-ci:
 	solana-keygen new --no-bip39-passphrase || true
 	cargo check
 	cargo test
@@ -82,7 +82,6 @@ react-ci-cd:
 	yarn lint
 	yarn turbo run build --concurrency=1
 	cd app; yarn serve-e2e
-	cd app; ipd -C build/
 
 # start the local development stack
 start:
