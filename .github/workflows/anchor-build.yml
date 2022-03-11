@@ -114,7 +114,7 @@ jobs:
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
           channel: gitops
-          status: ANCHOR-SUCCESS
+          status: ANCHOR-CI-SUCCESS
           color: good
 
       - name: Notify slack failure
@@ -124,5 +124,5 @@ jobs:
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
           channel: gitops
-          status: ANCHOR-FAILED
+          status: ANCHOR-CI-FAILED
           color: danger
