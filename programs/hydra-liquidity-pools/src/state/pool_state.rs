@@ -1,9 +1,10 @@
+use crate::utils::fees::Fees;
 use anchor_lang::prelude::*;
 use derivative::Derivative;
 use std::io::Write;
 
 #[account]
-#[derive(Default, Derivative)]
+#[derive(Default, Derivative, Debug)]
 pub struct PoolState {
     pub authority: Pubkey,
     pub token_x_vault: Pubkey,
@@ -45,11 +46,4 @@ impl Default for PoolStateReserve {
             0: [0u8; POOL_STATE_RESERVE_SIZE],
         }
     }
-}
-
-#[derive(AnchorSerialize, AnchorDeserialize, Default, Clone)]
-pub struct Fees {
-    pub trade_fee_numerator: u64,
-    /// Trade fee denominator
-    pub trade_fee_denominator: u64,
 }

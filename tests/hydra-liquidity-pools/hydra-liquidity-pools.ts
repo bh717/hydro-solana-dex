@@ -131,8 +131,9 @@ describe("hydra-liquidity-pool", () => {
 
   it("should initialize a liquidity-pool", async () => {
     poolFees = {
-      trade_fee_numerator: 1,
-      trade_fee_denominator: 2,
+      // TODO: How do I use the IDL types??
+      trade_Fee_Numerator: 1,
+      trade_Fee_Denominator: 2,
     };
 
     await program.rpc.initialize(

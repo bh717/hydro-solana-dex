@@ -115,6 +115,8 @@ pub fn check_mint_addresses(ctx: &Context<Swap>) -> Result<()> {
 }
 
 pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Result<()> {
+    msg!("fee: {:#?}", ctx.accounts.pool_state.fees);
+    panic!("boom!");
     // Setup SwapCalculate.
     let swap = SwapCalculator::new(
         ctx.accounts.token_x_vault.amount as u128,

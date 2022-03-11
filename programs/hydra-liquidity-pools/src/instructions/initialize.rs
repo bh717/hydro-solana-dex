@@ -1,5 +1,6 @@
 use crate::constants::*;
 use crate::state::pool_state::*;
+use crate::utils::fees::Fees;
 use crate::DEBUG_MODE;
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
@@ -75,15 +76,15 @@ pub fn handle(
     pool_state_bump: u8,
     lp_token_vault_bump: u8,
     compensation_parameter: u16,
-    fees: crate::state::pool_state::Fees,
+    fees: Fees,
 ) -> Result<()> {
     // save authority
-    ctx.accounts.pool_state.authority = *ctx.accounts.authority.to_account_info().key;
+    ctx.accounts.pool_state.authority = ctx.accounts.authority.to_account_info().key();
 
     // save token_a_mint, token_b_mint and lp_token_mint
-    ctx.accounts.pool_state.token_x_mint = *ctx.accounts.token_x_mint.to_account_info().key;
-    ctx.accounts.pool_state.token_y_mint = *ctx.accounts.token_y_mint.to_account_info().key;
-    ctx.accounts.pool_state.lp_token_mint = *ctx.accounts.lp_token_mint.to_account_info().key;
+    ctx.accounts.pool_state.token_x_mint = ctx.accounts.token_x_mint.to_account_info().key();
+    ctx.accounts.pool_state.token_y_mint = ctx.accounts.token_y_mint.to_account_info().key();
+    ctx.accounts.pool_state.lp_token_mint = ctx.accounts.lp_token_mint.to_account_info().key();
 
     // save token_a_vault and token_b_vault Pubkeys
     ctx.accounts.pool_state.token_x_vault = ctx.accounts.token_x_vault.to_account_info().key();
@@ -100,7 +101,14 @@ pub fn handle(
     // TODO: Review this and add some error handling once @correkt-horse refactors the math crate
     ctx.accounts.pool_state.compensation_parameter = compensation_parameter;
 
-    ctx.accounts.pool_state.fees = fees;
+    // ctx.accounts.pool_state.fees = *fees;
+
+    // let pool_state = &mut ctx.accounts.pool_state;
+    // pool_state.fees = fees;
+
+    msg!("fee: {:?}", fees);
+
+    panic!("boom");
 
     Ok(())
 }

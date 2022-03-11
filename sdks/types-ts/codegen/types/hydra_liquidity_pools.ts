@@ -86,6 +86,12 @@ export type HydraLiquidityPools = {
         {
           name: "compensationParameter";
           type: "u16";
+        },
+        {
+          name: "fees";
+          type: {
+            defined: "Fees";
+          };
         }
       ];
     },
@@ -526,6 +532,12 @@ export const IDL: HydraLiquidityPools = {
         {
           name: "compensationParameter",
           type: "u16",
+        },
+        {
+          name: "fees",
+          type: {
+            defined: "Fees",
+          },
         },
       ],
     },
