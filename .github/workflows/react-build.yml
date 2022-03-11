@@ -119,24 +119,50 @@ jobs:
         name: install-ipfs-deploy
         run: npm install -g ipfs-deploy
 
-      - run: make react-ci-cd
+      - run: make react-ci
+        name: react-ci
 
-      - name: Notify slask success
+      - name: react-ci Notify slask success
         if: success()
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
           channel: gitops
-          status: REACT-SUCCESS
+          status: REACT-CI-SUCCESS
           color: good
 
-      - name: Notify slack failure
+      - name: react-ci - Notify slack failure
         if: failure()
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
           channel: gitops
-          status: REACT-FAILED
+          status: REACT-CI-FAILED
+          color: danger
+
+      - id: ipfs-deploy
+        uses: aquiladev/ipfs-action@v1
+        with:
+          path: ./app/build
+
+      - name: react-cd - Notify slask success
+        if: success()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: gitops
+          status: REACT-CD-SUCCESS
+          color: good
+
+      - name: react-cd - Notify slack failure
+        if: failure()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: gitops
+          status: REACT-CI-FAILED
           color: danger
