@@ -57,6 +57,8 @@ describe("hydra-liquidity-pool", () => {
   let lpTokenVaultBump: number;
   let poolStateAccount: any;
 
+  let poolFees;
+
   it("should create btcdMint (21 million)", async () => {
     [btcdMint, btcdAccount] = await createMintAndVault(
       provider,
@@ -128,12 +130,18 @@ describe("hydra-liquidity-pool", () => {
   });
 
   it("should initialize a liquidity-pool", async () => {
+    poolFees = {
+      tradeFeeNumerator: new BN(1),
+      tradeFeeDenominator: new BN(500),
+    };
+
     await program.rpc.initialize(
       baseTokenVaultBump,
       quoteTokenVaultBump,
       poolStateBump,
       lpTokenVaultBump,
       0, // TODO need to hand this code better after talking with the math kids about it more.
+      poolFees,
       {
         accounts: {
           authority: provider.wallet.publicKey,
@@ -426,7 +434,7 @@ describe("hydra-liquidity-pool", () => {
   });
 
   it("should swap (cpmm) btc to usd (x to y)", async () => {
-    await program.rpc.swap(new BN(1_000_000), new BN(36_510_755_314), {
+    await program.rpc.swap(new BN(1_000_000), new BN(36_437_733_804), {
       accounts: {
         user: provider.wallet.publicKey,
         poolState: poolState,
@@ -446,7 +454,7 @@ describe("hydra-liquidity-pool", () => {
 
     assert.strictEqual(
       (await getTokenBalance(provider, quoteTokenVault)).toNumber(),
-      255_575_287_200 - 36_510_755_314
+      255_575_287_200 - 36_437_733_804
     );
 
     assert.strictEqual(
@@ -456,7 +464,7 @@ describe("hydra-liquidity-pool", () => {
 
     assert.strictEqual(
       (await getTokenBalance(provider, usddAccount)).toNumber(),
-      99_780_935_468_114
+      99_780_862_446_604
     );
   });
 
@@ -528,7 +536,7 @@ describe("hydra-liquidity-pool", () => {
 
     assert.strictEqual(
       (await getTokenBalance(provider, usddAccount)).toNumber(),
-      100_000_000_000_000 - 17690
+      100_000_000_000_000 - 17696 // Always left in the pool.
     );
   });
 });

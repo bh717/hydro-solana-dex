@@ -9,6 +9,7 @@ use instructions::initialize::*;
 use instructions::remove_liquidity::*;
 use instructions::swap::check_mint_addresses;
 use instructions::swap::*;
+use utils::fees::Fees;
 
 use anchor_lang::prelude::*;
 // use anchor_lang::solana_program::log::sol_log_compute_units;
@@ -40,6 +41,7 @@ pub mod hydra_liquidity_pools {
         pool_state_bump: u8,
         lp_token_vault_bump: u8,
         compensation_parameter: u16,
+        fees: Fees,
     ) -> Result<()> {
         instructions::initialize::handle(
             ctx,
@@ -48,6 +50,7 @@ pub mod hydra_liquidity_pools {
             pool_state_bump,
             lp_token_vault_bump,
             compensation_parameter,
+            fees,
         )
     }
 

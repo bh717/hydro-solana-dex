@@ -1,9 +1,10 @@
+use crate::utils::fees::Fees;
 use anchor_lang::prelude::*;
 use derivative::Derivative;
 use std::io::Write;
 
 #[account]
-#[derive(Default, Derivative)]
+#[derive(Default, Derivative, Debug)]
 pub struct PoolState {
     pub authority: Pubkey,
     pub token_x_vault: Pubkey,
@@ -16,6 +17,7 @@ pub struct PoolState {
     pub token_y_vault_bump: u8,
     pub lp_token_vault_bump: u8,
     pub compensation_parameter: u16, // Range from (0 - 200) / 100 = c. With only 025 increments
+    pub fees: Fees,
     #[derivative(Default(value = "false"))]
     pub debug: bool,
     pub reserved: PoolStateReserve,
