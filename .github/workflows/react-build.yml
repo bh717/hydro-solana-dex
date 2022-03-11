@@ -143,9 +143,12 @@ jobs:
           color: danger
 
       - id: ipfs-deploy
+        name: ipfs-deploy
         uses: aquiladev/ipfs-action@v0.2.0
         with:
           path: ./app/build
+
+      - run: echo ${{steps.ipfs-deploy.outputs.cid}}
 
       - name: react-cd - Notify slask success
         if: success()
@@ -154,7 +157,7 @@ jobs:
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
           channel: gitops
-          status: REACT-CD-SUCCESS https://ipfs.infura.io/ipfs/${{steps.ipfs-deploy.cid}}
+          status: REACT-CD-SUCCESS https://ipfs.infura.io/ipfs/${{steps.ipfs-deploy.outputs.cid}}
           color: good
 
       - name: react-cd - Notify slack failure
