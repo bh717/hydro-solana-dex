@@ -8,9 +8,8 @@ pub struct Fees {
 }
 
 impl Fees {
-    pub fn validate(&self) -> Result<self> {
-        validate_fraction(self.trade_fee_numerator, self.trade_fee_denominator)?;
-        Ok(self)
+    pub fn validate(&self) -> Result<()> {
+        validate_fraction(self.trade_fee_numerator, self.trade_fee_denominator)
     }
 }
 
