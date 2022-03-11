@@ -154,7 +154,7 @@ jobs:
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
           channel: gitops
-          status: REACT-CD-SUCCESS ${{ steps.ipfs-deploy}}
+          status: REACT-CD-SUCCESS https://ipfs.infura.io/ipfs/${{steps.ipfs-deploy.cid}}
           color: good
 
       - name: react-cd - Notify slack failure
@@ -164,5 +164,5 @@ jobs:
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
           channel: gitops
-          status: REACT-CI-FAILED
+          status: REACT-CD-FAILED
           color: danger
