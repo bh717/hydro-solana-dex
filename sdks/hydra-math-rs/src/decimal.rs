@@ -660,9 +660,8 @@ impl Sqrt<Decimal> for Decimal {
     fn sqrt(self) -> Result<Self, ErrorCode> {
         let zero = Decimal::new(0, self.scale, false);
         let one = Decimal::from_u128(1).to_scale(self.scale);
-        let max = Decimal::from_u128(std::u128::MAX).to_scale(self.scale);
 
-        if self.lt(zero).unwrap() || self.gt(max).unwrap() {
+        if self.value.lt(&0u128) || self.value.gt(&u128::MAX) {
             return Err(ErrorCode::ExceedsRange.into());
         }
 
