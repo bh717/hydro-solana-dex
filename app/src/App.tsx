@@ -24,6 +24,7 @@ import Swap from "./pages/swap";
 import Pools from "./pages/pools";
 import Stake from "./pages/stake";
 import { RPC } from "./interfaces";
+import Config from "./config";
 
 const useStyles = makeStyles({
   walletWrapper: {
@@ -146,19 +147,29 @@ function App() {
             </Box>
             <Box className={classes.contentWrapper}>
               <Routes>
-                <Route
-                  path="/swap"
-                  element={
-                    <Swap openWalletConnect={() => setOpenWalletModal(true)} />
-                  }
-                />
-                <Route path="/pools" element={<Pools />} />
-                <Route
-                  path="/stake"
-                  element={
-                    <Stake openWalletConnect={() => setOpenWalletModal(true)} />
-                  }
-                />
+                {Config.swap_enabled && (
+                  <Route
+                    path="/swap"
+                    element={
+                      <Swap
+                        openWalletConnect={() => setOpenWalletModal(true)}
+                      />
+                    }
+                  />
+                )}
+                {Config.pools_enabled && (
+                  <Route path="/pools" element={<Pools />} />
+                )}
+                {Config.stake_enabled && (
+                  <Route
+                    path="/stake"
+                    element={
+                      <Stake
+                        openWalletConnect={() => setOpenWalletModal(true)}
+                      />
+                    }
+                  />
+                )}
                 <Route path="*" element={<Navigate replace to="/swap" />} />
               </Routes>
             </Box>
