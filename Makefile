@@ -52,7 +52,6 @@ migrate:
 	yarn ts-node scripts/migrate.ts
 
 watch-anchor-test:
-	#yarn && yarn build
 	cargo watch -c -- anchor test -- --features "localnet"
 
 watch-test:
