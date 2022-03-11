@@ -131,9 +131,8 @@ describe("hydra-liquidity-pool", () => {
 
   it("should initialize a liquidity-pool", async () => {
     poolFees = {
-      // TODO: How do I use the IDL types??
-      trade_Fee_Numerator: 1,
-      trade_Fee_Denominator: 2,
+      tradeFeeNumerator: new BN(1),
+      tradeFeeDenominator: new BN(500),
     };
 
     await program.rpc.initialize(
@@ -435,7 +434,7 @@ describe("hydra-liquidity-pool", () => {
   });
 
   it("should swap (cpmm) btc to usd (x to y)", async () => {
-    await program.rpc.swap(new BN(1_000_000), new BN(36_510_755_314), {
+    await program.rpc.swap(new BN(1_000_000), new BN(36_437_733_804), {
       accounts: {
         user: provider.wallet.publicKey,
         poolState: poolState,
@@ -455,7 +454,7 @@ describe("hydra-liquidity-pool", () => {
 
     assert.strictEqual(
       (await getTokenBalance(provider, quoteTokenVault)).toNumber(),
-      255_575_287_200 - 36_510_755_314
+      255_575_287_200 - 36_437_733_804
     );
 
     assert.strictEqual(
@@ -465,7 +464,7 @@ describe("hydra-liquidity-pool", () => {
 
     assert.strictEqual(
       (await getTokenBalance(provider, usddAccount)).toNumber(),
-      99_780_935_468_114
+      99_780_862_446_604
     );
   });
 
@@ -537,7 +536,7 @@ describe("hydra-liquidity-pool", () => {
 
     assert.strictEqual(
       (await getTokenBalance(provider, usddAccount)).toNumber(),
-      100_000_000_000_000 - 17690
+      100_000_000_000_000 - 17696 // Always left in the pool.
     );
   });
 });
