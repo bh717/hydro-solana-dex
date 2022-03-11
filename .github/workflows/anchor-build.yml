@@ -9,7 +9,7 @@ on:
     branches:
       - "*"
 jobs:
-  build-cli-deps:
+  build-anchor-deps:
     runs-on: ubuntu-latest
     steps:
       - id: cache-cli-deps
@@ -64,9 +64,9 @@ jobs:
         name: install-yarn
         run: npm install -g yarn
 
-  build:
+  build-anchor-stack:
     runs-on: ubuntu-latest
-    needs: [build-cli-deps]
+    needs: [build-anchor-deps]
     steps:
       - id: cache-cli-deps
         name: cache-cli-deps
@@ -114,7 +114,7 @@ jobs:
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
           channel: gitops
-          status: ANCHOR-SUCCESS
+          status: ANCHOR-CI-SUCCESS
           color: good
 
       - name: Notify slack failure
@@ -124,5 +124,5 @@ jobs:
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
           channel: gitops
-          status: ANCHOR-FAILED
+          status: ANCHOR-CI-FAILED
           color: danger
