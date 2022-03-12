@@ -482,8 +482,29 @@ mod tests {
             let delta_x = Decimal::from_u128(3).to_scale(12);
             let result = swap.compute_delta_y_hmm(&delta_x).to_scale(8);
             // python: -9.207_401_794_786
-            // accurate to about 8 decimal places
             let expected = Decimal::new(9_207_401_79, 8, false);
+
+            assert!(
+                result.eq(expected).unwrap(),
+                "compute_delta_y_hmm {}, {}",
+                result.value,
+                expected.value
+            );
+            assert_eq!(result.negative, true);
+        }
+
+        // compute_delta_y_hmm when c == 0
+        {
+            let swap = SwapCalculator {
+                x0: Decimal::from_u128(32).to_scale(12),
+                y0: Decimal::from_u128(33).to_scale(12),
+                c: Decimal::from_u128(0).to_scale(12),
+                i: Decimal::from_u128(1).to_scale(12),
+            };
+            let delta_x = Decimal::from_u128(1).to_scale(12);
+            let result = swap.compute_delta_y_hmm(&delta_x).to_scale(8);
+            // python: -1.000_000_000_000
+            let expected = Decimal::new(1_000_000_00, 8, false);
 
             assert!(
                 result.eq(expected).unwrap(),
@@ -505,7 +526,6 @@ mod tests {
             let delta_y = Decimal::from_u128(4).to_scale(12);
             let result = swap.compute_delta_x_hmm(&delta_y).to_scale(8);
             // python: -4.385_786_802_030
-            // accurate to about 8 decimal places
             let expected = Decimal::new(4_385_786_80, 8, false);
 
             assert!(
@@ -517,47 +537,6 @@ mod tests {
             assert_eq!(result.negative, true);
         }
 
-        //     // compute_delta_x_hmm when c == 0
-        //     let swap = SwapCalculator {
-        //         x0: PreciseNumber::new(216u128).unwrap(),
-        //         y0: PreciseNumber::new(193u128).unwrap(),
-        //         c: PreciseNumber::new(0u128).unwrap(),
-        //         i: PreciseNumber::new(1u128).unwrap(),
-        //     };
-        //     let delta_y = PreciseNumber::new(4).unwrap();
-        //     let (result, result_signed) = swap.compute_delta_x_hmm(&delta_y);
-        //
-        //     let expected = PreciseNumber {
-        //         value: InnerUint::from(4_385_786_802_030u128),
-        //     };
-        //     assert!(
-        //         result.almost_eq(&expected, desired_precision(&swap.c)),
-        //         "compute_delta_x_hmm {}, {}",
-        //         result.value,
-        //         &expected.value
-        //     );
-        //     assert_eq!(result_signed, true);
-        //
-        //     // compute_delta_y_hmm when c == 1
-        //     let swap = SwapCalculator {
-        //         x0: PreciseNumber::new(32u128).unwrap(),
-        //         y0: PreciseNumber::new(33u128).unwrap(),
-        //         c: PreciseNumber::new(0u128).unwrap(),
-        //         i: PreciseNumber::new(1u128).unwrap(),
-        //     };
-        //     let delta_x = PreciseNumber::new(1).unwrap();
-        //     let (result, result_signed) = swap.compute_delta_y_hmm(&delta_x);
-        //
-        //     let expected = PreciseNumber {
-        //         value: InnerUint::from(1_000_000_000_000u128),
-        //     };
-        //     assert!(
-        //         result.almost_eq(&expected, desired_precision(&swap.c)),
-        //         "compute_delta_y_hmm {}, {}",
-        //         result.value,
-        //         &expected.value
-        //     );
-        //     assert_eq!(result_signed, true);
         //
         //     // compute_delta_x_hmm when c == 0
         //     let swap = SwapCalculator {
