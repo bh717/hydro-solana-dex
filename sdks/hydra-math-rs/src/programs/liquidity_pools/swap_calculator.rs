@@ -364,34 +364,30 @@ mod tests {
         );
     }
 
-    //
-    // fn check_delta_y_hmm(
-    //     model: &Model,
-    //     x0: u128,
-    //     y0: u128,
-    //     c: PreciseNumber,
-    //     i: u128,
-    //     delta_x: u128,
-    // ) {
-    //     let swap = SwapCalculator {
-    //         x0: PreciseNumber::new(x0).unwrap(),
-    //         y0: PreciseNumber::new(y0).unwrap(),
-    //         c,
-    //         i: PreciseNumber::new(i).unwrap(),
-    //     };
-    //     let result = swap.compute_delta_y_hmm(&PreciseNumber::new(delta_x).unwrap());
-    //     let expected = model.sim_delta_y_hmm(delta_x);
-    //
-    //     assert!(
-    //         result.0.almost_eq(&expected.0, desired_precision(&swap.c)),
-    //         "check_delta_y_hmm result: {}, expected: {}, diff: {:?}",
-    //         result.0.value,
-    //         &expected.0.value,
-    //         &expected.0.unsigned_sub(&result.0)
-    //     );
-    //     assert_eq!(result.1, expected.1, "check_delta_y_hmm signed")
-    // }
-    //
+    fn check_delta_y_hmm(model: &Model, x0: u128, y0: u128, c: Decimal, i: u128, delta_x: u128) {
+        let swap = SwapCalculator {
+            x0: Decimal::from_u128(x0).to_scale(12),
+            y0: Decimal::from_u128(y0).to_scale(12),
+            c,
+            i: Decimal::from_u128(i).to_scale(12),
+        };
+        let result = swap
+            .compute_delta_y_hmm(&Decimal::from_u128(delta_x).to_scale(12))
+            .to_scale(9);
+        let (value, negative) = model.sim_delta_y_hmm(delta_x, 9);
+        let expected = Decimal::new(value, 9, negative);
+
+        // TODO: figure our precision requirements, lower means more accurate
+        let precision = 10_000_000u128;
+        assert!(
+            result.value.saturating_sub(expected.value).lt(&precision),
+            "check_delta_y_hmm\n{}\n{}",
+            result.value,
+            expected.value
+        );
+        assert_eq!(result.negative, expected.negative, "check_delta_y_hmm_sign");
+    }
+
     // fn check_delta_x_hmm(
     //     model: &Model,
     //     x0: u128,
@@ -437,35 +433,33 @@ mod tests {
             }
         }
     }
-    //
-    // proptest! {
-    //     #[test]
-    //     fn test_partial_curve_math(
-    //         x0 in 1..u128::MAX >> 120,
-    //         y0 in 1..u128::MAX >> 120,
-    //         c in (0..=3usize).prop_map(|v| ["0.0", "1.0", "1.25", "1.5"][v]),
-    //         i in 1u128..=5u128,
-    //         delta_x in 1u128..=5u128,
-    //         delta_y in 1u128..=5u128,
-    //     ) {
-    //         for (c_numer, c_denom, c_precise) in coefficient_allowed_values().get(c) {
-    //             let model = Model::new(x0, y0, *c_numer, *c_denom, i);
-    //             check_delta_y_hmm(&model, x0, y0, c_precise.clone(), i, delta_x);
-    //             check_delta_x_hmm(&model, x0, y0, c_precise.clone(), i, delta_y);
-    //         }
-    //     }
-    // }
-    //
+
+    proptest! {
+        #[test]
+        fn test_partial_curve_math(
+            // Notes of allowed ranged depending on decimal places (scale)
+            // log2(10^12) = 40 bits for 12 decimal places, 24 bits for integer
+            // ((2**24) - 1) = 16,777,215 max
+            // log2(10^8) = 27 bits for 8 decimal places, 37 bits for integer
+            // ((2**37) - 1) = 137,438,953,471 max
+            // log2(10^6) = 20 bits for 6 decimal places, 44 bits for integer
+            // ((2**44) - 1) = 17,592,186,044,415 max
+            x0 in 1..u128::MAX >> 104,
+            y0 in 1..u128::MAX >> 104,
+            c in (0..=3usize).prop_map(|v| ["0.0", "1.0", "1.25", "1.5"][v]),
+            i in 1u128..=100u128,
+            delta_x in 1u128..=5u128,
+            delta_y in 1u128..=5u128,
+        ) {
+            for (c_numer, c_denom, c) in coefficient_allowed_values(12).get(c) {
+                let model = Model::new(x0, y0, *c_numer, *c_denom, i);
+                check_delta_y_hmm(&model, x0, y0, c.clone(), i, delta_x);
+            }
+        }
+    }
+
     #[test]
     fn test_specific_curve_math() {
-        // Notes of allowed ranged depending on decimal places (scale)
-        // log2(10^12) = 40 bits for 12 decimal places, 24 bits for integer
-        // ((2**24) - 1) = 16,777,215 max
-        // log2(10^8) = 27 bits for 8 decimal places, 37 bits for integer
-        // ((2**37) - 1) = 137,438,953,471 max
-        // log2(10^6) = 20 bits for 6 decimal places, 44 bits for integer
-        // ((2**44) - 1) = 17,592,186,044,415 max
-
         // compute_delta_y_hmm when c == 1
         {
             let swap = SwapCalculator {
