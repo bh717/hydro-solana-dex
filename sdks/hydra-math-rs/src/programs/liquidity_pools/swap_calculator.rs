@@ -2,11 +2,6 @@
 use crate::decimal::{Add, Compare, Decimal, Div, Ln, Mul, Pow, Sqrt, Sub};
 use crate::programs::liquidity_pools::swap_result::SwapResult;
 
-/// The number 1 as a decimal
-fn one() -> Decimal {
-    Decimal::from_u128(1)
-}
-
 /// Swap calculator input parameters
 pub struct SwapCalculator {
     /// Number of tokens x currently in liquidity pool
@@ -166,7 +161,7 @@ impl SwapCalculator {
         qi: &Decimal,
         c: &Decimal,
     ) -> Decimal {
-        let one = one().to_scale(self.x0.scale);
+        let one = Decimal::from_u64(1).to_scale(self.x0.scale);
         if c.eq(&one) {
             // k/qi * (q0/q_new).ln()
             let k_div_qi = k.div(*qi);
