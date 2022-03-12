@@ -537,79 +537,26 @@ mod tests {
             assert_eq!(result.negative, true);
         }
 
-        //
-        //     // compute_delta_x_hmm when c == 0
-        //     let swap = SwapCalculator {
-        //         x0: PreciseNumber::new(1u128).unwrap(),
-        //         y0: PreciseNumber::new(3u128).unwrap(),
-        //         c: PreciseNumber::new(0u128).unwrap(),
-        //         i: PreciseNumber::new(1u128).unwrap(),
-        //     };
-        //     let delta_y = PreciseNumber::new(1).unwrap();
-        //     let (result, result_signed) = swap.compute_delta_x_hmm(&delta_y);
-        //
-        //     let expected = PreciseNumber {
-        //         value: InnerUint::from(250_000_000_000u128),
-        //     };
-        //     assert!(
-        //         result.almost_eq(&expected, desired_precision(&swap.c)),
-        //         "compute_delta_x_hmm {}, {}",
-        //         result.value,
-        //         &expected.value
-        //     );
-        //     assert_eq!(result_signed, true);
-        //
-        //     // compute_delta_y_hmm when c == 1
-        //     let swap = SwapCalculator {
-        //         x0: PreciseNumber::new(1u128).unwrap(),
-        //         y0: PreciseNumber::new(1u128).unwrap(),
-        //         c: PreciseNumber::new(1u128).unwrap(),
-        //         i: PreciseNumber::new(2u128).unwrap(),
-        //     };
-        //     let delta_x = PreciseNumber::new(1).unwrap();
-        //     let (result, result_signed) = swap.compute_delta_y_hmm(&delta_x);
-        //
-        //     let expected = PreciseNumber {
-        //         value: InnerUint::from(500_000_000_000u128),
-        //     };
-        //     assert!(
-        //         result.almost_eq(&expected, desired_precision(&swap.c)),
-        //         "compute_delta_y_hmm {}, {}",
-        //         result.value,
-        //         &expected.value
-        //     );
-        //     assert_eq!(result_signed, true);
-        //
-        //     // compute_delta_y_hmm when c == 0
-        //     let swap = SwapCalculator {
-        //         x0: PreciseNumber::new(1u128).unwrap(),
-        //         y0: PreciseNumber::new(2u128).unwrap(),
-        //         c: PreciseNumber::new(0u128).unwrap(),
-        //         i: PreciseNumber::new(1u128).unwrap(),
-        //     };
-        //     let delta_x = PreciseNumber::new(1).unwrap();
-        //     let (result, result_signed) = swap.compute_delta_y_hmm(&delta_x);
-        //
-        //     let expected = PreciseNumber {
-        //         value: InnerUint::from(1_000_000_000_000u128),
-        //     };
-        //     assert!(result.almost_eq(&expected, desired_precision(&swap.c)));
-        //     assert_eq!(result_signed, true);
-        //
-        //     // xi
-        //     let swap = SwapCalculator {
-        //         x0: PreciseNumber::new(1000u128).unwrap(),
-        //         y0: PreciseNumber::new(1000u128).unwrap(),
-        //         c: PreciseNumber {
-        //             value: Default::default(),
-        //         },
-        //         i: PreciseNumber::new(200u128).unwrap(),
-        //     };
-        //     // ((1000*1000)/200)**0.5 = 70.710678118654752
-        //     // https://www.wolframalpha.com/input/?i=%28%281000*1000%29%2F200%29**0.5
-        //     let expected = PreciseNumber {
-        //         value: InnerUint::from(70_710_678_118_654u128),
-        //     };
-        //     assert_eq!(swap.compute_xi(), expected, "xi specific");
+        // xi specific
+        {
+            let swap = SwapCalculator {
+                x0: Decimal::from_u128(1000).to_scale(12),
+                y0: Decimal::from_u128(1000).to_scale(12),
+                c: Decimal::from_u128(0).to_scale(12),
+                i: Decimal::from_u128(200).to_scale(12),
+            };
+            // ((1000*1000)/200)**0.5 = 70.710678118654752
+            // https://www.wolframalpha.com/input/?i=%28%281000*1000%29%2F200%29**0.5
+            let result = swap.compute_xi().to_scale(12);
+            let expected = Decimal::new(70_710_678_118_654u128, 12, false);
+
+            assert!(
+                result.eq(expected).unwrap(),
+                "compute_xi {}, {}",
+                result.value,
+                expected.value
+            );
+            assert_eq!(result.negative, false);
+        }
     }
 }
