@@ -25,6 +25,7 @@ class Curve:
 
   def to_int_signed(self, decimal, rounding=ROUND_CEILING):
     is_signed = decimal.is_signed()
+#     return (int(decimal.copy_abs().to_integral(rounding) * 1_000_000), decimal.is_signed())
     return (int(decimal.copy_abs().to_integral(rounding)), decimal.is_signed())
 
   def to_int(self, decimal):
