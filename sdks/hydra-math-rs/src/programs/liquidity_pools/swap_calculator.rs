@@ -178,8 +178,8 @@ impl SwapCalculator {
             // k/((qi**c)*(c-1)) * (q0**(c-1)-q_new**(c-1))
             // k/(qi**c)/(c-1) * (q0**(c-1)-q_new**(c-1))
             // (k*q0**(c-1) - k*q_new**(c-1)) /(qi**c)/(c-1)
-            // a = k*q0**(c-1)
-            // b = k*q_new**(c-1)
+            // a = k/q0**(c-1)
+            // b = k/q_new**(c-1)
             // (a - b) / (qi**c) / (c-1)
 
             // c-1
@@ -188,34 +188,28 @@ impl SwapCalculator {
             let qi_pow_c = qi.pow(*c);
 
             if c_sub_one.negative {
-                // a = k*q0**(c-1)
-                let k_div_q0_pow_c_sub_one: Decimal;
-                // b = k*q_new**(c-1)
-                let k_div_q_new_pow_c_sub_one: Decimal;
-                k_div_q0_pow_c_sub_one = k.div(q0.pow(c_sub_one));
-                k_div_q_new_pow_c_sub_one = k.div(q_new.pow(c_sub_one));
+                // a = k/q0**(c-1)
+                let a = k.div(q0.pow(c_sub_one));
+                // b = k/q_new**(c-1)
+                let b = k.div(q_new.pow(c_sub_one));
 
-                let a_sub_b = k_div_q0_pow_c_sub_one
-                    .sub(k_div_q_new_pow_c_sub_one)
-                    .unwrap();
+                let a_sub_b = a.sub(b).unwrap();
 
                 // (a - b) / (qi**c) / (c-1)
                 let result = a_sub_b.div(qi_pow_c).div(c_sub_one);
                 result
             } else {
                 // a = k*q0**(c-1)
-                let q0_pow_c_sub_one: Decimal;
                 // b = k*q_new**(c-1)
-                let q_new_pow_c_sub_one: Decimal;
                 // lhs = k/((qi**c)*(c-1))
                 // (qi**c)*(c-1)
                 let lhs_den = qi_pow_c.mul(c_sub_one);
                 let lhs = k.div(lhs_den);
 
                 // q0**(c-1)
-                q0_pow_c_sub_one = q0.pow(c_sub_one);
+                let q0_pow_c_sub_one = q0.pow(c_sub_one);
                 // q_new**(c-1)
-                q_new_pow_c_sub_one = q_new.pow(c_sub_one);
+                let q_new_pow_c_sub_one = q_new.pow(c_sub_one);
 
                 // rhs = q0**(c-1) - q_new**(c-1)
                 let rhs = q0_pow_c_sub_one.sub(q_new_pow_c_sub_one).unwrap();
@@ -478,25 +472,50 @@ mod tests {
         // ((2**44) - 1) = 17,592,186,044,415 max
 
         // compute_delta_y_hmm when c == 1
-        let swap = SwapCalculator {
-            x0: Decimal::from_u128(37).to_scale(12),
-            y0: Decimal::from_u128(126).to_scale(12),
-            c: Decimal::from_u128(1).to_scale(12),
-            i: Decimal::from_u128(3).to_scale(12),
-        };
-        let delta_x = Decimal::from_u128(3).to_scale(12);
-        let result = swap.compute_delta_y_hmm(&delta_x).to_scale(8);
-        // python: 9_207_401_794_786
-        // accurate to about 8 decimal places
-        let expected = Decimal::new(9_207_401_79, 8, false);
+        {
+            let swap = SwapCalculator {
+                x0: Decimal::from_u128(37).to_scale(12),
+                y0: Decimal::from_u128(126).to_scale(12),
+                c: Decimal::from_u128(1).to_scale(12),
+                i: Decimal::from_u128(3).to_scale(12),
+            };
+            let delta_x = Decimal::from_u128(3).to_scale(12);
+            let result = swap.compute_delta_y_hmm(&delta_x).to_scale(8);
+            // python: -9.207_401_794_786
+            // accurate to about 8 decimal places
+            let expected = Decimal::new(9_207_401_79, 8, false);
 
-        assert!(
-            result.eq(expected).unwrap(),
-            "compute_delta_y_hmm {}, {}",
-            result.value,
-            expected.value
-        );
-        assert_eq!(result.negative, true);
+            assert!(
+                result.eq(expected).unwrap(),
+                "compute_delta_y_hmm {}, {}",
+                result.value,
+                expected.value
+            );
+            assert_eq!(result.negative, true);
+        }
+
+        // compute_delta_x_hmm when c == 0
+        {
+            let swap = SwapCalculator {
+                x0: Decimal::from_u128(216).to_scale(12),
+                y0: Decimal::from_u128(193).to_scale(12),
+                c: Decimal::from_u128(0).to_scale(12),
+                i: Decimal::from_u128(1).to_scale(12),
+            };
+            let delta_y = Decimal::from_u128(4).to_scale(12);
+            let result = swap.compute_delta_x_hmm(&delta_y).to_scale(8);
+            // python: -4.385_786_802_030
+            // accurate to about 8 decimal places
+            let expected = Decimal::new(4_385_786_80, 8, false);
+
+            assert!(
+                result.eq(expected).unwrap(),
+                "compute_delta_x_hmm {}, {}",
+                result.value,
+                expected.value
+            );
+            assert_eq!(result.negative, true);
+        }
 
         //     // compute_delta_x_hmm when c == 0
         //     let swap = SwapCalculator {

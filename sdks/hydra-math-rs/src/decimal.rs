@@ -313,7 +313,7 @@ impl Pow<Decimal> for Decimal {
         match quotient {
             0 => {
                 // x^0 = 1
-                Decimal::new(1, self.scale, self.negative)
+                Decimal::from_u64(1).to_scale(self.scale)
             }
             1 => {
                 // x^1/4 = x^0.25 = ⁴√x = √(√x) = sqrt(sqrt(x))
