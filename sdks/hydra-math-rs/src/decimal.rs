@@ -393,6 +393,20 @@ impl Into<u128> for Decimal {
     }
 }
 
+/// Convert a [Decimal] into an usize.
+impl Into<usize> for Decimal {
+    fn into(self) -> usize {
+        self.value.try_into().unwrap()
+    }
+}
+
+/// Convert a [Decimal] into an unsigned 64-bit float.
+impl Into<f64> for Decimal {
+    fn into(self) -> f64 {
+        self.value as f64 / self.denominator() as f64
+    }
+}
+
 /// Compare two [Decimal] values/scale with comparison query operators.
 impl Compare<Decimal> for Decimal {
     /// Show if two [Decimal] values equal each other
