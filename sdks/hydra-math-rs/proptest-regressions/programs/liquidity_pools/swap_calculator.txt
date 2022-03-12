@@ -5,3 +5,4 @@
 # It is recommended to check this file in to source control so that
 # everyone who runs the test benefits from these saved cases.
 cc 9cda11439b55170847d797315ac01ed526638ada01af79005e389cca23a257c1 # shrinks to x0 = 1, y0 = 1, c = "0.0", i = 1, delta_x = 1
+cc fee21aa518eeb6f7e31d2c25cc78461e342680fdaf228810ec2f1014cbc19e6a # shrinks to x0 = 1, y0 = 8, c = "0.0", i = 1, delta_x = 1, delta_y = 1

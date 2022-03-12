@@ -316,7 +316,7 @@ mod tests {
             i: Decimal::from_u128(i),
         };
         let result = swap.compute_xi();
-        let (value, negative) = model.sim_xi();
+        let (value, negative) = model.sim_xi(swap.x0.scale);
         let expected = Decimal::new(value, 0, negative);
         assert_eq!(result, expected, "check_xi");
     }
@@ -329,7 +329,7 @@ mod tests {
             i: Decimal::from_u128(0),
         };
         let result = swap.compute_delta_y_amm(&Decimal::from_u128(delta_x));
-        let (value, negative) = model.sim_delta_y_amm(delta_x);
+        let (value, negative) = model.sim_delta_y_amm(delta_x, swap.x0.scale);
         let expected = Decimal::new(value, 0, negative);
         assert_eq!(result, expected, "check_delta_y_amm");
     }
