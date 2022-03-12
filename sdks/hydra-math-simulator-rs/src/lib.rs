@@ -1,4 +1,3 @@
-use hydra_math_rs::decimal::Decimal;
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
 use std::fs::File;
@@ -49,20 +48,20 @@ impl Model {
         return result;
     }
 
-    pub fn sim_xi(&self) -> (u128, bool) {
+    pub fn sim_xi(&self, scale: u8) -> (u128, bool) {
         let gil = Python::acquire_gil();
         let result: (u128, bool) = self
-            .call0(gil.python(), "sim_xi")
+            .call1(gil.python(), "sim_xi", (scale,))
             .unwrap()
             .extract(gil.python())
             .unwrap();
         return result;
     }
 
-    pub fn sim_delta_y_amm(&self, delta_x: u128) -> (u128, bool) {
+    pub fn sim_delta_y_amm(&self, delta_x: u128, scale: u8) -> (u128, bool) {
         let gil = Python::acquire_gil();
         let result: (u128, bool) = self
-            .call1(gil.python(), "sim_delta_y_amm", (delta_x,))
+            .call1(gil.python(), "sim_delta_y_amm", (delta_x, scale))
             .unwrap()
             .extract(gil.python())
             .unwrap();
@@ -78,24 +77,24 @@ impl Model {
             .unwrap();
     }
 
-    pub fn sim_delta_y_hmm(&self, delta_x: u128) -> Decimal {
+    pub fn sim_delta_y_hmm(&self, delta_x: u128, scale: u8) -> (u128, bool) {
         let gil = Python::acquire_gil();
         let result: (u128, bool) = self
-            .call1(gil.python(), "sim_delta_y_hmm", (delta_x,))
+            .call1(gil.python(), "sim_delta_y_hmm", (delta_x, scale))
             .unwrap()
             .extract(gil.python())
             .unwrap();
-        return Decimal::new(result.0, 0, result.1);
+        return result;
     }
 
-    pub fn sim_delta_x_hmm(&self, delta_y: u128) -> Decimal {
+    pub fn sim_delta_x_hmm(&self, delta_y: u128, scale: u8) -> (u128, bool) {
         let gil = Python::acquire_gil();
         let result: (u128, bool) = self
-            .call1(gil.python(), "sim_delta_x_hmm", (delta_y,))
+            .call1(gil.python(), "sim_delta_x_hmm", (delta_y, scale))
             .unwrap()
             .extract(gil.python())
             .unwrap();
-        return Decimal::new(result.0, 0, result.1);
+        return result;
     }
 
     fn call0(&self, py: Python, method_name: &str) -> Result<PyObject, PyErr> {

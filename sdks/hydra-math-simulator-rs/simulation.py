@@ -23,10 +23,9 @@ class Curve:
         self.c = Decimal(c_numer)/Decimal(c_denom)
     self.i = Decimal(i)
 
-  def to_int_signed(self, decimal, rounding=ROUND_CEILING):
+  def to_int_signed(self, decimal, scale=0, rounding=ROUND_CEILING):
     is_signed = decimal.is_signed()
-#     return (int(decimal.copy_abs().to_integral(rounding) * 1_000_000), decimal.is_signed())
-    return (int(decimal.copy_abs().to_integral(rounding)), decimal.is_signed())
+    return (int(decimal.copy_abs().to_integral(rounding) * 10**scale), decimal.is_signed())
 
   def to_int(self, decimal):
       return int(decimal.to_integral())
@@ -49,8 +48,8 @@ class Curve:
     k = self.k()
     return k/(self.x0 + delta_x) - k/self.x0
 
-  def sim_delta_y_amm(self, delta_x):
-    return self.to_int_signed(self.delta_y_amm(delta_x))
+  def sim_delta_y_amm(self, delta_x, scale):
+    return self.to_int_signed(self.delta_y_amm(delta_x), scale)
 
   def delta_x_amm(self, delta_y):
     """
@@ -60,8 +59,8 @@ class Curve:
     k = self.k()
     return k/(self.y0 + delta_y) - k/self.y0
 
-  def sim_delta_x_amm(self, delta_y):
-    return self.to_int_signed(self.delta_x_amm(delta_y))
+  def sim_delta_x_amm(self, delta_y, scale):
+    return self.to_int_signed(self.delta_x_amm(delta_y), scale)
 
   def swap_x_to_y_amm(self, delta_x):
     """
@@ -85,8 +84,8 @@ class Curve:
     k = self.k()
     return (k/self.i).sqrt()
 
-  def sim_xi(self):
-    return self.to_int_signed(self.xi(), ROUND_FLOOR)
+  def sim_xi(self, scale):
+    return self.to_int_signed(self.xi(), scale, ROUND_FLOOR)
 
   def yi(self):
     """
@@ -95,8 +94,8 @@ class Curve:
     k = self.k()
     return (k/(1/self.i)).sqrt()
 
-  def sim_yi(self):
-    return self.to_int_signed(self.yi(), ROUND_FLOOR)
+  def sim_yi(self, scale):
+    return self.to_int_signed(self.yi(), scale, ROUND_FLOOR)
 
   def integ(self, k, q0, q_new, qi, c):
     if c==1:
@@ -118,8 +117,8 @@ class Curve:
       rhs = (k/x_new - k/xi)
       return lhs + rhs
 
-  def sim_delta_y_hmm(self, delta_x):
-    return self.to_int_signed(self.delta_y_hmm(delta_x), ROUND_FLOOR)
+  def sim_delta_y_hmm(self, delta_x, scale):
+    return self.to_int_signed(self.delta_y_hmm(delta_x), scale)
 
   def delta_x_hmm(self, delta_y):
     k = self.k()
@@ -135,5 +134,5 @@ class Curve:
       rhs = (k/y_new - k/yi)
       return lhs + rhs
 
-  def sim_delta_x_hmm(self, delta_y):
-    return self.to_int_signed(self.delta_x_hmm(delta_y), ROUND_FLOOR)
+  def sim_delta_x_hmm(self, delta_y, scale):
+    return self.to_int_signed(self.delta_x_hmm(delta_y), scale, ROUND_FLOOR)

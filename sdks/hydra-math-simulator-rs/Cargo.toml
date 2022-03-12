@@ -7,4 +7,3 @@ edition = "2021"
 
 [dependencies]
 pyo3 = "0.13.2"
-hydra-math-rs = { version = "0.1.0", path = "../hydra-math-rs", features = ["no-entrypoint"] }
