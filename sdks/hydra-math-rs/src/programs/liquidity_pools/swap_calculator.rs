@@ -277,17 +277,7 @@ mod tests {
     use hydra_math_simulator_rs::Model;
     use proptest::prelude::*;
 
-    // use sim::Model;
-
     use super::*;
-
-    // fn desired_precision(c: &Decimal) -> U256 {
-    //     if c == &one() {
-    //         InnerUint::from(1_000_000_000_000u128)
-    //     } else {
-    //         InnerUint::from(1_000u128)
-    //     }
-    // }
 
     fn coefficient_allowed_values(scale: u8) -> HashMap<&'static str, (u128, u128, Decimal)> {
         HashMap::from([
