@@ -601,12 +601,24 @@ fn log_table_value(
     let f_value = Decimal::new(place_value, scale, false);
     let t_value = s_value.mul(f_value).div(f_value);
 
-    let log_table_row = t_value.mul(f_value).sub(f_value).unwrap();
+    let log_table_row: usize = t_value.mul(f_value).sub(f_value).unwrap().into();
+    let log_table_row = log_table_row.checked_sub(1);
 
     let mut lx_value = 0u128;
 
-    if log_table_row.gt(Decimal::new(0u128, scale, false)).unwrap() {
-        lx_value = log_table(log_table_row.to_u64() as usize - 1, log_table_col);
+    // Ensure within array of shape [9, 12]
+    let log_table_row_range = 0..9;
+    let log_table_col_range = 0..12;
+
+    match log_table_row {
+        Some(log_table_row) => {
+            if log_table_row_range.contains(&log_table_row)
+                && log_table_col_range.contains(&log_table_col)
+            {
+                lx_value = log_table(log_table_row, log_table_col);
+            }
+        }
+        None => lx_value = 0,
     }
 
     (s_value, t_value, lx_value)
