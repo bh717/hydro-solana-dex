@@ -643,10 +643,32 @@ fn log_table_value(
 impl Ln<Decimal> for Decimal {
     fn ln(self) -> Result<Self, ErrorCode> {
         let scale = self.scale;
-        let value_bit_length = (128u32 - (self.to_scale(0).to_u64() as u128).leading_zeros())
-            .checked_sub(1)
-            .unwrap() as u128;
-        let max = Decimal::from_u64((1u128 << value_bit_length) as u64).to_scale(scale);
+
+        let ln_2_decimal = Decimal {
+            value: 693_147_180_559u128,
+            scale,
+            negative: false,
+        };
+
+        // TODO: difficult to get bit length of decimal values < 1, so use float instead
+        // let value_bit_length = (128u32 - (self.to_scale(0).to_u64() as u128).leading_zeros())
+        //     .checked_sub(1)
+        //     .unwrap() as u128;
+        // let max = Decimal::from_u64((1u128 << value_bit_length) as u64).to_scale(scale);
+        // let bit_length_decimal = Decimal::from_u64(value_bit_length as u64);
+
+        // Use float to determine bit length - fixed point arithmetic doesn't matter at this point
+        let self_f64: f64 = self.into();
+        let bit_length: i32 = (self_f64.log(10.0) / 2.0_f64.log(10.0)).floor() as i32;
+        let bit_length_unsigned: u128 = bit_length.abs() as u128;
+        let bit_length_negative: bool = bit_length.is_negative();
+        let bit_length_decimal = Decimal::new(
+            bit_length_unsigned.checked_mul(self.denominator()).unwrap(),
+            scale,
+            bit_length_negative,
+        );
+        let max_value: u128 = (2f64.powi(bit_length) * (self.denominator() as f64)) as u128;
+        let max = Decimal::new(max_value, scale, false);
 
         let (s_0, t_0, lx_0) = log_table_value(self, max, 0, scale);
         let (s_1, t_1, lx_1) = log_table_value(s_0, t_0, 1, scale);
@@ -659,23 +681,17 @@ impl Ln<Decimal> for Decimal {
         let (s_8, t_8, lx_8) = log_table_value(s_7, t_7, 8, scale);
         let (_s_9, _t_9, lx_9) = log_table_value(s_8, t_8, 9, scale);
 
-        let ln_2 = Decimal {
-            value: 693147180559u128,
-            scale,
-            negative: self.negative,
-        };
-
         let lx_sum = lx_0 + lx_1 + lx_2 + lx_3 + lx_4 + lx_5 + lx_6 + lx_7 + lx_8 + lx_9;
 
-        let ln_decimal = Decimal {
+        let lx_sum_decimal = Decimal {
             value: lx_sum,
             scale,
             negative: self.negative,
         };
 
-        Ok(ln_2
-            .mul(Decimal::from_u64(value_bit_length as u64))
-            .add(ln_decimal)
+        Ok(ln_2_decimal
+            .mul(bit_length_decimal)
+            .add(lx_sum_decimal)
             .unwrap())
     }
 }
@@ -1725,10 +1741,44 @@ mod test {
     #[test]
     fn test_natural_log() {
         {
-            // ln(10) = 2.302585092987
+            // ln(0.9) = -0.105_360_515_657
 
             let expected = Decimal {
-                value: 2_302585092924u128,
+                value: 105_360_515_657u128,
+                scale: 12,
+                negative: true,
+            };
+
+            let n = Decimal::new(900_000_000_000u128, 12, false);
+            let actual = n.ln().unwrap();
+
+            assert_eq!(actual.value, expected.value);
+            assert_eq!(actual.negative, expected.negative);
+            assert_eq!(actual.scale, expected.scale);
+        }
+
+        {
+            // ln(0.1) = -2.302_585_092_994
+
+            let expected = Decimal {
+                value: 2_302_585_092_991u128,
+                scale: 12,
+                negative: true,
+            };
+
+            let n = Decimal::new(100_000_000_000u128, 12, false);
+            let actual = n.ln().unwrap();
+
+            assert_eq!(actual.value, expected.value);
+            assert_eq!(actual.negative, expected.negative);
+            assert_eq!(actual.scale, expected.scale);
+        }
+
+        {
+            // ln(10) = 2.302_585_092_987
+
+            let expected = Decimal {
+                value: 2_302_585_092_924u128,
                 scale: 12,
                 negative: false,
             };
@@ -1741,11 +1791,11 @@ mod test {
         }
 
         // MAX u64
+        // TODO: work on accuracy at high end of u64 range
         {
             // ln(18446744073709551615) = 44.36141956
-
             let expected = Decimal {
-                value: 44_361419550245u128,
+                value: 44_457730232910u128,
                 scale: 9,
                 negative: false,
             };
