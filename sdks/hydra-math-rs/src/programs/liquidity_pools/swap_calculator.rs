@@ -166,30 +166,13 @@ impl SwapCalculator {
         qi: &Decimal,
         c: &Decimal,
     ) -> Decimal {
-        if c.eq(&one()) {
+        let one = one().to_scale(self.x0.scale);
+        if c.eq(&one) {
             // k/qi * (q0/q_new).ln()
             let k_div_qi = k.div(*qi);
 
-            // log(q0) - log(q_new) is the alternate form of log(q0/q_new)
-            // TODO: this is really inaccurate as we lose the decimal precision
-            // let log_q0 = log(q0.to_imprecise().unwrap());
-            // let log_q_new = log(q_new.to_imprecise().unwrap());
-            // let (log_q0_sub_log_q_new, is_signed) = log_q0
-            //     .unsigned_sub(&log_q_new);
-            //
-            // signed_mul(&k_div_qi, false, &log_q0_sub_log_q_new, is_signed)
-
-            // using this instead: log(q0/q_new)
-            // but also multiplying by a big number first: because log(a*b) = log(a)+ log(b)
-            // so we are doing log(wanted) = log(wanted * factor) - log(factor)
-            // that way we avoid doing the log of a small number
             let q0_div_q_new = q0.div(*q_new);
-            let factor = Decimal::from_u128(1000u128);
-            let q0_div_q_new_bumped = q0_div_q_new.mul(factor);
-            let log_q0_div_q_new_bumped =
-                q0_div_q_new_bumped.ln().expect("log_q0_div_q_new_bumped");
-            let log_factor = factor.ln().expect("log_factor");
-            let log_q0_div_q_new = log_q0_div_q_new_bumped.sub(log_factor).unwrap();
+            let log_q0_div_q_new = q0_div_q_new.ln().unwrap();
             k_div_qi.mul(log_q0_div_q_new)
         } else {
             // k/((qi**c)*(c-1)) * (q0**(c-1)-q_new**(c-1))
@@ -200,7 +183,7 @@ impl SwapCalculator {
             // (a - b) / (qi**c) / (c-1)
 
             // c-1
-            let c_sub_one = c.sub(one()).unwrap();
+            let c_sub_one = c.sub(one).unwrap();
             // qi**c
             let qi_pow_c = qi.pow(*c);
 
