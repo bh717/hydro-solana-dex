@@ -1,6 +1,6 @@
 use crate::constants::*;
+use crate::state::fees::Fees;
 use crate::state::pool_state::*;
-use crate::utils::fees::Fees;
 use crate::DEBUG_MODE;
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};

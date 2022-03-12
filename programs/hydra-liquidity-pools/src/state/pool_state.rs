@@ -1,4 +1,4 @@
-use crate::utils::fees::Fees;
+use crate::state::fees::Fees;
 use anchor_lang::prelude::*;
 use derivative::Derivative;
 use std::io::Write;

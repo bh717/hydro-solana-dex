@@ -2,7 +2,7 @@ pub fn calculate_fee(
     token_amount: u128,
     fee_numerator: u128,
     fee_denominator: u128,
-) -> Option<u128> {
+) -> Option<u64> {
     if fee_numerator == 0 || fee_denominator == 0 {
         return Some(0);
     }
@@ -11,7 +11,7 @@ pub fn calculate_fee(
         .checked_mul(fee_numerator)?
         .checked_div(fee_denominator)?;
 
-    Some(fee)
+    Some(fee as u64)
 }
 
 #[cfg(test)]

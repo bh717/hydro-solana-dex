@@ -59,18 +59,48 @@ pub struct Swap<'info> {
 }
 
 impl<'info> Swap<'info> {
-    pub fn deduct_swap_fee(&self, transfer_out_amount: u64) -> u64 {
-        if let Some(fee) = calculate_fee(
-            transfer_out_amount as u128,
-            self.pool_state.fees.trade_fee_numerator as u128,
-            self.pool_state.fees.trade_fee_denominator as u128,
-        ) {
-            msg!("fee: {:?}", fee as u64);
-            return transfer_out_amount.checked_sub(fee as u64).unwrap();
+    pub fn post_transfer_checks(&mut self, result: SwapResult, fees: u64) -> Result<()> {
+        // post tx checks
+        (&mut self.token_x_vault).reload()?;
+        (&mut self.token_y_vault).reload()?;
+
+        if (result.x_new().unwrap() + fees) != self.token_x_vault.amount {
+            msg!("x_new_with_fees: {:?}", (result.x_new().unwrap() + fees));
+            msg!("token_x_vault.amount: {:?}", self.token_x_vault.amount);
+            return Err(ErrorCode::InvalidVaultToSwapResultAmounts.into());
         }
 
-        // no fee
-        transfer_out_amount
+        if result.y_new().unwrap() != self.token_y_vault.amount {
+            msg!("y_new: {:?}", result.y_new().unwrap());
+            msg!("token_y_vault.amount: {:?}", self.token_y_vault.amount);
+            return Err(ErrorCode::InvalidVaultToSwapResultAmounts.into());
+        }
+
+        // TODO: This is broken as we are getting a different k value from the SwapCalculator
+        // if result.k().unwrap() != ctx.accounts.lp_token_mint.supply {
+        //     return Err(ErrorCode::InvalidVaultToSwapResultAmounts.into());
+        // }
+        Ok(())
+    }
+
+    pub fn transfer_user_tokens_for_fees_to_vault(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
+        let cpi_accounts = Transfer {
+            from: self.user_from_token.to_account_info(),
+            to: self.token_x_vault.to_account_info(),
+            authority: self.user.to_account_info(),
+        };
+        let cpi_program = self.token_program.to_account_info();
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+
+    pub fn calculate_fees(&self, transfer_in_amount: u64) -> Option<u64> {
+        calculate_fee(
+            transfer_in_amount as u128,
+            self.pool_state.fees.swap_fee_numerator as u128,
+            self.pool_state.fees.swap_fee_denominator as u128,
+        )
     }
 
     pub fn transfer_tokens_to_user(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
@@ -162,8 +192,12 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
         transfer_out_amount = result.delta_x().unwrap();
     }
 
-    // deduct fee
-    transfer_out_amount = ctx.accounts.deduct_swap_fee(transfer_out_amount);
+    // calculate fees
+    let fees = ctx
+        .accounts
+        .calculate_fees(transfer_in_amount)
+        .expect("fee calculation issues");
+    msg!("fees: {:?}", fees);
 
     // check slippage for amount_out
     if transfer_out_amount < minimum_amount_out {
@@ -180,6 +214,9 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
         msg!("amount_in: {:?}", amount_in);
         return Err(ErrorCode::SlippageExceeded.into());
     }
+
+    // transfer fee in base token into vault
+    token::transfer(ctx.accounts.transfer_user_tokens_for_fees_to_vault(), fees)?;
 
     // transfer base token into vault
     token::transfer(
@@ -200,6 +237,9 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
         ctx.accounts.transfer_tokens_to_user().with_signer(&signer),
         transfer_out_amount,
     )?;
+
+    // check all amounts are correct
+    ctx.accounts.post_transfer_checks(result, fees)?;
 
     Ok(())
 }
