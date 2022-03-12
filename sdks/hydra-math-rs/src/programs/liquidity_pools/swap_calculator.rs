@@ -238,6 +238,8 @@ impl SwapCalculator {
     fn compute_yi(&self) -> Decimal {
         // Yᵢ = √(K/1/i) = √(K * i)
         let k = self.compute_k();
+        // TODO: consider using u256 type to avoid overflow.
+        // println!("DEBUG: {:?}, {:?}", k, self.i);
         let k_mul_i = k.mul(self.i);
         k_mul_i.sqrt().expect("yi")
         // let (k_mul_i, _negative) = signed_mul(&k, false, &self.i, false);
@@ -388,33 +390,30 @@ mod tests {
         assert_eq!(result.negative, expected.negative, "check_delta_y_hmm_sign");
     }
 
-    // fn check_delta_x_hmm(
-    //     model: &Model,
-    //     x0: u128,
-    //     y0: u128,
-    //     c: PreciseNumber,
-    //     i: u128,
-    //     delta_y: u128,
-    // ) {
-    //     let swap = SwapCalculator {
-    //         x0: PreciseNumber::new(x0).unwrap(),
-    //         y0: PreciseNumber::new(y0).unwrap(),
-    //         c,
-    //         i: PreciseNumber::new(i).unwrap(),
-    //     };
-    //     let result = swap.compute_delta_x_hmm(&PreciseNumber::new(delta_y).unwrap());
-    //     let expected = model.sim_delta_x_hmm(delta_y);
-    //
-    //     assert!(
-    //         result.0.almost_eq(&expected.0, desired_precision(&swap.c)),
-    //         "check_delta_x_hmm result: {}, expected: {}, diff: {:?}",
-    //         result.0.value,
-    //         &expected.0.value,
-    //         &expected.0.unsigned_sub(&result.0)
-    //     );
-    //     assert_eq!(result.1, expected.1, "check_delta_x_hmm signed")
-    // }
-    //
+    fn check_delta_x_hmm(model: &Model, x0: u128, y0: u128, c: Decimal, i: u128, delta_y: u128) {
+        let swap = SwapCalculator {
+            x0: Decimal::from_u128(x0).to_scale(12),
+            y0: Decimal::from_u128(y0).to_scale(12),
+            c,
+            i: Decimal::from_u128(i).to_scale(12),
+        };
+        let result = swap
+            .compute_delta_x_hmm(&Decimal::from_u128(delta_y).to_scale(12))
+            .to_scale(9);
+        let (value, negative) = model.sim_delta_x_hmm(delta_y, 9);
+        let expected = Decimal::new(value, 9, negative);
+
+        // TODO: figure our precision requirements, lower means more accurate
+        let precision = 10_000_000u128;
+        assert!(
+            result.value.saturating_sub(expected.value).lt(&precision),
+            "check_delta_x_hmm\n{}\n{}",
+            result.value,
+            expected.value
+        );
+        assert_eq!(result.negative, expected.negative, "check_delta_x_hmm_sign");
+    }
+
     proptest! {
         #[test]
         fn test_full_curve_math(
@@ -454,6 +453,8 @@ mod tests {
             for (c_numer, c_denom, c) in coefficient_allowed_values(12).get(c) {
                 let model = Model::new(x0, y0, *c_numer, *c_denom, i);
                 check_delta_y_hmm(&model, x0, y0, c.clone(), i, delta_x);
+                // TODO: compute yi overflows due to large value of K * i, consider using u256 int
+                // check_delta_x_hmm(&model, x0, y0, c.clone(), i, delta_y);
             }
         }
     }
