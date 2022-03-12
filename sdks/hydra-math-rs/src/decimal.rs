@@ -1493,73 +1493,49 @@ mod test {
         let base = Decimal::new(42, 6, false);
         let exp = Decimal::new(0, 6, false);
         let result = base.pow(exp);
-        let expected = Decimal::new(1, 6, false);
+        let expected = Decimal::new(1_000000, 6, false);
         assert_eq!(result, expected);
 
         // 42^0.25 = 2.545729895021831
         let base = Decimal::new(42_000000000000, 12, false);
         let exp = Decimal::new(250000000000, 12, false);
         let result = base.pow(exp);
-        let expected = Decimal {
-            value: 2_545_729_895_021u128,
-            scale: 12,
-            negative: false,
-        };
+        let expected = Decimal::new(2_545_729_895_021u128, 12, false);
         assert_eq!(result, expected);
 
         // 42^0.5 = 6.48074069840786
         let base = Decimal::new(42_000000000000, 12, false);
         let exp = Decimal::new(500000000000, 12, false);
         let result = base.pow(exp);
-        let expected = Decimal {
-            value: 6_480_740_698_407u128,
-            scale: 12,
-            negative: false,
-        };
+        let expected = Decimal::new(6_480_740_698_407u128, 12, false);
         assert_eq!(result, expected);
 
         // 42^1 = 42
         let base = Decimal::new(42_000000000000, 12, false);
         let exp = Decimal::new(1000000000000, 12, false);
         let result = base.pow(exp);
-        let expected = Decimal {
-            value: 42_000000000000u128,
-            scale: 12,
-            negative: false,
-        };
+        let expected = Decimal::new(42_000000000000u128, 12, false);
         assert_eq!(result, expected);
 
         // 42^1.25 = 106.920655590916882
         let base = Decimal::new(42_000000000000, 12, false);
         let exp = Decimal::new(1250000000000, 12, false);
         let result = base.pow(exp);
-        let expected = Decimal {
-            value: 106_920_655_590_882u128,
-            scale: 12,
-            negative: false,
-        };
+        let expected = Decimal::new(106_920_655_590_882u128, 12, false);
         assert_eq!(result, expected);
 
         // 42^1.5 = 272.19110933313013
         let base = Decimal::new(42_000000000000, 12, false);
         let exp = Decimal::new(1500000000000, 12, false);
         let result = base.pow(exp);
-        let expected = Decimal {
-            value: 272_191_109_333_094,
-            scale: 12,
-            negative: false,
-        };
+        let expected = Decimal::new(272_191_109_333_094, 12, false);
         assert_eq!(result, expected);
 
         // 42^2 = 1764
         let base = Decimal::new(42_000000000000, 12, false);
         let exp = Decimal::new(2000000000000, 12, false);
         let result = base.pow(exp);
-        let expected = Decimal {
-            value: 1764_000000000000u128,
-            scale: 12,
-            negative: false,
-        };
+        let expected = Decimal::new(1764_000000000000u128, 12, false);
         assert_eq!(result, expected);
     }
 
