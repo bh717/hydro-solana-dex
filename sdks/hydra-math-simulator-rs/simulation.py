@@ -25,7 +25,7 @@ class Curve:
 
   def to_int_signed(self, decimal, scale=0, rounding=ROUND_CEILING):
     is_signed = decimal.is_signed()
-    return (int(decimal.copy_abs().to_integral(rounding) * 10**scale), decimal.is_signed())
+    return (int((decimal.copy_abs() * 10**scale).to_integral(rounding)), decimal.is_signed())
 
   def to_int(self, decimal):
       return int(decimal.to_integral())
@@ -118,7 +118,7 @@ class Curve:
       return lhs + rhs
 
   def sim_delta_y_hmm(self, delta_x, scale):
-    return self.to_int_signed(self.delta_y_hmm(delta_x), scale)
+    return self.to_int_signed(self.delta_y_hmm(delta_x), scale, ROUND_FLOOR)
 
   def delta_x_hmm(self, delta_y):
     k = self.k()
