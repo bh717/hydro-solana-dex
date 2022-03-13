@@ -72,9 +72,9 @@ impl Decimal {
 
     /// Create a [Decimal] from an unsigned integer expressed as an amount
     /// with precision defined by constant and assumed positive by default.
-    pub fn from_amount(amount: u128) -> Self {
+    pub fn from_amount(amount: u64) -> Self {
         Decimal {
-            value: amount,
+            value: amount.into(),
             scale: AMOUNT_SCALE,
             ..Decimal::default()
         }
@@ -867,7 +867,7 @@ mod test {
         let lhs = Decimal::from_amount(17134659154348278833);
         let rhs = Decimal::from_amount(11676758639919526015);
         let result = lhs.mul(rhs);
-        let expected = Decimal::from_amount(200077279322612464128594731044417u128);
+        let expected = Decimal::new(200077279322612464128594731044417, AMOUNT_SCALE, false);
         assert_eq!(result, expected);
 
         // power function with decimal exponent, scaled down (floor) at lower precision
@@ -922,8 +922,8 @@ mod test {
         ) {
             let scale = 6; // decimal places
             let precision = 2; // accuracy +/- 0.000001
-            let lhs_decimal = Decimal::new(lhs as u128, scale, false);
-            let rhs_decimal = Decimal::new(rhs as u128, scale, false);
+            let lhs_decimal = Decimal::from_amount(lhs);
+            let rhs_decimal = Decimal::from_amount(rhs);
             let lhs_f64: f64 = lhs_decimal.into();
             let den_f64: f64 = lhs_decimal.denominator() as f64;
 
@@ -1015,7 +1015,7 @@ mod test {
 
     #[test]
     fn test_from_amount() {
-        let amount: u128 = 42;
+        let amount: u64 = 42;
         let actual = Decimal::from_amount(amount);
         let expected = Decimal {
             value: 42,
