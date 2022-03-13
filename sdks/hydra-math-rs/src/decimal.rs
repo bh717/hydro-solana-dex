@@ -800,6 +800,8 @@ pub trait Compare<T>: Sized {
 mod test {
     use super::*;
 
+    use proptest::prelude::*;
+
     #[test]
     fn test_basic_examples() {
         {
@@ -914,6 +916,57 @@ mod test {
         let result = n.sqrt().unwrap().to_scale_up(6);
         let expected = Decimal::new(1_414_214u128, 6, false);
         assert_eq!(result, expected);
+    }
+
+    proptest! {
+        #[test]
+        fn test_full_u64_range(
+            lhs in 1_000_000..u64::MAX, // 1.000000 .. 18,446,744,073,709.551615
+            rhs in 1_000_000..u64::MAX,
+        ) {
+            let scale = 6; // decimal places
+            let precision = 2; // accuracy +/- 0.000001
+            let lhs_decimal = Decimal::new(lhs as u128, scale, false);
+            let rhs_decimal = Decimal::new(rhs as u128, scale, false);
+            let lhs_f64: f64 = lhs_decimal.into();
+            let den_f64: f64 = lhs_decimal.denominator() as f64;
+
+            // basic math both sides
+            {
+                lhs_decimal.mul(rhs_decimal);
+                lhs_decimal.div(rhs_decimal);
+                lhs_decimal.add(rhs_decimal).unwrap();
+                lhs_decimal.sub(rhs_decimal).unwrap();
+            }
+
+            // basic math one side
+            {
+                lhs_decimal.mul(lhs_decimal);
+                lhs_decimal.div(lhs_decimal);
+                lhs_decimal.add(lhs_decimal).unwrap();
+                lhs_decimal.sub(lhs_decimal).unwrap();
+            }
+
+            // f64 sqrt == Decimal sqrt
+            {
+                let sqrt_f64 = lhs_f64.sqrt();
+                let sqrt_f64_u128 = (((lhs_f64.sqrt() * den_f64).round() / den_f64) * den_f64) as u128;
+                let sqrt_decimal_u128 = lhs_decimal.to_scale(scale).sqrt().unwrap().value;
+                let difference = sqrt_f64_u128.saturating_sub(sqrt_decimal_u128).lt(&precision);
+
+                assert!(difference, "sqrt compare\n{}\n{}", sqrt_f64_u128, sqrt_decimal_u128);
+            }
+
+            // f64 ln == Decimal ln
+            {
+                let ln_f64 = lhs_f64.ln();
+                let ln_f64_u128 = (((lhs_f64.ln() * den_f64).round() / den_f64) * den_f64) as u128;
+                let ln_decimal_u128 = lhs_decimal.to_scale(scale).ln().unwrap().value;
+                let difference = ln_f64_u128.saturating_sub(ln_decimal_u128).lt(&precision);
+
+                assert!(difference, "ln compare\n{}\n{}", ln_f64_u128, ln_decimal_u128);
+            }
+        }
     }
 
     #[test]
