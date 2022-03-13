@@ -26,9 +26,7 @@ impl SwapCalculator {
     }
 
     /// Compute swap result from x to y using a constant product curve given delta x
-    pub fn swap_x_to_y_amm(&self, delta_x: u128) -> SwapResult {
-        let delta_x = Decimal::from_u128(delta_x);
-
+    pub fn swap_x_to_y_amm(&self, delta_x: &Decimal) -> SwapResult {
         // k = x0 * y0
         let k = self.compute_k();
 
@@ -270,18 +268,18 @@ mod tests {
 
     use super::*;
 
-    fn coefficient_allowed_values(scale: u8) -> HashMap<&'static str, (u128, u128, Decimal)> {
+    fn coefficient_allowed_values(scale: u8) -> HashMap<&'static str, (u64, u64, Decimal)> {
         HashMap::from([
-            ("0.0", (0, 0, Decimal::from_u128(0).to_scale(scale))),
-            ("1.0", (1, 1, Decimal::from_u128(1).to_scale(scale))),
+            ("0.0", (0, 0, Decimal::from_u64(0).to_scale(scale))),
+            ("1.0", (1, 1, Decimal::from_u64(1).to_scale(scale))),
             (
                 "1.25",
                 (
                     5,
                     4,
-                    Decimal::from_u128(5)
+                    Decimal::from_u64(5)
                         .to_scale(scale)
-                        .div(Decimal::from_u128(4).to_scale(scale)),
+                        .div(Decimal::from_u64(4).to_scale(scale)),
                 ),
             ),
             (
@@ -289,62 +287,75 @@ mod tests {
                 (
                     3,
                     2,
-                    Decimal::from_u128(3)
+                    Decimal::from_u64(3)
                         .to_scale(scale)
-                        .div(Decimal::from_u128(2).to_scale(scale)),
+                        .div(Decimal::from_u64(2).to_scale(scale)),
                 ),
             ),
         ])
     }
 
-    fn check_k(model: &Model, x0: u128, y0: u128) {
+    fn check_k(model: &Model, x0: u64, y0: u64) {
         let swap = SwapCalculator {
-            x0: Decimal::from_u128(x0),
-            y0: Decimal::from_u128(y0),
-            c: Decimal::from_u128(0),
-            i: Decimal::from_u128(0),
+            x0: Decimal::from_amount(x0),
+            y0: Decimal::from_amount(y0),
+            c: Decimal::from_amount(0),
+            i: Decimal::from_amount(0),
         };
         let result = swap.compute_k();
         let value = model.sim_k();
-        let expected = Decimal::new(value, 0, false);
+        let expected = Decimal::new(value, AMOUNT_SCALE, false);
         assert_eq!(result, expected, "check_k");
     }
 
-    fn check_xi(model: &Model, x0: u128, y0: u128, i: u128) {
+    fn check_xi(model: &Model, x0: u64, y0: u64, i: u64) {
         let swap = SwapCalculator {
-            x0: Decimal::from_u128(x0),
-            y0: Decimal::from_u128(y0),
-            c: Decimal::from_u128(0),
-            i: Decimal::from_u128(i),
+            x0: Decimal::from_amount(x0),
+            y0: Decimal::from_amount(y0),
+            c: Decimal::from_amount(0),
+            i: Decimal::from_amount(i),
         };
         let result = swap.compute_xi();
-        let (value, negative) = model.sim_xi(swap.x0.scale);
-        let expected = Decimal::new(value, 0, negative);
+        let (value, negative) = model.sim_xi();
+        let expected = Decimal::new(value, AMOUNT_SCALE, negative);
         assert_eq!(result, expected, "check_xi");
     }
 
-    fn check_delta_y_amm(model: &Model, x0: u128, y0: u128, delta_x: u128) {
+    fn check_delta_y_amm(model: &Model, x0: u64, y0: u64, delta_x: u64) {
         let swap = SwapCalculator {
-            x0: Decimal::from_u128(x0),
-            y0: Decimal::from_u128(y0),
-            c: Decimal::from_u128(0),
-            i: Decimal::from_u128(0),
+            x0: Decimal::from_amount(x0),
+            y0: Decimal::from_amount(y0),
+            c: Decimal::from_amount(0),
+            i: Decimal::from_amount(0),
         };
-        let result = swap.compute_delta_y_amm(&Decimal::from_u128(delta_x));
-        let (value, negative) = model.sim_delta_y_amm(delta_x, swap.x0.scale);
-        let expected = Decimal::new(value, 0, negative);
+        let result = swap.compute_delta_y_amm(&Decimal::from_amount(delta_x));
+        let (value, negative) = model.sim_delta_y_amm(delta_x);
+        let expected = Decimal::new(value, AMOUNT_SCALE, negative);
         assert_eq!(result, expected, "check_delta_y_amm");
     }
 
-    fn check_swap_x_to_y_amm(model: &Model, x0: u128, y0: u128, delta_x: u128) {
+    fn check_delta_x_amm(model: &Model, x0: u64, y0: u64, delta_y: u64) {
         let swap = SwapCalculator {
-            x0: Decimal::from_u128(x0),
-            y0: Decimal::from_u128(y0),
-            c: Decimal::from_u128(0),
-            i: Decimal::from_u128(0),
+            x0: Decimal::from_amount(x0),
+            y0: Decimal::from_amount(y0),
+            c: Decimal::from_amount(0),
+            i: Decimal::from_amount(0),
+        };
+        let result = swap.compute_delta_x_amm(&Decimal::from_amount(delta_y));
+        let (value, negative) = model.sim_delta_x_amm(delta_y);
+        let expected = Decimal::new(value, AMOUNT_SCALE, negative);
+        assert_eq!(result, expected, "check_delta_x_amm");
+    }
+
+    fn check_swap_x_to_y_amm(model: &Model, x0: u64, y0: u64, delta_x: u64) {
+        let swap = SwapCalculator {
+            x0: Decimal::from_amount(x0),
+            y0: Decimal::from_amount(y0),
+            c: Decimal::from_amount(0),
+            i: Decimal::from_amount(0),
         };
 
-        let swap_x_to_y_amm = swap.swap_x_to_y_amm(delta_x);
+        let swap_x_to_y_amm = swap.swap_x_to_y_amm(&Decimal::from_amount(delta_x));
         let expected = model.sim_swap_x_to_y_amm(delta_x);
         assert_eq!(swap_x_to_y_amm.x_new.value, expected.0, "x_new");
         assert_eq!(swap_x_to_y_amm.delta_x.value, expected.1, "delta_x");
@@ -366,42 +377,39 @@ mod tests {
         );
     }
 
-    fn check_delta_y_hmm(model: &Model, x0: u128, y0: u128, c: Decimal, i: u128, delta_x: u128) {
+    fn check_delta_y_hmm(model: &Model, x0: u64, y0: u64, c: Decimal, i: u64, delta_x: u64) {
         let swap = SwapCalculator {
-            x0: Decimal::from_u128(x0).to_scale(12),
-            y0: Decimal::from_u128(y0).to_scale(12),
+            x0: Decimal::from_amount(x0),
+            y0: Decimal::from_amount(y0),
             c,
-            i: Decimal::from_u128(i).to_scale(12),
+            i: Decimal::from_amount(i),
         };
-        let result = swap
-            .compute_delta_y_hmm(&Decimal::from_u128(delta_x).to_scale(12))
-            .to_scale(9);
-        let (value, negative) = model.sim_delta_y_hmm(delta_x, 9);
-        let expected = Decimal::new(value, 9, negative);
+        let result = swap.compute_delta_y_hmm(&Decimal::from_amount(delta_x));
+        let (value, negative) = model.sim_delta_y_hmm(delta_x);
+        let expected = Decimal::new(value, AMOUNT_SCALE, negative);
 
         // TODO: figure our precision requirements, lower means more accurate
         let precision = 10_000_000u128;
         assert!(
             result.value.saturating_sub(expected.value).lt(&precision),
-            "check_delta_y_hmm\n{}\n{}",
+            "check_delta_y_hmm\n{}\n{}\n{:?}",
             result.value,
-            expected.value
+            expected.value,
+            result
         );
         assert_eq!(result.negative, expected.negative, "check_delta_y_hmm_sign");
     }
 
-    fn check_delta_x_hmm(model: &Model, x0: u128, y0: u128, c: Decimal, i: u128, delta_y: u128) {
+    fn check_delta_x_hmm(model: &Model, x0: u64, y0: u64, c: Decimal, i: u64, delta_y: u64) {
         let swap = SwapCalculator {
-            x0: Decimal::from_u128(x0).to_scale(12),
-            y0: Decimal::from_u128(y0).to_scale(12),
+            x0: Decimal::from_amount(x0),
+            y0: Decimal::from_amount(y0),
             c,
-            i: Decimal::from_u128(i).to_scale(12),
+            i: Decimal::from_amount(i),
         };
-        let result = swap
-            .compute_delta_x_hmm(&Decimal::from_u128(delta_y).to_scale(12))
-            .to_scale(9);
-        let (value, negative) = model.sim_delta_x_hmm(delta_y, 9);
-        let expected = Decimal::new(value, 9, negative);
+        let result = swap.compute_delta_x_hmm(&Decimal::from_amount(delta_y));
+        let (value, negative) = model.sim_delta_x_hmm(delta_y);
+        let expected = Decimal::new(value, AMOUNT_SCALE, negative);
 
         // TODO: figure our precision requirements, lower means more accurate
         let precision = 10_000_000u128;
@@ -417,17 +425,19 @@ mod tests {
     proptest! {
         #[test]
         fn test_full_curve_math(
-            x0 in 1..u128::MAX >> 64,
-            y0 in 1..u128::MAX >> 64,
+            x0 in 1_000_000..u64::MAX, // 1.000000 .. 18,446,744,073,709.551615,
+            y0 in 1_000_000..u64::MAX,
             c in (0..=3usize).prop_map(|v| ["0.0", "1.0", "1.25", "1.5"][v]),
-            i in 1u128..=100u128,
-            delta_x in 1u128..=10u128,
+            i in 1_000_000..=100_000_000u64,
+            delta_x in 1_000_000..=100_000_000_000u64,
+            delta_y in 1_000_000..=100_000_000_000u64,
         ) {
             for (c_numer, c_denom, _c) in coefficient_allowed_values(AMOUNT_SCALE).get(c) {
-                let model = Model::new(x0, y0, *c_numer, *c_denom, i);
+                let model = Model::new(x0, y0, *c_numer, *c_denom, i, AMOUNT_SCALE);
                 check_k(&model, x0, y0);
                 check_xi(&model, x0, y0, i);
                 check_delta_y_amm(&model, x0, y0, delta_x);
+                check_delta_x_amm(&model, x0, y0, delta_y);
                 check_swap_x_to_y_amm(&model, x0, y0, delta_x);
             }
         }
@@ -443,15 +453,15 @@ mod tests {
             // ((2**37) - 1) = 137,438,953,471 max
             // log2(10^6) = 20 bits for 6 decimal places, 44 bits for integer
             // ((2**44) - 1) = 17,592,186,044,415 max
-            x0 in 1..u128::MAX >> 104,
-            y0 in 1..u128::MAX >> 104,
+            x0 in 1_000_000..u64::MAX,
+            y0 in 1_000_000..u64::MAX,
             c in (0..=3usize).prop_map(|v| ["0.0", "1.0", "1.25", "1.5"][v]),
-            i in 1u128..=100u128,
-            delta_x in 1u128..=5u128,
-            delta_y in 1u128..=5u128,
+            i in 1_000_000..=100_000_000u64,
+            delta_x in 1_000_000..=100_000_000u64,
+            delta_y in 1_000_000..=100_000_000u64,
         ) {
-            for (c_numer, c_denom, c) in coefficient_allowed_values(12).get(c) {
-                let model = Model::new(x0, y0, *c_numer, *c_denom, i);
+            for (c_numer, c_denom, c) in coefficient_allowed_values(AMOUNT_SCALE).get(c) {
+                let model = Model::new(x0, y0, *c_numer, *c_denom, i, AMOUNT_SCALE);
                 check_delta_y_hmm(&model, x0, y0, c.clone(), i, delta_x);
                 // TODO: compute yi overflows due to large value of K * i, consider using u256 int
                 // check_delta_x_hmm(&model, x0, y0, c.clone(), i, delta_y);
@@ -464,19 +474,19 @@ mod tests {
         // compute_delta_y_hmm when c == 1
         {
             let swap = SwapCalculator {
-                x0: Decimal::from_u128(37).to_scale(12),
-                y0: Decimal::from_u128(126).to_scale(12),
-                c: Decimal::from_u128(1).to_scale(12),
-                i: Decimal::from_u128(3).to_scale(12),
+                x0: Decimal::from_amount(37_000000),
+                y0: Decimal::from_amount(126_000000),
+                c: Decimal::from_amount(1_000000),
+                i: Decimal::from_amount(3_000000),
             };
-            let delta_x = Decimal::from_u128(3).to_scale(12);
-            let result = swap.compute_delta_y_hmm(&delta_x).to_scale(8);
+            let delta_x = Decimal::from_amount(3_000000);
+            let result = swap.compute_delta_y_hmm(&delta_x);
             // python: -9.207_401_794_786
-            let expected = Decimal::new(9_207_401_79, 8, false);
+            let expected = Decimal::new(9_207_401, 6, false);
 
             assert!(
                 result.eq(expected).unwrap(),
-                "compute_delta_y_hmm {}, {}",
+                "compute_delta_y_hmm\n{}\n{}",
                 result.value,
                 expected.value
             );
