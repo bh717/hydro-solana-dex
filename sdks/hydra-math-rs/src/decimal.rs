@@ -70,11 +70,6 @@ impl Decimal {
         }
     }
 
-    /// Convert a [Decimal] to an unsigned integer, assumed positive by default.
-    pub fn to_u128(self) -> u128 {
-        self.value
-    }
-
     /// Create a [Decimal] from an unsigned integer expressed as an amount
     /// with precision defined by constant and assumed positive by default.
     pub fn from_amount(amount: u128) -> Self {
@@ -1244,17 +1239,6 @@ mod test {
     fn test_into_u64_panic() {
         let decimal = Decimal::new(u128::MAX - 1, 15, false);
         let result: u64 = decimal.into();
-    }
-
-    #[test]
-    fn test_into_u128() {
-        {
-            let decimal = Decimal::new(111000111, 10, false);
-            let actual: u128 = decimal.into();
-            let expected: u128 = 111000111;
-
-            assert_eq!(actual, expected);
-        }
     }
 
     #[test]
