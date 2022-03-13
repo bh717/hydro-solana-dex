@@ -9,15 +9,16 @@ const MODULE_NAME: &str = "simulation";
 
 pub struct Model {
     py_src: String,
-    pub x0: u128,
-    pub y0: u128,
-    pub c_numer: u128,
-    pub c_denom: u128,
-    pub i: u128,
+    pub x0: u64,
+    pub y0: u64,
+    pub c_numer: u64,
+    pub c_denom: u64,
+    pub i: u64,
+    pub scale: u8,
 }
 
 impl Model {
-    pub fn new(x0: u128, y0: u128, c_numer: u128, c_denom: u128, i: u128) -> Model {
+    pub fn new(x0: u64, y0: u64, c_numer: u64, c_denom: u64, i: u64, scale: u8) -> Model {
         let src_file = File::open(FILE_PATH);
         let mut src_file = match src_file {
             Ok(file) => file,
@@ -35,6 +36,7 @@ impl Model {
             c_numer,
             c_denom,
             i,
+            scale,
         }
     }
 
@@ -48,27 +50,37 @@ impl Model {
         return result;
     }
 
-    pub fn sim_xi(&self, scale: u8) -> (u128, bool) {
+    pub fn sim_xi(&self) -> (u128, bool) {
         let gil = Python::acquire_gil();
         let result: (u128, bool) = self
-            .call1(gil.python(), "sim_xi", (scale,))
+            .call0(gil.python(), "sim_xi")
             .unwrap()
             .extract(gil.python())
             .unwrap();
         return result;
     }
 
-    pub fn sim_delta_y_amm(&self, delta_x: u128, scale: u8) -> (u128, bool) {
+    pub fn sim_delta_y_amm(&self, delta_x: u64) -> (u128, bool) {
         let gil = Python::acquire_gil();
         let result: (u128, bool) = self
-            .call1(gil.python(), "sim_delta_y_amm", (delta_x, scale))
+            .call1(gil.python(), "sim_delta_y_amm", (delta_x,))
             .unwrap()
             .extract(gil.python())
             .unwrap();
         return result;
     }
 
-    pub fn sim_swap_x_to_y_amm(&self, delta_x: u128) -> (u128, u128, u128, u128) {
+    pub fn sim_delta_x_amm(&self, delta_y: u64) -> (u128, bool) {
+        let gil = Python::acquire_gil();
+        let result: (u128, bool) = self
+            .call1(gil.python(), "sim_delta_x_amm", (delta_y,))
+            .unwrap()
+            .extract(gil.python())
+            .unwrap();
+        return result;
+    }
+
+    pub fn sim_swap_x_to_y_amm(&self, delta_x: u64) -> (u128, u128, u128, u128) {
         let gil = Python::acquire_gil();
         return self
             .call1(gil.python(), "sim_swap_x_to_y_amm", (delta_x,))
@@ -77,20 +89,20 @@ impl Model {
             .unwrap();
     }
 
-    pub fn sim_delta_y_hmm(&self, delta_x: u128, scale: u8) -> (u128, bool) {
+    pub fn sim_delta_y_hmm(&self, delta_x: u64) -> (u128, bool) {
         let gil = Python::acquire_gil();
         let result: (u128, bool) = self
-            .call1(gil.python(), "sim_delta_y_hmm", (delta_x, scale))
+            .call1(gil.python(), "sim_delta_y_hmm", (delta_x,))
             .unwrap()
             .extract(gil.python())
             .unwrap();
         return result;
     }
 
-    pub fn sim_delta_x_hmm(&self, delta_y: u128, scale: u8) -> (u128, bool) {
+    pub fn sim_delta_x_hmm(&self, delta_y: u64) -> (u128, bool) {
         let gil = Python::acquire_gil();
         let result: (u128, bool) = self
-            .call1(gil.python(), "sim_delta_x_hmm", (delta_y, scale))
+            .call1(gil.python(), "sim_delta_x_hmm", (delta_y,))
             .unwrap()
             .extract(gil.python())
             .unwrap();
@@ -102,7 +114,14 @@ impl Model {
         let model = sim
             .call1(
                 "Curve",
-                (self.x0, self.y0, self.c_numer, self.c_denom, self.i),
+                (
+                    self.x0,
+                    self.y0,
+                    self.c_numer,
+                    self.c_denom,
+                    self.i,
+                    self.scale,
+                ),
             )
             .unwrap()
             .to_object(py);
@@ -120,7 +139,14 @@ impl Model {
         let model = sim
             .call1(
                 "Curve",
-                (self.x0, self.y0, self.c_numer, self.c_denom, self.i),
+                (
+                    self.x0,
+                    self.y0,
+                    self.c_numer,
+                    self.c_denom,
+                    self.i,
+                    self.scale,
+                ),
             )
             .unwrap()
             .to_object(py);
