@@ -2,7 +2,7 @@
 
 use crate::decimal::Decimal;
 
-#[derive(Debug)]
+#[derive(Default, Debug)]
 /// Encodes all results of swapping from a source token to a destination token
 pub struct SwapResult {
     /// Invariant expressed as k
