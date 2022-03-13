@@ -3,7 +3,7 @@ use std::convert::TryInto;
 use thiserror::Error;
 
 /// Default precision for a [Decimal] expressed as an amount.
-pub const AMOUNT_SCALE: u8 = 8;
+pub const AMOUNT_SCALE: u8 = 6;
 // TODO: add more constants for default precision on other types e.g. fees, percentages
 
 /// Error codes related to [Decimal].
@@ -867,11 +867,7 @@ mod test {
         let lhs = Decimal::from_amount(17134659154348278833);
         let rhs = Decimal::from_amount(11676758639919526015);
         let result = lhs.mul(rhs);
-        let expected = Decimal::from_amount(
-            200077279322612464128594731044417340495u128
-                .checked_div(10u128.pow(8))
-                .expect("scaled_down"),
-        );
+        let expected = Decimal::from_amount(200077279322612464128594731044417u128);
         assert_eq!(result, expected);
 
         // power function with decimal exponent, scaled down (floor) at lower precision
