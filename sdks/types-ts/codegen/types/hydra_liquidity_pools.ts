@@ -347,11 +347,35 @@ export type HydraLiquidityPools = {
         kind: "struct";
         fields: [
           {
-            name: "tradeFeeNumerator";
+            name: "swapFeeNumerator";
             type: "u64";
           },
           {
-            name: "tradeFeeDenominator";
+            name: "swapFeeDenominator";
+            type: "u64";
+          },
+          {
+            name: "ownerTradeFeeNumerator";
+            type: "u64";
+          },
+          {
+            name: "ownerTradeFeeDenominator";
+            type: "u64";
+          },
+          {
+            name: "ownerWithdrawFeeNumerator";
+            type: "u64";
+          },
+          {
+            name: "ownerWithdrawFeeDenominator";
+            type: "u64";
+          },
+          {
+            name: "hostFeeNumerator";
+            type: "u64";
+          },
+          {
+            name: "hostFeeDenominator";
             type: "u64";
           }
         ];
@@ -440,6 +464,11 @@ export type HydraLiquidityPools = {
       code: 6002;
       name: "InvalidMintAddress";
       msg: "Mint address provided doesn't match pools";
+    },
+    {
+      code: 6003;
+      name: "InvalidFee";
+      msg: "Invalid Fee input";
     }
   ];
 };
@@ -793,11 +822,35 @@ export const IDL: HydraLiquidityPools = {
         kind: "struct",
         fields: [
           {
-            name: "tradeFeeNumerator",
+            name: "swapFeeNumerator",
             type: "u64",
           },
           {
-            name: "tradeFeeDenominator",
+            name: "swapFeeDenominator",
+            type: "u64",
+          },
+          {
+            name: "ownerTradeFeeNumerator",
+            type: "u64",
+          },
+          {
+            name: "ownerTradeFeeDenominator",
+            type: "u64",
+          },
+          {
+            name: "ownerWithdrawFeeNumerator",
+            type: "u64",
+          },
+          {
+            name: "ownerWithdrawFeeDenominator",
+            type: "u64",
+          },
+          {
+            name: "hostFeeNumerator",
+            type: "u64",
+          },
+          {
+            name: "hostFeeDenominator",
             type: "u64",
           },
         ],
@@ -886,6 +939,11 @@ export const IDL: HydraLiquidityPools = {
       code: 6002,
       name: "InvalidMintAddress",
       msg: "Mint address provided doesn't match pools",
+    },
+    {
+      code: 6003,
+      name: "InvalidFee",
+      msg: "Invalid Fee input",
     },
   ],
 };

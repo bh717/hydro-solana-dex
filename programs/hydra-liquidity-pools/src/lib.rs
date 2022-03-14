@@ -9,7 +9,7 @@ use instructions::initialize::*;
 use instructions::remove_liquidity::*;
 use instructions::swap::check_mint_addresses;
 use instructions::swap::*;
-use utils::fees::Fees;
+use state::fees::Fees;
 
 use anchor_lang::prelude::*;
 // use anchor_lang::solana_program::log::sol_log_compute_units;
