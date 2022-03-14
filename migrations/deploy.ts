@@ -1,7 +1,7 @@
 // This is not run with anchor migrate
 import * as anchor from "@project-serum/anchor";
 import config from "config-ts/global-config.json";
-import { HydraStaking, IDL } from "types-ts/codegen/types/hydra_staking";
+import * as staking from "types-ts/codegen/types/hydra_staking";
 import { loadKey } from "hydra-ts/node"; // these should be moved out of test
 import { HydraSDK } from "hydra-ts";
 import { Keypair } from "@solana/web3.js";
@@ -13,7 +13,10 @@ export default async function (provider: anchor.Provider) {
     config.localnet.programIds.hydraStaking
   );
 
-  const program = new anchor.Program<HydraStaking>(IDL, hydraStaking);
+  const program = new anchor.Program<staking.HydraStaking>(
+    staking.IDL,
+    hydraStaking
+  );
 
   const tokenMint = await loadKey(
     "keys/localnet/staking/hyd3VthE9YPGBeg9HEgZsrM5qPniC6VoaEFeTGkVsJR.json"
@@ -30,7 +33,10 @@ export default async function (provider: anchor.Provider) {
     tokenMint: tokenMint.publicKey.toString(),
   };
 
-  const sdk = HydraSDK.createFromAnchorProvider(provider, programMap);
+  const sdk = HydraSDK.createFromAnchorProvider(provider, {
+    ...config.localnet.programIds,
+    ...programMap,
+  });
 
   console.log("Creating mint and vault...");
 
@@ -59,18 +65,4 @@ redeemableMint:\t\t${redeemableMint.publicKey}
   `);
 
   await sdk.staking.initialize(tokenVaultBump, poolStateBump);
-
-  console.log(
-    "balance: ",
-    await sdk.common.getTokenBalance(
-      await sdk.staking.accounts.tokenVault.key()
-    )
-  );
-
-  console.log(
-    "info: ",
-    await sdk.common.getTokenAccountInfo(
-      await sdk.staking.accounts.tokenVault.key()
-    )
-  );
 }

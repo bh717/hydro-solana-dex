@@ -1,8 +1,10 @@
 import { Wallet, ProgramIds, Ctx } from "../types";
 import { AccountInfo, Connection, PublicKey } from "@solana/web3.js";
-import { Coder, Idl, Program, Provider } from "@project-serum/anchor";
-import stakingIdl from "target/idl/hydra_staking.json";
-import { HydraStaking } from "types-ts/codegen/types/hydra_staking";
+import { Coder, Program, Provider } from "@project-serum/anchor";
+import * as staking from "types-ts/codegen/types/hydra_staking";
+import * as liquidityPools from "types-ts/codegen/types/hydra_liquidity_pools";
+
+// import * as staking from "types-ts/codegen/types/hydra_staking";
 import * as utils from "../utils";
 /**
  * Creates a context object
@@ -51,16 +53,21 @@ export function createReadonlyCtx(
  * @returns Ctx
  */
 export function createCtxAnchor(provider: Provider, programIds: ProgramIds) {
-  const typedStakingIdl = stakingIdl as any as HydraStaking;
-
   // Create our program objects
   const hydraStaking = new Program(
-    typedStakingIdl,
+    staking.IDL,
     programIds.hydraStaking,
     provider
   );
-
-  const programs = { hydraStaking };
+  const hydraLiquidityPools = new Program(
+    liquidityPools.IDL,
+    programIds.hydraLiquidityPools,
+    provider
+  );
+  const programs = {
+    hydraStaking,
+    hydraLiquidityPools,
+  };
 
   /**
    * Lookup public key from initial programIds

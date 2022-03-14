@@ -5,5 +5,8 @@
   "files": [
     "codegen/types/*"
   ],
+  "scripts": {
+    "build": "tsc"
+  },
   "sideEffects": false
 }

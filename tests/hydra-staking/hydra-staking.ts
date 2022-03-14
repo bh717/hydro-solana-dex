@@ -1,7 +1,6 @@
 import * as anchor from "@project-serum/anchor";
 import config from "config-ts/global-config.json";
-import { HydraStaking, IDL } from "types-ts/codegen/types/hydra_staking";
-import { Keypair, PublicKey } from "@solana/web3.js";
+import { Keypair } from "@solana/web3.js";
 import * as assert from "assert";
 import { HydraSDK } from "hydra-ts";
 import { stringifyProps } from "hydra-ts/src/utils";
@@ -9,9 +8,6 @@ import { stringifyProps } from "hydra-ts/src/utils";
 describe("hydra-staking", () => {
   const provider = anchor.Provider.env();
   anchor.setProvider(provider);
-
-  const programId = new PublicKey(config.localnet.programIds.hydraStaking);
-  const program = new anchor.Program<HydraStaking>(IDL, programId);
 
   let tokenMint = Keypair.generate();
   let redeemableMint = Keypair.generate();
@@ -21,7 +17,8 @@ describe("hydra-staking", () => {
   let poolStateBump: number;
   before(async () => {
     sdk = HydraSDK.createFromAnchorProvider(provider, {
-      hydraStaking: program.programId.toString(),
+      ...config.localnet.programIds,
+      hydraStaking: config.localnet.programIds.hydraStaking,
       redeemableMint: redeemableMint.publicKey.toString(),
       tokenMint: tokenMint.publicKey.toString(),
     });
@@ -45,7 +42,7 @@ describe("hydra-staking", () => {
     assert.deepEqual(
       stringifyProps((await sdk.staking.accounts.poolState.info()).data),
       {
-        authority: `${program.provider.wallet.publicKey}`,
+        authority: `${sdk.ctx.provider.wallet.publicKey}`,
         poolStateBump: `${poolStateBump}`,
         redeemableMint: `${redeemableMint.publicKey}`,
         tokenMint: `${tokenMint.publicKey}`,

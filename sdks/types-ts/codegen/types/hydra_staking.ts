@@ -1,3 +1,4 @@
+
 export type HydraStaking = {
   "version": "0.1.0",
   "name": "hydra_staking",
@@ -197,7 +198,7 @@ export type HydraStaking = {
   ],
   "accounts": [
     {
-      "name": "poolState",
+      "name": "PoolState",
       "type": {
         "kind": "struct",
         "fields": [
@@ -451,7 +452,7 @@ export const IDL: HydraStaking = {
   ],
   "accounts": [
     {
-      "name": "poolState",
+      "name": "PoolState",
       "type": {
         "kind": "struct",
         "fields": [

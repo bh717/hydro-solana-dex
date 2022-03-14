@@ -14,7 +14,18 @@ rm -rf ./sdks/types-ts/codegen/types/*.ts
 anchor build -- --features "localnet"
 
 # copy new
-cp ./target/types/*.ts ./sdks/types-ts/codegen/types
+# cp ./target/types/*.ts ./sdks/types-ts/codegen/types
+
+yarn ts-node ./scripts/process-idl.ts
+
+# yarn ts-node ./scripts/process-idl.ts \
+#   --input ./target/idl/hydra_liquidity_pools.json \
+#   --output ./sdks/types-ts/codegen/types/hydra_liquidity_pools.ts
+
+# yarn ts-node ./scripts/process-idl.ts \
+#   --input ./target/idl/hydra_liquidity_pools.json \
+#   --output ./sdks/types-ts/codegen/types/hydra_liquidity_pools.ts
+
 
 # process new codegen and types files.
 
