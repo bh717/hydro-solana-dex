@@ -162,9 +162,8 @@ impl SwapCalculator {
         let one = Decimal::from_u64(1).to_scale(self.x0.scale);
         if c.eq(&one) {
             // k/qi * (q0/q_new).ln()
-            // temporarily bump scale to 12 decimal places to increase accuracy
-            let k_div_qi = k.to_scale(12).div(qi.to_scale(12));
-            let q0_div_q_new = q0.to_scale(12).div(q_new.clone().to_scale(12));
+            let k_div_qi = k.to_scale(8).div(qi.clone().to_scale(8));
+            let q0_div_q_new = q0.to_scale(8).div(q_new.clone().to_scale(8));
             let log_q0_div_q_new = q0_div_q_new.ln().unwrap();
             k_div_qi.mul(log_q0_div_q_new).to_scale(self.x0.scale)
         } else {
