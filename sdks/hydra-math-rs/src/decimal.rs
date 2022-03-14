@@ -983,7 +983,6 @@ mod test {
 
             // f64 sqrt == Decimal sqrt
             {
-                let sqrt_f64 = lhs_f64.sqrt();
                 let sqrt_f64_u128 = (((lhs_f64.sqrt() * den_f64).round() / den_f64) * den_f64) as u128;
                 let sqrt_decimal_u128 = lhs_decimal.to_scale(scale).sqrt().unwrap().value;
                 let difference = sqrt_f64_u128.saturating_sub(sqrt_decimal_u128).lt(&precision);
@@ -993,7 +992,6 @@ mod test {
 
             // f64 ln == Decimal ln
             {
-                let ln_f64 = lhs_f64.ln();
                 let ln_f64_u128 = (((lhs_f64.ln() * den_f64).round() / den_f64) * den_f64) as u128;
                 let ln_decimal_u128 = lhs_decimal.to_scale(scale).ln().unwrap().value;
                 let difference = ln_f64_u128.saturating_sub(ln_decimal_u128).lt(&precision);
