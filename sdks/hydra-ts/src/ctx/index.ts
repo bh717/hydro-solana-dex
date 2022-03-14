@@ -3,9 +3,8 @@ import { AccountInfo, Connection, PublicKey } from "@solana/web3.js";
 import { Coder, Program, Provider } from "@project-serum/anchor";
 import * as staking from "types-ts/codegen/types/hydra_staking";
 import * as liquidityPools from "types-ts/codegen/types/hydra_liquidity_pools";
-
-// import * as staking from "types-ts/codegen/types/hydra_staking";
 import * as utils from "../utils";
+
 /**
  * Creates a context object
  * @param wallet An Anchor wallet like object
