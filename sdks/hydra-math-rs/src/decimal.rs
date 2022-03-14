@@ -1,5 +1,7 @@
 use ndarray::{arr2, Array2};
 use std::convert::TryInto;
+use std::fmt;
+use std::iter::repeat;
 use thiserror::Error;
 
 /// Default precision for a [Decimal] expressed as an amount.
@@ -447,6 +449,36 @@ impl Compare<Decimal> for Decimal {
         } else {
             Ok(self.value <= other.value)
         }
+    }
+}
+
+impl fmt::Display for Decimal {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        let scale = self.scale as usize;
+        let mut rep = self.value.to_string();
+        let len = rep.len();
+
+        // inject decimal point
+        if scale > 0 {
+            if scale > len {
+                let mut new_rep = String::new();
+                let zeros = repeat("0").take(scale as usize - len).collect::<String>();
+                new_rep.push_str("0.");
+                new_rep.push_str(&zeros[..]);
+                new_rep.push_str(&rep[..]);
+                rep = new_rep;
+            } else if scale == len {
+                rep.insert(0, '.');
+                rep.insert(0, '0');
+            } else {
+                rep.insert(len - scale as usize, '.');
+            }
+        } else if rep.is_empty() {
+            // corner case for truncated decimals
+            rep.insert(0, '0');
+        }
+
+        f.pad_integral(!self.negative, "", &rep)
     }
 }
 
@@ -1284,6 +1316,39 @@ mod test {
             let expected: u64 = 333333333333333;
 
             assert_eq!(actual, expected);
+        }
+    }
+
+    #[test]
+    fn test_into_string() {
+        {
+            let decimal = Decimal::from_u128(42);
+            assert_eq!(decimal.to_string(), "42");
+        }
+
+        {
+            let decimal = Decimal::new(42, 0, true);
+            assert_eq!(decimal.to_string(), "-42");
+        }
+
+        {
+            let decimal = Decimal::from_amount(0);
+            assert_eq!(decimal.to_string(), "0.000000");
+        }
+
+        {
+            let decimal = Decimal::from_amount(1_500_000);
+            assert_eq!(decimal.to_string(), "1.500000");
+        }
+
+        {
+            let decimal = Decimal::from_amount(500_000);
+            assert_eq!(decimal.to_string(), "0.500000");
+        }
+
+        {
+            let decimal = Decimal::new(500_000, 6, true);
+            assert_eq!(decimal.to_string(), "-0.500000");
         }
     }
 
