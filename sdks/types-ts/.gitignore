@@ -1,2 +1,2 @@
-codegen/types/*.ts
-codegen/types/*.js
+codegen/**/*.ts
+codegen/**/*.js
