@@ -840,6 +840,7 @@ mod test {
                 scale: 6,
                 negative: false,
             };
+            assert_eq!(actual, expected)
         }
         {
             // 3/2 = 1.500000
