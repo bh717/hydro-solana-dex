@@ -431,7 +431,13 @@ mod tests {
             delta_y in 1_000_000..=100_000_000_000u64,
         ) {
             for (c_numer, c_denom, _c) in coefficient_allowed_values(AMOUNT_SCALE).get(c) {
-                let model = Model::new(x0, y0, *c_numer, *c_denom, i, AMOUNT_SCALE);
+                let model = Model::new(
+                    Decimal::from_amount(x0).to_string(),
+                    Decimal::from_amount(y0).to_string(),
+                    *c_numer,
+                    *c_denom,
+                    Decimal::from_amount(i).to_string(),
+                    AMOUNT_SCALE);
                 check_k(&model, x0, y0);
                 check_xi(&model, x0, y0, i);
                 check_delta_y_amm(&model, x0, y0, delta_x);
@@ -459,7 +465,13 @@ mod tests {
             delta_y in 1_000_000..=100_000_000u64,
         ) {
             for (c_numer, c_denom, c) in coefficient_allowed_values(AMOUNT_SCALE).get(c) {
-                let model = Model::new(x0, y0, *c_numer, *c_denom, i, AMOUNT_SCALE);
+                let model = Model::new(
+                    Decimal::from_amount(x0).to_string(),
+                    Decimal::from_amount(y0).to_string(),
+                    *c_numer,
+                    *c_denom,
+                    Decimal::from_amount(i).to_string(),
+                    AMOUNT_SCALE);
                 check_delta_y_hmm(&model, x0, y0, c.clone(), i, delta_x);
                 // TODO: compute yi overflows due to large value of K * i, consider using u256 int
                 // check_delta_x_hmm(&model, x0, y0, c.clone(), i, delta_y);
