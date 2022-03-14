@@ -9,16 +9,16 @@ const MODULE_NAME: &str = "simulation";
 
 pub struct Model {
     py_src: String,
-    pub x0: u64,
-    pub y0: u64,
+    pub x0: String,
+    pub y0: String,
     pub c_numer: u64,
     pub c_denom: u64,
-    pub i: u64,
+    pub i: String,
     pub scale: u8,
 }
 
 impl Model {
-    pub fn new(x0: u64, y0: u64, c_numer: u64, c_denom: u64, i: u64, scale: u8) -> Model {
+    pub fn new(x0: String, y0: String, c_numer: u64, c_denom: u64, i: String, scale: u8) -> Model {
         let src_file = File::open(FILE_PATH);
         let mut src_file = match src_file {
             Ok(file) => file,
@@ -115,11 +115,11 @@ impl Model {
             .call1(
                 "Curve",
                 (
-                    self.x0,
-                    self.y0,
+                    self.x0.clone(),
+                    self.y0.clone(),
                     self.c_numer,
                     self.c_denom,
-                    self.i,
+                    self.i.clone(),
                     self.scale,
                 ),
             )
@@ -140,11 +140,11 @@ impl Model {
             .call1(
                 "Curve",
                 (
-                    self.x0,
-                    self.y0,
+                    self.x0.clone(),
+                    self.y0.clone(),
                     self.c_numer,
                     self.c_denom,
-                    self.i,
+                    self.i.clone(),
                     self.scale,
                 ),
             )

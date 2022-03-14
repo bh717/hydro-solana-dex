@@ -16,13 +16,13 @@ class Curve:
     i: oracle price
     scale: decimal places
     """
-    self.x0 = Decimal(x0) / Decimal(10**scale)
-    self.y0 = Decimal(y0) / Decimal(10**scale)
+    self.x0 = Decimal(x0)
+    self.y0 = Decimal(y0)
     if c_denom == 0:
         self.c = Decimal(0)
     else:
         self.c = Decimal(c_numer)/Decimal(c_denom)
-    self.i = Decimal(i) / Decimal(10**scale)
+    self.i = Decimal(i)
     self.scale = scale
 
   def to_int_signed(self, decimal, rounding=ROUND_FLOOR):
