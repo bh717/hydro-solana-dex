@@ -22,7 +22,7 @@ export function addLiquidity(ctx: Ctx) {
       userTokenY,
       lpTokenAssociatedAccount,
       poolState,
-    } = await accounts.getLoaders(lpTokenMint);
+    } = await accounts.getAccountLoaders(lpTokenMint);
 
     await program.rpc.addLiquidity(
       toBN(tokenXMaxAmount),

@@ -4,6 +4,22 @@ import * as accs from "../accounts";
 import { inject } from "../../utils/meta-utils";
 import { TOKEN_PROGRAM_ID } from "@project-serum/serum/lib/token-instructions";
 import { Keypair, PublicKey } from "@solana/web3.js";
+import { PoolFees } from "../types";
+import { toBN } from "../../utils";
+
+type AnchorPoolFees = { [K in keyof PoolFees]: anchor.BN };
+function toAnchorPoolFees(fees: PoolFees): AnchorPoolFees {
+  return {
+    swapFeeNumerator: toBN(fees.swapFeeNumerator),
+    swapFeeDenominator: toBN(fees.swapFeeDenominator),
+    ownerTradeFeeNumerator: toBN(fees.ownerTradeFeeNumerator),
+    ownerTradeFeeDenominator: toBN(fees.ownerTradeFeeDenominator),
+    ownerWithdrawFeeNumerator: toBN(fees.ownerWithdrawFeeNumerator),
+    ownerWithdrawFeeDenominator: toBN(fees.ownerWithdrawFeeDenominator),
+    hostFeeNumerator: toBN(fees.hostFeeNumerator),
+    hostFeeDenominator: toBN(fees.hostFeeDenominator),
+  };
+}
 
 export function initialize(ctx: Ctx) {
   return async (
@@ -11,16 +27,7 @@ export function initialize(ctx: Ctx) {
     tokenYMint: PublicKey,
     // TODO: should this init if needed?
     lpTokenMint: PublicKey = Keypair.generate().publicKey,
-    poolFees: {
-      swapFeeNumerator: anchor.BN;
-      swapFeeDenominator: anchor.BN;
-      ownerTradeFeeNumerator: anchor.BN;
-      ownerTradeFeeDenominator: anchor.BN;
-      ownerWithdrawFeeNumerator: anchor.BN;
-      ownerWithdrawFeeDenominator: anchor.BN;
-      hostFeeNumerator: anchor.BN;
-      hostFeeDenominator: anchor.BN;
-    }
+    poolFees: PoolFees
   ) => {
     const program = ctx.programs.hydraLiquidityPools;
     const accounts = await inject(accs, ctx).getInitAccountLoaders(
@@ -40,7 +47,7 @@ export function initialize(ctx: Ctx) {
       poolStateBump,
       lpTokenVaultBump,
       0, // compensation_parameter
-      poolFees,
+      toAnchorPoolFees(poolFees),
       {
         accounts: {
           authority: program.provider.wallet.publicKey,

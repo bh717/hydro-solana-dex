@@ -18,7 +18,7 @@ export function removeLiquidity(ctx: Ctx) {
       userTokenY,
       lpTokenAssociatedAccount,
       poolState,
-    } = await inject(accs, ctx).getLoaders(lpTokenMint);
+    } = await inject(accs, ctx).getAccountLoaders(lpTokenMint);
 
     const accounts = {
       poolState: await poolState.key(),

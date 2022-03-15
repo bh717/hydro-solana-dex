@@ -4,9 +4,9 @@ import config from "config-ts/global-config.json";
 import * as liquidityPools from "types-ts/codegen/types/hydra_liquidity_pools";
 import assert from "assert";
 import { Keypair, PublicKey } from "@solana/web3.js";
-import { TOKEN_PROGRAM_ID } from "@project-serum/serum/lib/token-instructions";
-import { btcdMintAmount, usddMintAmount } from "../constants";
+import { BTCD_MINT_AMOUNT, USDD_MINT_AMOUNT } from "../constants";
 import { HydraSDK } from "hydra-ts";
+import { PoolFees } from "hydra-ts/src/liquidity-pools/types";
 
 const getTokenBalance = async (
   provider: anchor.Provider,
@@ -23,33 +23,22 @@ describe("hydra-liquidity-pool", () => {
 
   let sdk: HydraSDK;
 
-  const hydraLiquidityPoolsProgramId = new anchor.web3.PublicKey(
-    config.localnet.programIds.hydraLiquidityPools
-  );
-  const program = new anchor.Program(
-    liquidityPools.IDL,
-    hydraLiquidityPoolsProgramId
-  );
-
   const lpTokenMint = Keypair.generate();
   let btcdMint: PublicKey;
   let usddMint: PublicKey;
   let btcdAccount: PublicKey;
   let usddAccount: PublicKey;
-  let lpTokenAssociatedAccount: PublicKey;
 
   let poolState: PublicKey;
   let tokenXVault: PublicKey;
   let tokenYVault: PublicKey;
-  let lpTokenVault: PublicKey;
 
   let poolStateBump: number;
   let tokenXVaultBump: number;
   let tokenYVaultBump: number;
-  let lpTokenVaultBump: number;
   let poolStateAccount: any;
 
-  let poolFees: any; // XXX
+  let poolFees: PoolFees;
 
   before(async () => {
     sdk = HydraSDK.createFromAnchorProvider(
@@ -68,12 +57,12 @@ describe("hydra-liquidity-pool", () => {
 
     [btcdMint, btcdAccount] = await sdk.common.createMintAndAssociatedVault(
       btcdMintPair,
-      BigInt(btcdMintAmount.toString())
+      BTCD_MINT_AMOUNT
     );
 
     [usddMint, usddAccount] = await sdk.common.createMintAndAssociatedVault(
       usddMintPair,
-      BigInt(usddMintAmount.toString())
+      USDD_MINT_AMOUNT
     );
 
     // get the PDA for the PoolState
@@ -82,27 +71,23 @@ describe("hydra-liquidity-pool", () => {
 
     // create lpTokenMint with poolState as the authority and a lpTokenAssociatedAccount
     await sdk.common.createMint(lpTokenMint, poolState, 9);
-    lpTokenAssociatedAccount = await sdk.common.createAssociatedAccount(
-      lpTokenMint.publicKey
-    );
+    await sdk.common.createAssociatedAccount(lpTokenMint.publicKey);
     tokenXVault = await accounts.tokenXVault.key();
     tokenXVaultBump = await accounts.tokenXVault.bump();
     tokenYVault = await accounts.tokenYVault.key();
     tokenYVaultBump = await accounts.tokenYVault.bump();
-    lpTokenVault = await accounts.lpTokenVault.key();
-    lpTokenVaultBump = await accounts.lpTokenVault.bump();
   });
 
   it("should initialize a liquidity-pool", async () => {
     poolFees = {
-      swapFeeNumerator: new BN(1),
-      swapFeeDenominator: new BN(500),
-      ownerTradeFeeNumerator: new BN(0),
-      ownerTradeFeeDenominator: new BN(0),
-      ownerWithdrawFeeNumerator: new BN(0),
-      ownerWithdrawFeeDenominator: new BN(0),
-      hostFeeNumerator: new BN(0),
-      hostFeeDenominator: new BN(0),
+      swapFeeNumerator: 1n,
+      swapFeeDenominator: 500n,
+      ownerTradeFeeNumerator: 0n,
+      ownerTradeFeeDenominator: 0n,
+      ownerWithdrawFeeNumerator: 0n,
+      ownerWithdrawFeeDenominator: 0n,
+      hostFeeNumerator: 0n,
+      hostFeeDenominator: 0n,
     };
 
     await sdk.liquidityPools.initialize(
@@ -148,9 +133,7 @@ describe("hydra-liquidity-pool", () => {
       lpTokenMint.publicKey
     );
 
-    const accounts = await sdk.liquidityPools.accounts.getInitAccountLoaders(
-      btcdMint,
-      usddMint,
+    const accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
       lpTokenMint.publicKey
     );
 
@@ -160,26 +143,17 @@ describe("hydra-liquidity-pool", () => {
     );
 
     assert.strictEqual(
-      (await getTokenBalance(provider, btcdAccount)).toNumber(),
-      btcdMintAmount.toNumber() - 6_000_000
+      await accounts.userTokenX.balance(),
+      BTCD_MINT_AMOUNT - 6_000_000n
     );
 
     assert.strictEqual(
-      (await getTokenBalance(provider, usddAccount)).toNumber(),
-      usddMintAmount.toNumber() - 255_575_287_200
+      await accounts.userTokenY.balance(),
+      USDD_MINT_AMOUNT - 255_575_287_200n
     );
-    assert.strictEqual(
-      (await getTokenBalance(provider, lpTokenVault)).toNumber(),
-      100
-    );
-    assert.strictEqual(
-      (await getTokenBalance(provider, tokenXVault)).toNumber(),
-      6000000
-    );
-    assert.strictEqual(
-      (await getTokenBalance(provider, tokenYVault)).toNumber(),
-      255575287200
-    );
+    assert.strictEqual(await accounts.lpTokenVault.balance(), 100n);
+    assert.strictEqual(await accounts.tokenXVault.balance(), 6000000n);
+    assert.strictEqual(await accounts.tokenYVault.balance(), 255575287200n);
   });
 
   it("should not add-liquidity on a second deposit with the 0 expected_lp_tokens", async () => {
@@ -190,31 +164,29 @@ describe("hydra-liquidity-pool", () => {
       lpTokenMint.publicKey
     );
 
+    const accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
+      lpTokenMint.publicKey
+    );
+
     // no changes from last test case.
     assert.strictEqual(
-      (await getTokenBalance(provider, lpTokenAssociatedAccount)).toNumber(),
-      1238326078
+      await accounts.lpTokenAssociatedAccount.balance(),
+      1238326078n
     );
+
     assert.strictEqual(
-      (await getTokenBalance(provider, btcdAccount)).toNumber(),
-      btcdMintAmount.toNumber() - 6_000_000
+      await accounts.userTokenX.balance(),
+      BTCD_MINT_AMOUNT - 6_000_000n
     );
+
     assert.strictEqual(
-      (await getTokenBalance(provider, usddAccount)).toNumber(),
-      usddMintAmount.toNumber() - 255_575_287_200
+      await accounts.userTokenY.balance(),
+      USDD_MINT_AMOUNT - 255_575_287_200n
     );
-    assert.strictEqual(
-      (await getTokenBalance(provider, lpTokenVault)).toNumber(),
-      100
-    );
-    assert.strictEqual(
-      (await getTokenBalance(provider, tokenXVault)).toNumber(),
-      6000000
-    );
-    assert.strictEqual(
-      (await getTokenBalance(provider, tokenYVault)).toNumber(),
-      255575287200
-    );
+
+    assert.strictEqual(await accounts.lpTokenVault.balance(), 100n);
+    assert.strictEqual(await accounts.tokenXVault.balance(), 6000000n);
+    assert.strictEqual(await accounts.tokenYVault.balance(), 255575287200n);
   });
 
   it("should add-liquidity to pool for the second time", async () => {
@@ -224,29 +196,33 @@ describe("hydra-liquidity-pool", () => {
       3_302_203_141n,
       lpTokenMint.publicKey
     );
+
+    const accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
+      lpTokenMint.publicKey
+    );
+
     assert.strictEqual(
-      (await getTokenBalance(provider, lpTokenAssociatedAccount)).toNumber(),
-      1238326078 + 3302203141
+      await accounts.lpTokenAssociatedAccount.balance(),
+      1238326078n + 3302203141n
+    );
+
+    assert.strictEqual(
+      await accounts.userTokenX.balance(),
+      BTCD_MINT_AMOUNT - 6_000_000n - 16_000_000n // first add - second add
+    );
+
+    assert.strictEqual(
+      await accounts.userTokenY.balance(),
+      USDD_MINT_AMOUNT - 255_575_287_200n - 681_534_099_132n // first add - second add
+    );
+    assert.strictEqual(await accounts.lpTokenVault.balance(), 100n); // no change
+    assert.strictEqual(
+      await accounts.tokenXVault.balance(),
+      6000000n + 16000000n
     );
     assert.strictEqual(
-      (await getTokenBalance(provider, btcdAccount)).toNumber(),
-      btcdMintAmount.toNumber() - 6_000_000 - 16_000_000 // first add - second add
-    );
-    assert.strictEqual(
-      (await getTokenBalance(provider, usddAccount)).toNumber(),
-      usddMintAmount.toNumber() - 255_575_287_200 - 681_534_099_132 // first add - second add
-    );
-    assert.strictEqual(
-      (await getTokenBalance(provider, lpTokenVault)).toNumber(),
-      100
-    ); // no change
-    assert.strictEqual(
-      (await getTokenBalance(provider, tokenXVault)).toNumber(),
-      6000000 + 16000000
-    );
-    assert.strictEqual(
-      (await getTokenBalance(provider, tokenYVault)).toNumber(),
-      255575287200 + 681534099132
+      await accounts.tokenYVault.balance(),
+      255575287200n + 681534099132n
     );
   });
 
@@ -264,54 +240,53 @@ describe("hydra-liquidity-pool", () => {
       assert.equal(err.toString(), errMsg);
     }
 
+    const accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
+      lpTokenMint.publicKey
+    );
+
     // no change from last test
     assert.strictEqual(
-      (await getTokenBalance(provider, lpTokenAssociatedAccount)).toNumber(),
-      1238326078 + 3302203141
+      await accounts.lpTokenAssociatedAccount.balance(),
+      1238326078n + 3302203141n
     );
     assert.strictEqual(
-      (await getTokenBalance(provider, btcdAccount)).toNumber(),
-      btcdMintAmount.toNumber() - 6_000_000 - 16_000_000 // first add - second add
+      await accounts.userTokenX.balance(),
+      BTCD_MINT_AMOUNT - 6_000_000n - 16_000_000n // first add - second add
     );
     assert.strictEqual(
-      (await getTokenBalance(provider, usddAccount)).toNumber(),
-      usddMintAmount.toNumber() - 255_575_287_200 - 681_534_099_132 // first add - second add
+      await accounts.userTokenY.balance(),
+      USDD_MINT_AMOUNT - 255_575_287_200n - 681_534_099_132n // first add - second add
     );
-    assert.strictEqual(
-      (await getTokenBalance(provider, lpTokenVault)).toNumber(),
-      100
-    );
+    assert.strictEqual(await accounts.lpTokenVault.balance(), 100n);
+
     // no change
     assert.strictEqual(
-      (await getTokenBalance(provider, tokenXVault)).toNumber(),
-      6000000 + 16000000
+      await accounts.tokenXVault.balance(),
+      6000000n + 16000000n
     );
     assert.strictEqual(
-      (await getTokenBalance(provider, tokenYVault)).toNumber(),
-      255575287200 + 681534099132
+      await accounts.tokenYVault.balance(),
+      255575287200n + 681534099132n
     );
   });
 
   it("should remove-liquidity first time", async () => {
+    const accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
+      lpTokenMint.publicKey
+    );
+
     await sdk.liquidityPools.removeLiquidity(
       3_302_203_141n,
       lpTokenMint.publicKey
     );
 
     assert.strictEqual(
-      (await getTokenBalance(provider, lpTokenAssociatedAccount)).toNumber(),
-      1238326078
+      await accounts.lpTokenAssociatedAccount.balance(),
+      1238326078n
     );
 
-    assert.strictEqual(
-      (await getTokenBalance(provider, tokenXVault)).toNumber(),
-      6_000_000
-    );
-
-    assert.strictEqual(
-      (await getTokenBalance(provider, tokenYVault)).toNumber(),
-      255575287200
-    );
+    assert.strictEqual(await accounts.tokenXVault.balance(), 6_000_000n);
+    assert.strictEqual(await accounts.tokenYVault.balance(), 255575287200n);
   });
 
   it("should fail token swap due to slippage error", async () => {
@@ -362,16 +337,23 @@ describe("hydra-liquidity-pool", () => {
       btcdAccount,
       usddAccount
     );
-
+    const accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
+      lpTokenMint.publicKey
+    );
     assert.strictEqual(
-      (await getTokenBalance(provider, tokenXVault)).toNumber(),
-      6_000_000 + 1_000_000 + 2000 // original amount + swap in amount + fee
+      await accounts.tokenXVault.balance(),
+      6_000_000n + 1_000_000n + 2000n // original amount + swap in amount + fee
     );
 
     assert.strictEqual(
+<<<<<<< HEAD
       (await getTokenBalance(provider, tokenYVault)).toNumber(),
       255_575_287_200 - 36_510_755_314 // original amount - swap out amount
 >>>>>>> 48aabc1 (Add SDK to hydraliquiditypools)
+=======
+      await accounts.tokenYVault.balance(),
+      255_575_287_200n - 36_510_755_314n // original amount - swap out amount
+>>>>>>> bc27f10 (Update tests and poolFees to use BigInt)
     );
   });
 
@@ -397,7 +379,7 @@ describe("hydra-liquidity-pool", () => {
   //   usddAccount,
   //   btcdAccount,
   // );
-  //
+  //// TODO: convert to use sdk
   //   assert.strictEqual(
   //     (await getTokenBalance(provider, tokenXVault)).toNumber(),
   //     6_000_000 + 1_000_000
@@ -420,29 +402,27 @@ describe("hydra-liquidity-pool", () => {
   // });
 
   it("should remove-liquidity for the last time", async () => {
+    const accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
+      lpTokenMint.publicKey
+    );
+
     await sdk.liquidityPools.removeLiquidity(
       1238326078n,
       lpTokenMint.publicKey
     );
 
+    assert.strictEqual(await accounts.lpTokenAssociatedAccount.balance(), 0n);
+
+    assert.strictEqual(await accounts.lpTokenVault.balance(), 100n);
+
     assert.strictEqual(
-      (await getTokenBalance(provider, lpTokenAssociatedAccount)).toNumber(),
-      0
+      await accounts.userTokenX.balance(),
+      21_000_000_000_000n
     );
 
     assert.strictEqual(
-      (await getTokenBalance(provider, lpTokenVault)).toNumber(),
-      100
-    );
-
-    assert.strictEqual(
-      (await getTokenBalance(provider, btcdAccount)).toNumber(),
-      21_000_000_000_000
-    );
-
-    assert.strictEqual(
-      (await getTokenBalance(provider, usddAccount)).toNumber(),
-      100_000_000_000_000 - 17695 // Always left in the pool.
+      await accounts.userTokenY.balance(),
+      100_000_000_000_000n - 17695n // Always left in the pool.
     );
   });
 });

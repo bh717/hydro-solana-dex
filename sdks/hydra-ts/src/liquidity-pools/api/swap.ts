@@ -14,9 +14,8 @@ export function swap(ctx: Ctx) {
   ) => {
     const program = ctx.programs.hydraLiquidityPools;
     const accounts = inject(accs, ctx);
-    const { tokenXVault, tokenYVault, poolState } = await accounts.getLoaders(
-      lpTokenMint
-    );
+    const { tokenXVault, tokenYVault, poolState } =
+      await accounts.getAccountLoaders(lpTokenMint);
 
     await program.rpc.swap(toBN(amountIn), toBN(minimumAmountOut), {
       accounts: {

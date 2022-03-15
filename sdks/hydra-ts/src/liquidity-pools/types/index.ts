@@ -13,3 +13,14 @@ export type PoolState = {
   lpTokenVaultBump: number;
   compensationParameter: number; // Range from (0 - 200) / 100 = c. With only 025 increments
 };
+
+export type PoolFees = {
+  swapFeeNumerator: bigint;
+  swapFeeDenominator: bigint;
+  ownerTradeFeeNumerator: bigint;
+  ownerTradeFeeDenominator: bigint;
+  ownerWithdrawFeeNumerator: bigint;
+  ownerWithdrawFeeDenominator: bigint;
+  hostFeeNumerator: bigint;
+  hostFeeDenominator: bigint;
+};
