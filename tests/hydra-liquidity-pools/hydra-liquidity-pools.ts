@@ -87,9 +87,12 @@ describe("hydra-liquidity-pool", () => {
       poolFees
     );
 
-    poolStateAccount = (
-      await sdk.liquidityPools.accounts.poolState(lpTokenMint.publicKey).info()
-    ).data;
+    const accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
+      lpTokenMint.publicKey
+    );
+
+    const poolStateInfo = await accounts.poolState.info();
+    const poolStateAccount = poolStateInfo.data;
 
     assert.equal(
       poolStateAccount.authority.toString(),
