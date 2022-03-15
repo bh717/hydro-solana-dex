@@ -1,21 +1,11 @@
 import * as anchor from "@project-serum/anchor";
-import { BN } from "@project-serum/anchor";
 import config from "config-ts/global-config.json";
-import * as liquidityPools from "types-ts/codegen/types/hydra_liquidity_pools";
 import assert from "assert";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import { BTCD_MINT_AMOUNT, USDD_MINT_AMOUNT } from "../constants";
 import { HydraSDK } from "hydra-ts";
 import { PoolFees } from "hydra-ts/src/liquidity-pools/types";
 
-const getTokenBalance = async (
-  provider: anchor.Provider,
-  pubkey: PublicKey
-) => {
-  return new BN(
-    (await provider.connection.getTokenAccountBalance(pubkey)).value.amount
-  );
-};
 describe("hydra-liquidity-pool", () => {
   // Configure the client to use the local cluster.
   const provider = anchor.Provider.env();
