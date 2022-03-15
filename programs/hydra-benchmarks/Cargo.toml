@@ -17,6 +17,5 @@ localnet = []
 default = ["localnet"]
 
 [dependencies]
-#anchor-lang = { git = "https://github.com/hydraswap-io/anchor" }
-anchor-lang = "0.20.1"
+anchor-lang = "0.22.1"
 hydra-math-rs = { version = "0.1.0", path = "../../sdks/hydra-math-rs", features = ["no-entrypoint"] }

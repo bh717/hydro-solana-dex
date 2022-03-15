@@ -1,6 +1,6 @@
 import { Wallet, ProgramIds, Ctx } from "../types";
-import { Connection, PublicKey } from "@solana/web3.js";
-import { Program, Provider } from "@project-serum/anchor";
+import { AccountInfo, Connection, PublicKey } from "@solana/web3.js";
+import { Coder, Idl, Program, Provider } from "@project-serum/anchor";
 import stakingIdl from "target/idl/hydra_staking.json";
 import { HydraStaking } from "types-ts/codegen/types/hydra_staking";
 import * as utils from "../utils";
@@ -60,6 +60,8 @@ export function createCtxAnchor(provider: Provider, programIds: ProgramIds) {
     provider
   );
 
+  const programs = { hydraStaking };
+
   /**
    * Lookup public key from initial programIds
    * @param name
@@ -69,12 +71,24 @@ export function createCtxAnchor(provider: Provider, programIds: ProgramIds) {
     return new PublicKey(programIds[name]);
   }
 
+  /**
+   * Create a parser function to parse using the given coder
+   * @param program
+   * @param name
+   * @returns
+   */
+  function getParser<T>(program: { coder: Coder<string> }, name: string) {
+    return (info: AccountInfo<Buffer>) =>
+      program.coder.accounts.decode(name, info.data) as T;
+  }
+
   return {
     connection: provider.connection,
     wallet: provider.wallet,
-    programs: { hydraStaking },
+    programs,
     provider,
     getKey,
+    getParser,
     utils,
   };
 }

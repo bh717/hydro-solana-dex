@@ -1,5 +1,3 @@
-extern crate core;
-
 mod errors;
 mod events;
 mod instructions;
@@ -9,6 +7,9 @@ mod utils;
 use instructions::add_liquidity::*;
 use instructions::initialize::*;
 use instructions::remove_liquidity::*;
+use instructions::swap::check_mint_addresses;
+use instructions::swap::*;
+use state::fees::Fees;
 
 use anchor_lang::prelude::*;
 // use anchor_lang::solana_program::log::sol_log_compute_units;
@@ -35,30 +36,34 @@ pub mod hydra_liquidity_pools {
     /// initialize a new empty pool
     pub fn initialize(
         ctx: Context<Initialize>,
-        token_a_vault_bump: u8,
-        token_b_vault_bump: u8,
+        token_x_vault_bump: u8,
+        token_y_vault_bump: u8,
         pool_state_bump: u8,
         lp_token_vault_bump: u8,
-    ) -> ProgramResult {
+        compensation_parameter: u16,
+        fees: Fees,
+    ) -> Result<()> {
         instructions::initialize::handle(
             ctx,
-            token_a_vault_bump,
-            token_b_vault_bump,
+            token_x_vault_bump,
+            token_y_vault_bump,
             pool_state_bump,
             lp_token_vault_bump,
+            compensation_parameter,
+            fees,
         )
     }
 
     pub fn add_liquidity(
         ctx: Context<AddLiquidity>,
-        tokens_a_max_amount: u64, // slippage handling: token_a_amount * (1 + TOLERATED_SLIPPAGE) --> calculated client side
-        tokens_b_max_amount: u64, // slippage handling: token_b_amount * (1 + TOLERATED_SLIPPAGE) --> calculated client side
+        tokens_x_max_amount: u64, // slippage handling: token_a_amount * (1 + TOLERATED_SLIPPAGE) --> calculated client side
+        tokens_y_max_amount: u64, // slippage handling: token_b_amount * (1 + TOLERATED_SLIPPAGE) --> calculated client side
         expected_lp_tokens: u64,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         instructions::add_liquidity::handle(
             ctx,
-            tokens_a_max_amount,
-            tokens_b_max_amount,
+            tokens_x_max_amount,
+            tokens_y_max_amount,
             expected_lp_tokens,
         )
     }
@@ -66,14 +71,19 @@ pub mod hydra_liquidity_pools {
     pub fn remove_liquidity(
         ctx: Context<RemoveLiquidity>,
         lp_tokens_to_burn: u64, // calculate the % client side
-    ) -> ProgramResult {
+    ) -> Result<()> {
         instructions::remove_liquidity::handle(ctx, lp_tokens_to_burn)
+    }
+
+    #[access_control(check_mint_addresses(&ctx))]
+    pub fn swap(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Result<()> {
+        instructions::swap::handle(ctx, amount_in, minimum_amount_out)
     }
 
     // pub fn swap_amm(ctx: Context<Swap>) -> ProgramResult {
     //     let swap_result = &mut ctx.accounts.swap_result;
     //     let swap = SwapCalculator::new(1000, 1000, 0, 1);
-    //     let swap_x_to_y_amm = swap.swap_x_to_y_amm(5);
+    // let swap_x_to_y_amm = swap.swap_x_to_y_amm(5);
     //     sol_log_compute_units();
     //     msg!("delta Y is: {:?}", swap_x_to_y_amm.delta_y.value.0);
     //     swap_result.x_new = swap_x_to_y_amm.x_new.to_imprecise().unwrap();

@@ -42,3 +42,14 @@ pub fn calculate_x_y(
 
     (x_debited, y_debited)
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn test_calculate_k() {
+        let expected: u64 = 1238326078;
+        let result = calculate_k(6000000, 255575287200, 0).unwrap();
+        assert_eq!(expected, result);
+    }
+}

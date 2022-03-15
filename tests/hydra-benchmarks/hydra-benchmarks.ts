@@ -1,13 +1,13 @@
 import * as anchor from "@project-serum/anchor";
 import { Program } from "@project-serum/anchor";
-import * as localJsonIdl from "../../target/idl/hydra_benchmarks.json";
+import config from "config-ts/global-config.json";
 import { HydraBenchmarks, IDL } from "types-ts/codegen/types/hydra_benchmarks";
 
 describe("hydra-benchmarks", () => {
   anchor.setProvider(anchor.Provider.env());
 
   const hydraBenchmarks = new anchor.web3.PublicKey(
-    localJsonIdl["metadata"]["address"]
+    config.localnet.programIds.hydraBenchmarks
   );
   const program = new anchor.Program(
     IDL,

@@ -9,15 +9,8 @@ import {
   WalletMultiButton,
 } from "@solana/wallet-adapter-react-ui";
 import { PhantomWalletAdapter } from "@solana/wallet-adapter-wallets";
-import { HydraSDK, SPLAccountInfo } from "hydra-ts";
-import React, {
-  FC,
-  ReactNode,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { HydraSDK } from "hydra-ts";
+import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
 import {
   AppBar,
   Button,
@@ -33,9 +26,7 @@ import {
   Toolbar,
   Typography,
 } from "@mui/material";
-import { Observable } from "rxjs";
 import { useObservable } from "react-use";
-import { PublicKey } from "@solana/web3.js";
 import { Box } from "@mui/system";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -67,52 +58,6 @@ function trunc(str: string) {
   return [str.slice(0, 4), str.slice(-4)].join("..");
 }
 
-function useMyAccounts(sdk: HydraSDK) {
-  type MyAccounts = {
-    account1: SPLAccountInfo;
-    account2: SPLAccountInfo;
-  };
-
-  const [myAccounts, setAccounts] = useState<Array<PublicKey>>([]);
-
-  useEffect(() => {
-    sdk.common.getTokenAccounts().then(setAccounts);
-  }, [sdk]);
-
-  const accounts$ = useMemo(() => {
-    if (myAccounts.length === 0) return new Observable<void>((s) => s.next());
-
-    const [account1, account2] = myAccounts;
-    // Pass in structure of the value output you would like ...
-    return sdk.common.getTokenAccountInfoStreams({
-      account1,
-      account2,
-    });
-  }, [myAccounts, sdk]);
-
-  return useObservable<void | MyAccounts>(accounts$);
-}
-
-function useContractAccounts(sdk: HydraSDK) {
-  type ContractAccounts = {
-    tokenVault: SPLAccountInfo;
-  };
-  const [tokenVaultKey, setTokenVaultKey] = useState<PublicKey>();
-
-  useEffect(() => {
-    sdk.staking.accounts.tokenVault.key().then(setTokenVaultKey);
-  }, [sdk]);
-
-  const contractAccounts$ = useMemo(() => {
-    if (!tokenVaultKey) return new Observable<void>((s) => s.next());
-
-    return sdk.common.getTokenAccountInfoStreams({
-      tokenVault: tokenVaultKey,
-    });
-  }, [tokenVaultKey, sdk]);
-  return useObservable<void | ContractAccounts>(contractAccounts$);
-}
-
 const Content: FC = () => {
   const wallet = useAnchorWallet();
   const { connection } = useConnection();
@@ -125,9 +70,17 @@ const Content: FC = () => {
     [connection, wallet]
   );
 
-  const myaccounts = useMyAccounts(sdk);
-  const contractAccounts = useContractAccounts(sdk);
-  console.log({ contractAccounts });
+  const userFrom = useObservable(
+    useMemo(() => sdk.staking.accounts.userToken.stream(), [sdk])
+  );
+
+  const userRedeemable = useObservable(
+    useMemo(() => sdk.staking.accounts.userRedeemable.stream(), [sdk])
+  );
+
+  const tokenVault = useObservable(
+    useMemo(() => sdk.staking.accounts.tokenVault.stream(), [sdk])
+  );
 
   const handleStakeAmountUpdated = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -187,64 +140,53 @@ const Content: FC = () => {
               </TableHead>
 
               <TableBody>
-                {!!myaccounts && (
-                  <>
-                    <TableRow>
-                      <TableCell colSpan={4}>
-                        <Typography variant="h6">My Accounts</Typography>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow key={myaccounts.account1.address.toString()}>
-                      <TableCell>
-                        {trunc(myaccounts.account1.address.toString())}
-                      </TableCell>
-                      <TableCell>
-                        {trunc(myaccounts.account1.mint.toString())}
-                      </TableCell>
-                      <TableCell>
-                        {trunc(myaccounts.account1.owner.toString())}
-                      </TableCell>
-                      <TableCell>
-                        {myaccounts.account1.amount.toString()}
-                      </TableCell>
-                    </TableRow>
-                    <TableRow key={myaccounts.account2.address.toString()}>
-                      <TableCell>
-                        {trunc(myaccounts.account2.address.toString())}
-                      </TableCell>
-                      <TableCell>
-                        {trunc(myaccounts.account2.mint.toString())}
-                      </TableCell>
-                      <TableCell>
-                        {trunc(myaccounts.account2.owner.toString())}
-                      </TableCell>
-                      <TableCell>
-                        {myaccounts.account2.amount.toString()}
-                      </TableCell>
-                    </TableRow>
-                  </>
+                <TableRow>
+                  <TableCell colSpan={4}>
+                    <Typography variant="h6">My Accounts</Typography>
+                  </TableCell>
+                </TableRow>
+                {userFrom && (
+                  <TableRow key={`${userFrom.pubkey}`}>
+                    <TableCell>{trunc(`${userFrom.pubkey}`)}</TableCell>
+                    <TableCell>
+                      {trunc(`${userFrom.account.data.mint}`)}
+                    </TableCell>
+                    <TableCell>
+                      {trunc(`${userFrom.account.data.owner}`)}
+                    </TableCell>
+                    <TableCell>{`${userFrom.account.data.amount}`}</TableCell>
+                  </TableRow>
                 )}
-                {!!contractAccounts && (
+                {userRedeemable && (
+                  <TableRow key={`${userRedeemable.pubkey}`}>
+                    <TableCell>{trunc(`${userRedeemable.pubkey}`)}</TableCell>
+                    <TableCell>
+                      {trunc(`${userRedeemable.account.data.mint}`)}
+                    </TableCell>
+                    <TableCell>
+                      {trunc(`${userRedeemable.account.data.owner}`)}
+                    </TableCell>
+                    <TableCell>{`${userRedeemable.account.data.amount}`}</TableCell>
+                  </TableRow>
+                )}
+
+                {tokenVault && (
                   <>
                     <TableRow>
                       <TableCell colSpan={4}>
                         <Typography variant="h6">Contract Accounts</Typography>
                       </TableCell>
                     </TableRow>
-                    <TableRow
-                      key={contractAccounts.tokenVault.address.toString()}
-                    >
+                    <TableRow key={`${tokenVault.pubkey}`}>
+                      <TableCell>{trunc(`${tokenVault.pubkey}`)}</TableCell>
                       <TableCell>
-                        {trunc(contractAccounts.tokenVault.address.toString())}
+                        {trunc(`${tokenVault.account.data.mint}`)}
                       </TableCell>
                       <TableCell>
-                        {trunc(contractAccounts.tokenVault.mint.toString())}
+                        {trunc(`${tokenVault.account.data.owner}`)}
                       </TableCell>
                       <TableCell>
-                        {trunc(contractAccounts.tokenVault.owner.toString())}
-                      </TableCell>
-                      <TableCell>
-                        {contractAccounts.tokenVault.amount.toString()}
+                        {trunc(`${tokenVault.account.data.amount}`)}
                       </TableCell>
                     </TableRow>
                   </>

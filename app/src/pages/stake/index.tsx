@@ -1,6 +1,10 @@
-import React, { FC } from "react";
+import { FC, useState, useMemo } from "react";
 import { makeStyles } from "@mui/styles";
 import { Box, Typography } from "@mui/material";
+import { useConnection, useAnchorWallet } from "@solana/wallet-adapter-react";
+import { HydraSDK } from "hydra-ts";
+import { useObservable } from "react-use";
+import { toast } from "react-toastify";
 
 import { Deposit } from "../../components/icons";
 import Banner from "../../assets/images/stake/banner.png";
@@ -156,6 +160,56 @@ interface StakeProps {
 
 const Stake: FC<StakeProps> = ({ openWalletConnect }) => {
   const classes = useStyles();
+  const wallet = useAnchorWallet();
+  const { connection } = useConnection();
+
+  const [staking, setStaking] = useState(false);
+  const [unstaking, setUnstaking] = useState(false);
+
+  const sdk = useMemo(
+    () => HydraSDK.create("localnet", connection, wallet),
+    [connection, wallet]
+  );
+
+  const userFrom = useObservable(
+    useMemo(() => sdk.staking.accounts.userToken.stream(), [sdk])
+  );
+
+  const userRedeemable = useObservable(
+    useMemo(() => sdk.staking.accounts.userRedeemable.stream(), [sdk])
+  );
+
+  const tokenVault = useObservable(
+    useMemo(() => sdk.staking.accounts.tokenVault.stream(), [sdk])
+  );
+
+  const stake = async (amount: string) => {
+    setStaking(true);
+
+    try {
+      await sdk.staking.stake(BigInt(amount));
+      toast.success(`You staked ${amount} HYSD successfully.`);
+    } catch (error) {
+      console.log(error);
+      toast.error(`Staking ${amount} HYSD failed.`);
+    }
+
+    setStaking(false);
+  };
+
+  const unstake = async (amount: string) => {
+    setUnstaking(true);
+
+    try {
+      await sdk.staking.unstake(BigInt(amount));
+      toast.success(`You unstaked ${amount} HYSD successfully.`);
+    } catch (error) {
+      console.log(error);
+      toast.error(`Unstaking ${amount} HYSD failed.`);
+    }
+
+    setUnstaking(false);
+  };
 
   return (
     <Box className={classes.stakeContainer}>
@@ -177,8 +231,20 @@ const Stake: FC<StakeProps> = ({ openWalletConnect }) => {
         </Box>
       </Box>
       <Box className={classes.stakeContent}>
-        <StakeUnstake walletConnect={openWalletConnect} />
-        <StakeStatus />
+        <StakeUnstake
+          walletConnect={openWalletConnect}
+          balance={
+            userRedeemable ? `${userRedeemable.account.data.amount}` : "0"
+          }
+          xBalance={userFrom ? `${userFrom.account.data.amount}` : "0"}
+          onStake={stake}
+          onUnstake={unstake}
+          staking={staking}
+          unstaking={unstaking}
+        />
+        <StakeStatus
+          balance={tokenVault ? `${tokenVault.account.data.amount}` : "0"}
+        />
       </Box>
     </Box>
   );

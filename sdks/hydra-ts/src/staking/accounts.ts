@@ -1,45 +1,46 @@
 import { POOL_STATE_SEED, TOKEN_VAULT_SEED } from "../config/constants";
 import { Ctx } from "../types";
-import { Account } from "../types/account";
-import { accounts } from "../utils/meta-utils";
+import * as AccountLoader from "../utils/account-loader";
+import { PoolState } from "./types/pool-state";
 
-export default accounts((ctx: Ctx) => {
-  return {
-    tokenVault: () => new Account(getTokenVaultAccount(ctx), ctx),
-    poolState: () => new Account(getPoolStateAccount(ctx), ctx),
-    redeemableMint: () => new Account(ctx.getKey("redeemableMint"), ctx),
-    tokenMint: () => new Account(ctx.getKey("tokenMint"), ctx),
-    userToken: () => new Account(getUserTokenAccount(ctx), ctx),
-    userRedeemable: () => new Account(getUserRedeemableAccount(ctx), ctx),
-  };
-});
+export const tokenMint = (ctx: Ctx) => {
+  return AccountLoader.Mint(ctx, ctx.getKey("tokenMint"));
+};
 
-async function getUserTokenAccount(ctx: Ctx) {
-  return await ctx.utils.getExistingOwnerTokenAccount(
-    ctx.provider,
-    ctx.getKey("tokenMint")
-  );
-}
+export const redeemableMint = (ctx: Ctx) => {
+  return AccountLoader.Mint(ctx, ctx.getKey("redeemableMint"));
+};
 
-async function getUserRedeemableAccount(ctx: Ctx) {
-  return await ctx.utils.getExistingOwnerTokenAccount(
-    ctx.provider,
-    ctx.getKey("redeemableMint")
-  );
-}
+export const userToken = (ctx: Ctx) => {
+  return AccountLoader.AssociatedToken(ctx, ctx.getKey("tokenMint"));
+};
 
-async function getTokenVaultAccount(ctx: Ctx) {
-  return await ctx.utils.getPDA(ctx.programs.hydraStaking.programId, [
+export const userRedeemable = (ctx: Ctx) => {
+  return AccountLoader.AssociatedToken(ctx, ctx.getKey("redeemableMint"));
+};
+
+export const tokenVault = (ctx: Ctx) => {
+  const programId = ctx.programs.hydraStaking.programId;
+
+  const seeds = [
     TOKEN_VAULT_SEED,
     ctx.getKey("tokenMint"),
     ctx.getKey("redeemableMint"),
-  ]);
-}
+  ];
+  return AccountLoader.PDAToken(programId, seeds, ctx);
+};
 
-async function getPoolStateAccount(ctx: Ctx) {
-  return await ctx.utils.getPDA(ctx.programs.hydraStaking.programId, [
+export const poolState = (ctx: Ctx) => {
+  const programId = ctx.programs.hydraStaking.programId;
+  const seeds = [
     POOL_STATE_SEED,
     ctx.getKey("tokenMint"),
     ctx.getKey("redeemableMint"),
-  ]);
-}
+  ];
+  const parser = ctx.getParser<PoolState>(
+    ctx.programs.hydraStaking,
+    "PoolState"
+  );
+
+  return AccountLoader.PDA(ctx, programId, seeds, parser);
+};

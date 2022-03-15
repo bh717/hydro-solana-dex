@@ -1,17 +1,12 @@
 import { Provider } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
 import { Ctx } from "../..";
+import { isDefaultProvider } from "../../utils";
 
 const TOKEN_PROGRAM_ID = new PublicKey(
   "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
 );
 
-function isDefaultProvider(provider: Provider) {
-  // TODO: use constant
-  return (
-    provider.wallet.publicKey.toString() === "11111111111111111111111111111111"
-  );
-}
 export function getTokenAccounts(ctx: Ctx) {
   return async (mint?: PublicKey) => {
     if (isDefaultProvider(ctx.provider)) {
@@ -30,5 +25,13 @@ export function getTokenAccounts(ctx: Ctx) {
     );
 
     return accounts.value.map(({ pubkey }) => pubkey);
+  };
+}
+
+export function getTokenAccount(ctx: Ctx) {
+  return async function (mint: PublicKey) {
+    if (isDefaultProvider(ctx.provider)) {
+      return [];
+    }
   };
 }

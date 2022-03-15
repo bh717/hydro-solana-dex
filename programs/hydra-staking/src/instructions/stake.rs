@@ -3,6 +3,7 @@ use crate::events::*;
 use crate::state::pool_state::PoolState;
 use crate::utils::price::calculate_price;
 use anchor_lang::prelude::*;
+use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
 use anchor_spl::token::{Mint, MintTo, Token, TokenAccount, Transfer};
 use hydra_math_rs::programs::staking::hydra_staking::calculate_pool_tokens_for_deposit;
@@ -16,42 +17,48 @@ pub struct Stake<'info> {
     pub pool_state: Box<Account<'info, PoolState>>,
 
     #[account(
-        constraint = token_mint.key() == pool_state.token_mint.key()
+        constraint = token_mint.key() == pool_state.token_mint,
     )]
     pub token_mint: Box<Account<'info, Mint>>,
 
     #[account(
         mut,
-        constraint = redeemable_mint.key() == pool_state.redeemable_mint.key()
+        constraint = redeemable_mint.key() == pool_state.redeemable_mint,
     )]
     pub redeemable_mint: Box<Account<'info, Mint>>,
 
     #[account(
         mut,
-        constraint = user_from.mint == pool_state.token_mint.key(),
+        constraint = user_from.mint == pool_state.token_mint,
         constraint = user_from.owner == user_from_authority.key()
     )]
     /// the token account to withdraw from
     pub user_from: Box<Account<'info, TokenAccount>>,
 
     /// the authority allowed to transfer from token_from
+    #[account(mut)]
     pub user_from_authority: Signer<'info>,
 
     #[account(
         mut,
         seeds = [ TOKEN_VAULT_SEED, token_mint.key().as_ref(), redeemable_mint.key().as_ref() ],
         bump,
-        constraint = token_vault.key() == pool_state.token_vault.key()
+        constraint = token_vault.key() == pool_state.token_vault,
     )]
     pub token_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(
-        mut,
-        constraint = redeemable_to.mint == pool_state.redeemable_mint.key(),
+        init_if_needed,
+        payer = user_from_authority,
+        associated_token::mint = redeemable_mint,
+        associated_token::authority = user_from_authority
     )]
     pub redeemable_to: Box<Account<'info, TokenAccount>>,
 
+    pub system_program: Program<'info, System>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program: Program<'info, Token>,
+    pub rent: Sysvar<'info, Rent>,
 }
 
 impl<'info> Stake<'info> {
@@ -82,15 +89,15 @@ impl<'info> Stake<'info> {
     }
 }
 
-pub fn handle(ctx: Context<Stake>, amount: u64) -> ProgramResult {
+pub fn handle(ctx: Context<Stake>, amount: u64) -> Result<()> {
     let total_token_vault = ctx.accounts.token_vault.amount;
     let total_redeemable_tokens = ctx.accounts.redeemable_mint.supply;
 
     let old_price = ctx.accounts.calculate_price();
     msg!("old_price: {}", old_price);
 
-    let token_mint_key = ctx.accounts.pool_state.token_mint.key();
-    let redeemable_mint_key = ctx.accounts.pool_state.redeemable_mint.key();
+    let token_mint_key = ctx.accounts.pool_state.token_mint;
+    let redeemable_mint_key = ctx.accounts.pool_state.redeemable_mint;
 
     let seeds = &[
         TOKEN_VAULT_SEED,

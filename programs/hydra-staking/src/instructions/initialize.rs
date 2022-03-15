@@ -43,11 +43,7 @@ pub struct Initialize<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn handle(
-    ctx: Context<Initialize>,
-    token_vault_bump: u8,
-    pool_state_bump: u8,
-) -> ProgramResult {
+pub fn handle(ctx: Context<Initialize>, token_vault_bump: u8, pool_state_bump: u8) -> Result<()> {
     ctx.accounts.pool_state.authority = *ctx.accounts.authority.to_account_info().key;
     ctx.accounts.pool_state.token_mint = *ctx.accounts.token_mint.to_account_info().key;
     ctx.accounts.pool_state.redeemable_mint = *ctx.accounts.redeemable_mint.to_account_info().key;

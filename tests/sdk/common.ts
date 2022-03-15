@@ -1,48 +1,10 @@
 import * as anchor from "@project-serum/anchor";
-import { Keypair } from "@solana/web3.js";
+import { AccountInfo, Keypair } from "@solana/web3.js";
 import assert from "assert";
-import { HydraSDK, SPLAccountInfo } from "hydra-ts";
+import { HydraSDK } from "hydra-ts";
+import { TokenAccount } from "hydra-ts/src/types/token-account";
+import * as AccountLoader from "hydra-ts/src/utils/account-loader";
 import { take, toArray } from "rxjs/operators";
-// import { validatorReset } from "test-utils-ts";
-type MintInfo = {
-  supply: bigint;
-  mintAuthority: anchor.web3.PublicKey | null;
-  decimals: number;
-  isInitialized: boolean;
-  freezeAuthority: anchor.web3.PublicKey | null;
-};
-type StringSPLAccountInfo = { [K in keyof SPLAccountInfo]: string };
-function stringInfo(info: SPLAccountInfo): StringSPLAccountInfo {
-  return {
-    address: `${info.address}`,
-    owner: `${info.owner}`,
-    amount: `${info.amount}`,
-    mint: `${info.mint}`,
-  };
-}
-
-type StringInfoObjectOut<T> = T extends Record<any, SPLAccountInfo>
-  ? { [K in keyof T]: StringSPLAccountInfo }
-  : never;
-function stringInfoObject<T extends Record<any, SPLAccountInfo>>(
-  obj: T
-): StringInfoObjectOut<T> {
-  return Object.fromEntries(
-    Object.entries(obj).map(([k, v]) => [k, stringInfo(v)])
-  ) as StringInfoObjectOut<T>;
-}
-
-function stringifyMintInfo(mintInfo: MintInfo): {
-  [K in keyof MintInfo]: string;
-} {
-  return {
-    supply: `${mintInfo.supply}`,
-    mintAuthority: `${mintInfo.mintAuthority}`,
-    decimals: `${mintInfo.decimals}`,
-    isInitialized: `${mintInfo.isInitialized}`,
-    freezeAuthority: `${mintInfo.freezeAuthority}`,
-  };
-}
 
 describe("HydraSDK", () => {
   const provider = anchor.Provider.env();
@@ -58,10 +20,10 @@ describe("HydraSDK", () => {
     const vault = Keypair.generate();
 
     await sdk.common.createMintAndVault(mint, vault, 100_000_000n);
-    const result = await sdk.common.getTokenAccounts();
+    const result = await sdk.user.getTokenAccounts();
     assert(result.length > 0);
 
-    const results = await sdk.common.getTokenAccounts(mint.publicKey);
+    const results = await sdk.user.getTokenAccounts(mint.publicKey);
     const [resultMint] = results;
 
     assert.strictEqual(results.length, 1);
@@ -74,140 +36,54 @@ describe("HydraSDK", () => {
 
     await sdk.common.createMintAndVault(mint, vault, 100_000_000n);
 
-    const info = await sdk.common.getTokenAccountInfo(vault.publicKey);
-    assert.strictEqual(`${info.address}`, `${vault.publicKey}`);
-    assert.strictEqual(info.amount, 100000000n);
-    assert.strictEqual(`${info.mint}`, `${mint.publicKey}`);
-    assert.strictEqual(`${info.owner}`, `${provider.wallet.publicKey}`);
+    const loader = AccountLoader.Token(sdk.ctx, vault.publicKey);
+    const { data } = await loader.info();
+
+    assert.strictEqual(data.amount, 100000000n);
+    assert.strictEqual(`${data.mint}`, `${mint.publicKey}`);
+    assert.strictEqual(`${data.owner}`, `${provider.wallet.publicKey}`);
   });
-  describe("getTokenAccountInfoStream()", () => {
-    it("should emit a value on subscription", async () => {
+
+  describe("accountLoader.stream()", () => {
+    async function setup() {
       const mint = Keypair.generate();
       const vault = Keypair.generate();
       const owner = sdk.ctx.wallet.publicKey;
       await sdk.common.createMintAndVault(mint, vault, 100_000_000n);
-      const token = await sdk.common.createTokenAccount(mint.publicKey, owner);
-      const [val] = await new Promise<SPLAccountInfo[]>((resolve) => {
-        sdk.common
-          .getTokenAccountInfoStream(token)
-          .pipe(take(1), toArray())
-          .subscribe(resolve);
-      });
 
-      assert.strictEqual(`${val.address}`, `${token}`);
-      assert.strictEqual(`${val.amount}`, `0`);
-      assert.strictEqual(`${val.mint}`, `${mint.publicKey}`);
-      assert.strictEqual(`${val.owner}`, `${owner}`);
+      const token = await sdk.common.createTokenAccount(mint.publicKey, owner);
+      const account = AccountLoader.Token(sdk.ctx, token);
+
+      // const account = getAccountLoader(sdk.ctx, token, TokenAccount.Parser);
+      return { account, mint, token, owner, vault };
+    }
+
+    it("should emit a value on subscription", async () => {
+      const { account, mint, owner } = await setup();
+      const [val] = await new Promise<
+        AccountLoader.AccountPubkey<TokenAccount>[]
+      >((resolve) => {
+        account.stream().pipe(take(1), toArray()).subscribe(resolve);
+      });
+      assert.strictEqual(`${val.pubkey}`, `${await account.key()}`);
+      assert.strictEqual(`${val.account.data.amount}`, `0`);
+      assert.strictEqual(`${val.account.data.mint}`, `${mint.publicKey}`);
+      assert.strictEqual(`${val.account.data.owner}`, `${owner}`);
     });
 
     it("should emit a value when updated", async () => {
-      const mint = Keypair.generate();
-      const vault = Keypair.generate();
-      const owner = sdk.ctx.wallet.publicKey;
-      await sdk.common.createMintAndVault(mint, vault, 100_000_000n);
-      const token = await sdk.common.createTokenAccount(mint.publicKey, owner);
-      const [val1, val2] = await new Promise<SPLAccountInfo[]>((resolve) => {
-        sdk.common
-          .getTokenAccountInfoStream(token)
-          .pipe(take(2), toArray())
-          .subscribe(resolve);
+      const { account, vault, token } = await setup();
 
-        sdk.common.transfer(vault.publicKey, token, 1000);
-      });
-
-      assert.deepEqual(stringInfo(val1), {
-        address: `${token}`,
-        amount: "0",
-        mint: `${mint.publicKey}`,
-        owner: `${owner}`,
-      });
-
-      assert.deepEqual(stringInfo(val2), {
-        address: `${token}`,
-        amount: "1000",
-        mint: `${mint.publicKey}`,
-        owner: `${owner}`,
-      });
-    });
-  });
-
-  describe("getMint()", () => {
-    it("should get a mint token", async () => {
-      const mint = Keypair.generate();
-      const vault = Keypair.generate();
-      await sdk.common.createMintAndVault(mint, vault, 100_000_000n);
-      const mintInfo = await sdk.common.getMint(mint.publicKey);
-
-      assert.deepEqual(stringifyMintInfo(mintInfo), {
-        mintAuthority: sdk.ctx.provider.wallet.publicKey.toString(),
-        supply: "100000000",
-        decimals: "6",
-        isInitialized: "true",
-        freezeAuthority: "null",
-      });
-    });
-  });
-
-  describe("getTokenAccountInfoStreams()", () => {
-    it("should combine the values of the streams", async () => {
-      const mint = Keypair.generate();
-      const vault = Keypair.generate();
-      const owner = sdk.ctx.wallet.publicKey;
-      await sdk.common.createMintAndVault(mint, vault, 100_000_000n);
-      const token = await sdk.common.createTokenAccount(mint.publicKey, owner);
-
-      // So because transfer deducts from one account then increases from the other account there are 3 combined states
-      const states = await new Promise<
-        {
-          vault: SPLAccountInfo;
-          token: SPLAccountInfo;
-        }[]
+      const [val1, val2] = await new Promise<
+        AccountLoader.AccountPubkey<TokenAccount>[]
       >((resolve) => {
-        sdk.common
-          .getTokenAccountInfoStreams({
-            vault: vault.publicKey,
-            token,
-          })
-          .pipe(take(3), toArray())
-          .subscribe((thing) => {
-            resolve(thing);
-          });
+        account.stream().pipe(take(2), toArray()).subscribe(resolve);
 
         sdk.common.transfer(vault.publicKey, token, 1000);
       });
 
-      const first = states.at(0)!;
-      const last = states.at(-1)!;
-
-      assert.deepEqual(stringInfoObject(first), {
-        vault: {
-          address: `${vault.publicKey}`,
-          owner: `${owner}`,
-          amount: "100000000",
-          mint: `${mint.publicKey}`,
-        },
-        token: {
-          address: `${token}`,
-          owner: `${owner}`,
-          amount: "0",
-          mint: `${mint.publicKey}`,
-        },
-      });
-
-      assert.deepEqual(stringInfoObject(last), {
-        vault: {
-          address: `${vault.publicKey}`,
-          owner: `${owner}`,
-          amount: "99999000",
-          mint: `${mint.publicKey}`,
-        },
-        token: {
-          address: `${token}`,
-          owner: `${owner}`,
-          amount: "1000",
-          mint: `${mint.publicKey}`,
-        },
-      });
+      assert.strictEqual(`${val1.account.data.amount}`, `0`);
+      assert.strictEqual(`${val2.account.data.amount}`, `1000`);
     });
   });
 });

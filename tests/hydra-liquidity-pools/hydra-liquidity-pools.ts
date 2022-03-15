@@ -1,6 +1,6 @@
 import * as anchor from "@project-serum/anchor";
 import { BN, Program } from "@project-serum/anchor";
-import * as localJsonIdl from "target/idl/hydra_liquidity_pools.json";
+import config from "config-ts/global-config.json";
 import {
   HydraLiquidityPools,
   IDL,
@@ -8,13 +8,11 @@ import {
 import assert from "assert";
 import { TokenInstructions } from "@project-serum/serum";
 import { createMintAndVault, createTokenAccount } from "@project-serum/common";
-// import { getTokenBalance } from "hydra-ts/src/utils";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "@project-serum/serum/lib/token-instructions";
 
 const utf8 = anchor.utils.bytes.utf8;
 import { btcdMintAmount, usddMintAmount } from "../constants";
-// import { createMint } from "hydra-ts/node";
 
 import { HydraSDK } from "hydra-ts";
 
@@ -34,7 +32,7 @@ describe("hydra-liquidity-pool", () => {
   const sdk = HydraSDK.createFromAnchorProvider(provider, "localnet");
 
   const hydraLiquidityPoolsProgramId = new anchor.web3.PublicKey(
-    localJsonIdl["metadata"]["address"]
+    config.localnet.programIds.hydraLiquidityPools
   );
   const program = new anchor.Program(
     IDL,
@@ -58,6 +56,8 @@ describe("hydra-liquidity-pool", () => {
   let quoteTokenVaultBump: number;
   let lpTokenVaultBump: number;
   let poolStateAccount: any;
+
+  let poolFees;
 
   it("should create btcdMint (21 million)", async () => {
     [btcdMint, btcdAccount] = await createMintAndVault(
@@ -130,21 +130,34 @@ describe("hydra-liquidity-pool", () => {
   });
 
   it("should initialize a liquidity-pool", async () => {
+    poolFees = {
+      swapFeeNumerator: new BN(1),
+      swapFeeDenominator: new BN(500),
+      ownerTradeFeeNumerator: new BN(0),
+      ownerTradeFeeDenominator: new BN(0),
+      ownerWithdrawFeeNumerator: new BN(0),
+      ownerWithdrawFeeDenominator: new BN(0),
+      hostFeeNumerator: new BN(0),
+      hostFeeDenominator: new BN(0),
+    };
+
     await program.rpc.initialize(
       baseTokenVaultBump,
       quoteTokenVaultBump,
       poolStateBump,
       lpTokenVaultBump,
+      0, // TODO need to hand this code better after talking with the math kids about it more.
+      poolFees,
       {
         accounts: {
           authority: provider.wallet.publicKey,
           payer: provider.wallet.publicKey,
           poolState: poolState,
-          baseTokenMint: btcdMint,
-          quoteTokenMint: usddMint,
+          tokenXMint: btcdMint,
+          tokenYMint: usddMint,
           lpTokenMint: lpTokenMint.publicKey,
-          baseTokenVault,
-          quoteTokenVault,
+          tokenXVault: baseTokenVault,
+          tokenYVault: quoteTokenVault,
           lpTokenVault,
           systemProgram: anchor.web3.SystemProgram.programId,
           tokenProgram: TokenInstructions.TOKEN_PROGRAM_ID,
@@ -160,29 +173,23 @@ describe("hydra-liquidity-pool", () => {
       provider.wallet.publicKey.toString()
     );
     assert.equal(
-      poolStateAccount.baseTokenVault.toString(),
+      poolStateAccount.tokenXVault.toString(),
       baseTokenVault.toString()
     );
     assert.equal(
-      poolStateAccount.quoteTokenVault.toString(),
+      poolStateAccount.tokenYVault.toString(),
       quoteTokenVault.toString()
     );
 
-    assert.equal(
-      poolStateAccount.baseTokenMint.toString(),
-      btcdMint.toString()
-    );
-    assert.equal(
-      poolStateAccount.quoteTokenMint.toString(),
-      usddMint.toString()
-    );
+    assert.equal(poolStateAccount.tokenXMint.toString(), btcdMint.toString());
+    assert.equal(poolStateAccount.tokenYMint.toString(), usddMint.toString());
     assert.equal(
       poolStateAccount.lpTokenMint.toString(),
       lpTokenMint.publicKey.toString()
     );
     assert.equal(poolStateAccount.poolStateBump, poolStateBump);
-    assert.equal(poolStateAccount.baseTokenVaultBump, baseTokenVaultBump);
-    assert.equal(poolStateAccount.quoteTokenVaultBump, quoteTokenVaultBump);
+    assert.equal(poolStateAccount.tokenXVaultBump, baseTokenVaultBump);
+    assert.equal(poolStateAccount.tokenYVaultBump, quoteTokenVaultBump);
   });
 
   it("should add-liquidity to pool for the first time", async () => {
@@ -194,11 +201,11 @@ describe("hydra-liquidity-pool", () => {
         accounts: {
           poolState: poolState,
           lpTokenMint: lpTokenMint.publicKey,
-          userBaseToken: btcdAccount,
-          userQuoteToken: usddAccount,
+          userTokenX: btcdAccount,
+          userTokenY: usddAccount,
           user: provider.wallet.publicKey,
-          baseTokenVault,
-          quoteTokenVault,
+          tokenXVault: baseTokenVault,
+          tokenYVault: quoteTokenVault,
           lpTokenVault,
           lpTokenTo: lpTokenAccount,
           tokenProgram: TOKEN_PROGRAM_ID,
@@ -211,11 +218,11 @@ describe("hydra-liquidity-pool", () => {
     );
     assert.strictEqual(
       (await getTokenBalance(provider, btcdAccount)).toNumber(),
-      btcdMintAmount.isub(new BN(6_000_000)).toNumber()
+      btcdMintAmount.toNumber() - 6_000_000
     );
     assert.strictEqual(
       (await getTokenBalance(provider, usddAccount)).toNumber(),
-      usddMintAmount.isub(new BN(255_575_287_200)).toNumber()
+      usddMintAmount.toNumber() - 255_575_287_200
     );
     assert.strictEqual(
       (await getTokenBalance(provider, lpTokenVault)).toNumber(),
@@ -240,11 +247,11 @@ describe("hydra-liquidity-pool", () => {
         accounts: {
           poolState: poolState,
           lpTokenMint: lpTokenMint.publicKey,
-          userBaseToken: btcdAccount,
-          userQuoteToken: usddAccount,
+          userTokenX: btcdAccount,
+          userTokenY: usddAccount,
           user: provider.wallet.publicKey,
-          baseTokenVault,
-          quoteTokenVault,
+          tokenXVault: baseTokenVault,
+          tokenYVault: quoteTokenVault,
           lpTokenVault,
           lpTokenTo: lpTokenAccount,
           tokenProgram: TOKEN_PROGRAM_ID,
@@ -259,11 +266,11 @@ describe("hydra-liquidity-pool", () => {
     );
     assert.strictEqual(
       (await getTokenBalance(provider, btcdAccount)).toNumber(),
-      btcdMintAmount.toNumber()
+      btcdMintAmount.toNumber() - 6_000_000
     );
     assert.strictEqual(
       (await getTokenBalance(provider, usddAccount)).toNumber(),
-      usddMintAmount.toNumber()
+      usddMintAmount.toNumber() - 255_575_287_200
     );
     assert.strictEqual(
       (await getTokenBalance(provider, lpTokenVault)).toNumber(),
@@ -288,11 +295,11 @@ describe("hydra-liquidity-pool", () => {
         accounts: {
           poolState: poolState,
           lpTokenMint: lpTokenMint.publicKey,
-          userBaseToken: btcdAccount,
-          userQuoteToken: usddAccount,
+          userTokenX: btcdAccount,
+          userTokenY: usddAccount,
           user: provider.wallet.publicKey,
-          baseTokenVault,
-          quoteTokenVault,
+          tokenXVault: baseTokenVault,
+          tokenYVault: quoteTokenVault,
           lpTokenVault,
           lpTokenTo: lpTokenAccount,
           tokenProgram: TOKEN_PROGRAM_ID,
@@ -305,11 +312,11 @@ describe("hydra-liquidity-pool", () => {
     );
     assert.strictEqual(
       (await getTokenBalance(provider, btcdAccount)).toNumber(),
-      btcdMintAmount.isub(new BN(16_000_000)).toNumber()
+      btcdMintAmount.toNumber() - 6_000_000 - 16_000_000 // first add - second add
     );
     assert.strictEqual(
       (await getTokenBalance(provider, usddAccount)).toNumber(),
-      usddMintAmount.isub(new BN(681_534_099_132)).toNumber()
+      usddMintAmount.toNumber() - 255_575_287_200 - 681_534_099_132 // first add - second add
     );
     assert.strictEqual(
       (await getTokenBalance(provider, lpTokenVault)).toNumber(),
@@ -335,11 +342,11 @@ describe("hydra-liquidity-pool", () => {
           accounts: {
             poolState: poolState,
             lpTokenMint: lpTokenMint.publicKey,
-            userBaseToken: btcdAccount,
-            userQuoteToken: usddAccount,
+            userTokenX: btcdAccount,
+            userTokenY: usddAccount,
             user: provider.wallet.publicKey,
-            baseTokenVault,
-            quoteTokenVault,
+            tokenXVault: baseTokenVault,
+            tokenYVault: quoteTokenVault,
             lpTokenVault,
             lpTokenTo: lpTokenAccount,
             tokenProgram: TOKEN_PROGRAM_ID,
@@ -348,11 +355,7 @@ describe("hydra-liquidity-pool", () => {
       );
       assert.ok(false);
     } catch (err: any) {
-      // TODO; error handle is broken with anchor 0.22
-      // ref: https://github.com/project-serum/anchor/issues/1494
-      // const errMsg = "Slippage Amount Exceeded";
-      const errMsg =
-        "Error: failed to send transaction: Transaction simulation failed: Error processing Instruction 0: custom program error: 0x1770";
+      const errMsg = "Slippage Amount Exceeded";
       assert.equal(err.toString(), errMsg);
     }
 
@@ -363,11 +366,11 @@ describe("hydra-liquidity-pool", () => {
     );
     assert.strictEqual(
       (await getTokenBalance(provider, btcdAccount)).toNumber(),
-      btcdMintAmount.toNumber()
+      btcdMintAmount.toNumber() - 6_000_000 - 16_000_000 // first add - second add
     );
     assert.strictEqual(
       (await getTokenBalance(provider, usddAccount)).toNumber(),
-      usddMintAmount.toNumber()
+      usddMintAmount.toNumber() - 255_575_287_200 - 681_534_099_132 // first add - second add
     );
     assert.strictEqual(
       (await getTokenBalance(provider, lpTokenVault)).toNumber(),
@@ -390,10 +393,10 @@ describe("hydra-liquidity-pool", () => {
         poolState: poolState,
         user: provider.wallet.publicKey,
         userRedeemableLpTokens: lpTokenAccount,
-        userBaseTokenAccount: btcdAccount,
-        userQuoteTokenAccount: usddAccount,
-        baseTokenVault,
-        quoteTokenVault,
+        userTokenX: btcdAccount,
+        userTokenY: usddAccount,
+        tokenXVault: baseTokenVault,
+        tokenYVault: quoteTokenVault,
         lpTokenMint: lpTokenMint.publicKey,
         tokenProgram: TOKEN_PROGRAM_ID,
       },
@@ -405,49 +408,132 @@ describe("hydra-liquidity-pool", () => {
     );
 
     assert.strictEqual(
+      (await getTokenBalance(provider, baseTokenVault)).toNumber(),
+      6_000_000
+    );
+
+    assert.strictEqual(
+      (await getTokenBalance(provider, quoteTokenVault)).toNumber(),
+      255575287200
+    );
+  });
+
+  it("should fail token swap due to slippage error", async () => {
+    try {
+      await program.rpc.swap(new BN(1_000_000), new BN(36_510_755_315), {
+        accounts: {
+          user: provider.wallet.publicKey,
+          poolState: poolState,
+          lpTokenMint: lpTokenMint.publicKey,
+          userFromToken: btcdAccount,
+          userToToken: usddAccount,
+          tokenXVault: baseTokenVault,
+          tokenYVault: quoteTokenVault,
+          tokenProgram: TOKEN_PROGRAM_ID,
+        },
+      });
+      assert.ok(false);
+    } catch (err: any) {
+      const errMsg = "Slippage Amount Exceeded";
+      assert.equal(err.toString(), errMsg);
+    }
+  });
+
+  it("should swap (cpmm) btc to usd (x to y)", async () => {
+    await program.rpc.swap(new BN(1_000_000), new BN(36_448_147_560), {
+      // TODO slip needs to account for the fee as well...
+      accounts: {
+        user: provider.wallet.publicKey,
+        poolState: poolState,
+        lpTokenMint: lpTokenMint.publicKey,
+        userFromToken: btcdAccount,
+        userToToken: usddAccount,
+        tokenXVault: baseTokenVault,
+        tokenYVault: quoteTokenVault,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      },
+    });
+
+    assert.strictEqual(
+      (await getTokenBalance(provider, baseTokenVault)).toNumber(),
+      6_000_000 + 1_000_000 // original amount + swap in amount
+    );
+
+    assert.strictEqual(
+      (await getTokenBalance(provider, quoteTokenVault)).toNumber(),
+      255_575_287_200 - 36_448_147_560 // original amount - swap out amount
+    );
+  });
+
+  // TODO: uncomment once math functions implemented.
+  // it("should swap (cpmm) usd to btc (y to x)", async () => {
+  //   await program.rpc.swap(new BN(36_510_755_314), new BN(1_000_000), {
+  //     accounts: {
+  //       user: provider.wallet.publicKey,
+  //       poolState: poolState,
+  //       lpTokenMint: lpTokenMint.publicKey,
+  //       userFromToken: usddAccount,
+  //       userToToken: btcdAccount,
+  //       tokenXVault: baseTokenVault,
+  //       tokenYVault: quoteTokenVault,
+  //       tokenProgram: TOKEN_PROGRAM_ID,
+  //     },
+  //   });
+  //
+  //   assert.strictEqual(
+  //     (await getTokenBalance(provider, baseTokenVault)).toNumber(),
+  //     6_000_000 + 1_000_000
+  //   );
+  //
+  //   assert.strictEqual(
+  //     (await getTokenBalance(provider, quoteTokenVault)).toNumber(),
+  //     255_575_287_200 - 36_510_755_314
+  //   );
+  //
+  //   assert.strictEqual(
+  //     (await getTokenBalance(provider, btcdAccount)).toNumber(),
+  //     20_999_993_000_000
+  //   );
+  //
+  //   assert.strictEqual(
+  //     (await getTokenBalance(provider, usddAccount)).toNumber(),
+  //     99_780_935_468_114
+  //   );
+  // });
+
+  it("should empty/remove-liquidity for the last time", async () => {
+    await program.rpc.removeLiquidity(new BN(1238326078), {
+      accounts: {
+        poolState: poolState,
+        user: provider.wallet.publicKey,
+        userRedeemableLpTokens: lpTokenAccount,
+        userTokenX: btcdAccount,
+        userTokenY: usddAccount,
+        tokenXVault: baseTokenVault,
+        tokenYVault: quoteTokenVault,
+        lpTokenMint: lpTokenMint.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      },
+    });
+
+    assert.strictEqual(
+      (await getTokenBalance(provider, lpTokenAccount)).toNumber(),
+      0
+    );
+
+    assert.strictEqual(
+      (await getTokenBalance(provider, lpTokenVault)).toNumber(),
+      100
+    );
+
+    assert.strictEqual(
       (await getTokenBalance(provider, btcdAccount)).toNumber(),
-      btcdMintAmount.iadd(new BN(16_000_000)).toNumber()
+      21_000_000_000_000
     );
 
     assert.strictEqual(
       (await getTokenBalance(provider, usddAccount)).toNumber(),
-      usddMintAmount.iadd(new BN(681_534_099_132)).toNumber()
+      100_000_000_000_000 - 17695 // Always left in the pool.
     );
-
-    it("should remove-liquidity second time", async () => {
-      await program.rpc.removeLiquidity(new BN(1238326078), {
-        accounts: {
-          poolState: poolState,
-          user: provider.wallet.publicKey,
-          userRedeemableLpTokens: lpTokenAccount,
-          userBaseTokenAccount: btcdAccount,
-          userQuoteTokenAccount: usddAccount,
-          baseTokenVault,
-          quoteTokenVault,
-          lpTokenMint: lpTokenMint.publicKey,
-          tokenProgram: TOKEN_PROGRAM_ID,
-        },
-      });
-
-      assert.strictEqual(
-        (await getTokenBalance(provider, lpTokenAccount)).toNumber(),
-        0
-      );
-
-      assert.strictEqual(
-        (await getTokenBalance(provider, lpTokenVault)).toNumber(),
-        100
-      );
-
-      assert.strictEqual(
-        (await getTokenBalance(provider, btcdAccount)).toNumber(),
-        btcdMintAmount.iadd(new BN(6_000_000)).toNumber()
-      );
-
-      assert.strictEqual(
-        (await getTokenBalance(provider, usddAccount)).toNumber(),
-        usddMintAmount.iadd(new BN(255_575_287_200)).toNumber()
-      );
-    });
   });
 });

@@ -20,6 +20,7 @@ fn half() -> PreciseNumber {
 }
 
 /// Swap calculator input parameters
+#[derive(Debug)]
 pub struct SwapCalculator {
     /// Number of tokens x currently in liquidity pool
     x0: PreciseNumber,
@@ -40,6 +41,10 @@ impl SwapCalculator {
             c: PreciseNumber::new(c).unwrap(),
             i: PreciseNumber::new(i).unwrap(),
         }
+    }
+
+    pub fn swap_y_to_x_amm(&self, _delta_y: u128) -> SwapResult {
+        todo!("build me")
     }
 
     /// Compute swap result from x to y using a constant product curve given delta x
