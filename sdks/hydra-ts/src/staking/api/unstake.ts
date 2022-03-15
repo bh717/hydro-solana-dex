@@ -17,7 +17,7 @@ export function unstake(ctx: Ctx) {
     const redeemableFrom = await acc.userRedeemable.key();
     const redeemableFromAuthority = ctx.wallet.publicKey;
 
-    await ctx.programs.hydraStaking.rpc.unstake(ctx.utils.fromBigInt(amount), {
+    await ctx.programs.hydraStaking.rpc.unstake(ctx.utils.toBN(amount), {
       accounts: {
         poolState,
         tokenMint,

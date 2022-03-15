@@ -2,11 +2,12 @@ import { Provider } from "@project-serum/anchor";
 import { Connection } from "@solana/web3.js";
 import { getProgramIds } from "./config/get-program-ids";
 import { createCtx, createReadonlyCtx, createCtxAnchor } from "./ctx";
-import staking from "./staking";
 import { Ctx, Network, ProgramIds, Wallet } from "./types";
 import { inject } from "./utils/meta-utils";
 import common from "./common";
+import staking from "./staking";
 import user from "./user";
+import liquidityPools from "./liquidity-pools";
 
 /**
  * Create an instance of the sdk API
@@ -16,6 +17,7 @@ import user from "./user";
 export function createApi(ctx: Ctx) {
   const namespaceFns = {
     staking,
+    liquidityPools,
     common,
     user,
   };

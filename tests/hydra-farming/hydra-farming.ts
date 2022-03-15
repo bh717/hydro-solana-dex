@@ -1,7 +1,7 @@
 import * as anchor from "@project-serum/anchor";
 import { Program } from "@project-serum/anchor";
 import config from "config-ts/global-config.json";
-import { HydraFarming, IDL } from "types-ts/codegen/types/hydra_farming";
+import * as hydrafarming from "types-ts/codegen/types/hydra_farming";
 
 describe("hydra-farming", () => {
   // Configure the client to use the local cluster.
@@ -10,10 +10,7 @@ describe("hydra-farming", () => {
   const hydraFarming = new anchor.web3.PublicKey(
     config.localnet.programIds.hydraFarming
   );
-  const program = new anchor.Program(
-    IDL,
-    hydraFarming
-  ) as Program<HydraFarming>;
+  const program = new anchor.Program(hydrafarming.IDL, hydraFarming);
 
   it("Is initialized!", async () => {
     // Add your test here.

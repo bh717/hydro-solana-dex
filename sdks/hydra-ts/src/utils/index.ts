@@ -40,7 +40,7 @@ export function toBigInt(amount: BN): BigInt {
   return BigInt(amount.toString());
 }
 
-export function fromBigInt(amount: BigInt): BN {
+export function toBN(amount: BigInt): BN {
   return new BN(amount.toString());
 }
 

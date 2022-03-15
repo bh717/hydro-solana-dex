@@ -9,9 +9,12 @@ export type Wallet = {
 
 export type ProgramIds = {
   // hydra staking program
+  hydraBenchmarks: string;
+  hydraFarming: string;
+  hydraLiquidityPools: string;
   hydraStaking: string;
-  tokenMint: string;
   redeemableMint: string;
+  tokenMint: string;
 };
 
 export type Ctx = ReturnType<typeof createCtxAnchor>;
