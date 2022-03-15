@@ -83,18 +83,6 @@ impl<'info> Swap<'info> {
         Ok(())
     }
 
-    pub fn transfer_user_tokens_for_fees_to_vault(
-        &self,
-    ) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
-        let cpi_accounts = Transfer {
-            from: self.user_from_token.to_account_info(),
-            to: self.token_x_vault.to_account_info(),
-            authority: self.user.to_account_info(),
-        };
-        let cpi_program = self.token_program.to_account_info();
-        CpiContext::new(cpi_program, cpi_accounts)
-    }
-
     pub fn calculate_fees(&self, transfer_in_amount: u64) -> Option<u64> {
         calculate_fee(
             transfer_in_amount as u128,
@@ -163,7 +151,16 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
     );
 
     let mut result = SwapResult::init();
-    let mut transfer_in_amount = 0;
+
+    // calculate fees
+    let fees = ctx
+        .accounts
+        .calculate_fees(amount_in)
+        .expect("fee calculation issues");
+    msg!("fees: {:?}", fees);
+
+    let amount_in_less_fees = amount_in - fees;
+    let mut transfer_in_amount = amount_in_less_fees + fees;
     let mut transfer_out_amount = 0;
 
     // detect swap direction. x to y
@@ -173,9 +170,9 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
             return Err(ErrorCode::InvalidMintAddress.into());
         }
 
-        result = swap.swap_x_to_y_amm(amount_in as u128);
+        result = swap.swap_x_to_y_amm(amount_in_less_fees as u128);
 
-        transfer_in_amount = result.delta_x().unwrap();
+        // transfer_in_amount = result.delta_x().unwrap();
         transfer_out_amount = result.delta_y().unwrap();
     }
 
@@ -186,18 +183,11 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
             return Err(ErrorCode::InvalidMintAddress.into());
         }
 
-        result = swap.swap_y_to_x_amm(amount_in as u128);
+        result = swap.swap_y_to_x_amm(amount_in_less_fees as u128);
 
-        transfer_in_amount = result.delta_y().unwrap();
+        // transfer_in_amount = result.delta_y().unwrap();
         transfer_out_amount = result.delta_x().unwrap();
     }
-
-    // calculate fees
-    let fees = ctx
-        .accounts
-        .calculate_fees(transfer_in_amount)
-        .expect("fee calculation issues");
-    msg!("fees: {:?}", fees);
 
     // check slippage for amount_out
     if transfer_out_amount < minimum_amount_out {
@@ -214,9 +204,6 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
         msg!("amount_in: {:?}", amount_in);
         return Err(ErrorCode::SlippageExceeded.into());
     }
-
-    // transfer fee in base token into vault
-    token::transfer(ctx.accounts.transfer_user_tokens_for_fees_to_vault(), fees)?;
 
     // transfer base token into vault
     token::transfer(

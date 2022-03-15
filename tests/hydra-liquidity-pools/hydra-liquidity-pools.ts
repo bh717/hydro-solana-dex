@@ -440,7 +440,8 @@ describe("hydra-liquidity-pool", () => {
   });
 
   it("should swap (cpmm) btc to usd (x to y)", async () => {
-    await program.rpc.swap(new BN(1_000_000), new BN(36_510_755_314), {
+    await program.rpc.swap(new BN(1_000_000), new BN(36_448_147_560), {
+      // TODO slip needs to account for the fee as well...
       accounts: {
         user: provider.wallet.publicKey,
         poolState: poolState,
@@ -455,12 +456,12 @@ describe("hydra-liquidity-pool", () => {
 
     assert.strictEqual(
       (await getTokenBalance(provider, baseTokenVault)).toNumber(),
-      6_000_000 + 1_000_000 + 2000 // original amount + swap in amount + fee
+      6_000_000 + 1_000_000 // original amount + swap in amount
     );
 
     assert.strictEqual(
       (await getTokenBalance(provider, quoteTokenVault)).toNumber(),
-      255_575_287_200 - 36_510_755_314 // original amount - swap out amount
+      255_575_287_200 - 36_448_147_560 // original amount - swap out amount
     );
   });
 
@@ -532,7 +533,7 @@ describe("hydra-liquidity-pool", () => {
 
     assert.strictEqual(
       (await getTokenBalance(provider, usddAccount)).toNumber(),
-      100_000_000_000_000 - 17690 // Always left in the pool.
+      100_000_000_000_000 - 17695 // Always left in the pool.
     );
   });
 });
