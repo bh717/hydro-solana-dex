@@ -10396,13 +10396,6 @@ pkg-up@^3.1.0:
   dependencies:
     find-up "^3.0.0"
 
-playwright-chromium@^1.20.0:
-  version "1.20.0"
-  resolved "https://registry.yarnpkg.com/playwright-chromium/-/playwright-chromium-1.20.0.tgz#9716a73d157c36bafd487697bc2892e2e90c21d2"
-  integrity sha512-5qyHaW2kFguX4eAne2MgS7AxZBfQ+hN2X0t5SD5mxOTAgwciEAhMNc06o9NxILnRcmF8QSXGg19OSb8VMUBLzg==
-  dependencies:
-    playwright-core "1.20.0"
-
 playwright-core@1.19.2:
   version "1.19.2"
   resolved "https://registry.npmjs.org/playwright-core/-/playwright-core-1.19.2.tgz"
@@ -10448,6 +10441,13 @@ playwright-core@1.20.0:
     ws "8.4.2"
     yauzl "2.10.0"
     yazl "2.5.1"
+
+playwright@^1.19.2:
+  version "1.20.0"
+  resolved "https://registry.yarnpkg.com/playwright/-/playwright-1.20.0.tgz#f80b131c0146afc4645fcd5cfcc2ca11895ba58a"
+  integrity sha512-YcFXhXttk9yvpc8PMbfvts6KEopXjxdBh47BdOiA7xhjF/gkXeSM0Hs9CSdbL9mp2xtlB5xqE7+D+F2soQOjbA==
+  dependencies:
+    playwright-core "1.20.0"
 
 pngjs@6.0.0:
   version "6.0.0"
