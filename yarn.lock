@@ -2380,9 +2380,9 @@
   resolved "https://registry.npmjs.org/@pedrouid/environment/-/environment-1.0.1.tgz"
   integrity sha512-HaW78NszGzRZd9SeoI3JD11JqY+lubnaOx7Pewj5pfjqWXOEATpeKIFb9Z4t2WBUK2iryiXX3lzWwmYWgUL0Ug==
 
-"@playwright/test@^1.19.2":
+"@playwright/test@1.19.2", "@playwright/test@^1.19.2":
   version "1.19.2"
-  resolved "https://registry.npmjs.org/@playwright/test/-/test-1.19.2.tgz"
+  resolved "https://registry.yarnpkg.com/@playwright/test/-/test-1.19.2.tgz#429d1aa70f5e4cd521cdc8a5d9861ae4fcda3f7c"
   integrity sha512-5oCmlYHjtOL662OxSkZBYGnoHWIQui7b4YHWNeSCYwhQjmjVcV5njRc8oBZlU8IwJgG7ZH2yhDk1haU96ygbWw==
   dependencies:
     "@babel/code-frame" "7.16.7"
@@ -10417,6 +10417,13 @@ playwright-core@1.19.2:
     ws "8.4.2"
     yauzl "2.10.0"
     yazl "2.5.1"
+
+playwright@1.19.2, playwright@^1.19.2:
+  version "1.19.2"
+  resolved "https://registry.yarnpkg.com/playwright/-/playwright-1.19.2.tgz#d9927ae8512482642356e50a286c5767dfb7a621"
+  integrity sha512-2JmGWr/Iw/Uu27bZULeHgjn8doNrRVxIYdhspMuMlfKNpzwAe/sfm7wH8uey6jiZxnPL4bC5V4ACQcF4dAGWnw==
+  dependencies:
+    playwright-core "1.19.2"
 
 pngjs@6.0.0:
   version "6.0.0"
