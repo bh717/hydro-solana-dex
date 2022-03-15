@@ -113,7 +113,7 @@ jobs:
 
       - id: install-playwright
         name: install-playwright
-        run: yarn install --frozen-lockfile && yarn playwright install
+        run: yarn install --frozen-lockfile && cd app && yarn playwright install
 
       - id: install-ipfs-deploy
         name: install-ipfs-deploy
