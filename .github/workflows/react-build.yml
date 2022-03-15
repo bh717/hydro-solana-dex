@@ -113,7 +113,7 @@ jobs:
 
       - id: install-playwright
         name: install-playwright
-        run: npx --yes playwright install --with-deps
+        run: npx --yes playwright install chrome
 
       - id: install-ipfs-deploy
         name: install-ipfs-deploy
