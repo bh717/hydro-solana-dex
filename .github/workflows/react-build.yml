@@ -113,7 +113,7 @@ jobs:
 
       - id: install-playwright
         name: install-playwright
-        run: npx playwright install
+        run: npx --yes playwright install --with-deps
 
       - id: install-ipfs-deploy
         name: install-ipfs-deploy
