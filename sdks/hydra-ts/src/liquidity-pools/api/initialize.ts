@@ -12,8 +12,14 @@ export function initialize(ctx: Ctx) {
     // TODO: should this init if needed?
     lpTokenMint: PublicKey = Keypair.generate().publicKey,
     poolFees: {
-      tradeFeeNumerator: anchor.BN;
-      tradeFeeDenominator: anchor.BN;
+      swapFeeNumerator: anchor.BN;
+      swapFeeDenominator: anchor.BN;
+      ownerTradeFeeNumerator: anchor.BN;
+      ownerTradeFeeDenominator: anchor.BN;
+      ownerWithdrawFeeNumerator: anchor.BN;
+      ownerWithdrawFeeDenominator: anchor.BN;
+      hostFeeNumerator: anchor.BN;
+      hostFeeDenominator: anchor.BN;
     }
   ) => {
     const program = ctx.programs.hydraLiquidityPools;
