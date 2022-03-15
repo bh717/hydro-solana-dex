@@ -296,54 +296,26 @@ describe("hydra-liquidity-pool", () => {
   });
 
   it("should swap (cpmm) btc to usd (x to y)", async () => {
-<<<<<<< HEAD
-    await program.rpc.swap(new BN(1_000_000), new BN(36_448_147_560), {
-      // TODO slip needs to account for the fee as well...
-      accounts: {
-        user: provider.wallet.publicKey,
-        poolState: poolState,
-        lpTokenMint: lpTokenMint.publicKey,
-        userFromToken: btcdAccount,
-        userToToken: usddAccount,
-        tokenXVault: baseTokenVault,
-        tokenYVault: quoteTokenVault,
-        tokenProgram: TOKEN_PROGRAM_ID,
-      },
-    });
-
-    assert.strictEqual(
-      (await getTokenBalance(provider, baseTokenVault)).toNumber(),
-      6_000_000 + 1_000_000 // original amount + swap in amount
-    );
-
-    assert.strictEqual(
-      (await getTokenBalance(provider, quoteTokenVault)).toNumber(),
-      255_575_287_200 - 36_448_147_560 // original amount - swap out amount
-=======
     await sdk.liquidityPools.swap(
       1_000_000n,
-      36_437_733_804n,
+      36_448_147_560n,
       lpTokenMint.publicKey,
       btcdAccount,
       usddAccount
     );
+
     const accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
       lpTokenMint.publicKey
     );
+
     assert.strictEqual(
       await accounts.tokenXVault.balance(),
-      6_000_000n + 1_000_000n + 2000n // original amount + swap in amount + fee
+      6_000_000n + 1_000_000n // original amount + swap in amount + fee
     );
 
     assert.strictEqual(
-<<<<<<< HEAD
-      (await getTokenBalance(provider, tokenYVault)).toNumber(),
-      255_575_287_200 - 36_510_755_314 // original amount - swap out amount
->>>>>>> 48aabc1 (Add SDK to hydraliquiditypools)
-=======
       await accounts.tokenYVault.balance(),
-      255_575_287_200n - 36_510_755_314n // original amount - swap out amount
->>>>>>> bc27f10 (Update tests and poolFees to use BigInt)
+      255_575_287_200n - 36_448_147_560n // original amount - swap out amount
     );
   });
 
