@@ -53,7 +53,6 @@ impl Decimal {
     pub fn from_u64(integer: u64) -> Self {
         Decimal {
             value: integer.into(),
-            scale: 0,
             ..Decimal::default()
         }
     }
