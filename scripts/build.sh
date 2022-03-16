@@ -11,11 +11,8 @@ rm -rf ./target/deploy/*.so
 rm -rf ./sdks/types-ts/codegen/types/*.ts
 
 # build new
-anchor build -- --features "localnet"
+anchor build $@
 
-# copy new
-cp ./target/types/*.ts ./sdks/types-ts/codegen/types
-
-# process new codegen and types files.
-
-# TODO Remove reserve from ts types file
+# process idl
+yarn ts-node ./scripts/process-idl.ts
+cd ./sdks/types-ts && yarn build

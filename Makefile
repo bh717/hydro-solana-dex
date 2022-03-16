@@ -65,8 +65,8 @@ anchor-ci:
 	cargo fmt -- --check
 	cargo check
 	cargo test
-	anchor build
 	yarn --frozen-lockfile
+	./scripts/build.sh
 	yarn lint
 	yarn turbo run build --concurrency=1
 	yarn test
@@ -76,8 +76,8 @@ react-ci:
 	solana-keygen new --no-bip39-passphrase || true
 	cargo check
 	cargo test
-	anchor build
 	yarn --frozen-lockfile
+	./scripts/build.sh
 	yarn lint
 	yarn turbo run build --concurrency=1
 	cd app; yarn serve-e2e
@@ -86,7 +86,7 @@ react-ci:
 start:
 	solana-test-validator --quiet --reset &
 	anchor build
-	anchor deploy
 	yarn
+	./scripts/build.sh
 	yarn build
 	make migrate
