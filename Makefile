@@ -18,10 +18,11 @@ install_wasm_pack:
 	cargo install wasm-pack
 
 # build
-build-idl-types:
+build:
 	./scripts/build.sh
+	yarn turbo run build
 
-test:
+test: build
 	anchor test
 
 # COMMON
@@ -51,7 +52,7 @@ validator-logs:
 migrate:
 	yarn ts-node scripts/migrate.ts
 
-watch-anchor-test:
+watch-anchor-test: build
 	cargo watch -c -- anchor test -- --features "localnet"
 
 watch-test:
