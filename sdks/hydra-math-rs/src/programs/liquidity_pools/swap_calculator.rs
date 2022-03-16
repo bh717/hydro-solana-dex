@@ -12,30 +12,64 @@ pub struct SwapCalculator {
     c: Decimal,
     /// Oracle price relative to x
     i: Decimal,
+    /// fee rate numerator
+    fee_numer: Decimal,
+    /// fee rate denominator
+    fee_denom: Decimal,
 }
 
 impl SwapCalculator {
     /// Create a new token swap calculator
-    pub fn new(x0: u64, y0: u64, c: u64, i: u64) -> Self {
+    pub fn new(x0: u64, y0: u64, c: u64, i: u64, fee_numer: u64, fee_denom: u64) -> Self {
         Self {
-            x0: Decimal::from_u64(x0),
-            y0: Decimal::from_u64(y0),
-            c: Decimal::from_u64(c),
-            i: Decimal::from_u64(i),
+            x0: Decimal::from_u64(x0).to_amount(),
+            y0: Decimal::from_u64(y0).to_amount(),
+            c: Decimal::from_u64(c).to_amount(),
+            i: Decimal::from_u64(i).to_amount(),
+            fee_numer: Decimal::from_u64(fee_numer).to_amount(),
+            fee_denom: Decimal::from_u64(fee_denom).to_amount(),
         }
     }
 
-    pub fn swap_y_to_x_amm(&self, _delta_y: &Decimal) -> SwapResult {
-        todo!("build me")
+    pub fn swap_y_to_x_amm(&self, delta_y: &Decimal) -> SwapResult {
+        // fees deducted first
+        let (fees, amount_ex_fees) = self.compute_fees(delta_y);
+
+        // k = x0 * y0
+        let k = self.compute_k();
+
+        // y_new = y0 + deltaY
+        let y_new = self.compute_y_new(&amount_ex_fees);
+
+        // x_new = k/y_new
+        let x_new = k.div(y_new);
+
+        // delta_y = y_new - y0
+        let delta_y = y_new.sub(self.y0).unwrap();
+
+        // delta_x = x0 - x_new
+        let delta_x = self.x0.sub(x_new).unwrap();
+
+        SwapResult {
+            k,
+            x_new,
+            y_new,
+            delta_x,
+            delta_y,
+            fees,
+        }
     }
 
     /// Compute swap result from x to y using a constant product curve given delta x
     pub fn swap_x_to_y_amm(&self, delta_x: &Decimal) -> SwapResult {
+        // fees deducted first
+        let (fees, amount_ex_fees) = self.compute_fees(delta_x);
+
         // k = x0 * y0
         let k = self.compute_k();
 
         // x_new = x0 + deltaX
-        let x_new = self.compute_x_new(&delta_x);
+        let x_new = self.compute_x_new(&amount_ex_fees);
 
         // y_new = k/x_new
         let y_new = k.div(x_new);
@@ -52,15 +86,18 @@ impl SwapCalculator {
             y_new,
             delta_x,
             delta_y,
+            fees,
         }
     }
 
     /// Compute swap result from x to y using a constant product curve given delta x
-    pub fn swap_x_to_y_hmm(&self, delta_x: u64) -> SwapResult {
-        let delta_x = Decimal::from_u64(delta_x);
+    pub fn swap_x_to_y_hmm(&self, delta_x: &Decimal) -> SwapResult {
+        // fees deducted first
+        let (fees, amount_ex_fees) = self.compute_fees(delta_x);
         let k = self.compute_k();
-        let x_new = self.compute_x_new(&delta_x);
-        let delta_y = self.compute_delta_y_hmm(&delta_x);
+        let x_new = self.compute_x_new(&amount_ex_fees);
+        let delta_x = x_new.sub(self.x0).unwrap();
+        let delta_y = self.compute_delta_y_hmm(&amount_ex_fees);
         let y_new = self.y0.add(delta_y).unwrap();
 
         SwapResult {
@@ -69,7 +106,25 @@ impl SwapCalculator {
             y_new,
             delta_x,
             delta_y,
+            fees,
         }
+    }
+
+    /// compute fees amount and amount_ex_fee based on input and settings
+    fn compute_fees(&self, input_amount: &Decimal) -> (Decimal, Decimal) {
+        // default to zero if fee_rate numerator or denominator are 0
+        let zero = Decimal::from_u64(0).to_amount();
+        if self.fee_numer.eq(zero).unwrap() || self.fee_denom.eq(zero).unwrap() {
+            return (zero, input_amount.to_amount());
+        }
+
+        let fees = input_amount
+            .to_amount()
+            .mul(self.fee_numer.to_amount())
+            .div(self.fee_denom.to_amount());
+
+        let amount_ex_fees = input_amount.to_amount().sub(fees).unwrap();
+        (fees, amount_ex_fees)
     }
 
     /// Compute delta y using a constant product curve given delta x
@@ -166,8 +221,8 @@ impl SwapCalculator {
         let one = Decimal::from_u64(1).to_scale(self.x0.scale);
         if c.eq(&one) {
             // k/qi * (q0/q_new).ln()
-            let k_div_qi = k.to_scale(8).div(qi.clone().to_scale(8));
-            let q0_div_q_new = q0.to_scale(8).div(q_new.clone().to_scale(8));
+            let k_div_qi = k.to_scale(8).div(qi.clone().to_amount());
+            let q0_div_q_new = q0.to_scale(8).div(q_new.clone().to_amount());
             let log_q0_div_q_new = q0_div_q_new.ln().unwrap();
             k_div_qi.mul(log_q0_div_q_new).to_scale(self.x0.scale)
         } else {
@@ -300,6 +355,8 @@ mod tests {
             y0: Decimal::from_amount(y0),
             c: Decimal::from_amount(0),
             i: Decimal::from_amount(0),
+            fee_numer: Decimal::from_u64(0).to_amount(),
+            fee_denom: Decimal::from_u64(0).to_amount(),
         };
         let result = swap.compute_k();
         let value = model.sim_k();
@@ -313,6 +370,8 @@ mod tests {
             y0: Decimal::from_amount(y0),
             c: Decimal::from_amount(0),
             i: Decimal::from_amount(i),
+            fee_numer: Decimal::from_u64(0).to_amount(),
+            fee_denom: Decimal::from_u64(0).to_amount(),
         };
         let result = swap.compute_xi();
         let (value, negative) = model.sim_xi();
@@ -326,6 +385,8 @@ mod tests {
             y0: Decimal::from_amount(y0),
             c: Decimal::from_amount(0),
             i: Decimal::from_amount(0),
+            fee_numer: Decimal::from_u64(0).to_amount(),
+            fee_denom: Decimal::from_u64(0).to_amount(),
         };
         let result = swap.compute_delta_y_amm(&Decimal::from_amount(delta_x));
         let (value, negative) = model.sim_delta_y_amm(delta_x);
@@ -339,6 +400,8 @@ mod tests {
             y0: Decimal::from_amount(y0),
             c: Decimal::from_amount(0),
             i: Decimal::from_amount(0),
+            fee_numer: Decimal::from_u64(0).to_amount(),
+            fee_denom: Decimal::from_u64(0).to_amount(),
         };
         let result = swap.compute_delta_x_amm(&Decimal::from_amount(delta_y));
         let (value, negative) = model.sim_delta_x_amm(delta_y);
@@ -352,6 +415,8 @@ mod tests {
             y0: Decimal::from_amount(y0),
             c: Decimal::from_amount(0),
             i: Decimal::from_amount(0),
+            fee_numer: Decimal::from_u64(0).to_amount(),
+            fee_denom: Decimal::from_u64(0).to_amount(),
         };
 
         let swap_x_to_y_amm = swap.swap_x_to_y_amm(&Decimal::from_amount(delta_x));
@@ -382,6 +447,8 @@ mod tests {
             y0: Decimal::from_amount(y0),
             c,
             i: Decimal::from_amount(i),
+            fee_numer: Decimal::from_u64(0).to_amount(),
+            fee_denom: Decimal::from_u64(0).to_amount(),
         };
         let result = swap.compute_delta_y_hmm(&Decimal::from_amount(delta_x));
         let (value, negative) = model.sim_delta_y_hmm(delta_x);
@@ -405,6 +472,8 @@ mod tests {
             y0: Decimal::from_amount(y0),
             c,
             i: Decimal::from_amount(i),
+            fee_numer: Decimal::from_u64(0).to_amount(),
+            fee_denom: Decimal::from_u64(0).to_amount(),
         };
         let result = swap.compute_delta_x_hmm(&Decimal::from_amount(delta_y));
         let (value, negative) = model.sim_delta_x_hmm(delta_y);
@@ -489,6 +558,8 @@ mod tests {
                 y0: Decimal::from_amount(126_000000),
                 c: Decimal::from_amount(1_000000),
                 i: Decimal::from_amount(3_000000),
+                fee_numer: Decimal::from_u64(0).to_amount(),
+                fee_denom: Decimal::from_u64(0).to_amount(),
             };
             let delta_x = Decimal::from_amount(3_000000);
             let result = swap.compute_delta_y_hmm(&delta_x);
@@ -512,6 +583,8 @@ mod tests {
                 y0: Decimal::from_u128(33).to_scale(12),
                 c: Decimal::from_u128(0).to_scale(12),
                 i: Decimal::from_u128(1).to_scale(12),
+                fee_numer: Decimal::from_u64(0).to_amount(),
+                fee_denom: Decimal::from_u64(0).to_amount(),
             };
             let delta_x = Decimal::from_u128(1).to_scale(12);
             let result = swap.compute_delta_y_hmm(&delta_x).to_scale(8);
@@ -534,6 +607,8 @@ mod tests {
                 y0: Decimal::from_u128(193).to_scale(12),
                 c: Decimal::from_u128(0).to_scale(12),
                 i: Decimal::from_u128(1).to_scale(12),
+                fee_numer: Decimal::from_u64(0).to_amount(),
+                fee_denom: Decimal::from_u64(0).to_amount(),
             };
             let delta_y = Decimal::from_u128(4).to_scale(12);
             let result = swap.compute_delta_x_hmm(&delta_y).to_scale(8);
@@ -556,6 +631,8 @@ mod tests {
                 y0: Decimal::from_u128(1000).to_scale(12),
                 c: Decimal::from_u128(0).to_scale(12),
                 i: Decimal::from_u128(200).to_scale(12),
+                fee_numer: Decimal::from_u64(0).to_amount(),
+                fee_denom: Decimal::from_u64(0).to_amount(),
             };
             // ((1000*1000)/200)**0.5 = 70.710678118654752
             // https://www.wolframalpha.com/input/?i=%28%281000*1000%29%2F200%29**0.5

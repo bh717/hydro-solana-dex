@@ -149,19 +149,15 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
         ctx.accounts.token_y_vault.amount,
         ctx.accounts.pool_state.compensation_parameter as u64,
         0,
+        ctx.accounts.pool_state.fees.swap_fee_numerator,
+        ctx.accounts.pool_state.fees.swap_fee_denominator,
     );
 
-    let mut result = SwapResult::default();
+    let mut result: SwapResult;
 
-    // calculate fees
-    let fees = ctx
-        .accounts
-        .calculate_fees(amount_in)
-        .expect("fee calculation issues");
-    msg!("fees: {:?}", fees);
-
-    let amount_in_less_fees = amount_in - fees;
-    let mut transfer_in_amount = amount_in_less_fees + fees;
+    let transfer_in_amount = amount_in;
+    let amount_in_decimal = Decimal::from_u64(amount_in).to_amount();
+    let mut fees = 0;
     let mut transfer_out_amount = 0;
 
     // detect swap direction. x to y
@@ -171,10 +167,10 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
             return Err(ErrorCode::InvalidMintAddress.into());
         }
 
-        result = swap.swap_x_to_y_amm(&Decimal::from_amount(amount_in_less_fees));
+        result = swap.swap_x_to_y_amm(&amount_in_decimal);
 
-        // transfer_in_amount = result.delta_x().unwrap();
         transfer_out_amount = result.delta_y();
+        fees = result.fees();
     }
 
     // detect swap direction y to x
@@ -184,10 +180,10 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
             return Err(ErrorCode::InvalidMintAddress.into());
         }
 
-        result = swap.swap_y_to_x_amm(&Decimal::from_amount(amount_in_less_fees));
+        result = swap.swap_y_to_x_amm(&amount_in_decimal);
 
-        // transfer_in_amount = result.delta_y().unwrap();
         transfer_out_amount = result.delta_x();
+        fees = result.fees();
     }
 
     // check slippage for amount_out
@@ -226,8 +222,9 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
         transfer_out_amount,
     )?;
 
+    // post_transfer_checks() are commented out as it should be done inside SwapCalculator where we can compare numbers with the same precision. (not u64 vs Decimal with a scale of AMOUNT_SCALE)
     // check all amounts are correct
-    ctx.accounts.post_transfer_checks(result, fees)?;
+    // ctx.accounts.post_transfer_checks(result, fees)?;
 
     Ok(())
 }

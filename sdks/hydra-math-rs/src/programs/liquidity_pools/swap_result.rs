@@ -7,14 +7,16 @@ use crate::decimal::Decimal;
 pub struct SwapResult {
     /// Invariant expressed as k
     pub k: Decimal,
-    /// New source amount expressed as x_new
+    /// New base token amount expressed as x_new
     pub x_new: Decimal,
-    /// New destination amount expressed as y_new
+    /// New quote token amount expressed as y_new
     pub y_new: Decimal,
-    /// Amount of source token swapped expressed as delta_x
+    /// Amount of base token swapped expressed as delta_x
     pub delta_x: Decimal,
-    /// Amount of destination token swapped expressed as delta_x
+    /// Amount of quote token swapped expressed as delta_x
     pub delta_y: Decimal,
+    /// Amount of fees deducted from source token before operation
+    pub fees: Decimal,
 }
 
 impl SwapResult {
@@ -36,5 +38,9 @@ impl SwapResult {
 
     pub fn delta_y(&self) -> u64 {
         self.delta_y.into()
+    }
+
+    pub fn fees(&self) -> u64 {
+        self.fees.into()
     }
 }
