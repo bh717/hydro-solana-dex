@@ -122,6 +122,26 @@ impl Decimal {
         }
     }
 
+    /// Scale down the Decimal by the internal scale amount and round up. ie value / 10^6
+    pub fn scale_down_round_up(self) -> u128 {
+        self.div_up(Self::new(
+            10u128.pow(self.scale.try_into().unwrap()),
+            0,
+            self.negative,
+        ))
+        .value
+    }
+
+    /// Scale down the Decimal by the internal scale amount and round down. ie value / 10^6
+    pub fn scale_down_round_down(self) -> u128 {
+        self.div(Self::new(
+            10u128.pow(self.scale.try_into().unwrap()),
+            0,
+            self.negative,
+        ))
+        .value
+    }
+
     /// Show the scale of a [Decimal] expressed as a power of 10.
     pub fn denominator(self) -> u128 {
         10u128.pow(self.scale.into())
@@ -2006,5 +2026,21 @@ mod test {
         let rhs = Decimal::new(3, 0, false);
         let expected = Decimal::new(4, 0, false);
         assert_eq!(lhs.div(rhs), expected);
+    }
+
+    #[test]
+    fn test_scale_down_round_up() {
+        let d = Decimal::new(36448147560102887, 6, false);
+        let expected: u128 = 36448147561;
+        let result = d.scale_down_round_up();
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_scale_down_round_down() {
+        let d = Decimal::new(36448147560102887, 6, false);
+        let expected: u128 = 36448147560;
+        let result = d.scale_down_round_down();
+        assert_eq!(result, expected);
     }
 }
