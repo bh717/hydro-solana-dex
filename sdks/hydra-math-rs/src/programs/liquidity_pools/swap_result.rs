@@ -16,3 +16,25 @@ pub struct SwapResult {
     /// Amount of destination token swapped expressed as delta_x
     pub delta_y: Decimal,
 }
+
+impl SwapResult {
+    pub fn k(&self) -> u64 {
+        self.k.into()
+    }
+
+    pub fn x_new(&self) -> u64 {
+        self.x_new.into()
+    }
+
+    pub fn y_new(&self) -> u64 {
+        self.y_new.into()
+    }
+
+    pub fn delta_x(&self) -> u64 {
+        self.delta_x.into()
+    }
+
+    pub fn delta_y(&self) -> u64 {
+        self.delta_y.into()
+    }
+}
