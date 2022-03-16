@@ -94,9 +94,6 @@ const App: FC = () => {
           <TabPanel value={value} index={1}>
             <Wasm />
           </TabPanel>
-          <TabPanel value={value} index={2}>
-            Item Three
-          </TabPanel>
         </Container>
       </div>
     </Context>

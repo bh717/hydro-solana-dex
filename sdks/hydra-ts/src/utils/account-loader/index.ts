@@ -61,21 +61,17 @@ export function AccountLoader<T>(
     stream(commitment?: Commitment) {
       return new Observable((subscriber) => {
         let fetchingInfo = true;
-        info(commitment)
-          .then(async (account) => {
-            if (account) {
-              const pubkey = await key();
+        info(commitment).then(async (account) => {
+          if (account) {
+            const pubkey = await key();
 
-              if (!fetchingInfo) return;
-              subscriber.next({
-                account,
-                pubkey,
-              });
-            }
-          })
-          .catch((err) => {
-            // subscriber.error(err);
-          });
+            if (!fetchingInfo) return;
+            subscriber.next({
+              account,
+              pubkey,
+            });
+          }
+        });
         let id: number;
 
         key().then((pubkey) => {
