@@ -85,7 +85,6 @@ const App: FC = () => {
             <Tabs value={value} onChange={handleChange}>
               <Tab label="Staking" />
               <Tab label="Wasm" />
-              <Tab label="Item Three" />
             </Tabs>
           </Box>
           <TabPanel value={value} index={0}>
