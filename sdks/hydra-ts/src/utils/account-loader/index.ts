@@ -60,31 +60,33 @@ export function AccountLoader<T>(
     },
     stream(commitment?: Commitment) {
       return new Observable((subscriber) => {
-        let fetchingInfo = true;
-        info(commitment).then(async (account) => {
-          if (account) {
-            const pubkey = await key();
-
-            if (!fetchingInfo) return;
-            subscriber.next({
-              account,
-              pubkey,
-            });
-          }
-        });
+        info(commitment)
+          .then(async (account) => {
+            if (account) {
+              const pubkey = await key();
+              subscriber.next({
+                account,
+                pubkey,
+              });
+            }
+          })
+          .catch(async (err) => {
+            subscriber.next();
+          });
         let id: number;
 
         key().then((pubkey) => {
           id = ctx.connection.onAccountChange(
             pubkey,
             async (rawAccount: AccountInfo<Buffer> | null) => {
-              if (!!rawAccount) {
-                fetchingInfo = false;
+              if (rawAccount) {
                 const account = {
                   ...rawAccount,
                   data: accountParser(rawAccount),
                 };
                 subscriber.next({ pubkey: await key(), account });
+              } else {
+                subscriber.next();
               }
             }
           );

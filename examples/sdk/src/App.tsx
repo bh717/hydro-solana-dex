@@ -57,7 +57,7 @@ function TabPanel(props: {
     >
       {value === index && (
         <Box sx={{ p: 3 }}>
-          <Typography>{children}</Typography>
+          <Typography component="span">{children}</Typography>
         </Box>
       )}
     </div>
@@ -213,7 +213,7 @@ const Staking: FC = () => {
             </Button>
           </Box>
         </Paper>
-        <Paper>
+        <Paper component="div">
           <Table>
             <TableHead>
               <TableRow>
