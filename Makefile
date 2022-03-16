@@ -110,6 +110,7 @@ react-ci:
 start:
 	solana-test-validator --quiet --reset &
 	anchor build
+	anchor deploy
 	yarn
 	./scripts/build.sh
 	yarn build

@@ -19,6 +19,7 @@ export function AccountLoader<T>(
 
   async function info(commitment?: Commitment) {
     const key = await getKey();
+    console.log("fetching info for... " + key.toString());
     let info = await ctx.connection.getAccountInfo(key, commitment);
     if (info === null) {
       throw new Error("info couldnt be fetched");
@@ -59,13 +60,22 @@ export function AccountLoader<T>(
     },
     stream(commitment?: Commitment) {
       return new Observable((subscriber) => {
-        info(commitment).then(async (account) => {
-          if (account)
-            subscriber.next({
-              account,
-              pubkey: await key(),
-            });
-        });
+        let fetchingInfo = true;
+        info(commitment)
+          .then(async (account) => {
+            if (account) {
+              const pubkey = await key();
+
+              if (!fetchingInfo) return;
+              subscriber.next({
+                account,
+                pubkey,
+              });
+            }
+          })
+          .catch((err) => {
+            // subscriber.error(err);
+          });
         let id: number;
 
         key().then((pubkey) => {
@@ -73,6 +83,7 @@ export function AccountLoader<T>(
             pubkey,
             async (rawAccount: AccountInfo<Buffer> | null) => {
               if (!!rawAccount) {
+                fetchingInfo = false;
                 const account = {
                   ...rawAccount,
                   data: accountParser(rawAccount),

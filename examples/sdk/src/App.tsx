@@ -10,7 +10,14 @@ import {
 } from "@solana/wallet-adapter-react-ui";
 import { PhantomWalletAdapter } from "@solana/wallet-adapter-wallets";
 import { HydraSDK } from "hydra-ts";
-import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
+import React, {
+  FC,
+  ReactNode,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
 import {
   AppBar,
   Button,
@@ -18,11 +25,13 @@ import {
   Input,
   Paper,
   Stack,
+  Tab,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableRow,
+  Tabs,
   Toolbar,
   Typography,
 } from "@mui/material";
@@ -31,10 +40,65 @@ import { Box } from "@mui/system";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
+function TabPanel(props: {
+  children: React.ReactNode;
+  value: number;
+  index: number;
+}) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ p: 3 }}>
+          <Typography>{children}</Typography>
+        </Box>
+      )}
+    </div>
+  );
+}
 const App: FC = () => {
+  const [value, setValue] = useState(0);
+
+  const handleChange = (_: any, newValue: number) => {
+    setValue(newValue);
+  };
   return (
     <Context>
-      <Content />
+      <div>
+        <AppBar position="static">
+          <Toolbar>
+            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+              Demo
+            </Typography>
+            <WalletMultiButton />
+          </Toolbar>
+        </AppBar>
+        <Container>
+          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+            <Tabs value={value} onChange={handleChange}>
+              <Tab label="Staking" />
+              <Tab label="Wasm" />
+              <Tab label="Item Three" />
+            </Tabs>
+          </Box>
+          <TabPanel value={value} index={0}>
+            <Staking />
+          </TabPanel>
+          <TabPanel value={value} index={1}>
+            <Wasm />
+          </TabPanel>
+          <TabPanel value={value} index={2}>
+            Item Three
+          </TabPanel>
+        </Container>
+      </div>
     </Context>
   );
 };
@@ -48,7 +112,9 @@ const Context: FC<{ children: ReactNode }> = ({ children }) => {
   return (
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>{children}</WalletModalProvider>
+        <WalletModalProvider>
+          <HydraClientProvider>{children}</HydraClientProvider>
+        </WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>
   );
@@ -58,17 +124,32 @@ function trunc(str: string) {
   return [str.slice(0, 4), str.slice(-4)].join("..");
 }
 
-const Content: FC = () => {
+function HydraClientProvider(p: { children: React.ReactNode }) {
   const wallet = useAnchorWallet();
   const { connection } = useConnection();
+  const sdk = useMemo(() => {
+    console.log("creating new client...");
+    return HydraSDK.create("localnet", connection, wallet);
+  }, [connection, wallet]);
 
+  return (
+    <HydraClientContext.Provider value={sdk}>
+      {p.children}
+    </HydraClientContext.Provider>
+  );
+}
+
+const HydraClientContext = React.createContext({} as HydraSDK);
+
+function useHydraClient() {
+  return useContext(HydraClientContext);
+}
+
+const Staking: FC = () => {
   const [stakeAmount, setStakeAmount] = useState<string>("0");
   const [unstakeAmount, setUnstakeAmount] = useState<string>("0");
 
-  const sdk = useMemo(
-    () => HydraSDK.create("localnet", connection, wallet),
-    [connection, wallet]
-  );
+  const sdk = useHydraClient();
 
   const userFrom = useObservable(
     useMemo(() => sdk.staking.accounts.userToken.stream(), [sdk])
@@ -106,6 +187,107 @@ const Content: FC = () => {
     setUnstakeAmount("0");
   }, [sdk, unstakeAmount]);
 
+  console.log({ sdk, userFrom, userRedeemable, tokenVault });
+
+  return (
+    <div>
+      <Stack paddingTop={2}>
+        <Paper sx={{ padding: 2, marginBottom: 2 }}>
+          <Box>
+            <Input
+              type="number"
+              onChange={handleStakeAmountUpdated}
+              value={stakeAmount}
+              placeholder="amount"
+            />
+            <Button variant="contained" onClick={handleStakeClicked}>
+              Stake
+            </Button>
+          </Box>
+          <Box>
+            <Input
+              type="number"
+              onChange={handleUnstakeAmountUpdated}
+              value={unstakeAmount}
+              placeholder="amount"
+            />
+            <Button variant="contained" onClick={handleUnstakeClicked}>
+              Unstake
+            </Button>
+          </Box>
+        </Paper>
+        <Paper>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Address</TableCell>
+                <TableCell>Mint</TableCell>
+                <TableCell>Owner</TableCell>
+                <TableCell>Balance</TableCell>
+              </TableRow>
+            </TableHead>
+
+            <TableBody>
+              <TableRow>
+                <TableCell colSpan={4}>
+                  <Typography variant="h6">My Accounts</Typography>
+                </TableCell>
+              </TableRow>
+              {userFrom && (
+                <TableRow key={`${userFrom.pubkey}`}>
+                  <TableCell>{trunc(`${userFrom.pubkey}`)}</TableCell>
+                  <TableCell>
+                    {trunc(`${userFrom.account.data.mint}`)}
+                  </TableCell>
+                  <TableCell>
+                    {trunc(`${userFrom.account.data.owner}`)}
+                  </TableCell>
+                  <TableCell>{`${userFrom.account.data.amount}`}</TableCell>
+                </TableRow>
+              )}
+              {userRedeemable && (
+                <TableRow key={`${userRedeemable.pubkey}`}>
+                  <TableCell>{trunc(`${userRedeemable.pubkey}`)}</TableCell>
+                  <TableCell>
+                    {trunc(`${userRedeemable.account.data.mint}`)}
+                  </TableCell>
+                  <TableCell>
+                    {trunc(`${userRedeemable.account.data.owner}`)}
+                  </TableCell>
+                  <TableCell>{`${userRedeemable.account.data.amount}`}</TableCell>
+                </TableRow>
+              )}
+
+              {tokenVault && (
+                <>
+                  <TableRow>
+                    <TableCell colSpan={4}>
+                      <Typography variant="h6">tokenVault</Typography>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow key={`${tokenVault.pubkey}`}>
+                    <TableCell>{trunc(`${tokenVault.pubkey}`)}</TableCell>
+                    <TableCell>
+                      {trunc(`${tokenVault.account.data.mint}`)}
+                    </TableCell>
+                    <TableCell>
+                      {trunc(`${tokenVault.account.data.owner}`)}
+                    </TableCell>
+                    <TableCell>{`${tokenVault.account.data.amount}`}</TableCell>
+                  </TableRow>
+                </>
+              )}
+            </TableBody>
+          </Table>
+        </Paper>
+      </Stack>
+    </div>
+  );
+};
+
+const Wasm: FC = () => {
+  const sdk = useHydraClient();
+
   const handleDemoClicked = useCallback(async () => {
     const answer = await sdk.staking.calculatePoolTokensForDeposit(
       100n,
@@ -118,115 +300,16 @@ const Content: FC = () => {
 
   return (
     <div>
-      <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Demo
+      <Stack paddingTop={2}>
+        <Paper sx={{ padding: 2, marginBottom: 2 }}>
+          <Typography variant="h6" component="div">
+            Wasm Test
           </Typography>
-          <WalletMultiButton />
-        </Toolbar>
-      </AppBar>
-      <Container>
-        <Stack paddingTop={2}>
-          <Paper sx={{ padding: 2, marginBottom: 2 }}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Address</TableCell>
-                  <TableCell>Mint</TableCell>
-                  <TableCell>Owner</TableCell>
-                  <TableCell>Balance</TableCell>
-                </TableRow>
-              </TableHead>
-
-              <TableBody>
-                <TableRow>
-                  <TableCell colSpan={4}>
-                    <Typography variant="h6">My Accounts</Typography>
-                  </TableCell>
-                </TableRow>
-                {userFrom && (
-                  <TableRow key={`${userFrom.pubkey}`}>
-                    <TableCell>{trunc(`${userFrom.pubkey}`)}</TableCell>
-                    <TableCell>
-                      {trunc(`${userFrom.account.data.mint}`)}
-                    </TableCell>
-                    <TableCell>
-                      {trunc(`${userFrom.account.data.owner}`)}
-                    </TableCell>
-                    <TableCell>{`${userFrom.account.data.amount}`}</TableCell>
-                  </TableRow>
-                )}
-                {userRedeemable && (
-                  <TableRow key={`${userRedeemable.pubkey}`}>
-                    <TableCell>{trunc(`${userRedeemable.pubkey}`)}</TableCell>
-                    <TableCell>
-                      {trunc(`${userRedeemable.account.data.mint}`)}
-                    </TableCell>
-                    <TableCell>
-                      {trunc(`${userRedeemable.account.data.owner}`)}
-                    </TableCell>
-                    <TableCell>{`${userRedeemable.account.data.amount}`}</TableCell>
-                  </TableRow>
-                )}
-
-                {tokenVault && (
-                  <>
-                    <TableRow>
-                      <TableCell colSpan={4}>
-                        <Typography variant="h6">Contract Accounts</Typography>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow key={`${tokenVault.pubkey}`}>
-                      <TableCell>{trunc(`${tokenVault.pubkey}`)}</TableCell>
-                      <TableCell>
-                        {trunc(`${tokenVault.account.data.mint}`)}
-                      </TableCell>
-                      <TableCell>
-                        {trunc(`${tokenVault.account.data.owner}`)}
-                      </TableCell>
-                      <TableCell>
-                        {trunc(`${tokenVault.account.data.amount}`)}
-                      </TableCell>
-                    </TableRow>
-                  </>
-                )}
-              </TableBody>
-            </Table>
-            <Box>
-              <Input
-                type="number"
-                onChange={handleStakeAmountUpdated}
-                value={stakeAmount}
-                placeholder="amount"
-              />
-              <Button variant="contained" onClick={handleStakeClicked}>
-                Stake
-              </Button>
-            </Box>
-            <Box>
-              <Input
-                type="number"
-                onChange={handleUnstakeAmountUpdated}
-                value={unstakeAmount}
-                placeholder="amount"
-              />
-              <Button variant="contained" onClick={handleUnstakeClicked}>
-                Unstake
-              </Button>
-            </Box>
-          </Paper>
-
-          <Paper sx={{ padding: 2, marginBottom: 2 }}>
-            <Typography variant="h6" component="div">
-              Wasm Test
-            </Typography>
-            <Button variant="contained" onClick={handleDemoClicked}>
-              Demonstrate Calculate
-            </Button>
-          </Paper>
-        </Stack>
-      </Container>
+          <Button variant="contained" onClick={handleDemoClicked}>
+            Demonstrate Calculate
+          </Button>
+        </Paper>
+      </Stack>
     </div>
   );
 };

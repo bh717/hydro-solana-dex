@@ -4,7 +4,6 @@ import config from "config-ts/global-config.json";
 import * as staking from "types-ts/codegen/types/hydra_staking";
 import { loadKey } from "hydra-ts/node"; // these should be moved out of test
 import { HydraSDK } from "hydra-ts";
-import { Keypair } from "@solana/web3.js";
 
 export default async function (provider: anchor.Provider) {
   anchor.setProvider(provider);
@@ -25,8 +24,6 @@ export default async function (provider: anchor.Provider) {
     "keys/localnet/staking/xhy1rv75cEJahTbsKnv2TpNhdR7KNUoDPavKuQDwhDU.json"
   );
 
-  const userToken = Keypair.generate();
-
   const programMap = {
     hydraStaking: program.programId.toString(),
     redeemableMint: redeemableMint.publicKey.toString(),
@@ -41,11 +38,7 @@ export default async function (provider: anchor.Provider) {
   console.log("Creating mint and vault...");
 
   // create tokenMint
-  await sdk.common.createMintAndVault(
-    tokenMint,
-    userToken,
-    100_000_000_000_000n
-  );
+  await sdk.common.createMintAndAssociatedVault(tokenMint, 100_000_000n);
 
   const tokenVaultPubkey = await sdk.staking.accounts.tokenVault.key();
   const tokenVaultBump = await sdk.staking.accounts.tokenVault.bump();
@@ -58,6 +51,7 @@ export default async function (provider: anchor.Provider) {
 
   console.log("Initializing...");
   console.log(`
+deployingAs:\t${sdk.ctx.provider.wallet.publicKey}
 poolStatePubkey:\t${poolStatePubkey}
 tokenVaultPubkey:\t${await sdk.staking.accounts.tokenVault.key()}
 tokenMint:\t\t${tokenMint.publicKey}
