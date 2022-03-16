@@ -10,7 +10,8 @@ export function addLiquidity(ctx: Ctx) {
     tokenXMaxAmount: bigint,
     tokenYMaxAmount: bigint,
     expectedLpTokens: bigint,
-    lpTokenMint: PublicKey // TODO: do we have to pass this?
+    tokenXMint: PublicKey,
+    tokenYMint: PublicKey
   ) => {
     const program = ctx.programs.hydraLiquidityPools;
     const accounts = inject(accs, ctx);
@@ -20,9 +21,10 @@ export function addLiquidity(ctx: Ctx) {
       lpTokenVault,
       userTokenX,
       userTokenY,
+      lpTokenMint,
       lpTokenAssociatedAccount,
       poolState,
-    } = await accounts.getAccountLoaders(lpTokenMint);
+    } = await accounts.getAccountLoaders(tokenXMint, tokenYMint);
 
     await program.rpc.addLiquidity(
       toBN(tokenXMaxAmount),
@@ -31,7 +33,7 @@ export function addLiquidity(ctx: Ctx) {
       {
         accounts: {
           poolState: await poolState.key(),
-          lpTokenMint,
+          lpTokenMint: await lpTokenMint.key(),
           userTokenX: await userTokenX.key(),
           userTokenY: await userTokenY.key(),
           user: ctx.provider.wallet.publicKey,

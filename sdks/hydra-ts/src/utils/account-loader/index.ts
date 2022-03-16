@@ -100,9 +100,9 @@ export function AccountLoader<T>(
 }
 
 export function PDAToken(
+  ctx: Ctx,
   programId: PublicKey,
-  seeds: (PublicKey | string)[],
-  ctx: Ctx
+  seeds: (PublicKey | string)[]
 ) {
   return withBalance(PDA(ctx, programId, seeds, TokenAccount.Parser));
 }
@@ -113,6 +113,14 @@ export function Token(ctx: Ctx, getter: KeyOrGetter) {
 
 export function Mint(ctx: Ctx, getter: KeyOrGetter) {
   return AccountLoader(ctx, getter, TokenMint.Parser);
+}
+
+export function PDAMint(
+  ctx: Ctx,
+  programId: PublicKey,
+  seeds: (PublicKey | string)[]
+) {
+  return PDA(ctx, programId, seeds, TokenMint.Parser);
 }
 
 export function AssociatedToken(ctx: Ctx, mint: PublicKey) {

@@ -22,9 +22,12 @@ pub struct AddLiquidity<'info> {
 
     #[account(
         mut,
+        seeds = [ LP_TOKEN_MINT_SEED, pool_state.token_x_mint.as_ref(), pool_state.token_y_mint.as_ref() ],
+        bump,
         constraint = lp_token_mint.key() == pool_state.lp_token_mint,
     )]
     pub lp_token_mint: Box<Account<'info, Mint>>,
+
     #[account(
         mut,
         constraint = user_token_x.mint == pool_state.token_x_mint,
