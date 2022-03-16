@@ -32,7 +32,7 @@ pub struct Initialize<'info> {
         init,
         payer = payer,
         mint::decimals = 6,
-        mint::authority = payer,
+        mint::authority = pool_state,
         seeds = [ LP_TOKEN_MINT_SEED, token_x_mint.key().as_ref(), token_y_mint.key().as_ref() ],
         bump,
     )]

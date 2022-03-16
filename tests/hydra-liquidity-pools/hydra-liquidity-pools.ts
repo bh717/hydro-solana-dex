@@ -56,17 +56,10 @@ describe("hydra-liquidity-pool", () => {
     // get the PDA for the PoolState
     poolState = await accounts.poolState.key();
     poolStateBump = await accounts.poolState.bump();
-
-    // create lpTokenMint with poolState as the authority and a lpTokenAssociatedAccount
-    // await sdk.common.createMint(lpTokenMint, poolState, 9);
-    // await sdk.common.createAssociatedAccount(lpTokenMint.publicKey);
     tokenXVault = await accounts.tokenXVault.key();
     tokenXVaultBump = await accounts.tokenXVault.bump();
     tokenYVault = await accounts.tokenYVault.key();
     tokenYVaultBump = await accounts.tokenYVault.bump();
-  });
-
-  it.only("should initialize a liquidity-pool", async () => {
     poolFees = {
       swapFeeNumerator: 1n,
       swapFeeDenominator: 500n,
@@ -80,6 +73,10 @@ describe("hydra-liquidity-pool", () => {
 
     await sdk.liquidityPools.initialize(btcdMint, usddMint, poolFees);
 
+    await sdk.common.createAssociatedAccount(await accounts.lpTokenMint.key());
+  });
+
+  it("should initialize a liquidity-pool", async () => {
     const accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
       btcdMint,
       usddMint
@@ -111,7 +108,7 @@ describe("hydra-liquidity-pool", () => {
     assert.equal(poolStateAccount.tokenXVaultBump, tokenXVaultBump);
     assert.equal(poolStateAccount.tokenYVaultBump, tokenYVaultBump);
   });
-  return;
+
   it("should add-liquidity to pool for the first time", async () => {
     await sdk.liquidityPools.addLiquidity(
       6_000_000n,
