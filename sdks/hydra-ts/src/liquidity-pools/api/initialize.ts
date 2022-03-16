@@ -32,27 +32,12 @@ export function initialize(ctx: Ctx) {
       tokenXMint,
       tokenYMint
     );
-
     const tokenXVaultBump = await accounts.tokenXVault.bump();
     const tokenYVaultBump = await accounts.tokenYVault.bump();
     const poolStateBump = await accounts.poolState.bump();
     const lpTokenVaultBump = await accounts.lpTokenVault.bump();
     const lpTokenMintBump = await accounts.lpTokenMint.bump();
-    const accountsObj = {
-      authority: program.provider.wallet.publicKey,
-      payer: program.provider.wallet.publicKey,
-      poolState: await accounts.poolState.key(),
-      tokenXMint,
-      tokenYMint,
-      lpTokenMint: await accounts.lpTokenMint.key(),
-      tokenXVault: await accounts.tokenXVault.key(),
-      tokenYVault: await accounts.tokenYVault.key(),
-      lpTokenVault: await accounts.lpTokenVault.key(),
-      systemProgram: anchor.web3.SystemProgram.programId,
-      tokenProgram: TOKEN_PROGRAM_ID,
-      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-    };
-    console.log(stringifyProps(accountsObj));
+
     await program.rpc.initialize(
       tokenXVaultBump,
       tokenYVaultBump,
@@ -62,7 +47,20 @@ export function initialize(ctx: Ctx) {
       0, // compensation_parameter
       toAnchorPoolFees(poolFees),
       {
-        accounts: accountsObj,
+        accounts: {
+          authority: program.provider.wallet.publicKey,
+          payer: program.provider.wallet.publicKey,
+          poolState: await accounts.poolState.key(),
+          tokenXMint,
+          tokenYMint,
+          lpTokenMint: await accounts.lpTokenMint.key(),
+          tokenXVault: await accounts.tokenXVault.key(),
+          tokenYVault: await accounts.tokenYVault.key(),
+          lpTokenVault: await accounts.lpTokenVault.key(),
+          systemProgram: anchor.web3.SystemProgram.programId,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+        },
       }
     );
   };

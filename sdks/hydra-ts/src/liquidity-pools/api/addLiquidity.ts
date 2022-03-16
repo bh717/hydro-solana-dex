@@ -7,11 +7,11 @@ import { inject } from "../../utils/meta-utils";
 
 export function addLiquidity(ctx: Ctx) {
   return async (
+    tokenXMint: PublicKey,
+    tokenYMint: PublicKey,
     tokenXMaxAmount: bigint,
     tokenYMaxAmount: bigint,
-    expectedLpTokens: bigint,
-    tokenXMint: PublicKey,
-    tokenYMint: PublicKey
+    expectedLpTokens: bigint
   ) => {
     const program = ctx.programs.hydraLiquidityPools;
     const accounts = inject(accs, ctx);

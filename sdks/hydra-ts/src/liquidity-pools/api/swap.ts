@@ -6,12 +6,12 @@ import { toBN } from "../../utils";
 import { inject } from "../../utils/meta-utils";
 export function swap(ctx: Ctx) {
   return async (
-    amountIn: bigint,
-    minimumAmountOut: bigint,
     tokenXMint: PublicKey,
     tokenYMint: PublicKey,
     userFromToken: PublicKey,
-    userToToken: PublicKey
+    userToToken: PublicKey,
+    amountIn: bigint,
+    minimumAmountOut: bigint
   ) => {
     const program = ctx.programs.hydraLiquidityPools;
     const accounts = inject(accs, ctx);

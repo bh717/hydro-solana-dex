@@ -111,11 +111,11 @@ describe("hydra-liquidity-pool", () => {
 
   it("should add-liquidity to pool for the first time", async () => {
     await sdk.liquidityPools.addLiquidity(
+      btcdMint,
+      usddMint,
       6_000_000n,
       255_575_287_200n,
-      0n,
-      btcdMint,
-      usddMint
+      0n
     );
 
     const accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
@@ -144,11 +144,11 @@ describe("hydra-liquidity-pool", () => {
 
   it("should not add-liquidity on a second deposit with the 0 expected_lp_tokens", async () => {
     await sdk.liquidityPools.addLiquidity(
+      btcdMint,
+      usddMint,
       6_000_000n,
       255_575_287_200n,
-      0n,
-      btcdMint,
-      usddMint
+      0n
     );
 
     const accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
@@ -179,11 +179,11 @@ describe("hydra-liquidity-pool", () => {
 
   it("should add-liquidity to pool for the second time", async () => {
     await sdk.liquidityPools.addLiquidity(
+      btcdMint,
+      usddMint,
       16_000_000n, // 16 bitcoins
       681_534_099_132n, // $681,534.099132 usdc
-      3_302_203_141n,
-      btcdMint,
-      usddMint
+      3_302_203_141n
     );
 
     const accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
@@ -219,11 +219,11 @@ describe("hydra-liquidity-pool", () => {
   it("should not add-liquidity due to exceeding slippage ", async () => {
     try {
       await sdk.liquidityPools.addLiquidity(
+        btcdMint,
+        usddMint,
         16_000_000n, // 16 bitcoins
         681_534_099_131n, // $681,534.099132 usdc -0.000001
-        3_302_203_141n,
-        btcdMint,
-        usddMint
+        3_302_203_141n
       );
       assert.ok(false);
     } catch (err: any) {
@@ -269,9 +269,9 @@ describe("hydra-liquidity-pool", () => {
     );
 
     await sdk.liquidityPools.removeLiquidity(
-      3_302_203_141n,
       btcdMint,
-      usddMint
+      usddMint,
+      3_302_203_141n
     );
 
     assert.strictEqual(
@@ -286,12 +286,12 @@ describe("hydra-liquidity-pool", () => {
   it("should fail token swap due to slippage error", async () => {
     try {
       await sdk.liquidityPools.swap(
-        1_000_000n,
-        36_510_755_315n,
         btcdMint,
         usddMint,
         btcdAccount,
-        usddAccount
+        usddAccount,
+        1_000_000n,
+        36_510_755_315n
       );
       assert.ok(false);
     } catch (err: any) {
@@ -302,12 +302,12 @@ describe("hydra-liquidity-pool", () => {
 
   it("should swap (cpmm) btc to usd (x to y)", async () => {
     await sdk.liquidityPools.swap(
-      1_000_000n,
-      36_448_147_560n,
       btcdMint,
       usddMint,
       btcdAccount,
-      usddAccount
+      usddAccount,
+      1_000_000n,
+      36_448_147_560n
     );
 
     const accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
@@ -342,11 +342,13 @@ describe("hydra-liquidity-pool", () => {
   //// });
   //
   // await sdk.liquidityPools.swap(
+  //   btcdMint,
+  //   usddMint,
+  //   usddAccount,
+  //   btcdAccount,
   //   36_510_755_314n,
   //   1_000_000n,
   //   lpTokenMint.publicKey,
-  //   usddAccount,
-  //   btcdAccount,
   // );
   //// TODO: convert to use sdk
   //   assert.strictEqual(
@@ -376,7 +378,7 @@ describe("hydra-liquidity-pool", () => {
       usddMint
     );
 
-    await sdk.liquidityPools.removeLiquidity(1238326078n, btcdMint, usddMint);
+    await sdk.liquidityPools.removeLiquidity(btcdMint, usddMint, 1238326078n);
 
     assert.strictEqual(await accounts.lpTokenAssociatedAccount.balance(), 0n);
 

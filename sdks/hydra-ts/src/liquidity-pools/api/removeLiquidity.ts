@@ -6,9 +6,9 @@ import { toBN, tryGet } from "../../utils";
 import { inject } from "../../utils/meta-utils";
 export function removeLiquidity(ctx: Ctx) {
   return async (
-    lpTokensToBurn: bigint,
     tokenXMint: PublicKey,
-    tokenYMint: PublicKey
+    tokenYMint: PublicKey,
+    lpTokensToBurn: bigint
   ) => {
     const program = ctx.programs.hydraLiquidityPools;
 

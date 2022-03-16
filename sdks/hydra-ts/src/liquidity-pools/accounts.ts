@@ -9,29 +9,6 @@ import { PoolState } from "./types";
 import { Ctx } from "../types";
 import * as AccountLoader from "../utils/account-loader";
 import { inject } from "../utils/meta-utils";
-// import { tryGet } from "../utils";
-
-// export const getAccountLoaders =
-//   (ctx: Ctx) => async (lpTokenMint: PublicKey) => {
-//     const poolStateLoader = LOADERS.poolState(ctx)(lpTokenMint);
-//     const poolStateInfo = await tryGet(poolStateLoader.info());
-
-//     if (!poolStateInfo) {
-//       throw new Error("Pool must be been initialized");
-//     }
-
-//     const { tokenXMint, tokenYMint } = poolStateInfo.data;
-
-//     const loaders = await getInitAccountLoaders(ctx)(
-//       tokenXMint,
-//       tokenYMint,
-//       lpTokenMint
-//     );
-//     return {
-//       ...loaders,
-//       poolState: poolStateLoader,
-//     };
-//   };
 
 export const getAccountLoaders =
   (ctx: Ctx) => async (tokenXMint: PublicKey, tokenYMint: PublicKey) => {
