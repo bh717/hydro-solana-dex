@@ -93,6 +93,17 @@ impl<'info> Swap<'info> {
     }
 
     pub fn transfer_tokens_to_user(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
+        if self.pool_state.debug {
+            msg!(
+                "from: self.token_y_vault.amount: {}",
+                self.token_y_vault.amount
+            );
+            msg!(
+                "to: self.user_to_token.amount: {}",
+                self.user_to_token.amount
+            );
+        }
+
         let cpi_accounts = Transfer {
             from: self.token_y_vault.to_account_info(),
             to: self.user_to_token.to_account_info(),
@@ -103,6 +114,17 @@ impl<'info> Swap<'info> {
     }
 
     pub fn transfer_user_tokens_to_vault(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
+        if self.pool_state.debug {
+            msg!(
+                "from: self.user_from_token.amount: {}",
+                self.user_from_token.amount
+            );
+            msg!(
+                "to: self.token_x_vault.amount: {}",
+                self.token_x_vault.amount
+            );
+        }
+
         let cpi_accounts = Transfer {
             from: self.user_from_token.to_account_info(),
             to: self.token_x_vault.to_account_info(),
@@ -169,7 +191,7 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
 
         result = swap.swap_x_to_y_amm(&amount_in_decimal);
 
-        transfer_out_amount = result.delta_y();
+        transfer_out_amount = result.delta_y.to_u64();
         fees = result.fees();
     }
 
@@ -203,6 +225,7 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
     }
 
     // transfer base token into vault
+    msg!("transfer_in_amount: {}", transfer_in_amount);
     token::transfer(
         ctx.accounts.transfer_user_tokens_to_vault(),
         transfer_in_amount,
@@ -217,6 +240,7 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
     let signer = [&seeds[..]];
 
     // transfer quote token to user
+    msg!("transfer_out_amount: {:?}", transfer_out_amount);
     token::transfer(
         ctx.accounts.transfer_tokens_to_user().with_signer(&signer),
         transfer_out_amount,
