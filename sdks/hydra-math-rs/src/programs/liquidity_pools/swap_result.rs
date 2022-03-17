@@ -7,6 +7,8 @@ use crate::decimal::Decimal;
 pub struct SwapResult {
     /// Invariant expressed as k
     pub k: Decimal,
+    /// squared_k is the k version used to calculate the lp tokens
+    pub squared_k: Decimal,
     /// New base token amount expressed as x_new
     pub x_new: Decimal,
     /// New quote token amount expressed as y_new
@@ -20,27 +22,35 @@ pub struct SwapResult {
 }
 
 impl SwapResult {
-    pub fn k(&self) -> u64 {
-        self.k.into()
+    pub fn x_new_down(&self) -> u64 {
+        self.x_new.scale_down_round_down().try_into().unwrap()
     }
 
-    pub fn x_new(&self) -> u64 {
-        self.x_new.into()
+    pub fn x_new_up(&self) -> u64 {
+        self.x_new.scale_down_round_up().try_into().unwrap()
     }
 
-    pub fn y_new(&self) -> u64 {
-        self.y_new.into()
+    pub fn y_new_down(&self) -> u64 {
+        self.y_new.scale_down_round_up().try_into().unwrap()
     }
 
-    pub fn delta_x(&self) -> u64 {
-        self.delta_x.into()
+    pub fn y_new_up(&self) -> u64 {
+        self.y_new.scale_down_round_up().try_into().unwrap()
     }
 
-    pub fn delta_y(&self) -> u64 {
-        self.delta_y.into()
+    pub fn delta_x_down(&self) -> u64 {
+        self.delta_x.scale_down_round_down().try_into().unwrap()
     }
 
-    pub fn fees(&self) -> u64 {
-        self.fees.into()
+    pub fn delta_y_down(&self) -> u64 {
+        self.delta_y.scale_down_round_down().try_into().unwrap()
+    }
+
+    pub fn squared_k_up(&self) -> u64 {
+        self.squared_k.scale_down_round_up().try_into().unwrap()
+    }
+
+    pub fn squared_k_down(&self) -> u64 {
+        self.squared_k.scale_down_round_down().try_into().unwrap()
     }
 }

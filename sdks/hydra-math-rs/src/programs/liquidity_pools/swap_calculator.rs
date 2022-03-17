@@ -2,6 +2,8 @@
 use crate::decimal::{Add, Compare, Decimal, Div, Ln, Mul, Pow, Sqrt, Sub};
 use crate::programs::liquidity_pools::swap_result::SwapResult;
 
+pub const MIN_LIQUIDITY: u64 = 100;
+
 /// Swap calculator input parameters
 pub struct SwapCalculator {
     /// Number of tokens x currently in liquidity pool
@@ -50,13 +52,16 @@ impl SwapCalculator {
         // delta_x = x0 - x_new
         let delta_x = self.x0.sub(x_new).unwrap();
 
+        let squared_k = self.compute_squared_k(x_new, y_new.add(fees).unwrap());
+
         SwapResult {
             k,
             x_new,
-            y_new,
+            y_new: y_new.add(fees).unwrap(),
             delta_x,
             delta_y,
             fees,
+            squared_k,
         }
     }
 
@@ -80,13 +85,16 @@ impl SwapCalculator {
         // delta_y = y0 - n_new
         let delta_y = self.y0.sub(y_new).unwrap();
 
+        let squared_k = self.compute_squared_k(x_new.add(fees).unwrap(), y_new);
+
         SwapResult {
             k,
-            x_new,
+            x_new: x_new.add(fees).unwrap(),
             y_new,
             delta_x,
             delta_y,
             fees,
+            squared_k,
         }
     }
 
@@ -94,19 +102,27 @@ impl SwapCalculator {
     pub fn swap_x_to_y_hmm(&self, delta_x: &Decimal) -> SwapResult {
         // fees deducted first
         let (fees, amount_ex_fees) = self.compute_fees(delta_x);
+
         let k = self.compute_k();
+
         let x_new = self.compute_x_new(&amount_ex_fees);
+
         let delta_x = x_new.sub(self.x0).unwrap();
+
         let delta_y = self.compute_delta_y_hmm(&amount_ex_fees);
+
         let y_new = self.y0.add(delta_y).unwrap();
+
+        let squared_k = self.compute_squared_k(x_new.add(fees).unwrap(), y_new);
 
         SwapResult {
             k,
-            x_new,
+            x_new: x_new.add(fees).unwrap(),
             y_new,
             delta_x,
             delta_y,
             fees,
+            squared_k,
         }
     }
 
@@ -308,6 +324,12 @@ impl SwapCalculator {
     fn compute_y_new(&self, delta_y: &Decimal) -> Decimal {
         // y_new = y0 + delta_y
         self.y0.add(*delta_y).expect("compute_y_new")
+    }
+
+    // TODO: Broken; Amounts arent matching the lp tokens version of this calculation.
+    fn compute_squared_k(&self, x_new: Decimal, y_new: Decimal) -> Decimal {
+        let min_liquidity = Decimal::from_u64(MIN_LIQUIDITY).to_amount();
+        x_new.mul(y_new).sqrt().unwrap().sub(min_liquidity).unwrap()
     }
 }
 
