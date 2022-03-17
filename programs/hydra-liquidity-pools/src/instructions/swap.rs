@@ -5,7 +5,6 @@ use anchor_lang::prelude::*;
 use anchor_spl::token;
 use anchor_spl::token::{Mint, Token, TokenAccount, Transfer};
 use hydra_math_rs::decimal::Decimal;
-use hydra_math_rs::programs::liquidity_pools::fees::calculate_fee;
 use hydra_math_rs::programs::liquidity_pools::swap_calculator::SwapCalculator;
 use hydra_math_rs::programs::liquidity_pools::swap_result::SwapResult;
 
@@ -60,36 +59,30 @@ pub struct Swap<'info> {
 }
 
 impl<'info> Swap<'info> {
-    pub fn post_transfer_checks(&mut self, result: SwapResult, fees: u64) -> Result<()> {
+    pub fn post_transfer_checks(&mut self, result: SwapResult) -> Result<()> {
         // post tx checks
         (&mut self.token_x_vault).reload()?;
         (&mut self.token_y_vault).reload()?;
 
-        if (result.x_new() + fees) != self.token_x_vault.amount {
-            msg!("x_new_with_fees: {:?}", (result.x_new() + fees));
+        if result.x_new_down() != self.token_x_vault.amount {
+            msg!("x_new_down: {:?}", result.x_new_down());
             msg!("token_x_vault.amount: {:?}", self.token_x_vault.amount);
             return Err(ErrorCode::InvalidVaultToSwapResultAmounts.into());
         }
 
-        if result.y_new() != self.token_y_vault.amount {
-            msg!("y_new: {:?}", result.y_new());
+        if result.y_new_up() != self.token_y_vault.amount {
+            msg!("y_new_up: {:?}", result.y_new_up());
             msg!("token_y_vault.amount: {:?}", self.token_y_vault.amount);
             return Err(ErrorCode::InvalidVaultToSwapResultAmounts.into());
         }
 
-        // TODO: This is broken as we are getting a different k value from the SwapCalculator
-        // if result.k().unwrap() != ctx.accounts.lp_token_mint.supply {
+        // TODO: Broken for some random reason... Come back to laterz
+        // if result.squared_k_down() != self.lp_token_mint.supply {
+        //     msg!("squared_k_down: {:?}", result.squared_k_down());
+        //     msg!("lp_token_mint.supply: {:?}", self.lp_token_mint.supply);
         //     return Err(ErrorCode::InvalidVaultToSwapResultAmounts.into());
         // }
         Ok(())
-    }
-
-    pub fn calculate_fees(&self, transfer_in_amount: u64) -> Option<u64> {
-        calculate_fee(
-            transfer_in_amount as u128,
-            self.pool_state.fees.swap_fee_numerator as u128,
-            self.pool_state.fees.swap_fee_denominator as u128,
-        )
     }
 
     pub fn transfer_tokens_to_user(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
@@ -175,12 +168,11 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
         ctx.accounts.pool_state.fees.swap_fee_denominator,
     );
 
-    let mut result: SwapResult;
+    let mut result = SwapResult::default();
 
     let transfer_in_amount = amount_in;
     let amount_in_decimal = Decimal::from_u64(amount_in).to_amount();
-    let mut fees = 0;
-    let mut transfer_out_amount = 0;
+    let mut transfer_out_amount: u64 = 0;
 
     // detect swap direction. x to y
     if ctx.accounts.user_from_token.mint == ctx.accounts.pool_state.token_x_mint {
@@ -190,9 +182,7 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
         }
 
         result = swap.swap_x_to_y_amm(&amount_in_decimal);
-
-        transfer_out_amount = result.delta_y.to_u64();
-        fees = result.fees();
+        transfer_out_amount = result.delta_y_down();
     }
 
     // detect swap direction y to x
@@ -203,9 +193,7 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
         }
 
         result = swap.swap_y_to_x_amm(&amount_in_decimal);
-
-        transfer_out_amount = result.delta_x();
-        fees = result.fees();
+        transfer_out_amount = result.delta_x_down();
     }
 
     // check slippage for amount_out
@@ -246,9 +234,8 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
         transfer_out_amount,
     )?;
 
-    // post_transfer_checks() are commented out as it should be done inside SwapCalculator where we can compare numbers with the same precision. (not u64 vs Decimal with a scale of AMOUNT_SCALE)
     // check all amounts are correct
-    // ctx.accounts.post_transfer_checks(result, fees)?;
+    ctx.accounts.post_transfer_checks(result)?;
 
     Ok(())
 }
