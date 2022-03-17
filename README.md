@@ -67,9 +67,13 @@ $ anchor --version
 anchor-cli 0.22.0
 ```
 
+### Install TS dependencies
+
+`yarn`
+
 ### Build
 
-`anchor build`
+`./script/build.sh`
 
 ### Build TypeScript components
 
