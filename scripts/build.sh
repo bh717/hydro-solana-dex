@@ -4,6 +4,9 @@
 
 set -x
 
+# Install TS deps
+yarn
+
 # delete old build
 rm -rf ./target/deploy/*.so
 
