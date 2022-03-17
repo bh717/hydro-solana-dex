@@ -27,7 +27,7 @@ export const tokenVault = (ctx: Ctx) => {
     ctx.getKey("tokenMint"),
     ctx.getKey("redeemableMint"),
   ];
-  return AccountLoader.PDAToken(programId, seeds, ctx);
+  return AccountLoader.PDAToken(ctx, programId, seeds);
 };
 
 export const poolState = (ctx: Ctx) => {

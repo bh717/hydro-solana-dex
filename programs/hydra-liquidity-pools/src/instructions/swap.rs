@@ -18,8 +18,11 @@ pub struct Swap<'info> {
         bump = pool_state.pool_state_bump,
     )]
     pub pool_state: Box<Account<'info, PoolState>>,
+
     #[account(
         mut,
+        seeds = [ LP_TOKEN_MINT_SEED, pool_state.token_x_mint.as_ref(), pool_state.token_y_mint.as_ref() ],
+        bump,
         constraint = lp_token_mint.key() == pool_state.lp_token_mint,
     )]
     pub lp_token_mint: Box<Account<'info, Mint>>,

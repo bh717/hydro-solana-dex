@@ -6,8 +6,9 @@ import { toBN, tryGet } from "../../utils";
 import { inject } from "../../utils/meta-utils";
 export function removeLiquidity(ctx: Ctx) {
   return async (
-    lpTokensToBurn: bigint,
-    lpTokenMint: PublicKey // TODO: do we have to pass this?
+    tokenXMint: PublicKey,
+    tokenYMint: PublicKey,
+    lpTokensToBurn: bigint
   ) => {
     const program = ctx.programs.hydraLiquidityPools;
 
@@ -18,11 +19,12 @@ export function removeLiquidity(ctx: Ctx) {
       userTokenY,
       lpTokenAssociatedAccount,
       poolState,
-    } = await inject(accs, ctx).getAccountLoaders(lpTokenMint);
+      lpTokenMint,
+    } = await inject(accs, ctx).getAccountLoaders(tokenXMint, tokenYMint);
 
     const accounts = {
       poolState: await poolState.key(),
-      lpTokenMint,
+      lpTokenMint: await lpTokenMint.key(),
       userTokenX: await userTokenX.key(),
       userTokenY: await userTokenY.key(),
       user: ctx.provider.wallet.publicKey,
