@@ -73,7 +73,7 @@ anchor-cli 0.22.0
 
 ### Build
 
-`./script/build.sh`
+`./scripts/build.sh`
 
 ### Build TypeScript components
 
