@@ -1,4 +1,5 @@
 use crate::constants::*;
+use crate::errors::ErrorCode;
 use crate::state::fees::Fees;
 use crate::state::pool_state::*;
 use crate::DEBUG_MODE;
@@ -25,6 +26,9 @@ pub struct Initialize<'info> {
     pub token_x_mint: Box<Account<'info, Mint>>,
 
     // token_b_mint: Eg USDC
+    #[account(
+        constraint = token_x_mint.key() < token_y_mint.key() @ ErrorCode::InvalidTokenOrder
+    )]
     pub token_y_mint: Box<Account<'info, Mint>>,
 
     /// lp_token_mint: Eg xlp-hyd-usdc

@@ -6,6 +6,11 @@ import { BTCD_MINT_AMOUNT, USDD_MINT_AMOUNT } from "../constants";
 import { HydraSDK } from "hydra-ts";
 import { PoolFees } from "hydra-ts/src/liquidity-pools/types";
 
+function orderKeyPairs(a: Keypair, b: Keypair) {
+  if (a.publicKey.toBase58() > b.publicKey.toBase58()) return [b, a];
+  return [a, b];
+}
+
 describe("hydra-liquidity-pool", () => {
   // Configure the client to use the local cluster.
   const provider = anchor.Provider.env();
@@ -35,8 +40,11 @@ describe("hydra-liquidity-pool", () => {
       config.localnet.programIds
     );
 
-    const btcdMintPair = Keypair.generate();
-    const usddMintPair = Keypair.generate();
+    // Keys will be ordered based on base58 encoding
+    const [btcdMintPair, usddMintPair] = orderKeyPairs(
+      Keypair.generate(),
+      Keypair.generate()
+    );
 
     const accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
       btcdMintPair.publicKey,
@@ -70,10 +78,16 @@ describe("hydra-liquidity-pool", () => {
       hostFeeNumerator: 0n,
       hostFeeDenominator: 0n,
     };
+  });
 
-    await sdk.liquidityPools.initialize(btcdMint, usddMint, poolFees);
-
-    await sdk.common.createAssociatedAccount(await accounts.lpTokenMint.key());
+  it("should fail to initialize because tokens are in the wrong order", async () => {
+    try {
+      await sdk.liquidityPools.initialize(usddMint, btcdMint, poolFees);
+      assert.ok(false, "No error was thrown");
+    } catch (err: any) {
+      const errMsg = "Token addresses order is invalid";
+      assert.equal(err.toString(), errMsg);
+    }
   });
 
   it("should initialize a liquidity-pool", async () => {
@@ -81,6 +95,10 @@ describe("hydra-liquidity-pool", () => {
       btcdMint,
       usddMint
     );
+
+    await sdk.liquidityPools.initialize(btcdMint, usddMint, poolFees);
+
+    await sdk.common.createAssociatedAccount(await accounts.lpTokenMint.key());
 
     const poolStateInfo = await accounts.poolState.info();
     const poolStateAccount = poolStateInfo.data;
