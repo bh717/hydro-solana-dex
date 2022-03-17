@@ -27,7 +27,7 @@ pub struct Initialize<'info> {
 
     // token_b_mint: Eg USDC
     #[account(
-        constraint = token_x_mint.key().lt(&token_y_mint.key()) @ ErrorCode::InvalidTokenOrder
+        constraint = token_x_mint.key().as_ref().lt(token_y_mint.key().as_ref()) @ ErrorCode::InvalidTokenOrder
     )]
     pub token_y_mint: Box<Account<'info, Mint>>,
 
