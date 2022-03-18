@@ -4,6 +4,8 @@
 
 set -x
 
+yarn
+
 # delete old build
 rm -rf ./target/deploy/*.so
 

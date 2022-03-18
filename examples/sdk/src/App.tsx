@@ -9,7 +9,7 @@ import {
   WalletMultiButton,
 } from "@solana/wallet-adapter-react-ui";
 import { PhantomWalletAdapter } from "@solana/wallet-adapter-wallets";
-import { HydraSDK } from "hydra-ts";
+import { AccountLoader, HydraSDK } from "hydra-ts";
 import React, {
   FC,
   ReactNode,
@@ -22,7 +22,6 @@ import {
   AppBar,
   Button,
   Container,
-  Input,
   InputAdornment,
   OutlinedInput,
   Paper,
@@ -34,13 +33,15 @@ import {
   TableHead,
   TableRow,
   Tabs,
-  TextField,
   Toolbar,
   Typography,
 } from "@mui/material";
 import { useObservable } from "react-use";
 import { Box } from "@mui/system";
-
+import tokenMap from "config-ts/tokens/localnet.json";
+import { PublicKey } from "@solana/web3.js";
+import { combineLatest } from "rxjs";
+import { TokenAccount } from "hydra-ts/src/types/token-account";
 require("@solana/wallet-adapter-react-ui/styles.css");
 
 function TabPanel(props: {
@@ -130,6 +131,7 @@ function trunc(str: string) {
 function HydraClientProvider(p: { children: React.ReactNode }) {
   const wallet = useAnchorWallet();
   const { connection } = useConnection();
+
   const sdk = useMemo(() => {
     console.log("creating new client...");
     return HydraSDK.create("localnet", connection, wallet);
@@ -146,6 +148,22 @@ const HydraClientContext = React.createContext({} as HydraSDK);
 
 function useHydraClient() {
   return useContext(HydraClientContext);
+}
+
+function DisplayToken({
+  token,
+}: {
+  token?: AccountLoader.AccountPubkey<TokenAccount>;
+}) {
+  if (!token) return null;
+  return (
+    <TableRow key={`${token.pubkey}`}>
+      <TableCell>{trunc(`${token.pubkey}`)}</TableCell>
+      <TableCell>{trunc(`${token.account.data.mint}`)}</TableCell>
+      <TableCell>{trunc(`${token.account.data.owner}`)}</TableCell>
+      <TableCell>{`${token.account.data.amount}`}</TableCell>
+    </TableRow>
+  );
 }
 
 const Staking: FC = () => {
@@ -266,30 +284,8 @@ const Staking: FC = () => {
                   <Typography variant="h6">My Accounts</Typography>
                 </TableCell>
               </TableRow>
-              {userFrom && (
-                <TableRow key={`${userFrom.pubkey}`}>
-                  <TableCell>{trunc(`${userFrom.pubkey}`)}</TableCell>
-                  <TableCell>
-                    {trunc(`${userFrom.account.data.mint}`)}
-                  </TableCell>
-                  <TableCell>
-                    {trunc(`${userFrom.account.data.owner}`)}
-                  </TableCell>
-                  <TableCell>{`${userFrom.account.data.amount}`}</TableCell>
-                </TableRow>
-              )}
-              {userRedeemable && (
-                <TableRow key={`${userRedeemable.pubkey}`}>
-                  <TableCell>{trunc(`${userRedeemable.pubkey}`)}</TableCell>
-                  <TableCell>
-                    {trunc(`${userRedeemable.account.data.mint}`)}
-                  </TableCell>
-                  <TableCell>
-                    {trunc(`${userRedeemable.account.data.owner}`)}
-                  </TableCell>
-                  <TableCell>{`${userRedeemable.account.data.amount}`}</TableCell>
-                </TableRow>
-              )}
+              {userFrom && <DisplayToken token={userFrom} />}
+              {userRedeemable && <DisplayToken token={userRedeemable} />}
 
               {tokenVault && (
                 <>
@@ -298,16 +294,7 @@ const Staking: FC = () => {
                       <Typography variant="h6">tokenVault</Typography>
                     </TableCell>
                   </TableRow>
-                  <TableRow key={`${tokenVault.pubkey}`}>
-                    <TableCell>{trunc(`${tokenVault.pubkey}`)}</TableCell>
-                    <TableCell>
-                      {trunc(`${tokenVault.account.data.mint}`)}
-                    </TableCell>
-                    <TableCell>
-                      {trunc(`${tokenVault.account.data.owner}`)}
-                    </TableCell>
-                    <TableCell>{`${tokenVault.account.data.amount}`}</TableCell>
-                  </TableRow>
+                  <DisplayToken token={tokenVault} />
                 </>
               )}
             </TableBody>
@@ -319,7 +306,45 @@ const Staking: FC = () => {
 };
 
 const Pool: FC = () => {
-  return <div>Pool</div>;
+  const sdk = useHydraClient();
+
+  const streams = useObservable(
+    useMemo(() => {
+      const { toAssociatedTokenAccount } = sdk.common;
+      const tokens = tokenMap.tokens;
+      const usd = toAssociatedTokenAccount(new PublicKey(tokens.usdc)).stream();
+      const btc = toAssociatedTokenAccount(new PublicKey(tokens.btc)).stream();
+
+      return combineLatest({ usd, btc });
+    }, [sdk])
+  );
+
+  return (
+    <div>
+      <Paper component="div">
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Address</TableCell>
+              <TableCell>Mint</TableCell>
+              <TableCell>Owner</TableCell>
+              <TableCell>Balance</TableCell>
+            </TableRow>
+          </TableHead>
+
+          <TableBody>
+            <TableRow>
+              <TableCell colSpan={4}>
+                <Typography variant="h6">My Accounts</Typography>
+              </TableCell>
+            </TableRow>
+            {streams?.usd && <DisplayToken token={streams.usd} />}
+            {streams?.btc && <DisplayToken token={streams.btc} />}
+          </TableBody>
+        </Table>
+      </Paper>
+    </div>
+  );
 };
 
 const Wasm: FC = () => {

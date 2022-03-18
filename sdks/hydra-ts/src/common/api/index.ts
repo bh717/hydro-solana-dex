@@ -9,3 +9,4 @@ export * from "./createMint";
 export * from "./createMintAndVault";
 export * from "./createTokenAccount";
 export * from "./transfer";
+export * from "./accounts";

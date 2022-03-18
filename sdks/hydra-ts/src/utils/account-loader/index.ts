@@ -132,10 +132,12 @@ export function PDAMint(
   return PDA(ctx, programId, seeds, TokenMint.Parser);
 }
 
-export function AssociatedToken(ctx: Ctx, mint: PublicKey) {
-  return Token(ctx, () =>
-    findAssociatedTokenAddress(ctx.wallet.publicKey, mint)
-  );
+export function AssociatedToken(
+  ctx: Ctx,
+  mint: PublicKey,
+  walletAddress = ctx.wallet.publicKey
+) {
+  return Token(ctx, () => findAssociatedTokenAddress(walletAddress, mint));
 }
 
 export function PDA<T>(

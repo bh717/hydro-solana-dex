@@ -1,26 +1,31 @@
-import { PublicKey, Transaction, TransactionSignature } from "@solana/web3.js";
+import {
+  Keypair,
+  PublicKey,
+  Transaction,
+  TransactionSignature,
+} from "@solana/web3.js";
 import * as TokenInstructions from "@project-serum/serum/lib/token-instructions";
 import { NodeWallet } from "@project-serum/common";
 import { Ctx } from "../..";
 
 export function transfer(ctx: Ctx) {
   return async (
-    source: PublicKey,
-    destination: PublicKey,
-    amount: number | bigint
+    from: PublicKey,
+    to: PublicKey,
+    amount: number | bigint,
+    owner = ctx.provider.wallet.publicKey,
+    payer: Keypair = (ctx.provider.wallet as NodeWallet).payer as any as Keypair
   ): Promise<TransactionSignature> => {
     const tx = new Transaction();
     tx.add(
       TokenInstructions.transfer({
-        source: source,
-        destination: destination,
-        amount: amount,
-        owner: ctx.provider.wallet.publicKey,
+        source: from,
+        destination: to,
+        amount: Number(amount),
+        owner,
       })
     );
-    let txhash = await ctx.provider.send(tx, [
-      (ctx.provider.wallet as NodeWallet).payer,
-    ]);
+    let txhash = await ctx.provider.send(tx, [payer]);
     return txhash;
   };
 }
