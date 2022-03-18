@@ -1,5 +1,5 @@
 import { Provider } from "@project-serum/anchor";
-import { Connection } from "@solana/web3.js";
+import { Connection, PublicKey } from "@solana/web3.js";
 import { getProgramIds } from "./config/get-program-ids";
 import { createCtx, createReadonlyCtx, createCtxAnchor } from "./ctx";
 import { Ctx, Network, ProgramIds, Wallet } from "./types";

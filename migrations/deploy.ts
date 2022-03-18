@@ -2,12 +2,29 @@
 import * as anchor from "@project-serum/anchor";
 import config from "config-ts/global-config.json";
 import * as staking from "types-ts/codegen/types/hydra_staking";
+import * as liquidityPools from "types-ts/codegen/types/hydra_liquidity_pools";
+import { tokens as localnetTokens } from "config-ts/tokens/localnet.json";
 import { loadKey } from "hydra-ts/node"; // these should be moved out of test
 import { HydraSDK } from "hydra-ts";
+import { Keypair } from "@solana/web3.js";
 
-export default async function (provider: anchor.Provider) {
-  anchor.setProvider(provider);
+async function loadTokens<T extends Record<any, string>>(tokens: T) {
+  let out: Record<keyof T, Keypair>;
+  let entries = Object.entries(tokens) as Array<[keyof T, string]>;
+  for (let [symbol, address] of entries) {
+    const keypair = await loadKey(`keys/localnet/tokens/${address}.json`);
+    out[symbol] = keypair;
+  }
 
+  return out;
+}
+
+type LocalTokens = Record<keyof typeof localnetTokens, Keypair>;
+
+async function setupStakingState(
+  provider: anchor.Provider,
+  tokens: LocalTokens
+) {
   const hydraStaking = new anchor.web3.PublicKey(
     config.localnet.programIds.hydraStaking
   );
@@ -17,12 +34,8 @@ export default async function (provider: anchor.Provider) {
     hydraStaking
   );
 
-  const tokenMint = await loadKey(
-    "keys/localnet/staking/hyd3VthE9YPGBeg9HEgZsrM5qPniC6VoaEFeTGkVsJR.json"
-  );
-  const redeemableMint = await loadKey(
-    "keys/localnet/staking/xhy1rv75cEJahTbsKnv2TpNhdR7KNUoDPavKuQDwhDU.json"
-  );
+  const redeemableMint = tokens["xhyd"];
+  const tokenMint = tokens["hyd"];
 
   const programMap = {
     hydraStaking: program.programId.toString(),
@@ -59,4 +72,50 @@ redeemableMint:\t\t${redeemableMint.publicKey}
   `);
 
   await sdk.staking.initialize(tokenVaultBump, poolStateBump);
+}
+
+async function setupLiquidityPoolState(
+  provider: anchor.Provider,
+  tokens: LocalTokens
+) {
+  const sdk = HydraSDK.createFromAnchorProvider(provider, "localnet");
+
+  // create and distribute tokens to provider wallet
+  await sdk.common.createMintAndAssociatedVault(tokens.usdc, 100_000_000n);
+  await sdk.common.createMintAndAssociatedVault(tokens.btc, 100_000_000n);
+  await sdk.common.createMintAndAssociatedVault(tokens.eth, 100_000_000n);
+  await sdk.common.createMintAndAssociatedVault(tokens.xrp, 100_000_000n);
+  await sdk.common.createMintAndAssociatedVault(tokens.luna, 100_000_000n);
+
+  const fees = {
+    swapFeeNumerator: 1n,
+    swapFeeDenominator: 500n,
+    ownerTradeFeeNumerator: 0n,
+    ownerTradeFeeDenominator: 0n,
+    ownerWithdrawFeeNumerator: 0n,
+    ownerWithdrawFeeDenominator: 0n,
+    hostFeeNumerator: 0n,
+    hostFeeDenominator: 0n,
+  };
+
+  // Create the btc usdc pool
+  await sdk.liquidityPools.initialize(
+    tokens.btc.publicKey,
+    tokens.usdc.publicKey,
+    fees
+  );
+
+  // Create the eth usdc pool
+  await sdk.liquidityPools.initialize(
+    tokens.eth.publicKey,
+    tokens.usdc.publicKey,
+    fees
+  );
+}
+
+export default async function (provider: anchor.Provider) {
+  anchor.setProvider(provider);
+  const tokens = await loadTokens(localnetTokens);
+  await setupStakingState(provider, tokens);
+  await setupLiquidityPoolState(provider, tokens);
 }
