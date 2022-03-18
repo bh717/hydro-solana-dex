@@ -15,6 +15,7 @@ import React, {
   ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -22,6 +23,7 @@ import {
   AppBar,
   Button,
   Container,
+  FormLabel,
   InputAdornment,
   OutlinedInput,
   Paper,
@@ -33,10 +35,12 @@ import {
   TableHead,
   TableRow,
   Tabs,
+  TextField,
   Toolbar,
   Typography,
 } from "@mui/material";
 import { useObservable } from "react-use";
+import { Observable } from "rxjs";
 import { Box } from "@mui/system";
 import tokenMap from "config-ts/tokens/localnet.json";
 import { PublicKey } from "@solana/web3.js";
@@ -305,22 +309,116 @@ const Staking: FC = () => {
   );
 };
 
+const usdMint = new PublicKey(tokenMap.tokens.usdc);
+const btcMint = new PublicKey(tokenMap.tokens.btc);
+type PromiseVal<T> = T extends Promise<infer J> ? J : never;
+
+function useLiquidityAccounts(sdk: HydraSDK) {
+  type Accounts = PromiseVal<
+    ReturnType<typeof sdk.liquidityPools.accounts.getAccountLoaders>
+  >;
+  const [accounts, setAccounts] = useState<Accounts | undefined>();
+
+  useEffect(() => {
+    (async function () {
+      const accs = await sdk.liquidityPools.accounts.getAccountLoaders(
+        btcMint,
+        usdMint
+      );
+      setAccounts(accs);
+    })();
+  }, [sdk]);
+  return accounts;
+}
+
+function maybeStream<T>(
+  streamOrUndefined: Observable<T> | undefined
+): Observable<T | undefined> {
+  if (!streamOrUndefined) return new Observable((s) => s.next(undefined));
+  return streamOrUndefined;
+}
+
 const Pool: FC = () => {
   const sdk = useHydraClient();
+
+  const [liquidityTokenA, setLiquidityTokenA] = useState(0);
+  const [liquidityTokenB, setLiquidityTokenB] = useState(0);
 
   const streams = useObservable(
     useMemo(() => {
       const { toAssociatedTokenAccount } = sdk.common;
-      const tokens = tokenMap.tokens;
-      const usd = toAssociatedTokenAccount(new PublicKey(tokens.usdc)).stream();
-      const btc = toAssociatedTokenAccount(new PublicKey(tokens.btc)).stream();
+
+      const usd = toAssociatedTokenAccount(usdMint).stream();
+      const btc = toAssociatedTokenAccount(btcMint).stream();
 
       return combineLatest({ usd, btc });
     }, [sdk])
   );
 
+  const accounts = useLiquidityAccounts(sdk);
+
+  const tokenXVault = useObservable(
+    useMemo(() => maybeStream(accounts?.tokenXVault.stream()), [accounts])
+  );
+
+  const tokenYVault = useObservable(
+    useMemo(() => maybeStream(accounts?.tokenYVault.stream()), [accounts])
+  );
+
+  const handleTokenAChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLiquidityTokenA(Number(e.target.value));
+  };
+
+  const handleTokenBChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLiquidityTokenB(Number(e.target.value));
+  };
+
+  const handleAddLiquidityClicked = async () => {
+    await sdk.liquidityPools.addLiquidity(
+      btcMint,
+      usdMint,
+      BigInt(liquidityTokenA),
+      BigInt(liquidityTokenB),
+      0n
+    );
+  };
+
   return (
     <div>
+      <Paper component="div">
+        <Stack>
+          {sdk.ctx.isSignedIn() ? (
+            <>
+              <Stack padding={1} gap={2} maxWidth={500}>
+                <TextField
+                  type="number"
+                  onChange={handleTokenAChange}
+                  label={tokenMap.tokens.btc}
+                  value={liquidityTokenA}
+                />
+                <FormLabel>Suggestion: 6000000</FormLabel>
+                <TextField
+                  type="number"
+                  onChange={handleTokenBChange}
+                  label={tokenMap.tokens.usdc}
+                  value={liquidityTokenB}
+                />
+                <FormLabel>Suggestion: 255575287200</FormLabel>
+                <Button variant="contained" onClick={handleAddLiquidityClicked}>
+                  Add Liquidity
+                </Button>
+              </Stack>
+              <Box padding={1}>
+                <Button variant="contained" onClick={handleAddLiquidityClicked}>
+                  Swap
+                </Button>
+              </Box>
+            </>
+          ) : (
+            <Typography>Please connect your wallet</Typography>
+          )}
+        </Stack>
+      </Paper>
       <Paper component="div">
         <Table>
           <TableHead>
@@ -340,6 +438,13 @@ const Pool: FC = () => {
             </TableRow>
             {streams?.usd && <DisplayToken token={streams.usd} />}
             {streams?.btc && <DisplayToken token={streams.btc} />}
+            <TableRow>
+              <TableCell colSpan={4}>
+                <Typography variant="h6">Pool</Typography>
+              </TableCell>
+            </TableRow>
+            {tokenXVault && <DisplayToken token={tokenXVault} />}
+            {tokenYVault && <DisplayToken token={tokenYVault} />}
           </TableBody>
         </Table>
       </Paper>
