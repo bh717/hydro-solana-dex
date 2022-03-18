@@ -4,6 +4,7 @@ use crate::events::liquidity_added::LiquidityAdded;
 use crate::events::slippage_exceeded::SlippageExceeded;
 use crate::state::pool_state::PoolState;
 use anchor_lang::prelude::*;
+use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
 use anchor_spl::token::{Mint, MintTo, Token, TokenAccount, Transfer};
 use hydra_math_rs::programs::liquidity_pools::hydra_lp_tokens::*;
@@ -11,6 +12,7 @@ use hydra_math_rs::programs::liquidity_pools::hydra_lp_tokens::*;
 #[derive(Accounts)]
 pub struct AddLiquidity<'info> {
     /// the authority allowed to transfer token_a and token_b from the users wallet.
+    #[account(mut)]
     pub user: Signer<'info>,
 
     #[account(
@@ -68,12 +70,17 @@ pub struct AddLiquidity<'info> {
     pub lp_token_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(
-        mut,
-        constraint = lp_token_to.mint == pool_state.lp_token_mint,
+        init_if_needed,
+        payer = user,
+        associated_token::mint = lp_token_mint,
+        associated_token::authority = user
     )]
     pub lp_token_to: Box<Account<'info, TokenAccount>>,
 
+    pub system_program: Program<'info, System>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program: Program<'info, Token>,
+    pub rent: Sysvar<'info, Rent>,
 }
 
 impl<'info> AddLiquidity<'info> {
