@@ -1,4 +1,4 @@
-import { Keypair, PublicKey } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import {
   LP_TOKEN_VAULT_SEED,
   POOL_STATE_SEED,

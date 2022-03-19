@@ -98,8 +98,6 @@ describe("hydra-liquidity-pool", () => {
 
     await sdk.liquidityPools.initialize(btcdMint, usddMint, poolFees);
 
-    await sdk.common.createAssociatedAccount(await accounts.lpTokenMint.key());
-
     const poolStateInfo = await accounts.poolState.info();
     const poolStateAccount = poolStateInfo.data;
 
