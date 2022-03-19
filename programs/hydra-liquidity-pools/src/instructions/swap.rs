@@ -2,6 +2,7 @@ use crate::constants::*;
 use crate::errors::ErrorCode;
 use crate::state::pool_state::PoolState;
 use anchor_lang::prelude::*;
+use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
 use anchor_spl::token::{Mint, Token, TokenAccount, Transfer};
 use hydra_math::swap_calculator::SwapCalculator;
@@ -10,6 +11,7 @@ use hydra_math_rs::programs::liquidity_pools::fees::calculate_fee;
 
 #[derive(Accounts)]
 pub struct Swap<'info> {
+    #[account(mut)]
     pub user: Signer<'info>,
 
     #[account(
@@ -34,13 +36,17 @@ pub struct Swap<'info> {
     /// the token account to withdraw from
     pub user_from_token: Box<Account<'info, TokenAccount>>,
 
-    // TODO: setup init_if_needed
     #[account(
-        mut,
+        init_if_needed,
+        payer = user,
+        associated_token::mint = user_to_mint,
+        associated_token::authority = user,
         constraint = user_to_token.owner == user.key()
     )]
     /// token account to send too.  
     pub user_to_token: Box<Account<'info, TokenAccount>>,
+
+    pub user_to_mint: Box<Account<'info, Mint>>,
 
     #[account(
         mut,
@@ -58,7 +64,10 @@ pub struct Swap<'info> {
     )]
     pub token_y_vault: Box<Account<'info, TokenAccount>>,
 
+    pub system_program: Program<'info, System>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program: Program<'info, Token>,
+    pub rent: Sysvar<'info, Rent>,
 }
 
 impl<'info> Swap<'info> {

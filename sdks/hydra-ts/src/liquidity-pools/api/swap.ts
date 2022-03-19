@@ -1,9 +1,13 @@
 import { PublicKey } from "@solana/web3.js";
 import { Ctx } from "../../types";
 import * as accs from "../accounts";
-import { TOKEN_PROGRAM_ID } from "@project-serum/serum/lib/token-instructions";
 import { toBN } from "../../utils";
 import { inject } from "../../utils/meta-utils";
+import { Token } from "../../utils/account-loader";
+import { web3 } from "@project-serum/anchor";
+import { SystemProgram } from "@solana/web3.js";
+import * as SPLToken from "@solana/spl-token";
+
 export function swap(ctx: Ctx) {
   return async (
     tokenXMint: PublicKey,
@@ -18,6 +22,12 @@ export function swap(ctx: Ctx) {
     const { tokenXVault, tokenYVault, poolState, lpTokenMint } =
       await accounts.getAccountLoaders(tokenXMint, tokenYMint);
 
+    const info = await Token(ctx, userFromToken).info();
+    const userToMint =
+      info.data.mint.toString() === tokenXMint.toString()
+        ? tokenYMint
+        : tokenXMint;
+
     await program.rpc.swap(toBN(amountIn), toBN(minimumAmountOut), {
       accounts: {
         user: ctx.provider.wallet.publicKey,
@@ -25,9 +35,13 @@ export function swap(ctx: Ctx) {
         lpTokenMint: await lpTokenMint.key(),
         userFromToken,
         userToToken,
+        userToMint,
         tokenXVault: await tokenXVault.key(),
         tokenYVault: await tokenYVault.key(),
-        tokenProgram: TOKEN_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
+        tokenProgram: SPLToken.TOKEN_PROGRAM_ID,
+        associatedTokenProgram: SPLToken.ASSOCIATED_TOKEN_PROGRAM_ID,
+        rent: web3.SYSVAR_RENT_PUBKEY,
       },
     });
   };
