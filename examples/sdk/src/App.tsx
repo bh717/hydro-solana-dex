@@ -522,7 +522,9 @@ const Pool: FC = () => {
             </TableRow>
             {tokenXVault && <DisplayToken token={tokenXVault} />}
             {tokenYVault && <DisplayToken token={tokenYVault} />}
-            {lpTokenAssociatedAccount && <DisplayToken token={lpTokenAssociatedAccount}/>}
+            {lpTokenAssociatedAccount && (
+              <DisplayToken token={lpTokenAssociatedAccount} />
+            )}
           </TableBody>
         </Table>
       </Paper>
