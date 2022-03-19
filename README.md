@@ -29,6 +29,9 @@ All programs can be found in `./programs` and all integration tests can be found
 
 ### Install dependencies
 
+Some of the following dependencies can be installed via the make task: `make install_dependencies`.
+Please make sure you valid you have all the correct versions post install.
+
 #### Installing rust:
 
 Direction can be found [here](https://www.rust-lang.org/tools/install)
@@ -55,6 +58,26 @@ Direction can be found [here](https://nodejs.org/en/)
 $ node --version
 v17.1.0
 ```
+
+#### Installing yarn
+
+Direction can be found [here](https://yarnpkg.com/getting-started/install)
+
+```
+$yarn --version
+1.22.17
+```
+
+#### Installing wasm-pack
+
+`cargo install wasm-pack`
+
+```
+$wasm-pack -V
+wasm-pack 0.10.2
+```
+
+`cargo install wasm-bindgen-cli`
 
 #### Installing Anchor:
 
@@ -86,22 +109,13 @@ After `anchor deploy` you can run:
 
 We would like to make this experience more seamless.
 
-#### Dependencies
-
-wasm-pack via:
-
-```
-curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-cargo install wasm-bindgen-cli
-```
-
 ### Deploy
 
 `anchor deploy`
 
 ### Test
 
-`anchor test`
+`make test`
 
 ### Migrate
 
@@ -110,3 +124,7 @@ cargo install wasm-bindgen-cli
 ### How tos
 
 - [How to create a wasm package](./docs/how_to_wasm.md)
+
+```
+
+```
