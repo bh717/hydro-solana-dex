@@ -89,28 +89,33 @@ async function setupLiquidityPoolState(
   console.log("Creating usdc...");
   const [, usdcATA] = await sdk.common.createMintAndAssociatedVault(
     tokens.usdc,
-    1000n * 1_000_000n
+    1_000_000n * 1_000_000n
   );
+  console.log(`usdcATA: ${usdcATA}\n`);
   console.log("Creating btc...");
   const [, btcATA] = await sdk.common.createMintAndAssociatedVault(
     tokens.btc,
-    1000n * 1_000_000n
+    1_000_000n * 1_000_000n
   );
+  console.log(`btcATA: ${btcATA}\n`);
   console.log("Creating eth...");
   const [, ethATA] = await sdk.common.createMintAndAssociatedVault(
     tokens.eth,
-    1000n * 1_000_000n
+    1_000_000n * 1_000_000n
   );
+  console.log(`ethATA: ${ethATA}\n`);
   console.log("Creating xrp...");
   const [, xrpATA] = await sdk.common.createMintAndAssociatedVault(
     tokens.xrp,
-    1000n * 1_000_000n
+    1_000_000n * 1_000_000n
   );
+  console.log(`xrpATA: ${xrpATA}\n`);
   console.log("Creating luna...");
   const [, lunaATA] = await sdk.common.createMintAndAssociatedVault(
     tokens.luna,
-    1000n * 1_000_000n
+    1_000_000n * 1_000_000n
   );
+  console.log(`lunaATA: ${lunaATA}\n`);
 
   const fees = {
     swapFeeNumerator: 1n,

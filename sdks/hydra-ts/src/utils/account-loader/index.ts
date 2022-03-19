@@ -27,13 +27,20 @@ export function AccountLoader<T>(
 
     return { ...info, data: accountParser(info) };
   }
+
   async function key() {
     return await getKey();
   }
+
+  async function isInitialized() {
+    const inf = await info();
+    return !!inf;
+  }
+
   return {
     key,
     info,
-
+    isInitialized,
     onChange(callback, commitment) {
       let id: number;
 

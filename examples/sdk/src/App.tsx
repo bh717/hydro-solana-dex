@@ -383,12 +383,38 @@ const Pool: FC = () => {
     );
   };
 
+  const [swapTokenA, setSwapTokenA] = useState(0);
+  const [swapTokenB, setSwapTokenB] = useState(0);
+
+  const handleSwapTokenAChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSwapTokenA(Number(e.target.value));
+  };
+
+  const handleSwapTokenBChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSwapTokenB(Number(e.target.value));
+  };
+
+  const handleSwapClicked = async () => {
+    if (!accounts) throw new Error("Error creating accounts");
+    const userBtc = await accounts.userTokenX.key();
+    const userUsd = await accounts.userTokenY.key();
+
+    await sdk.liquidityPools.swap(
+      btcMint,
+      usdMint,
+      userBtc,
+      userUsd,
+      BigInt(swapTokenA),
+      BigInt(swapTokenB)
+    );
+  };
+
   return (
     <div>
       <Paper component="div">
         <Stack>
           {sdk.ctx.isSignedIn() ? (
-            <>
+            <Box display="flex" justifyContent={"stretch"}>
               <Stack padding={1} gap={2} maxWidth={500}>
                 <TextField
                   type="number"
@@ -408,12 +434,26 @@ const Pool: FC = () => {
                   Add Liquidity
                 </Button>
               </Stack>
-              <Box padding={1}>
-                <Button variant="contained" onClick={handleAddLiquidityClicked}>
+              <Stack padding={1} gap={2} maxWidth={500}>
+                <TextField
+                  type="number"
+                  onChange={handleSwapTokenAChange}
+                  label={tokenMap.tokens.btc}
+                  value={swapTokenA}
+                />
+                <FormLabel>Suggestion: 1000</FormLabel>
+                <TextField
+                  type="number"
+                  onChange={handleSwapTokenBChange}
+                  label={tokenMap.tokens.usdc}
+                  value={swapTokenB}
+                />
+                <FormLabel>Suggestion: 36510755</FormLabel>
+                <Button variant="contained" onClick={handleSwapClicked}>
                   Swap
                 </Button>
-              </Box>
-            </>
+              </Stack>
+            </Box>
           ) : (
             <Typography>Please connect your wallet</Typography>
           )}
