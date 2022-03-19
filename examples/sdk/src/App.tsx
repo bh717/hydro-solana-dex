@@ -341,9 +341,6 @@ function maybeStream<T>(
 const Pool: FC = () => {
   const sdk = useHydraClient();
 
-  const [liquidityTokenA, setLiquidityTokenA] = useState(0);
-  const [liquidityTokenB, setLiquidityTokenB] = useState(0);
-
   const streams = useObservable(
     useMemo(() => {
       const { toAssociatedTokenAccount } = sdk.common;
@@ -365,6 +362,18 @@ const Pool: FC = () => {
     useMemo(() => maybeStream(accounts?.tokenYVault.stream()), [accounts])
   );
 
+  const lpTokenAssociatedAccount = useObservable(
+    useMemo(
+      () => maybeStream(accounts?.lpTokenAssociatedAccount.stream()),
+      [accounts]
+    )
+  );
+
+  /////////////////////////////////////////////////////////
+
+  const [liquidityTokenA, setLiquidityTokenA] = useState(0);
+  const [liquidityTokenB, setLiquidityTokenB] = useState(0);
+
   const handleTokenAChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLiquidityTokenA(Number(e.target.value));
   };
@@ -382,7 +391,7 @@ const Pool: FC = () => {
       0n
     );
   };
-
+  ///////////////////////////////////////////////////////////
   const [swapTokenA, setSwapTokenA] = useState(0);
   const [swapTokenB, setSwapTokenB] = useState(0);
 
@@ -406,6 +415,23 @@ const Pool: FC = () => {
       userUsd,
       BigInt(swapTokenA),
       BigInt(swapTokenB)
+    );
+  };
+
+  ///////////////////////////////////////////////////////////
+  const [removeLpTokenAmount, setRemoveToken] = useState(0);
+
+  const handleRemoveTokenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setRemoveToken(Number(e.target.value));
+  };
+
+  const handleRemoveClicked = async () => {
+    if (!accounts) throw new Error("Error creating accounts");
+
+    await sdk.liquidityPools.removeLiquidity(
+      btcMint,
+      usdMint,
+      BigInt(removeLpTokenAmount)
     );
   };
 
@@ -453,6 +479,17 @@ const Pool: FC = () => {
                   Swap
                 </Button>
               </Stack>
+              <Stack padding={1} gap={2} maxWidth={500}>
+                <TextField
+                  type="number"
+                  onChange={handleRemoveTokenChange}
+                  value={removeLpTokenAmount}
+                />
+                <FormLabel>Suggestion: 3302203141</FormLabel>
+                <Button variant="contained" onClick={handleRemoveClicked}>
+                  Remove Liquidity
+                </Button>
+              </Stack>
             </Box>
           ) : (
             <Typography>Please connect your wallet</Typography>
@@ -485,6 +522,7 @@ const Pool: FC = () => {
             </TableRow>
             {tokenXVault && <DisplayToken token={tokenXVault} />}
             {tokenYVault && <DisplayToken token={tokenYVault} />}
+            {lpTokenAssociatedAccount && <DisplayToken token={lpTokenAssociatedAccount}/>}
           </TableBody>
         </Table>
       </Paper>
