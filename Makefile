@@ -12,7 +12,7 @@ install_dependencies: install_anchor_avm
 install_dependencies: install_node
 install_dependencies: install_yarn
 install_dependencies: install_project_deps
-install_dependencies: make test
+install_dependencies: test
 
 install_rust:
 	rustup update || curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
