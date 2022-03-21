@@ -39,13 +39,18 @@ pub struct Swap<'info> {
     #[account(
         init_if_needed,
         payer = user,
-        associated_token::mint = user_to_mint,
+        associated_token::mint = user_to_mint,// ???
         associated_token::authority = user,
         constraint = user_to_token.owner == user.key()
     )]
     /// token account to send too.  
     pub user_to_token: Box<Account<'info, TokenAccount>>,
 
+    /// token_a_mint. Eg BTC
+    #[account(
+        constraint = user_to_mint.key() == pool_state.token_x_mint || user_to_mint.key() == pool_state.token_y_mint,
+        constraint = user_to_token.owner == user.key()
+    )]
     pub user_to_mint: Box<Account<'info, Mint>>,
 
     #[account(

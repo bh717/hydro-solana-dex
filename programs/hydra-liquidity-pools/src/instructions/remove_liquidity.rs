@@ -78,11 +78,14 @@ pub struct RemoveLiquidity<'info> {
     pub lp_token_mint: Box<Account<'info, Mint>>,
 
     /// token_a_mint. Eg BTC
+    #[account(
+        constraint = token_x_mint.key() == pool_state.token_x_mint,
+    )]
     pub token_x_mint: Box<Account<'info, Mint>>,
 
-    // token_b_mint: Eg USDC
+    /// token_b_mint: Eg USDC
     #[account(
-        constraint = token_x_mint.key().as_ref().lt(token_y_mint.key().as_ref()) @ ErrorCode::InvalidTokenOrder
+        constraint = token_y_mint.key() == pool_state.token_y_mint,
     )]
     pub token_y_mint: Box<Account<'info, Mint>>,
 
