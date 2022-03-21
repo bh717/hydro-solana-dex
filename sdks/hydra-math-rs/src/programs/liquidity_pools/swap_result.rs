@@ -23,34 +23,34 @@ pub struct SwapResult {
 
 impl SwapResult {
     pub fn x_new_down(&self) -> u64 {
-        self.x_new.scale_down_round_down().try_into().unwrap()
+        self.x_new.to_scale(0).try_into().unwrap()
     }
 
     pub fn x_new_up(&self) -> u64 {
-        self.x_new.scale_down_round_up().try_into().unwrap()
+        self.x_new.to_scale_up(0).try_into().unwrap()
     }
 
     pub fn y_new_down(&self) -> u64 {
-        self.y_new.scale_down_round_up().try_into().unwrap()
+        self.y_new.to_scale(0).try_into().unwrap()
     }
 
     pub fn y_new_up(&self) -> u64 {
-        self.y_new.scale_down_round_up().try_into().unwrap()
+        self.y_new.to_scale_up(0).try_into().unwrap()
     }
 
     pub fn delta_x_down(&self) -> u64 {
-        self.delta_x.scale_down_round_down().try_into().unwrap()
+        self.delta_x.to_scale(0).try_into().unwrap()
     }
 
     pub fn delta_y_down(&self) -> u64 {
-        self.delta_y.scale_down_round_down().try_into().unwrap()
+        self.delta_y.to_scale(0).try_into().unwrap()
     }
 
     pub fn squared_k_up(&self) -> u64 {
-        self.squared_k.scale_down_round_up().try_into().unwrap()
+        self.squared_k.to_scale_up(0).try_into().unwrap()
     }
 
     pub fn squared_k_down(&self) -> u64 {
-        self.squared_k.scale_down_round_down().try_into().unwrap()
+        self.squared_k.to_scale(0).try_into().unwrap()
     }
 }
