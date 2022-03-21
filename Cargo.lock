@@ -923,7 +923,6 @@ dependencies = [
  "anchor-lang",
  "anchor-spl",
  "derivative",
- "hydra-math",
  "hydra-math-rs",
  "num",
 ]

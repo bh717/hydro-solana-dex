@@ -24,5 +24,4 @@ anchor-lang = "0.22.1"
 anchor-spl = "0.22.1"
 derivative = "2.2.0"
 hydra-math-rs = { path = "../../sdks/hydra-math-rs" }
-hydra-math = { path = "../../libs/math/hmm" }
 num = "0.4.0"
