@@ -485,7 +485,7 @@ const Pool: FC = () => {
                   onChange={handleRemoveTokenChange}
                   value={removeLpTokenAmount}
                 />
-                <FormLabel>Suggestion: 3302203141</FormLabel>
+                <FormLabel>Suggestion: 1238326078</FormLabel>
                 <Button variant="contained" onClick={handleRemoveClicked}>
                   Remove Liquidity
                 </Button>
