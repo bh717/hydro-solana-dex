@@ -7,11 +7,6 @@ import { SystemProgram } from "@solana/web3.js";
 import * as SPLToken from "@solana/spl-token";
 import { web3 } from "@project-serum/anchor";
 
-function log<T extends Record<any, any>>(obj: T): T {
-  console.log(stringifyProps(obj));
-  return obj;
-}
-
 export function addLiquidity(ctx: Ctx) {
   return async (
     tokenXMint: PublicKey,
@@ -33,17 +28,12 @@ export function addLiquidity(ctx: Ctx) {
       poolState,
     } = await accounts.getAccountLoaders(tokenXMint, tokenYMint);
 
-    console.log(`init: poolState: ${await poolState.isInitialized()}`);
-    console.log(`init: lpTokenMint: ${await lpTokenMint.isInitialized()}`);
-    console.log(`init: userTokenX: ${await userTokenX.isInitialized()}`);
-    console.log(`init: userTokenY: ${await userTokenX.isInitialized()}`);
-
     await program.rpc.addLiquidity(
       toBN(tokenXMaxAmount),
       toBN(tokenYMaxAmount),
       toBN(expectedLpTokens),
       {
-        accounts: log({
+        accounts: {
           poolState: await poolState.key(),
           lpTokenMint: await lpTokenMint.key(),
           userTokenX: await userTokenX.key(),
@@ -57,7 +47,7 @@ export function addLiquidity(ctx: Ctx) {
           tokenProgram: SPLToken.TOKEN_PROGRAM_ID,
           associatedTokenProgram: SPLToken.ASSOCIATED_TOKEN_PROGRAM_ID,
           rent: web3.SYSVAR_RENT_PUBKEY,
-        }),
+        },
       }
     );
   };
