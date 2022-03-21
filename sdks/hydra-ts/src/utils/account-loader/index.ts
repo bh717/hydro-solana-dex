@@ -19,7 +19,6 @@ export function AccountLoader<T>(
 
   async function info(commitment?: Commitment) {
     const key = await getKey();
-    console.log("fetching info for... " + key.toString());
     let info = await ctx.connection.getAccountInfo(key, commitment);
     if (info === null) {
       throw new Error("info couldnt be fetched");
