@@ -7,7 +7,7 @@ import { HydraSDK } from "hydra-ts";
 import { PoolFees } from "hydra-ts/src/liquidity-pools/types";
 
 function orderKeyPairs(a: Keypair, b: Keypair) {
-  if (a.publicKey.toString() > b.publicKey.toString()) return [b, a];
+  if (a.publicKey.toBase58() > b.publicKey.toBase58()) return [b, a];
   return [a, b];
 }
 
