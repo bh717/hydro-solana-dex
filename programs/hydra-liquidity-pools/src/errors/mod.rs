@@ -13,4 +13,7 @@ pub enum ErrorCode {
 
     #[msg("Invalid Fee input")]
     InvalidFee,
+
+    #[msg("Token addresses order is invalid")]
+    InvalidTokenOrder,
 }

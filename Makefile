@@ -5,6 +5,18 @@ _ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 list:
 	@awk -F: '/^[A-z]/ {print $$1}' Makefile | sort
 
+install_dependencies: install_rust
+install_dependencies: install_solana
+install_dependencies: install_wasm_pack
+install_dependencies: install_anchor_avm
+install_dependencies: install_node
+install_dependencies: install_yarn
+install_dependencies: install_project_deps
+install_dependencies: test
+
+install_rust:
+	rustup update || curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
 install_anchor_avm:
 	@avm use latest || cargo install --git https://github.com/project-serum/anchor avm --locked --force && avm use latest
 
@@ -12,16 +24,28 @@ install_anchor:
 	cargo install --git https://github.com/project-serum/anchor --tag v0.22.1 anchor-cli --locked
 
 install_solana:
-	sh -c "$$(curl -sSfL https://release.solana.com/v1.9.6/install)"
+	solana-install update || sh -c "$$(curl -sSfL https://release.solana.com/v1.9.6/install)"
 
 install_wasm_pack:
-	cargo install wasm-pack
+	wasm-pack -V || cargo install wasm-pack
+
+install_node:
+	node --version || echo Direction can be found here: https://nodejs.org/en/
+
+install_yarn:
+	yarn --version || echo Direction can be found here: https://yarnpkg.com/getting-started/install
+
+install_project_deps:
+	yarn
+	make build
 
 # build
-build-idl-types:
+build:
 	./scripts/build.sh
+	yarn turbo run build
 
-test:
+test: build
+	cargo test
 	anchor test
 
 # COMMON
@@ -51,7 +75,7 @@ validator-logs:
 migrate:
 	yarn ts-node scripts/migrate.ts
 
-watch-anchor-test:
+watch-anchor-test: build
 	cargo watch -c -- anchor test -- --features "localnet"
 
 watch-test:

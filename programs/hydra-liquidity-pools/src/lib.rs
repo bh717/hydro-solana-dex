@@ -25,6 +25,7 @@ pub const DEBUG_MODE: bool = false;
 
 pub mod constants {
     pub const LP_TOKEN_VAULT_SEED: &[u8] = b"lp_token_vault_seed";
+    pub const LP_TOKEN_MINT_SEED: &[u8] = b"lp_token_mint_seed";
     pub const TOKEN_VAULT_SEED: &[u8] = b"token_vault_seed";
     pub const POOL_STATE_SEED: &[u8] = b"pool_state_seed";
 }
@@ -40,6 +41,7 @@ pub mod hydra_liquidity_pools {
         token_y_vault_bump: u8,
         pool_state_bump: u8,
         lp_token_vault_bump: u8,
+        lp_token_mint_bump: u8,
         compensation_parameter: u16,
         fees: Fees,
     ) -> Result<()> {
@@ -49,6 +51,7 @@ pub mod hydra_liquidity_pools {
             token_y_vault_bump,
             pool_state_bump,
             lp_token_vault_bump,
+            lp_token_mint_bump,
             compensation_parameter,
             fees,
         )

@@ -1,4 +1,5 @@
 use crate::constants::*;
+use crate::errors::ErrorCode;
 use crate::state::fees::Fees;
 use crate::state::pool_state::*;
 use crate::DEBUG_MODE;
@@ -6,7 +7,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 
 #[derive(Accounts)]
-#[instruction(token_a_vault_bump: u8, token_b_vault_bump: u8, pool_state_bump: u8, lp_token_vault_bump: u8)]
+#[instruction(token_a_vault_bump: u8, token_b_vault_bump: u8, pool_state_bump: u8, lp_token_vault_bump: u8, lp_token_mint_bump: u8)]
 pub struct Initialize<'info> {
     pub authority: Signer<'info>,
 
@@ -25,12 +26,20 @@ pub struct Initialize<'info> {
     pub token_x_mint: Box<Account<'info, Mint>>,
 
     // token_b_mint: Eg USDC
+    #[account(
+        constraint = token_x_mint.key().as_ref().lt(token_y_mint.key().as_ref()) @ ErrorCode::InvalidTokenOrder
+    )]
     pub token_y_mint: Box<Account<'info, Mint>>,
 
-    #[account(
-        constraint = lp_token_mint.mint_authority.unwrap() == pool_state.key()
-    )]
     /// lp_token_mint: Eg xlp-hyd-usdc
+    #[account(
+        init,
+        payer = payer,
+        mint::decimals = 6,
+        mint::authority = pool_state,
+        seeds = [ LP_TOKEN_MINT_SEED, token_x_mint.key().as_ref(), token_y_mint.key().as_ref() ],
+        bump,
+    )]
     pub lp_token_mint: Box<Account<'info, Mint>>,
 
     #[account(
@@ -75,6 +84,7 @@ pub fn handle(
     token_y_vault_bump: u8,
     pool_state_bump: u8,
     lp_token_vault_bump: u8,
+    lp_token_mint_bump: u8,
     compensation_parameter: u16,
     fees: Fees,
 ) -> Result<()> {
@@ -97,7 +107,7 @@ pub fn handle(
     pool_state.token_x_vault_bump = token_x_vault_bump;
     pool_state.token_y_vault_bump = token_y_vault_bump;
     pool_state.lp_token_vault_bump = lp_token_vault_bump;
-
+    pool_state.lp_token_mint_bump = lp_token_mint_bump;
     pool_state.debug = DEBUG_MODE;
 
     // TODO: Review this and add some error handling once @correkt-horse refactors the math crate
