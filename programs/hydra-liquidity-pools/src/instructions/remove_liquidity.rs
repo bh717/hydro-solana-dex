@@ -1,7 +1,9 @@
 use crate::constants::*;
+use crate::errors::ErrorCode;
 use crate::events::liquidity_removed::LiquidityRemoved;
 use crate::state::pool_state::PoolState;
 use anchor_lang::prelude::*;
+use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
 use anchor_spl::token::{Burn, Mint, Token, TokenAccount, Transfer};
 use hydra_math_rs::programs::liquidity_pools::hydra_lp_tokens::*;
@@ -19,6 +21,7 @@ pub struct RemoveLiquidity<'info> {
     pub pool_state: Box<Account<'info, PoolState>>,
 
     /// the authority allowed to transfer token_a and token_b from the users wallet.
+    #[account(mut)]
     pub user: Signer<'info>,
 
     #[account(
@@ -29,7 +32,10 @@ pub struct RemoveLiquidity<'info> {
     pub user_redeemable_lp_tokens: Box<Account<'info, TokenAccount>>,
 
     #[account(
-        mut,
+        init_if_needed,
+        payer = user,
+        associated_token::mint = token_x_mint,
+        associated_token::authority = user,
         constraint = user_token_x.mint == pool_state.token_x_mint,
         constraint = user_token_x.owner == user.key()
     )]
@@ -37,7 +43,10 @@ pub struct RemoveLiquidity<'info> {
     pub user_token_x: Box<Account<'info, TokenAccount>>,
 
     #[account(
-        mut,
+        init_if_needed,
+        payer = user,
+        associated_token::mint = token_y_mint,
+        associated_token::authority = user,
         constraint = user_token_y.mint == pool_state.token_y_mint,
         constraint = user_token_y.owner == user.key()
     )]
@@ -68,7 +77,22 @@ pub struct RemoveLiquidity<'info> {
     )]
     pub lp_token_mint: Box<Account<'info, Mint>>,
 
+    /// token_a_mint. Eg BTC
+    #[account(
+        constraint = token_x_mint.key() == pool_state.token_x_mint,
+    )]
+    pub token_x_mint: Box<Account<'info, Mint>>,
+
+    /// token_b_mint: Eg USDC
+    #[account(
+        constraint = token_y_mint.key() == pool_state.token_y_mint,
+    )]
+    pub token_y_mint: Box<Account<'info, Mint>>,
+
+    pub system_program: Program<'info, System>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program: Program<'info, Token>,
+    pub rent: Sysvar<'info, Rent>,
 }
 
 impl<'info> RemoveLiquidity<'info> {

@@ -1,9 +1,11 @@
 import { PublicKey } from "@solana/web3.js";
 import { Ctx } from "../../types";
 import * as accs from "../accounts";
-import { TOKEN_PROGRAM_ID } from "@project-serum/serum/lib/token-instructions";
 import { toBN, tryGet } from "../../utils";
 import { inject } from "../../utils/meta-utils";
+import { SystemProgram } from "@solana/web3.js";
+import * as SPLToken from "@solana/spl-token";
+import { web3 } from "@project-serum/anchor";
 
 export function addLiquidity(ctx: Ctx) {
   return async (
@@ -41,7 +43,10 @@ export function addLiquidity(ctx: Ctx) {
           tokenYVault: await tokenYVault.key(),
           lpTokenVault: await lpTokenVault.key(),
           lpTokenTo: await lpTokenAssociatedAccount.key(),
-          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+          tokenProgram: SPLToken.TOKEN_PROGRAM_ID,
+          associatedTokenProgram: SPLToken.ASSOCIATED_TOKEN_PROGRAM_ID,
+          rent: web3.SYSVAR_RENT_PUBKEY,
         },
       }
     );
