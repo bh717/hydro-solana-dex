@@ -687,9 +687,7 @@ impl BitLength<Decimal> for Decimal {
                 Ok(Decimal::from_u64(0))
             } else {
                 let value: f64 = self.into();
-                let log_value = value.log(10.0);
-                let log_two = 2.0f64.log(10.0);
-                let log_value_div_log_two = log_value / log_two;
+                let log_value_div_log_two = value.log(2.0);
 
                 let value = log_value_div_log_two.abs() * (self.denominator() as f64);
                 let scale = self.scale;
