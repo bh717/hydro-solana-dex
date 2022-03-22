@@ -4,6 +4,7 @@
 
 set -x
 
+# Install TS deps
 yarn
 
 # delete old build

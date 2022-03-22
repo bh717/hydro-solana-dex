@@ -1,0 +1,14 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 9cda11439b55170847d797315ac01ed526638ada01af79005e389cca23a257c1 # shrinks to x0 = 1, y0 = 1, c = "0.0", i = 1, delta_x = 1
+cc fee21aa518eeb6f7e31d2c25cc78461e342680fdaf228810ec2f1014cbc19e6a # shrinks to x0 = 1, y0 = 8, c = "0.0", i = 1, delta_x = 1, delta_y = 1
+cc 6727baf7fed2527e52f625eff536872511ccb12c36ecc39c5186cfb966e28425 # shrinks to x0 = 1, y0 = 2, c = "1.0", i = 1, delta_x = 1, delta_y = 1
+cc a55149191d35556ac430706dabcb829f440c217006c2eb141a5ee26932c00541 # shrinks to x0 = 2, y0 = 39, c = "1.0", i = 2, delta_x = 3, delta_y = 1
+cc b03377c0e2b8a280a54babf7707239a37959ef949b69f54a35aacbb9a754a10b # shrinks to x0 = 21, y0 = 161, c = "1.0", i = 6, delta_x = 1, delta_y = 1
+cc fb7c253fc614a5d3331e134f7aa48021bf68dc6096253e17316f563512731cdb # shrinks to x0 = 1000000, y0 = 71413484, c = "0.0", i = 1000000, delta_x = 1000000, delta_y = 1000000
+cc 40d5b89e5597a2b60ba246cc600c1a7a6f1ce1f1f41d02761c77f915bc76b495 # shrinks to x0 = 1000000, y0 = 57212581, c = "1.0", i = 1000000, delta_x = 1000000, delta_y = 1000000
+cc 0e13a383cd598b8a4338d9698fc081a6b93754f07761858cf83bfc712750c331 # shrinks to x0 = 1214400366944, y0 = 32390210119630, c = "1.25", i = 26667962, delta_x = 56701548, delta_y = 1000000
