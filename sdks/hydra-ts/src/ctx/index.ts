@@ -52,6 +52,9 @@ export function createReadonlyCtx(
  * @returns Ctx
  */
 export function createCtxAnchor(provider: Provider, programIds: ProgramIds) {
+  function isSignedIn() {
+    return provider.wallet.publicKey !== PublicKey.default;
+  }
   // Create our program objects
   const hydraStaking = new Program(
     staking.IDL,
@@ -95,6 +98,7 @@ export function createCtxAnchor(provider: Provider, programIds: ProgramIds) {
     provider,
     getKey,
     getParser,
+    isSignedIn,
     utils,
   };
 }

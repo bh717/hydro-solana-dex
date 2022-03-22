@@ -11,6 +11,7 @@ export type AccountStream<T> = Observable<AccountPubkey<T>>;
 export type IAccountLoader<T> = {
   key(): Promise<PublicKey>;
   info(commitment?: Commitment): Promise<AccountInfo<T>>;
+  isInitialized(): Promise<boolean>;
   parser(): Parser<T>;
   ctx(): Ctx;
   stream(): AccountStream<T>;
