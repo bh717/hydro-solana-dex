@@ -1,6 +1,6 @@
 # SDKs README
 
-Here you will find SKDs for all of the hydra protocols
+Here you will find SDKs for all the hydra protocols
 
 Eg
 

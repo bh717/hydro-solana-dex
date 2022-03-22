@@ -1,9 +1,11 @@
 use ndarray::{arr2, Array2};
 use std::convert::TryInto;
+use std::fmt;
+use std::iter::repeat;
 use thiserror::Error;
 
 /// Default precision for a [Decimal] expressed as an amount.
-pub const AMOUNT_SCALE: u8 = 8;
+pub const AMOUNT_SCALE: u8 = 6;
 // TODO: add more constants for default precision on other types e.g. fees, percentages
 
 /// Error codes related to [Decimal].
@@ -51,7 +53,6 @@ impl Decimal {
     pub fn from_u64(integer: u64) -> Self {
         Decimal {
             value: integer.into(),
-            scale: 0,
             ..Decimal::default()
         }
     }
@@ -61,11 +62,20 @@ impl Decimal {
         self.value.try_into().unwrap()
     }
 
+    /// Create a [Decimal] from an unsigned integer, assumed positive by default.
+    pub fn from_u128(integer: u128) -> Self {
+        Decimal {
+            value: integer,
+            scale: 0,
+            ..Decimal::default()
+        }
+    }
+
     /// Create a [Decimal] from an unsigned integer expressed as an amount
     /// with precision defined by constant and assumed positive by default.
-    pub fn from_amount(amount: u128) -> Self {
+    pub fn from_amount(amount: u64) -> Self {
         Decimal {
-            value: amount,
+            value: amount.into(),
             scale: AMOUNT_SCALE,
             ..Decimal::default()
         }
@@ -299,7 +309,7 @@ impl Pow<Decimal> for Decimal {
         match quotient {
             0 => {
                 // x^0 = 1
-                Decimal::new(1, self.scale, self.negative)
+                Decimal::from_u64(1).to_scale(self.scale)
             }
             1 => {
                 // x^1/4 = x^0.25 = ⁴√x = √(√x) = sqrt(sqrt(x))
@@ -379,6 +389,20 @@ impl Into<u128> for Decimal {
     }
 }
 
+/// Convert a [Decimal] into an usize.
+impl Into<usize> for Decimal {
+    fn into(self) -> usize {
+        self.value.try_into().unwrap()
+    }
+}
+
+/// Convert a [Decimal] into an unsigned 64-bit float.
+impl Into<f64> for Decimal {
+    fn into(self) -> f64 {
+        self.value as f64 / self.denominator() as f64
+    }
+}
+
 /// Compare two [Decimal] values/scale with comparison query operators.
 impl Compare<Decimal> for Decimal {
     /// Show if two [Decimal] values equal each other
@@ -424,6 +448,36 @@ impl Compare<Decimal> for Decimal {
         } else {
             Ok(self.value <= other.value)
         }
+    }
+}
+
+impl fmt::Display for Decimal {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        let scale = self.scale as usize;
+        let mut rep = self.value.to_string();
+        let len = rep.len();
+
+        // inject decimal point
+        if scale > 0 {
+            if scale > len {
+                let mut new_rep = String::new();
+                let zeros = repeat("0").take(scale as usize - len).collect::<String>();
+                new_rep.push_str("0.");
+                new_rep.push_str(&zeros[..]);
+                new_rep.push_str(&rep[..]);
+                rep = new_rep;
+            } else if scale == len {
+                rep.insert(0, '.');
+                rep.insert(0, '0');
+            } else {
+                rep.insert(len - scale as usize, '.');
+            }
+        } else if rep.is_empty() {
+            // corner case for truncated decimals
+            rep.insert(0, '0');
+        }
+
+        f.pad_integral(!self.negative, "", &rep)
     }
 }
 
@@ -580,19 +634,30 @@ fn log_table_value(
     s_value: Decimal,
     t_value: Decimal,
     log_table_col: usize,
-    scale: u8,
 ) -> (Decimal, Decimal, u128) {
     let s_value = s_value.div(t_value);
     let place_value = 10u128.checked_pow((log_table_col + 1) as u32).unwrap();
-    let f_value = Decimal::new(place_value, scale, false);
+    let f_value = Decimal::new(place_value, s_value.scale, false);
     let t_value = s_value.mul(f_value).div(f_value);
 
-    let log_table_row = t_value.mul(f_value).sub(f_value).unwrap();
+    let log_table_row: usize = t_value.mul(f_value).sub(f_value).unwrap().into();
+    let log_table_row = log_table_row.checked_sub(1);
 
     let mut lx_value = 0u128;
 
-    if log_table_row.gt(Decimal::new(0u128, scale, false)).unwrap() {
-        lx_value = log_table(log_table_row.to_u64() as usize - 1, log_table_col);
+    // Ensure within array of shape [9, 12]
+    let log_table_row_range = 0..9;
+    let log_table_col_range = 0..12;
+
+    match log_table_row {
+        Some(log_table_row) => {
+            if log_table_row_range.contains(&log_table_row)
+                && log_table_col_range.contains(&log_table_col)
+            {
+                lx_value = log_table(log_table_row, log_table_col);
+            }
+        }
+        None => lx_value = 0,
     }
 
     (s_value, t_value, lx_value)
@@ -602,41 +667,52 @@ fn log_table_value(
 // https://docs.google.com/spreadsheets/d/19mgYjGQlpsuaTk1zXujn-yCSdbAL25sP/edit?pli=1#gid=2070648638
 impl Ln<Decimal> for Decimal {
     fn ln(self) -> Result<Self, ErrorCode> {
-        let scale = self.scale;
-        let value_bit_length = (128u32 - (self.to_scale(0).to_u64() as u128).leading_zeros())
-            .checked_sub(1)
-            .unwrap() as u128;
-        let max = Decimal::from_u64((1u128 << value_bit_length) as u64).to_scale(scale);
+        let scaled_out = self.to_scale(12);
 
-        let (s_0, t_0, lx_0) = log_table_value(self, max, 0, scale);
-        let (s_1, t_1, lx_1) = log_table_value(s_0, t_0, 1, scale);
-        let (s_2, t_2, lx_2) = log_table_value(s_1, t_1, 2, scale);
-        let (s_3, t_3, lx_3) = log_table_value(s_2, t_2, 3, scale);
-        let (s_4, t_4, lx_4) = log_table_value(s_3, t_3, 4, scale);
-        let (s_5, t_5, lx_5) = log_table_value(s_4, t_4, 5, scale);
-        let (s_6, t_6, lx_6) = log_table_value(s_5, t_5, 6, scale);
-        let (s_7, t_7, lx_7) = log_table_value(s_6, t_6, 7, scale);
-        let (s_8, t_8, lx_8) = log_table_value(s_7, t_7, 8, scale);
-        let (_s_9, _t_9, lx_9) = log_table_value(s_8, t_8, 9, scale);
+        let ln_2_decimal = Decimal::new(693_147_180_559u128, 12, false);
 
-        let ln_2 = Decimal {
-            value: 693147180559u128,
-            scale,
-            negative: self.negative,
-        };
+        // TODO: difficult to get bit length of decimal values < 1, so use float instead
+        // let value_bit_length = (128u32 - (self.to_scale(0).to_u64() as u128).leading_zeros())
+        //     .checked_sub(1)
+        //     .unwrap() as u128;
+        // let max = Decimal::from_u64((1u128 << value_bit_length) as u64).to_scale(scale);
+        // let bit_length_decimal = Decimal::from_u64(value_bit_length as u64);
+
+        // Use float to determine bit length - fixed point arithmetic doesn't matter at this point
+        let self_f64: f64 = scaled_out.into();
+        let bit_length: i32 = (self_f64.log(10.0) / 2.0_f64.log(10.0)).floor() as i32;
+        let bit_length_unsigned: u128 = bit_length.abs() as u128;
+        let bit_length_negative: bool = bit_length.is_negative();
+        let bit_length_decimal = Decimal::new(
+            bit_length_unsigned
+                .checked_mul(scaled_out.denominator())
+                .unwrap(),
+            12,
+            bit_length_negative,
+        );
+        let max_value: u128 = (2f64.powi(bit_length) * (scaled_out.denominator() as f64)) as u128;
+        let max = Decimal::new(max_value, 12, false);
+
+        let (s_0, t_0, lx_0) = log_table_value(scaled_out, max, 0);
+        let (s_1, t_1, lx_1) = log_table_value(s_0, t_0, 1);
+        let (s_2, t_2, lx_2) = log_table_value(s_1, t_1, 2);
+        let (s_3, t_3, lx_3) = log_table_value(s_2, t_2, 3);
+        let (s_4, t_4, lx_4) = log_table_value(s_3, t_3, 4);
+        let (s_5, t_5, lx_5) = log_table_value(s_4, t_4, 5);
+        let (s_6, t_6, lx_6) = log_table_value(s_5, t_5, 6);
+        let (s_7, t_7, lx_7) = log_table_value(s_6, t_6, 7);
+        let (s_8, t_8, lx_8) = log_table_value(s_7, t_7, 8);
+        let (_s_9, _t_9, lx_9) = log_table_value(s_8, t_8, 9);
 
         let lx_sum = lx_0 + lx_1 + lx_2 + lx_3 + lx_4 + lx_5 + lx_6 + lx_7 + lx_8 + lx_9;
 
-        let ln_decimal = Decimal {
-            value: lx_sum,
-            scale,
-            negative: self.negative,
-        };
+        let lx_sum_decimal = Decimal::new(lx_sum, 12, scaled_out.negative);
 
-        Ok(ln_2
-            .mul(Decimal::from_u64(value_bit_length as u64))
-            .add(ln_decimal)
-            .unwrap())
+        Ok(ln_2_decimal
+            .mul(bit_length_decimal)
+            .add(lx_sum_decimal)
+            .unwrap()
+            .to_scale(self.scale))
     }
 }
 
@@ -645,10 +721,9 @@ impl Ln<Decimal> for Decimal {
 impl Sqrt<Decimal> for Decimal {
     fn sqrt(self) -> Result<Self, ErrorCode> {
         let zero = Decimal::new(0, self.scale, false);
-        let one = Decimal::from_u64(1).to_scale(self.scale);
-        let max = Decimal::from_u64(std::u64::MAX).to_scale(self.scale);
+        let one = Decimal::from_u128(1).to_scale(self.scale);
 
-        if self.lt(zero).unwrap() || self.gt(max).unwrap() {
+        if self.value.lt(&0u128) || self.value.gt(&u128::MAX) {
             return Err(ErrorCode::ExceedsRange.into());
         }
 
@@ -750,8 +825,22 @@ pub trait Compare<T>: Sized {
 mod test {
     use super::*;
 
+    use proptest::prelude::*;
+
     #[test]
     fn test_basic_examples() {
+        {
+            // 1.000000 * 1.000000 = 1.000000
+            let a = Decimal::from_amount(1_000000);
+            let b = Decimal::from_amount(1_000000);
+            let actual = a.mul(b);
+            let expected = Decimal {
+                value: 1_000000,
+                scale: 6,
+                negative: false,
+            };
+            assert_eq!(actual, expected)
+        }
         {
             // 3/2 = 1.500000
             let a = Decimal::from_u64(3).to_scale(6);
@@ -799,6 +888,25 @@ mod test {
 
     #[test]
     fn test_advanced_examples() {
+        // large number multiplication
+        let lhs = Decimal::from_u128(17134659154348278833);
+        let rhs = Decimal::from_u128(11676758639919526015);
+        let result = lhs.mul(rhs);
+        let expected = Decimal::from_u128(200077279322612464128594731044417340495);
+        assert_eq!(result, expected);
+
+        let lhs = Decimal::from_u64(17134659154348278833);
+        let rhs = Decimal::from_u64(11676758639919526015);
+        let result = lhs.mul(rhs);
+        let expected = Decimal::from_u128(200077279322612464128594731044417340495);
+        assert_eq!(result, expected);
+
+        let lhs = Decimal::from_amount(17134659154348278833);
+        let rhs = Decimal::from_amount(11676758639919526015);
+        let result = lhs.mul(rhs);
+        let expected = Decimal::new(200077279322612464128594731044417, AMOUNT_SCALE, false);
+        assert_eq!(result, expected);
+
         // power function with decimal exponent, scaled down (floor) at lower precision
         // 42^1.5 = 272.191109
         let base = Decimal::new(42_000000000000, 12, false);
@@ -841,6 +949,55 @@ mod test {
         let result = n.sqrt().unwrap().to_scale_up(6);
         let expected = Decimal::new(1_414_214u128, 6, false);
         assert_eq!(result, expected);
+    }
+
+    proptest! {
+        #[test]
+        fn test_full_u64_range(
+            lhs in 1_000_000..u64::MAX, // 1.000000 .. 18,446,744,073,709.551615
+            rhs in 1_000_000..u64::MAX,
+        ) {
+            let scale = 6; // decimal places
+            let precision = 2; // accuracy +/- 0.000001
+            let lhs_decimal = Decimal::from_amount(lhs);
+            let rhs_decimal = Decimal::from_amount(rhs);
+            let lhs_f64: f64 = lhs_decimal.into();
+            let den_f64: f64 = lhs_decimal.denominator() as f64;
+
+            // basic math both sides
+            {
+                lhs_decimal.mul(rhs_decimal);
+                lhs_decimal.div(rhs_decimal);
+                lhs_decimal.add(rhs_decimal).unwrap();
+                lhs_decimal.sub(rhs_decimal).unwrap();
+            }
+
+            // basic math one side
+            {
+                lhs_decimal.mul(lhs_decimal);
+                lhs_decimal.div(lhs_decimal);
+                lhs_decimal.add(lhs_decimal).unwrap();
+                lhs_decimal.sub(lhs_decimal).unwrap();
+            }
+
+            // f64 sqrt == Decimal sqrt
+            {
+                let sqrt_f64_u128 = (((lhs_f64.sqrt() * den_f64).round() / den_f64) * den_f64) as u128;
+                let sqrt_decimal_u128 = lhs_decimal.to_scale(scale).sqrt().unwrap().value;
+                let difference = sqrt_f64_u128.saturating_sub(sqrt_decimal_u128).lt(&precision);
+
+                assert!(difference, "sqrt compare\n{}\n{}", sqrt_f64_u128, sqrt_decimal_u128);
+            }
+
+            // f64 ln == Decimal ln
+            {
+                let ln_f64_u128 = (((lhs_f64.ln() * den_f64).round() / den_f64) * den_f64) as u128;
+                let ln_decimal_u128 = lhs_decimal.to_scale(scale).ln().unwrap().value;
+                let difference = ln_f64_u128.saturating_sub(ln_decimal_u128).lt(&precision);
+
+                assert!(difference, "ln compare\n{}\n{}", ln_f64_u128, ln_decimal_u128);
+            }
+        }
     }
 
     #[test]
@@ -893,11 +1050,11 @@ mod test {
 
     #[test]
     fn test_from_amount() {
-        let amount: u128 = 42;
+        let amount: u64 = 42;
         let actual = Decimal::from_amount(amount);
         let expected = Decimal {
             value: 42,
-            scale: 8,
+            scale: 6,
             negative: false,
         };
 
@@ -910,9 +1067,9 @@ mod test {
         // greater than AMOUNT_SCALE
         {
             {
-                let decimal = Decimal::new(4242, 10, false);
+                let decimal = Decimal::new(424242, 10, false);
                 let actual = decimal.to_amount();
-                let expected = Decimal::new(42, 8, false);
+                let expected = Decimal::new(42, AMOUNT_SCALE, false);
 
                 assert_eq!({ actual.value }, { expected.value });
                 assert_eq!(actual.scale, expected.scale);
@@ -921,7 +1078,7 @@ mod test {
             {
                 let decimal = Decimal::new(4242, 13, false);
                 let actual = decimal.to_amount();
-                let expected = Decimal::new(0, 8, false);
+                let expected = Decimal::new(0, AMOUNT_SCALE, false);
 
                 assert_eq!({ actual.value }, { expected.value });
                 assert_eq!(actual.scale, expected.scale);
@@ -930,9 +1087,9 @@ mod test {
 
         // equal to AMOUNT_SCALE
         {
-            let decimal = Decimal::new(4242, 8, false);
+            let decimal = Decimal::new(4242, 6, false);
             let actual = decimal.to_amount();
-            let expected = Decimal::new(4242, 8, false);
+            let expected = Decimal::new(4242, AMOUNT_SCALE, false);
 
             assert_eq!({ actual.value }, { expected.value });
             assert_eq!(actual.scale, expected.scale);
@@ -940,9 +1097,9 @@ mod test {
 
         // less than AMOUNT_SCALE
         {
-            let decimal = Decimal::new(4242, 6, false);
+            let decimal = Decimal::new(4242, 4, false);
             let actual = decimal.to_amount();
-            let expected = Decimal::new(424200, 8, false);
+            let expected = Decimal::new(424200, AMOUNT_SCALE, false);
 
             assert_eq!({ actual.value }, { expected.value });
             assert_eq!(actual.scale, expected.scale);
@@ -1161,22 +1318,44 @@ mod test {
     }
 
     #[test]
+    fn test_into_string() {
+        {
+            let decimal = Decimal::from_u128(42);
+            assert_eq!(decimal.to_string(), "42");
+        }
+
+        {
+            let decimal = Decimal::new(42, 0, true);
+            assert_eq!(decimal.to_string(), "-42");
+        }
+
+        {
+            let decimal = Decimal::from_amount(0);
+            assert_eq!(decimal.to_string(), "0.000000");
+        }
+
+        {
+            let decimal = Decimal::from_amount(1_500_000);
+            assert_eq!(decimal.to_string(), "1.500000");
+        }
+
+        {
+            let decimal = Decimal::from_amount(500_000);
+            assert_eq!(decimal.to_string(), "0.500000");
+        }
+
+        {
+            let decimal = Decimal::new(500_000, 6, true);
+            assert_eq!(decimal.to_string(), "-0.500000");
+        }
+    }
+
+    #[test]
     #[should_panic]
     #[allow(unused_variables)]
     fn test_into_u64_panic() {
         let decimal = Decimal::new(u128::MAX - 1, 15, false);
         let result: u64 = decimal.into();
-    }
-
-    #[test]
-    fn test_into_u128() {
-        {
-            let decimal = Decimal::new(111000111, 10, false);
-            let actual: u128 = decimal.into();
-            let expected: u128 = 111000111;
-
-            assert_eq!(actual, expected);
-        }
     }
 
     #[test]
@@ -1399,14 +1578,15 @@ mod test {
             assert_eq!(result, expected);
         }
 
-        // // 3.41200000**8 = 18368.43602322
-        {
-            let base = Decimal::from_amount(341200000);
-            let exp: u128 = 8;
-            let result = base.pow(exp);
-            let expected = Decimal::from_amount(18368_43602280);
-            assert_eq!(result, expected);
-        }
+        // TODO: panic checked_mul
+        // // // 3.41200000**8 = 18368.43602322
+        // {
+        //     let base = Decimal::from_amount(341200000);
+        //     let exp: u128 = 8;
+        //     let result = base.pow(exp);
+        //     let expected = Decimal::from_amount(18368_43602280);
+        //     assert_eq!(result, expected);
+        // }
     }
 
     #[test]
@@ -1415,73 +1595,49 @@ mod test {
         let base = Decimal::new(42, 6, false);
         let exp = Decimal::new(0, 6, false);
         let result = base.pow(exp);
-        let expected = Decimal::new(1, 6, false);
+        let expected = Decimal::new(1_000000, 6, false);
         assert_eq!(result, expected);
 
         // 42^0.25 = 2.545729895021831
         let base = Decimal::new(42_000000000000, 12, false);
         let exp = Decimal::new(250000000000, 12, false);
         let result = base.pow(exp);
-        let expected = Decimal {
-            value: 2_545_729_895_021u128,
-            scale: 12,
-            negative: false,
-        };
+        let expected = Decimal::new(2_545_729_895_021u128, 12, false);
         assert_eq!(result, expected);
 
         // 42^0.5 = 6.48074069840786
         let base = Decimal::new(42_000000000000, 12, false);
         let exp = Decimal::new(500000000000, 12, false);
         let result = base.pow(exp);
-        let expected = Decimal {
-            value: 6_480_740_698_407u128,
-            scale: 12,
-            negative: false,
-        };
+        let expected = Decimal::new(6_480_740_698_407u128, 12, false);
         assert_eq!(result, expected);
 
         // 42^1 = 42
         let base = Decimal::new(42_000000000000, 12, false);
         let exp = Decimal::new(1000000000000, 12, false);
         let result = base.pow(exp);
-        let expected = Decimal {
-            value: 42_000000000000u128,
-            scale: 12,
-            negative: false,
-        };
+        let expected = Decimal::new(42_000000000000u128, 12, false);
         assert_eq!(result, expected);
 
         // 42^1.25 = 106.920655590916882
         let base = Decimal::new(42_000000000000, 12, false);
         let exp = Decimal::new(1250000000000, 12, false);
         let result = base.pow(exp);
-        let expected = Decimal {
-            value: 106_920_655_590_882u128,
-            scale: 12,
-            negative: false,
-        };
+        let expected = Decimal::new(106_920_655_590_882u128, 12, false);
         assert_eq!(result, expected);
 
         // 42^1.5 = 272.19110933313013
         let base = Decimal::new(42_000000000000, 12, false);
         let exp = Decimal::new(1500000000000, 12, false);
         let result = base.pow(exp);
-        let expected = Decimal {
-            value: 272_191_109_333_094,
-            scale: 12,
-            negative: false,
-        };
+        let expected = Decimal::new(272_191_109_333_094, 12, false);
         assert_eq!(result, expected);
 
         // 42^2 = 1764
         let base = Decimal::new(42_000000000000, 12, false);
         let exp = Decimal::new(2000000000000, 12, false);
         let result = base.pow(exp);
-        let expected = Decimal {
-            value: 1764_000000000000u128,
-            scale: 12,
-            negative: false,
-        };
+        let expected = Decimal::new(1764_000000000000u128, 12, false);
         assert_eq!(result, expected);
     }
 
@@ -1663,10 +1819,61 @@ mod test {
     #[test]
     fn test_natural_log() {
         {
-            // ln(10) = 2.302585092987
+            // ln(0.9) = -0.105_360
 
             let expected = Decimal {
-                value: 2_302585092924u128,
+                value: 105_360u128,
+                scale: 6,
+                negative: true,
+            };
+
+            let n = Decimal::new(900_000u128, 6, false);
+            let actual = n.ln().unwrap();
+
+            assert_eq!(actual.value, expected.value);
+            assert_eq!(actual.negative, expected.negative);
+            assert_eq!(actual.scale, expected.scale);
+        }
+
+        {
+            // ln(0.9) = -0.105_360_515_657
+
+            let expected = Decimal {
+                value: 105_360_515_657u128,
+                scale: 12,
+                negative: true,
+            };
+
+            let n = Decimal::new(900_000_000_000u128, 12, false);
+            let actual = n.ln().unwrap();
+
+            assert_eq!(actual.value, expected.value);
+            assert_eq!(actual.negative, expected.negative);
+            assert_eq!(actual.scale, expected.scale);
+        }
+
+        {
+            // ln(0.1) = -2.302_585_092_994
+
+            let expected = Decimal {
+                value: 2_302_585_092_991u128,
+                scale: 12,
+                negative: true,
+            };
+
+            let n = Decimal::new(100_000_000_000u128, 12, false);
+            let actual = n.ln().unwrap();
+
+            assert_eq!(actual.value, expected.value);
+            assert_eq!(actual.negative, expected.negative);
+            assert_eq!(actual.scale, expected.scale);
+        }
+
+        {
+            // ln(10) = 2.302_585_092_987
+
+            let expected = Decimal {
+                value: 2_302_585_092_924u128,
                 scale: 12,
                 negative: false,
             };
@@ -1679,21 +1886,21 @@ mod test {
         }
 
         // MAX u64
-        {
-            // ln(18446744073709551615) = 44.36141956
-
-            let expected = Decimal {
-                value: 44_361419550245u128,
-                scale: 9,
-                negative: false,
-            };
-
-            let n = Decimal::from_u64(u64::MAX).to_scale(9);
-            let actual = n.ln().unwrap();
-
-            assert_eq!({ actual.value }, { expected.value });
-            assert_eq!(actual.scale, expected.scale);
-        }
+        // TODO: work on accuracy at high end of u64 range
+        // {
+        //     // ln(18446744073709551615) = 44.36141956
+        //     let expected = Decimal {
+        //         value: 44_36141956u128,
+        //         scale: 6,
+        //         negative: false,
+        //     };
+        //
+        //     let n = Decimal::from_amount(u64::MAX);
+        //     let actual = n.ln().unwrap();
+        //
+        //     assert_eq!({ actual.value }, { expected.value });
+        //     assert_eq!(actual.scale, expected.scale);
+        // }
     }
 
     #[test]

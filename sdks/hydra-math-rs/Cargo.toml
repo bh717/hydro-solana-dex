@@ -15,6 +15,7 @@ thiserror = "1.0.24"
 
 [dev-dependencies]
 proptest = { version = "1.0.0" }
+hydra-math-simulator-rs = { version = "0.1.0", path = "../hydra-math-simulator-rs" }
 
 [lib]
 crate-type = ["cdylib", "rlib"]
