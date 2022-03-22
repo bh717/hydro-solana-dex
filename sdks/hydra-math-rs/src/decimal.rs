@@ -665,6 +665,38 @@ fn log_table_value(
     (s_value, t_value, lx_value)
 }
 
+/// Function that determines the bit length of a postive decimal
+/// based on the formula: int(log(value)/LOG(2))
+impl BitLength<Decimal> for Decimal {
+    fn bit_length(self) -> Result<Self, ErrorCode> {
+        if self.negative {
+            return Err(ErrorCode::SignedDecimalsNotSupported.into());
+        } else {
+            if self.value == 0 {
+                Ok(Decimal::from_u64(0))
+            } else {
+                let value: f64 = self.into();
+                let log_value = value.log(10.0);
+                let log_two = 2.0f64.log(10.0);
+                let log_value_div_log_two = log_value / log_two;
+
+                let value = log_value_div_log_two.abs() * (self.denominator() as f64);
+                let scale = self.scale;
+                let negative = log_value_div_log_two.is_sign_negative();
+
+                let value = Decimal::new(value as u128, scale, negative);
+                let value = if negative {
+                    value.to_scale_up(0)
+                } else {
+                    value.to_scale(0)
+                };
+
+                Ok(Decimal::new(value.into(), 0, negative))
+            }
+        }
+    }
+}
+
 /// Calculate the natural logarithm of a [Decimal] value. For full algorithm please refer to:
 // https://docs.google.com/spreadsheets/d/19mgYjGQlpsuaTk1zXujn-yCSdbAL25sP/edit?pli=1#gid=2070648638
 impl Ln<Decimal> for Decimal {
