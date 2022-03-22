@@ -405,6 +405,16 @@ impl Into<f64> for Decimal {
     }
 }
 
+/// Convert a [Decimal] into a signed 32-bit integer.
+impl Into<i32> for Decimal {
+    fn into(self) -> i32 {
+        let sign = if self.negative { -1i32 } else { 1i32 };
+        (self.value as i32)
+            .checked_mul(sign)
+            .expect("signed integer")
+    }
+}
+
 /// Compare two [Decimal] values/scale with comparison query operators.
 impl Compare<Decimal> for Decimal {
     /// Show if two [Decimal] values equal each other
