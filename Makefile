@@ -2,6 +2,9 @@
 SHELL := /bin/bash
 _ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
+ANCHOR_VERSION=0.22.1
+SOLANA_VERSION=stable
+
 list:
 	@awk -F: '/^[A-z]/ {print $$1}' Makefile | sort
 
@@ -17,14 +20,15 @@ install_dependencies: test
 install_rust:
 	rustup update || curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
+
 install_anchor_avm:
-	@avm use latest || cargo install --git https://github.com/project-serum/anchor avm --locked --force && avm use latest
+	@avm use ${ANCHOR_VERSION} || cargo install --git https://github.com/project-serum/anchor avm --tag v${ANCHOR_VERSION} --locked --force && avm use ${ANCHOR_VERSION}
 
 install_anchor:
-	cargo install --git https://github.com/project-serum/anchor --tag v0.22.1 anchor-cli --locked
+	cargo install --git https://github.com/project-serum/anchor --tag v${ANCHOR_VERSION} anchor-cli --locked
 
 install_solana:
-	solana-install update || sh -c "$$(curl -sSfL https://release.solana.com/v1.9.6/install)"
+	solana-install update || sh -c "$$(curl -sSfL https://release.solana.com/${SOLANA_VERSION}/install)"
 
 install_wasm_pack:
 	wasm-pack -V || cargo install wasm-pack
