@@ -17,6 +17,8 @@ pub enum ErrorCode {
     ExceedsRange,
     #[error("Exceeds allowable range for precision")]
     ExceedsPrecisionRange,
+    #[error("Signed decimals not supported for this function")]
+    SignedDecimalsNotSupported,
 }
 
 /// [Decimal] representation of a number with a value, scale (precision in terms of number of decimal places
