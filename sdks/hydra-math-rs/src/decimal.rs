@@ -677,7 +677,7 @@ fn log_table_value(
 }
 
 /// Function that determines the bit length of a postive decimal
-/// based on the formula: int(log(value)/LOG(2))
+/// based on the formula: int(log(value)/log(2))
 impl BitLength<Decimal> for Decimal {
     fn bit_length(self) -> Result<Self, ErrorCode> {
         if self.negative {
