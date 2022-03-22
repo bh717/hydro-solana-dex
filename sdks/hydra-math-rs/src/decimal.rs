@@ -847,6 +847,10 @@ pub trait Sqrt<T>: Sized {
     fn sqrt(self) -> Result<Self, ErrorCode>;
 }
 
+pub trait BitLength<T>: Sized {
+    fn bit_length(self) -> Result<Self, ErrorCode>;
+}
+
 pub trait Compare<T>: Sized {
     fn eq(self, rhs: T) -> Result<bool, ErrorCode>;
     fn lt(self, rhs: T) -> Result<bool, ErrorCode>;
