@@ -10,6 +10,7 @@ use instructions::remove_liquidity::*;
 use instructions::swap::check_mint_addresses;
 use instructions::swap::*;
 use state::fees::Fees;
+use utils::pyth::pyth_account_security_check;
 
 use anchor_lang::prelude::*;
 // use anchor_lang::solana_program::log::sol_log_compute_units;
@@ -35,6 +36,7 @@ pub mod hydra_liquidity_pools {
     use super::*;
 
     /// initialize a new empty pool
+    #[access_control(pyth_account_security_check(&ctx))]
     pub fn initialize(
         ctx: Context<Initialize>,
         token_x_vault_bump: u8,
