@@ -6,6 +6,7 @@ use thiserror::Error;
 
 /// Default precision for a [Decimal] expressed as an amount.
 pub const AMOUNT_SCALE: u8 = 6;
+
 // TODO: add more constants for default precision on other types e.g. fees, percentages
 
 /// Error codes related to [Decimal].
@@ -715,26 +716,9 @@ impl Ln<Decimal> for Decimal {
 
         let ln_2_decimal = Decimal::new(693_147_180_559u128, 12, false);
 
-        // TODO: difficult to get bit length of decimal values < 1, so use float instead
-        // let value_bit_length = (128u32 - (self.to_scale(0).to_u64() as u128).leading_zeros())
-        //     .checked_sub(1)
-        //     .unwrap() as u128;
-        // let max = Decimal::from_u64((1u128 << value_bit_length) as u64).to_scale(scale);
-        // let bit_length_decimal = Decimal::from_u64(value_bit_length as u64);
-
-        // Use float to determine bit length - fixed point arithmetic doesn't matter at this point
-        let self_f64: f64 = scaled_out.into();
-        let bit_length: i32 = (self_f64.log(10.0) / 2.0_f64.log(10.0)).floor() as i32;
-        let bit_length_unsigned: u128 = bit_length.abs() as u128;
-        let bit_length_negative: bool = bit_length.is_negative();
-        let bit_length_decimal = Decimal::new(
-            bit_length_unsigned
-                .checked_mul(scaled_out.denominator())
-                .unwrap(),
-            12,
-            bit_length_negative,
-        );
-        let max_value: u128 = (2f64.powi(bit_length) * (scaled_out.denominator() as f64)) as u128;
+        let bit_length_decimal = self.bit_length().expect("bit_length");
+        let max_value: u128 =
+            (2f64.powi(bit_length_decimal.into()) * (scaled_out.denominator() as f64)) as u128;
         let max = Decimal::new(max_value, 12, false);
 
         let (s_0, t_0, lx_0) = log_table_value(scaled_out, max, 0);
