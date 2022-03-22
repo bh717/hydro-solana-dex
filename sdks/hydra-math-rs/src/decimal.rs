@@ -2045,4 +2045,38 @@ mod test {
         let expected = Decimal::new(4, 0, false);
         assert_eq!(lhs.div(rhs), expected);
     }
+
+    #[test]
+    fn test_bit_length() {
+        // 0 bit length == 0
+        let d = Decimal::new(0, 0, false);
+        assert_eq!(d.bit_length().unwrap(), Decimal::new(0, 0, false));
+
+        // 10 bit length == 3
+        let d = Decimal::new(10, 0, false);
+        assert_eq!(d.bit_length().unwrap(), Decimal::new(3, 0, false));
+
+        // 0.900000 bit length == -1
+        let d = Decimal::new(900_000, 6, false);
+        assert_eq!(d.bit_length().unwrap(), Decimal::new(1, 0, true));
+
+        // 0.01 bit length == -7
+        let d = Decimal::new(1, 2, false);
+        assert_eq!(d.bit_length().unwrap(), Decimal::new(7, 0, true));
+
+        // 0.000001 bit length == -20
+        let d = Decimal::new(1, 6, false);
+        assert_eq!(d.bit_length().unwrap(), Decimal::new(20, 0, true));
+
+        // 18446744073709551615 bit length == 64
+        let d = Decimal::from_u64(u64::MAX);
+        assert_eq!(d.bit_length().unwrap(), Decimal::new(64, 0, false));
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_bit_length_panic() {
+        let d = Decimal::new(10, 0, true);
+        assert_eq!(d.bit_length().unwrap(), Decimal::new(3, 0, false));
+    }
 }
