@@ -6,7 +6,7 @@ declare_id!("HYS93RLjsDvKqAN9BFbUHG8L76E9Xtg8HarmGc6LSe5s");
 pub mod hydra_benchmarks {
     use super::*;
     use anchor_lang::solana_program::log::sol_log_compute_units;
-    use hydra_math_rs::decimal::{Decimal, Ln, Sqrt};
+    use hydra_math_rs::decimal::{Decimal, Sqrt};
     pub fn initialize(_ctx: Context<Initialize>) -> Result<()> {
         sol_log_compute_units();
         let value = Decimal::from_u64(10).to_scale(12);
