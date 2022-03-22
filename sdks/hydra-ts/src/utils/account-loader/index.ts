@@ -26,13 +26,20 @@ export function AccountLoader<T>(
 
     return { ...info, data: accountParser(info) };
   }
+
   async function key() {
     return await getKey();
   }
+
+  async function isInitialized() {
+    const inf = await info();
+    return !!inf;
+  }
+
   return {
     key,
     info,
-
+    isInitialized,
     onChange(callback, commitment) {
       let id: number;
 
@@ -59,25 +66,33 @@ export function AccountLoader<T>(
     },
     stream(commitment?: Commitment) {
       return new Observable((subscriber) => {
-        info(commitment).then(async (account) => {
-          if (account)
-            subscriber.next({
-              account,
-              pubkey: await key(),
-            });
-        });
+        info(commitment)
+          .then(async (account) => {
+            if (account) {
+              const pubkey = await key();
+              subscriber.next({
+                account,
+                pubkey,
+              });
+            }
+          })
+          .catch(async (err) => {
+            subscriber.next();
+          });
         let id: number;
 
         key().then((pubkey) => {
           id = ctx.connection.onAccountChange(
             pubkey,
             async (rawAccount: AccountInfo<Buffer> | null) => {
-              if (!!rawAccount) {
+              if (rawAccount) {
                 const account = {
                   ...rawAccount,
                   data: accountParser(rawAccount),
                 };
                 subscriber.next({ pubkey: await key(), account });
+              } else {
+                subscriber.next();
               }
             }
           );
@@ -123,10 +138,12 @@ export function PDAMint(
   return PDA(ctx, programId, seeds, TokenMint.Parser);
 }
 
-export function AssociatedToken(ctx: Ctx, mint: PublicKey) {
-  return Token(ctx, () =>
-    findAssociatedTokenAddress(ctx.wallet.publicKey, mint)
-  );
+export function AssociatedToken(
+  ctx: Ctx,
+  mint: PublicKey,
+  walletAddress = ctx.wallet.publicKey
+) {
+  return Token(ctx, () => findAssociatedTokenAddress(walletAddress, mint));
 }
 
 export function PDA<T>(

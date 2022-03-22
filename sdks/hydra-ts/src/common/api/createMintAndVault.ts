@@ -97,7 +97,8 @@ export function createMintAndAssociatedVault(ctx: Ctx) {
 export function createAssociatedAccount(ctx: Ctx) {
   return async function (
     mint: PublicKey,
-    owner?: Keypair,
+    owner: Keypair = (ctx.provider.wallet as NodeWallet).payer,
+    payer = owner,
     decimals = 6
   ): Promise<PublicKey> {
     if (owner === undefined) {
@@ -119,12 +120,12 @@ export function createAssociatedAccount(ctx: Ctx) {
         mint, // mint (which we used to calculate ata)
         vault, // the ata we calcualted early
         owner.publicKey, // token account owner (which we used to calculate ata)
-        owner.publicKey // payer, fund account, like SystemProgram.createAccount's from
+        payer.publicKey // payer, fund account, like SystemProgram.createAccount's from
       )
     );
 
     tx.feePayer = owner.publicKey;
-    await ctx.provider.send(tx, [owner]);
+    await ctx.provider.send(tx, [payer]);
     return vault;
   };
 }

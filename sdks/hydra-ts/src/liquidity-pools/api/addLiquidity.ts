@@ -1,7 +1,7 @@
 import { PublicKey } from "@solana/web3.js";
 import { Ctx } from "../../types";
 import * as accs from "../accounts";
-import { toBN, tryGet } from "../../utils";
+import { stringifyProps, toBN } from "../../utils";
 import { inject } from "../../utils/meta-utils";
 import { SystemProgram } from "@solana/web3.js";
 import * as SPLToken from "@solana/spl-token";

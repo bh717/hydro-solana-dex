@@ -12,6 +12,7 @@
     "watch": "turbo run watch --parallel",
     "lint": "prettier --check .",
     "clean": "turbo run clean",
+    "private-key": "ts-node ./scripts/private-key.ts",
     "prepare": "husky install"
   },
   "license": "UNLICENSED",

@@ -15,12 +15,12 @@ describe("hydra-staking", () => {
   let sdk: HydraSDK;
   let tokenVaultBump: number;
   let poolStateBump: number;
+
   before(async () => {
     sdk = HydraSDK.createFromAnchorProvider(provider, {
       ...config.localnet.programIds,
-      hydraStaking: config.localnet.programIds.hydraStaking,
-      redeemableMint: redeemableMint.publicKey.toString(),
-      tokenMint: tokenMint.publicKey.toString(),
+      tokenMint: `${tokenMint.publicKey}`,
+      redeemableMint: `${redeemableMint.publicKey}`,
     });
 
     await sdk.common.createMintAndAssociatedVault(tokenMint, 100_000_000n);

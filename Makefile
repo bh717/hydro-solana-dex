@@ -113,8 +113,8 @@ react-ci:
 # start the local development stack
 start:
 	solana-test-validator --quiet --reset &
-	anchor build
 	yarn
 	./scripts/build.sh
+	anchor deploy
 	yarn build
 	make migrate

@@ -64,7 +64,11 @@ export function stringifyProps<
   T extends Record<string, { toString: Function }>
 >(obj: T): { [K in keyof T]: string } {
   return Object.fromEntries(
-    Object.entries(obj).map(([k, v]) => [k, v.toString()])
+    Object.entries(obj).map(([k, v]) => {
+      let valStr = v.toString();
+      valStr = valStr === "[object Object]" ? stringifyProps(v) : valStr;
+      return [k, valStr];
+    })
   ) as { [K in keyof T]: string };
 }
 

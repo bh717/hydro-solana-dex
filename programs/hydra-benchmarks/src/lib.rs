@@ -12,9 +12,10 @@ pub mod hydra_benchmarks {
         let value = Decimal::from_u64(10).to_scale(12);
         msg!("Decimal::new = {:?}", value);
         sol_log_compute_units();
-        let ln_value = value.ln().unwrap();
-        msg!("ln(10) = {:?}", ln_value);
-        sol_log_compute_units();
+        // TODO: This code is breaking within the instruction execution.
+        // let ln_value = value.ln().unwrap();
+        // msg!("ln(10) = {:?}", ln_value);
+        // sol_log_compute_units();
         let sqrt = value.sqrt().unwrap();
         msg!("sqrt(10) = {:?}", sqrt);
         sol_log_compute_units();

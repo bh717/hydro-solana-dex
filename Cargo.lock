@@ -923,7 +923,6 @@ dependencies = [
  "anchor-lang",
  "anchor-spl",
  "derivative",
- "hydra-math",
  "hydra-math-rs",
  "num",
 ]
@@ -948,10 +947,18 @@ dependencies = [
 name = "hydra-math-rs"
 version = "0.1.0"
 dependencies = [
+ "hydra-math-simulator-rs",
  "ndarray",
  "proptest",
  "thiserror",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "hydra-math-simulator-rs"
+version = "0.1.0"
+dependencies = [
+ "pyo3",
 ]
 
 [[package]]

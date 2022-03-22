@@ -5,9 +5,9 @@ use anchor_lang::prelude::*;
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
 use anchor_spl::token::{Mint, Token, TokenAccount, Transfer};
-use hydra_math::swap_calculator::SwapCalculator;
-use hydra_math::swap_result::SwapResult;
-use hydra_math_rs::programs::liquidity_pools::fees::calculate_fee;
+use hydra_math_rs::decimal::Decimal;
+use hydra_math_rs::programs::liquidity_pools::swap_calculator::SwapCalculator;
+use hydra_math_rs::programs::liquidity_pools::swap_result::SwapResult;
 
 #[derive(Accounts)]
 pub struct Swap<'info> {
@@ -76,39 +76,44 @@ pub struct Swap<'info> {
 }
 
 impl<'info> Swap<'info> {
-    pub fn post_transfer_checks(&mut self, result: SwapResult, fees: u64) -> Result<()> {
+    pub fn post_transfer_checks(&mut self, result: SwapResult) -> Result<()> {
         // post tx checks
         (&mut self.token_x_vault).reload()?;
         (&mut self.token_y_vault).reload()?;
 
-        if (result.x_new().unwrap() + fees) != self.token_x_vault.amount {
-            msg!("x_new_with_fees: {:?}", (result.x_new().unwrap() + fees));
+        if result.x_new_down() != self.token_x_vault.amount {
+            msg!("x_new_down: {:?}", result.x_new_down());
             msg!("token_x_vault.amount: {:?}", self.token_x_vault.amount);
             return Err(ErrorCode::InvalidVaultToSwapResultAmounts.into());
         }
 
-        if result.y_new().unwrap() != self.token_y_vault.amount {
-            msg!("y_new: {:?}", result.y_new().unwrap());
+        if result.y_new_up() != self.token_y_vault.amount {
+            msg!("y_new_up: {:?}", result.y_new_up());
             msg!("token_y_vault.amount: {:?}", self.token_y_vault.amount);
             return Err(ErrorCode::InvalidVaultToSwapResultAmounts.into());
         }
 
-        // TODO: This is broken as we are getting a different k value from the SwapCalculator
-        // if result.k().unwrap() != ctx.accounts.lp_token_mint.supply {
+        // TODO: Broken for some random reason... Come back to laterz
+        // if result.squared_k_down() != self.lp_token_mint.supply {
+        //     msg!("squared_k_down: {:?}", result.squared_k_down());
+        //     msg!("lp_token_mint.supply: {:?}", self.lp_token_mint.supply);
         //     return Err(ErrorCode::InvalidVaultToSwapResultAmounts.into());
         // }
         Ok(())
     }
 
-    pub fn calculate_fees(&self, transfer_in_amount: u64) -> Option<u64> {
-        calculate_fee(
-            transfer_in_amount as u128,
-            self.pool_state.fees.swap_fee_numerator as u128,
-            self.pool_state.fees.swap_fee_denominator as u128,
-        )
-    }
-
     pub fn transfer_tokens_to_user(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
+        if self.pool_state.debug {
+            msg!(
+                "from: self.token_y_vault.amount: {}",
+                self.token_y_vault.amount
+            );
+            msg!(
+                "to: self.user_to_token.amount: {}",
+                self.user_to_token.amount
+            );
+        }
+
         let cpi_accounts = Transfer {
             from: self.token_y_vault.to_account_info(),
             to: self.user_to_token.to_account_info(),
@@ -119,6 +124,17 @@ impl<'info> Swap<'info> {
     }
 
     pub fn transfer_user_tokens_to_vault(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
+        if self.pool_state.debug {
+            msg!(
+                "from: self.user_from_token.amount: {}",
+                self.user_from_token.amount
+            );
+            msg!(
+                "to: self.token_x_vault.amount: {}",
+                self.token_x_vault.amount
+            );
+        }
+
         let cpi_accounts = Transfer {
             from: self.user_from_token.to_account_info(),
             to: self.token_x_vault.to_account_info(),
@@ -161,24 +177,19 @@ pub fn check_mint_addresses(ctx: &Context<Swap>) -> Result<()> {
 pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Result<()> {
     // Setup SwapCalculate.
     let swap = SwapCalculator::new(
-        ctx.accounts.token_x_vault.amount as u128,
-        ctx.accounts.token_y_vault.amount as u128,
-        ctx.accounts.pool_state.compensation_parameter as u128,
+        ctx.accounts.token_x_vault.amount,
+        ctx.accounts.token_y_vault.amount,
+        ctx.accounts.pool_state.compensation_parameter as u64,
         0,
+        ctx.accounts.pool_state.fees.swap_fee_numerator,
+        ctx.accounts.pool_state.fees.swap_fee_denominator,
     );
 
-    let mut result = SwapResult::init();
+    let mut result = SwapResult::default();
 
-    // calculate fees
-    let fees = ctx
-        .accounts
-        .calculate_fees(amount_in)
-        .expect("fee calculation issues");
-    msg!("fees: {:?}", fees);
-
-    let amount_in_less_fees = amount_in - fees;
-    let mut transfer_in_amount = amount_in_less_fees + fees;
-    let mut transfer_out_amount = 0;
+    let transfer_in_amount = amount_in;
+    let amount_in_decimal = Decimal::from_u64(amount_in).to_amount();
+    let mut transfer_out_amount: u64 = 0;
 
     // detect swap direction. x to y
     if ctx.accounts.user_from_token.mint == ctx.accounts.pool_state.token_x_mint {
@@ -187,10 +198,8 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
             return Err(ErrorCode::InvalidMintAddress.into());
         }
 
-        result = swap.swap_x_to_y_amm(amount_in_less_fees as u128);
-
-        // transfer_in_amount = result.delta_x().unwrap();
-        transfer_out_amount = result.delta_y().unwrap();
+        result = swap.swap_x_to_y_amm(&amount_in_decimal);
+        transfer_out_amount = result.delta_y_down();
     }
 
     // detect swap direction y to x
@@ -200,10 +209,8 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
             return Err(ErrorCode::InvalidMintAddress.into());
         }
 
-        result = swap.swap_y_to_x_amm(amount_in_less_fees as u128);
-
-        // transfer_in_amount = result.delta_y().unwrap();
-        transfer_out_amount = result.delta_x().unwrap();
+        result = swap.swap_y_to_x_amm(&amount_in_decimal);
+        transfer_out_amount = result.delta_x_down();
     }
 
     // check slippage for amount_out
@@ -223,6 +230,7 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
     }
 
     // transfer base token into vault
+    msg!("transfer_in_amount: {}", transfer_in_amount);
     token::transfer(
         ctx.accounts.transfer_user_tokens_to_vault(),
         transfer_in_amount,
@@ -237,13 +245,14 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
     let signer = [&seeds[..]];
 
     // transfer quote token to user
+    msg!("transfer_out_amount: {:?}", transfer_out_amount);
     token::transfer(
         ctx.accounts.transfer_tokens_to_user().with_signer(&signer),
         transfer_out_amount,
     )?;
 
     // check all amounts are correct
-    ctx.accounts.post_transfer_checks(result, fees)?;
+    ctx.accounts.post_transfer_checks(result)?;
 
     Ok(())
 }

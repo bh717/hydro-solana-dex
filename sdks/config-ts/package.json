@@ -5,9 +5,13 @@
   "private": true,
   "main": "index.js",
   "files": [
-    "my.tsconfig.json",
     "base.tsconfig.json",
+    "jest.config.js",
+    "prettier.config.js",
     "cra.tsconfig.json",
-    "jest.config.js"
+    "module.tsconfig.json",
+    "tokens/localnet.json",
+    "global-config.json",
+    "tsconfig.json"
   ]
 }
