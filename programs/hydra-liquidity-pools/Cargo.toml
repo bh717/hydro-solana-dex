@@ -25,3 +25,4 @@ anchor-spl = "0.22.1"
 derivative = "2.2.0"
 hydra-math-rs = { path = "../../sdks/hydra-math-rs" }
 num = "0.4.0"
+pyth-client = {version = "0.5", features = ["no-entrypoint"]}
