@@ -345,51 +345,41 @@ describe("hydra-liquidity-pool", () => {
     );
   });
 
-  // TODO: uncomment once math functions implemented.
-  // it("should swap (cpmm) usd to btc (y to x)", async () => {
-  //// await program.rpc.swap(new BN(36_510_755_314), new BN(1_000_000), {
-  ////   accounts: {
-  ////     user: provider.wallet.publicKey,
-  ////     poolState: poolState,
-  ////     lpTokenMint: lpTokenMint.publicKey,
-  ////     userFromToken: usddAccount,
-  ////     userToToken: btcdAccount,
-  ////    tokenXVault: tokenXVault,
-  ////    tokenYVault: tokenYVault,
-  ////     tokenProgram: TOKEN_PROGRAM_ID,
-  ////   },
-  //// });
-  //
-  // await sdk.liquidityPools.swap(
-  //   btcdMint,
-  //   usddMint,
-  //   usddAccount,
-  //   btcdAccount,
-  //   36_510_755_314n,
-  //   1_000_000n,
-  //   lpTokenMint.publicKey,
-  // );
-  //// TODO: convert to use sdk
-  //   assert.strictEqual(
-  //     (await getTokenBalance(provider, tokenXVault)).toNumber(),
-  //     6_000_000 + 1_000_000
-  //   );
-  //
-  //   assert.strictEqual(
-  //     (await getTokenBalance(provider, tokenYVault)).toNumber(),
-  //     255_575_287_200 - 36_510_755_314
-  //   );
-  //
-  //   assert.strictEqual(
-  //     (await getTokenBalance(provider, btcdAccount)).toNumber(),
-  //     20_999_993_000_000
-  //   );
-  //
-  //   assert.strictEqual(
-  //     (await getTokenBalance(provider, usddAccount)).toNumber(),
-  //     99_780_935_468_114
-  //   );
-  // });
+  it("should swap (cpmm) from usd to btc (y to x)", async () => {
+    await sdk.liquidityPools.swap(
+      btcdMint,
+      usddMint,
+      usddAccount,
+      btcdAccount,
+      36_510_755_314n,
+      1_000_000n - 1960n // - fee
+    );
+
+    const accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
+      btcdMint,
+      usddMint
+    );
+
+    assert.strictEqual(
+      await accounts.tokenYVault.balance(),
+      219127139640n + 36_510_755_314n
+    );
+
+    assert.strictEqual(
+      await accounts.tokenXVault.balance(),
+      7_000_000n - 1_000_000n + 1960n // original amount - swap + fee
+    );
+
+    assert.strictEqual(
+      await accounts.userTokenX.balance(),
+      20_999_993_000_000n + 1_000_000n - 1960n // original amount + swap out amount - fee
+    );
+
+    assert.strictEqual(
+      await accounts.userTokenY.balance(),
+      99_780_872_860_360n - 36_510_755_314n // original amount - swap in amount
+    );
+  });
 
   it("should remove-liquidity for the last time", async () => {
     const accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
@@ -410,7 +400,7 @@ describe("hydra-liquidity-pool", () => {
 
     assert.strictEqual(
       await accounts.userTokenY.balance(),
-      100_000_000_000_000n - 17695n // Always left in the pool.
+      100_000_000_000_000n - 20643n // Always left in the pool.
     );
   });
 });
