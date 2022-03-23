@@ -22,7 +22,14 @@ pub struct SwapCalculator {
 
 impl SwapCalculator {
     /// Create a new token swap calculator
-    pub fn new(x0: u64, y0: u64, c: u64, i: u64, fee_numer: u64, fee_denom: u64) -> Self {
+    pub fn new(
+        x0: Decimal,
+        y0: Decimal,
+        c: Decimal,
+        i: Decimal,
+        fee_numer: u64,
+        fee_denom: u64,
+    ) -> Self {
         Self {
             x0: Decimal::from_u64(x0).to_amount(),
             y0: Decimal::from_u64(y0).to_amount(),
