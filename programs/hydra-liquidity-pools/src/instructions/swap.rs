@@ -102,7 +102,10 @@ impl<'info> Swap<'info> {
         Ok(())
     }
 
-    pub fn transfer_tokens_to_user(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
+    pub fn transfer_tokens_to_user(
+        &self,
+        from_account: AccountInfo<'info>,
+    ) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
         if self.pool_state.debug {
             msg!(
                 "from: self.token_y_vault.amount: {}",
@@ -115,7 +118,7 @@ impl<'info> Swap<'info> {
         }
 
         let cpi_accounts = Transfer {
-            from: self.token_y_vault.to_account_info(),
+            from: from_account,
             to: self.user_to_token.to_account_info(),
             authority: self.pool_state.to_account_info(),
         };
@@ -123,7 +126,10 @@ impl<'info> Swap<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn transfer_user_tokens_to_vault(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
+    pub fn transfer_user_tokens_to_vault(
+        &self,
+        to_account: AccountInfo<'info>,
+    ) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
         if self.pool_state.debug {
             msg!(
                 "from: self.user_from_token.amount: {}",
@@ -137,7 +143,7 @@ impl<'info> Swap<'info> {
 
         let cpi_accounts = Transfer {
             from: self.user_from_token.to_account_info(),
-            to: self.token_x_vault.to_account_info(),
+            to: to_account,
             authority: self.user.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();
@@ -191,8 +197,17 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
     let amount_in_decimal = Decimal::from_u64(amount_in).to_amount();
     let mut transfer_out_amount: u64 = 0;
 
+    // signer
+    let seeds = &[
+        POOL_STATE_SEED,
+        ctx.accounts.pool_state.lp_token_mint.as_ref(),
+        &[ctx.accounts.pool_state.pool_state_bump],
+    ];
+    let signer = [&seeds[..]];
+
     // detect swap direction. x to y
     if ctx.accounts.user_from_token.mint == ctx.accounts.pool_state.token_x_mint {
+        msg!("Swapping: x to y");
         // confirm the other side matches pool state of y
         if ctx.accounts.user_to_token.mint != ctx.accounts.pool_state.token_y_mint {
             return Err(ErrorCode::InvalidMintAddress.into());
@@ -200,10 +215,35 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
 
         result = swap.swap_x_to_y_amm(&amount_in_decimal);
         transfer_out_amount = result.delta_y_down();
+
+        check_slippage(
+            &amount_in,
+            &minimum_amount_out,
+            &transfer_in_amount,
+            &transfer_out_amount,
+        )?;
+
+        // transfer x to vault
+        msg!("transfer_in_amount: {}", transfer_in_amount);
+        token::transfer(
+            ctx.accounts
+                .transfer_user_tokens_to_vault(ctx.accounts.token_x_vault.to_account_info()),
+            transfer_in_amount,
+        )?;
+
+        // transfer y to user
+        msg!("transfer_out_amount: {:?}", transfer_out_amount);
+        token::transfer(
+            ctx.accounts
+                .transfer_tokens_to_user(ctx.accounts.token_y_vault.to_account_info())
+                .with_signer(&signer),
+            transfer_out_amount,
+        )?;
     }
 
     // detect swap direction y to x
     if ctx.accounts.user_from_token.mint == ctx.accounts.pool_state.token_y_mint {
+        msg!("Swapping: y to x");
         // confirm the other side matches the pool state of x
         if ctx.accounts.user_to_token.mint != ctx.accounts.pool_state.token_x_mint {
             return Err(ErrorCode::InvalidMintAddress.into());
@@ -211,8 +251,45 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
 
         result = swap.swap_y_to_x_amm(&amount_in_decimal);
         transfer_out_amount = result.delta_x_down();
+
+        check_slippage(
+            &amount_in,
+            &minimum_amount_out,
+            &transfer_in_amount,
+            &transfer_out_amount,
+        )?;
+
+        // transfer y to vault
+        msg!("transfer_in_amount: {}", transfer_in_amount);
+        token::transfer(
+            ctx.accounts
+                .transfer_user_tokens_to_vault(ctx.accounts.token_y_vault.to_account_info()),
+            transfer_in_amount,
+        )?;
+
+        // transfer x to user
+        msg!("transfer_out_amount: {:?}", transfer_out_amount);
+        token::transfer(
+            ctx.accounts
+                .transfer_tokens_to_user(ctx.accounts.token_x_vault.to_account_info())
+                .with_signer(&signer),
+            transfer_out_amount,
+        )?;
     }
 
+    // check all amounts are correct
+    // ctx.accounts.post_transfer_checks(result)?;
+
+    Ok(())
+}
+
+/// check amounts are within slippage or return an error
+fn check_slippage(
+    amount_in: &u64,
+    minimum_amount_out: &u64,
+    transfer_in_amount: &u64,
+    transfer_out_amount: &u64,
+) -> Result<()> {
     // check slippage for amount_out
     if transfer_out_amount < minimum_amount_out {
         msg!("SlippageExceeded!");
@@ -228,31 +305,5 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
         msg!("amount_in: {:?}", amount_in);
         return Err(ErrorCode::SlippageExceeded.into());
     }
-
-    // transfer base token into vault
-    msg!("transfer_in_amount: {}", transfer_in_amount);
-    token::transfer(
-        ctx.accounts.transfer_user_tokens_to_vault(),
-        transfer_in_amount,
-    )?;
-
-    // signer
-    let seeds = &[
-        POOL_STATE_SEED,
-        ctx.accounts.pool_state.lp_token_mint.as_ref(),
-        &[ctx.accounts.pool_state.pool_state_bump],
-    ];
-    let signer = [&seeds[..]];
-
-    // transfer quote token to user
-    msg!("transfer_out_amount: {:?}", transfer_out_amount);
-    token::transfer(
-        ctx.accounts.transfer_tokens_to_user().with_signer(&signer),
-        transfer_out_amount,
-    )?;
-
-    // check all amounts are correct
-    ctx.accounts.post_transfer_checks(result)?;
-
     Ok(())
 }
