@@ -117,5 +117,7 @@ pub fn handle(
     fees.validate()?;
     pool_state.fees = fees;
 
+    msg!("LEN: {:?}", ctx.remaining_accounts.len());
+
     Ok(())
 }

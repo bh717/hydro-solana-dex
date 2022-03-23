@@ -27,7 +27,7 @@ pub enum PythErrors {
 /// and therefore trick the hmm price oracle input.
 pub fn pyth_account_security_check(ctx: &Context<Initialize>) -> Result<()> {
     // checks the options pyth product and price accounts [0,1] have been passed into the contract
-    if ctx.remaining_accounts.len() == 1 {
+    if ctx.remaining_accounts.len() == 2 {
         let remaining_accounts = ctx.remaining_accounts.to_vec();
         let pyth_product_account = &remaining_accounts[0];
         let pyth_price_account = &remaining_accounts[1];
