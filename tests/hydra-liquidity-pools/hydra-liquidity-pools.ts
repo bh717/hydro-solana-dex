@@ -5,6 +5,7 @@ import { Keypair, PublicKey } from "@solana/web3.js";
 import { BTCD_MINT_AMOUNT, USDD_MINT_AMOUNT } from "../constants";
 import { HydraSDK } from "hydra-ts";
 import { PoolFees } from "hydra-ts/src/liquidity-pools/types";
+import { AccountLoader } from "hydra-ts";
 
 function orderKeyPairs(a: Keypair, b: Keypair) {
   if (a.publicKey.toBuffer().compare(b.publicKey.toBuffer()) > 0) {
@@ -33,7 +34,7 @@ describe("hydra-liquidity-pool", () => {
   let poolStateBump: number;
   let tokenXVaultBump: number;
   let tokenYVaultBump: number;
-  let poolStateAccount: any;
+  // let poolStateAccount: any;
 
   let poolFees: PoolFees;
 
@@ -379,6 +380,46 @@ describe("hydra-liquidity-pool", () => {
       await accounts.userTokenY.balance(),
       99_780_872_860_360n - 36_510_755_314n // original amount - swap in amount
     );
+  });
+
+  it("should swap tokens for a third party account", async () => {
+    let newUserBtcdAccount = Keypair.generate();
+    let newUserUsddAccount = Keypair.generate();
+
+    sdk.common.createAssociatedAccount(btcdMint, newUserBtcdAccount);
+
+    //
+    // sdk.common.transfer(btcdAccount, newUserBtcdAccount.publicKey, 1_000_000n);
+    // sdk.common.transfer(
+    //   usddAccount,
+    //   newUserUsddAccount.publicKey,
+    //   100_000_000_000n
+    // );
+    //
+    // console.log(
+    //   await AccountLoader.Token(sdk.ctx, newUserBtcdAccount.publicKey).balance()
+    // );
+    //
+    // console.log(
+    //   await AccountLoader.Token(sdk.ctx, newUserUsddAccount.publicKey).balance()
+    // );
+    // console.log(
+    //   "btc: ",
+    //   await getTokenBalance(provider, newUserBtcdAccount.publicKey)
+    // );
+    //
+    // console.log(
+    //   "usd: ",
+    //   await getTokenBalance(provider, newUserUsddAccount.publicKey)
+    // );
+    // await sdk.liquidityPools.swap(
+    //   btcdMint,
+    //   usddMint,
+    //   newUserBtcdAccount.publicKey,
+    //   newUserUsddAccount.publicKey,
+    //   500_000n,
+    //   18_255_377_657n
+    // );
   });
 
   it("should remove-liquidity for the last time", async () => {
