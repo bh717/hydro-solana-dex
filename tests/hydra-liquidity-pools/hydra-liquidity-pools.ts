@@ -401,7 +401,7 @@ describe("hydra-liquidity-pool", () => {
 
     assert.strictEqual(
       await accounts.userTokenY.balance(),
-      100_000_000_000_000n - 17695n // Always left in the pool.
+      100_000_000_000_000n - 20643n // Always left in the pool.
     );
   });
 });
