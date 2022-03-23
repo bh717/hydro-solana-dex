@@ -5,7 +5,6 @@ import { Keypair, PublicKey } from "@solana/web3.js";
 import { BTCD_MINT_AMOUNT, USDD_MINT_AMOUNT } from "../constants";
 import { HydraSDK } from "hydra-ts";
 import { PoolFees } from "hydra-ts/src/liquidity-pools/types";
-import { getTokenBalance } from "hydra-ts/dist/utils/utils";
 
 function orderKeyPairs(a: Keypair, b: Keypair) {
   if (a.publicKey.toBuffer().compare(b.publicKey.toBuffer()) > 0) {
@@ -372,13 +371,13 @@ describe("hydra-liquidity-pool", () => {
     );
 
     assert.strictEqual(
-      (await getTokenBalance(provider, btcdAccount)).toNumber(),
-      20_999_993_000_000 + 1_000_000 - 1960 // original amount + swap out amount - fee
+      await accounts.userTokenX.balance(),
+      20_999_993_000_000n + 1_000_000n - 1960n // original amount + swap out amount - fee
     );
 
     assert.strictEqual(
-      (await getTokenBalance(provider, usddAccount)).toNumber(),
-      99_780_872_860_360 - 36_510_755_314 // original amount - swap in amount
+      await accounts.userTokenY.balance(),
+      99_780_872_860_360n - 36_510_755_314n // original amount - swap in amount
     );
   });
 

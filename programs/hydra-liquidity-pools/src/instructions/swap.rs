@@ -82,7 +82,7 @@ impl<'info> Swap<'info> {
         (&mut self.token_y_vault).reload()?;
 
         if result.x_new_up() != self.token_x_vault.amount {
-            msg!("x_new_down: {:?}", result.x_new_down());
+            msg!("x_new_up: {:?}", result.x_new_up());
             msg!("token_x_vault.amount: {:?}", self.token_x_vault.amount);
             return Err(ErrorCode::InvalidVaultToSwapResultAmounts.into());
         }
