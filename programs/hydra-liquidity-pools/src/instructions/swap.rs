@@ -81,7 +81,7 @@ impl<'info> Swap<'info> {
         (&mut self.token_x_vault).reload()?;
         (&mut self.token_y_vault).reload()?;
 
-        if result.x_new_down() != self.token_x_vault.amount {
+        if result.x_new_up() != self.token_x_vault.amount {
             msg!("x_new_down: {:?}", result.x_new_down());
             msg!("token_x_vault.amount: {:?}", self.token_x_vault.amount);
             return Err(ErrorCode::InvalidVaultToSwapResultAmounts.into());
@@ -278,7 +278,7 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
     }
 
     // check all amounts are correct
-    // ctx.accounts.post_transfer_checks(result)?;
+    ctx.accounts.post_transfer_checks(result)?;
 
     Ok(())
 }
