@@ -1,11 +1,14 @@
 import * as anchor from "@project-serum/anchor";
 import config from "config-ts/global-config.json";
 import assert from "assert";
-import { Keypair, PublicKey } from "@solana/web3.js";
+import { Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
 import { BTCD_MINT_AMOUNT, USDD_MINT_AMOUNT } from "../constants";
 import { HydraSDK } from "hydra-ts";
 import { PoolFees } from "hydra-ts/src/liquidity-pools/types";
 import { AccountLoader } from "hydra-ts";
+import { toBN } from "../../sdks/hydra-ts/src/utils";
+import * as SPLToken from "@solana/spl-token";
+import { web3 } from "@project-serum/anchor";
 
 function orderKeyPairs(a: Keypair, b: Keypair) {
   if (a.publicKey.toBuffer().compare(b.publicKey.toBuffer()) > 0) {
@@ -420,13 +423,43 @@ describe("hydra-liquidity-pool", () => {
       await AccountLoader.Token(sdk.ctx, newUserUsddAccount).balance()
     );
 
-    await sdk.liquidityPools.swap(
+    // await sdk.liquidityPools.swap(
+    //   btcdMint,
+    //   usddMint,
+    //   newUserBtcdAccount,
+    //   newUserUsddAccount,
+    //   500_000n,
+    //   18_255_377_657n
+    // );
+
+    const accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
       btcdMint,
-      usddMint,
-      newUserBtcdAccount,
-      newUserUsddAccount,
-      500_000n,
-      18_255_377_657n
+      usddMint
+    );
+
+    console.log("usddMint: ", usddMint.toString());
+
+    console.log("newUserUsddAccount: ", await SPLToken.Token.get);
+
+    await sdk.ctx.programs.hydraLiquidityPools.rpc.swap(
+      toBN(500_000n),
+      toBN(18_255_377_657n),
+      {
+        accounts: {
+          user: sdk.ctx.provider.wallet.publicKey,
+          poolState: await accounts.poolState.key(),
+          lpTokenMint: await accounts.lpTokenMint.key(),
+          userFromToken: newUserBtcdAccount,
+          userToToken: newUserUsddAccount,
+          userToMint: usddMint,
+          tokenXVault: await accounts.tokenXVault.key(),
+          tokenYVault: await accounts.tokenYVault.key(),
+          systemProgram: SystemProgram.programId,
+          tokenProgram: SPLToken.TOKEN_PROGRAM_ID,
+          associatedTokenProgram: SPLToken.ASSOCIATED_TOKEN_PROGRAM_ID,
+          rent: web3.SYSVAR_RENT_PUBKEY,
+        },
+      }
     );
   });
 
