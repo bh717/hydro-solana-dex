@@ -14,30 +14,14 @@ pub struct SwapCalculator {
     c: Decimal,
     /// Oracle price relative to x
     i: Decimal,
-    /// fee rate numerator
-    fee_numer: Decimal,
-    /// fee rate denominator
-    fee_denom: Decimal,
+    /// Fee as a fraction
+    fee: Decimal,
 }
 
 impl SwapCalculator {
     /// Create a new token swap calculator
-    pub fn new(
-        x0: Decimal,
-        y0: Decimal,
-        c: Decimal,
-        i: Decimal,
-        fee_numer: u64,
-        fee_denom: u64,
-    ) -> Self {
-        Self {
-            x0,
-            y0,
-            c,
-            i,
-            fee_numer: Decimal::from_u64(fee_numer).to_amount(),
-            fee_denom: Decimal::from_u64(fee_denom).to_amount(),
-        }
+    pub fn new(x0: Decimal, y0: Decimal, c: Decimal, i: Decimal, fee: Decimal) -> Self {
+        Self { x0, y0, c, i, fee }
     }
 
     pub fn swap_y_to_x_amm(&self, delta_y: &Decimal) -> SwapResult {
@@ -136,17 +120,22 @@ impl SwapCalculator {
     /// compute fees amount and amount_ex_fee based on input and settings
     fn compute_fees(&self, input_amount: &Decimal) -> (Decimal, Decimal) {
         // default to zero if fee_rate numerator or denominator are 0
-        let zero = Decimal::from_u64(0).to_amount();
-        if self.fee_numer.eq(zero).unwrap() || self.fee_denom.eq(zero).unwrap() {
-            return (zero, input_amount.to_amount());
+        let zero = Decimal::from_scaled_amount(0, input_amount.scale);
+
+        if self.fee.eq(zero).unwrap() {
+            return (zero, *input_amount);
         }
 
-        let fees = input_amount
-            .to_amount()
-            .mul(self.fee_numer.to_amount())
-            .div(self.fee_denom.to_amount());
+        let scaled_fee = self.fee.to_scale(input_amount.scale);
 
-        let amount_ex_fees = input_amount.to_amount().sub(fees).unwrap();
+        let fees = input_amount.mul(scaled_fee);
+
+        if fees.gte(*input_amount).unwrap() {
+            //TODO: add some error handling for this if fees are gt input amount
+        }
+
+        let amount_ex_fees = input_amount.sub(fees).expect("amount_ex_fees");
+
         (fees, amount_ex_fees)
     }
 
@@ -386,8 +375,7 @@ mod tests {
             y0: Decimal::from_scaled_amount(y0, DEFAULT_SCALE_TEST),
             c: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
             i: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
-            fee_numer: Decimal::from_u64(0).to_amount(),
-            fee_denom: Decimal::from_u64(0).to_amount(),
+            fee: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
         };
         let result = swap.compute_k();
         let value = model.sim_k();
@@ -401,8 +389,7 @@ mod tests {
             y0: Decimal::from_scaled_amount(y0, DEFAULT_SCALE_TEST),
             c: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
             i: Decimal::from_scaled_amount(i, DEFAULT_SCALE_TEST),
-            fee_numer: Decimal::from_u64(0).to_amount(),
-            fee_denom: Decimal::from_u64(0).to_amount(),
+            fee: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
         };
         let result = swap.compute_xi();
         let (value, negative) = model.sim_xi();
@@ -416,8 +403,7 @@ mod tests {
             y0: Decimal::from_scaled_amount(y0, DEFAULT_SCALE_TEST),
             c: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
             i: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
-            fee_numer: Decimal::from_u64(0).to_amount(),
-            fee_denom: Decimal::from_u64(0).to_amount(),
+            fee: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
         };
         let result =
             swap.compute_delta_y_amm(&Decimal::from_scaled_amount(delta_x, DEFAULT_SCALE_TEST));
@@ -432,8 +418,7 @@ mod tests {
             y0: Decimal::from_scaled_amount(y0, DEFAULT_SCALE_TEST),
             c: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
             i: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
-            fee_numer: Decimal::from_u64(0).to_amount(),
-            fee_denom: Decimal::from_u64(0).to_amount(),
+            fee: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
         };
         let result =
             swap.compute_delta_x_amm(&Decimal::from_scaled_amount(delta_y, DEFAULT_SCALE_TEST));
@@ -448,8 +433,7 @@ mod tests {
             y0: Decimal::from_scaled_amount(y0, DEFAULT_SCALE_TEST),
             c: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
             i: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
-            fee_numer: Decimal::from_u64(0).to_amount(),
-            fee_denom: Decimal::from_u64(0).to_amount(),
+            fee: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
         };
 
         let swap_x_to_y_amm =
@@ -481,8 +465,7 @@ mod tests {
             y0: Decimal::from_scaled_amount(y0, DEFAULT_SCALE_TEST),
             c,
             i: Decimal::from_scaled_amount(i, DEFAULT_SCALE_TEST),
-            fee_numer: Decimal::from_u64(0).to_amount(),
-            fee_denom: Decimal::from_u64(0).to_amount(),
+            fee: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
         };
         let result =
             swap.compute_delta_y_hmm(&Decimal::from_scaled_amount(delta_x, DEFAULT_SCALE_TEST));
@@ -507,8 +490,7 @@ mod tests {
             y0: Decimal::from_scaled_amount(y0, DEFAULT_SCALE_TEST),
             c,
             i: Decimal::from_scaled_amount(i, DEFAULT_SCALE_TEST),
-            fee_numer: Decimal::from_u64(0).to_amount(),
-            fee_denom: Decimal::from_u64(0).to_amount(),
+            fee: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
         };
         let result =
             swap.compute_delta_x_hmm(&Decimal::from_scaled_amount(delta_y, DEFAULT_SCALE_TEST));
@@ -594,8 +576,7 @@ mod tests {
                 y0: Decimal::from_scaled_amount(126_000000, DEFAULT_SCALE_TEST),
                 c: Decimal::from_scaled_amount(1_000000, DEFAULT_SCALE_TEST),
                 i: Decimal::from_scaled_amount(3_000000, DEFAULT_SCALE_TEST),
-                fee_numer: Decimal::from_u64(0).to_amount(),
-                fee_denom: Decimal::from_u64(0).to_amount(),
+                fee: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
             };
             let delta_x = Decimal::from_scaled_amount(3_000000, DEFAULT_SCALE_TEST);
             let result = swap.compute_delta_y_hmm(&delta_x);
@@ -619,8 +600,7 @@ mod tests {
                 y0: Decimal::from_u128(33).to_scale(12),
                 c: Decimal::from_u128(0).to_scale(12),
                 i: Decimal::from_u128(1).to_scale(12),
-                fee_numer: Decimal::from_u64(0).to_amount(),
-                fee_denom: Decimal::from_u64(0).to_amount(),
+                fee: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
             };
             let delta_x = Decimal::from_u128(1).to_scale(12);
             let result = swap.compute_delta_y_hmm(&delta_x).to_scale(8);
@@ -643,8 +623,7 @@ mod tests {
                 y0: Decimal::from_u128(193).to_scale(12),
                 c: Decimal::from_u128(0).to_scale(12),
                 i: Decimal::from_u128(1).to_scale(12),
-                fee_numer: Decimal::from_u64(0).to_amount(),
-                fee_denom: Decimal::from_u64(0).to_amount(),
+                fee: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
             };
             let delta_y = Decimal::from_u128(4).to_scale(12);
             let result = swap.compute_delta_x_hmm(&delta_y).to_scale(8);
@@ -667,8 +646,7 @@ mod tests {
                 y0: Decimal::from_u128(1000).to_scale(12),
                 c: Decimal::from_u128(0).to_scale(12),
                 i: Decimal::from_u128(200).to_scale(12),
-                fee_numer: Decimal::from_u64(0).to_amount(),
-                fee_denom: Decimal::from_u64(0).to_amount(),
+                fee: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
             };
             // ((1000*1000)/200)**0.5 = 70.710678118654752
             // https://www.wolframalpha.com/input/?i=%28%281000*1000%29%2F200%29**0.5
