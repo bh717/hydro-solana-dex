@@ -60,6 +60,15 @@ impl Decimal {
         }
     }
 
+    /// Create a [Decimal] from an unsigned amount with scale, assumed positive by default.
+    pub fn from_scaled_amount(amount: u64, scale: u8) -> Self {
+        Decimal {
+            value: amount.into(),
+            scale: scale.into(),
+            ..Decimal::default()
+        }
+    }
+
     /// Convert a [Decimal] to an unsigned integer, assumed positive by default.
     pub fn to_u64(self) -> u64 {
         self.value.try_into().unwrap()
@@ -1071,6 +1080,21 @@ mod test {
         let expected = Decimal {
             value: 42,
             scale: 0,
+            negative: false,
+        };
+
+        assert_eq!({ actual.value }, { expected.value });
+        assert_eq!(actual.scale, expected.scale);
+    }
+
+    #[test]
+    fn test_from_scaled_integer() {
+        let integer: u64 = 42_000000;
+        let scale = 6;
+        let actual = Decimal::from_scaled_amount(integer, scale);
+        let expected = Decimal {
+            value: 42_000000,
+            scale: 6,
             negative: false,
         };
 
