@@ -195,7 +195,6 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
 
     let transfer_in_amount = amount_in;
     let amount_in_decimal = Decimal::from_u64(amount_in).to_amount();
-    let mut transfer_out_amount: u64 = 0;
 
     // signer
     let seeds = &[
@@ -214,7 +213,7 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
         }
 
         result = swap.swap_x_to_y_amm(&amount_in_decimal);
-        transfer_out_amount = result.delta_y_down();
+        let transfer_out_amount = result.delta_y_down();
 
         check_slippage(
             &amount_in,
@@ -250,7 +249,7 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
         }
 
         result = swap.swap_y_to_x_amm(&amount_in_decimal);
-        transfer_out_amount = result.delta_x_down();
+        let transfer_out_amount = result.delta_x_down();
 
         check_slippage(
             &amount_in,
