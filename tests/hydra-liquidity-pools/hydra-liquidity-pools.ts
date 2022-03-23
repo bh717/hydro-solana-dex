@@ -360,37 +360,25 @@ describe("hydra-liquidity-pool", () => {
       btcdMint,
       usddMint
     );
-    console.log("tokenXVault: ", await accounts.tokenXVault.balance());
-    console.log("tokenYVault: ", await accounts.tokenYVault.balance());
 
-    // assert.strictEqual(
-    //   await accounts.tokenXVault.balance(),
-    //   7_000_000n - 1_000_000n + 1960n // original amount - swap + fee
-    // );
-    //
-    // assert.strictEqual(
-    //   await accounts.tokenYVault.balance(),
-    //   219127139640n + 36_510_755_314n
-    // );
-
-    console.log(
-      "btcdAccount: ",
-      (await getTokenBalance(provider, btcdAccount)).toNumber()
+    assert.strictEqual(
+      await accounts.tokenYVault.balance(),
+      219127139640n + 36_510_755_314n
     );
 
-    console.log(
-      "usddAccount: ",
-      (await getTokenBalance(provider, usddAccount)).toNumber()
+    assert.strictEqual(
+      await accounts.tokenXVault.balance(),
+      7_000_000n - 1_000_000n + 1960n // original amount - swap + fee
     );
 
     assert.strictEqual(
       (await getTokenBalance(provider, btcdAccount)).toNumber(),
-      20_999_993_000_000n + 1_000_000n - 1960n // original amount + swap out amount - fee
+      20_999_993_000_000 + 1_000_000 - 1960 // original amount + swap out amount - fee
     );
 
     assert.strictEqual(
       (await getTokenBalance(provider, usddAccount)).toNumber(),
-      99_780_872_860_360n - 36_510_755_314n // original amount - swap in amount
+      99_780_872_860_360 - 36_510_755_314 // original amount - swap in amount
     );
   });
 
