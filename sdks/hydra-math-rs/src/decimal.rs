@@ -1606,29 +1606,29 @@ mod test {
     fn test_pow_with_integer_exp() {
         // 0**n = 0
         {
-            let decimal: u8 = AMOUNT_SCALE;
-            let base = Decimal::new(0, decimal, false);
+            let scale: u8 = 6;
+            let base = Decimal::new(0, scale, false);
             let exp: u128 = 100;
             let result = base.pow(exp);
-            let expected = Decimal::new(0, decimal, false);
+            let expected = Decimal::new(0, scale, false);
             assert_eq!(result, expected);
         }
 
         // n**0 = 1
-        let decimal: u8 = AMOUNT_SCALE;
-        let base = Decimal::from_u64(10).to_scale(decimal);
+        let scale: u8 = 6;
+        let base = Decimal::from_u64(10).to_scale(scale);
         let exp: u128 = 0;
         let result = base.pow(exp);
-        let expected = Decimal::from_u64(1).to_scale(decimal);
+        let expected = Decimal::from_u64(1).to_scale(scale);
         assert_eq!(result, expected);
 
         // 2**18 = 262,144
         {
-            let decimal: u8 = AMOUNT_SCALE;
-            let base = Decimal::from_u64(2).to_scale(decimal);
+            let scale: u8 = 6;
+            let base = Decimal::from_u64(2).to_scale(scale);
             let exp: u128 = 18;
             let result = base.pow(exp);
-            let expected = Decimal::from_u64(262_144).to_scale(decimal);
+            let expected = Decimal::from_u64(262_144).to_scale(scale);
             assert_eq!(result, expected);
         }
 
