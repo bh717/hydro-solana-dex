@@ -4,11 +4,6 @@ use std::fmt;
 use std::iter::repeat;
 use thiserror::Error;
 
-/// Default precision for a [Decimal] expressed as an amount.
-pub const AMOUNT_SCALE: u8 = 6;
-
-// TODO: add more constants for default precision on other types e.g. fees, percentages
-
 /// Error codes related to [Decimal].
 #[derive(Error, Debug)]
 pub enum ErrorCode {
@@ -81,21 +76,6 @@ impl Decimal {
             scale: 0,
             ..Decimal::default()
         }
-    }
-
-    /// Create a [Decimal] from an unsigned integer expressed as an amount
-    /// with precision defined by constant and assumed positive by default.
-    pub fn from_amount(amount: u64) -> Self {
-        Decimal {
-            value: amount.into(),
-            scale: AMOUNT_SCALE,
-            ..Decimal::default()
-        }
-    }
-
-    /// Convert a [Decimal] to an unsigned integer expressed as an amount.
-    pub fn to_amount(self) -> Decimal {
-        self.to_scale(AMOUNT_SCALE)
     }
 
     /// Modify the scale (precision) of a [Decimal] to a different scale.
@@ -870,8 +850,8 @@ mod test {
     fn test_basic_examples() {
         {
             // 1.000000 * 1.000000 = 1.000000
-            let a = Decimal::from_amount(1_000000);
-            let b = Decimal::from_amount(1_000000);
+            let a = Decimal::from_scaled_amount(1_000000, 6);
+            let b = Decimal::from_scaled_amount(1_000000, 6);
             let actual = a.mul(b);
             let expected = Decimal {
                 value: 1_000000,
@@ -940,10 +920,10 @@ mod test {
         let expected = Decimal::from_u128(200077279322612464128594731044417340495);
         assert_eq!(result, expected);
 
-        let lhs = Decimal::from_amount(17134659154348278833);
-        let rhs = Decimal::from_amount(11676758639919526015);
+        let lhs = Decimal::from_scaled_amount(17134659154348278833, 6);
+        let rhs = Decimal::from_scaled_amount(11676758639919526015, 6);
         let result = lhs.mul(rhs);
-        let expected = Decimal::new(200077279322612464128594731044417, AMOUNT_SCALE, false);
+        let expected = Decimal::new(200077279322612464128594731044417, 6, false);
         assert_eq!(result, expected);
 
         // power function with decimal exponent, scaled down (floor) at lower precision
@@ -998,8 +978,8 @@ mod test {
         ) {
             let scale = 6; // decimal places
             let precision = 2; // accuracy +/- 0.000001
-            let lhs_decimal = Decimal::from_amount(lhs);
-            let rhs_decimal = Decimal::from_amount(rhs);
+            let lhs_decimal = Decimal::from_scaled_amount(lhs, scale);
+            let rhs_decimal = Decimal::from_scaled_amount(rhs, scale);
             let lhs_f64: f64 = lhs_decimal.into();
             let den_f64: f64 = lhs_decimal.denominator() as f64;
 
@@ -1100,64 +1080,6 @@ mod test {
 
         assert_eq!({ actual.value }, { expected.value });
         assert_eq!(actual.scale, expected.scale);
-    }
-
-    #[test]
-    fn test_from_amount() {
-        let amount: u64 = 42;
-        let actual = Decimal::from_amount(amount);
-        let expected = Decimal {
-            value: 42,
-            scale: 6,
-            negative: false,
-        };
-
-        assert_eq!({ actual.value }, { expected.value });
-        assert_eq!(actual.scale, expected.scale);
-    }
-
-    #[test]
-    fn test_to_amount() {
-        // greater than AMOUNT_SCALE
-        {
-            {
-                let decimal = Decimal::new(424242, 10, false);
-                let actual = decimal.to_amount();
-                let expected = Decimal::new(42, AMOUNT_SCALE, false);
-
-                assert_eq!({ actual.value }, { expected.value });
-                assert_eq!(actual.scale, expected.scale);
-            }
-
-            {
-                let decimal = Decimal::new(4242, 13, false);
-                let actual = decimal.to_amount();
-                let expected = Decimal::new(0, AMOUNT_SCALE, false);
-
-                assert_eq!({ actual.value }, { expected.value });
-                assert_eq!(actual.scale, expected.scale);
-            }
-        }
-
-        // equal to AMOUNT_SCALE
-        {
-            let decimal = Decimal::new(4242, 6, false);
-            let actual = decimal.to_amount();
-            let expected = Decimal::new(4242, AMOUNT_SCALE, false);
-
-            assert_eq!({ actual.value }, { expected.value });
-            assert_eq!(actual.scale, expected.scale);
-        }
-
-        // less than AMOUNT_SCALE
-        {
-            let decimal = Decimal::new(4242, 4, false);
-            let actual = decimal.to_amount();
-            let expected = Decimal::new(424200, AMOUNT_SCALE, false);
-
-            assert_eq!({ actual.value }, { expected.value });
-            assert_eq!(actual.scale, expected.scale);
-        }
     }
 
     #[test]
@@ -1384,17 +1306,17 @@ mod test {
         }
 
         {
-            let decimal = Decimal::from_amount(0);
+            let decimal = Decimal::from_scaled_amount(0, 6);
             assert_eq!(decimal.to_string(), "0.000000");
         }
 
         {
-            let decimal = Decimal::from_amount(1_500_000);
+            let decimal = Decimal::from_scaled_amount(1_500_000, 6);
             assert_eq!(decimal.to_string(), "1.500000");
         }
 
         {
-            let decimal = Decimal::from_amount(500_000);
+            let decimal = Decimal::from_scaled_amount(500_000, 6);
             assert_eq!(decimal.to_string(), "0.500000");
         }
 

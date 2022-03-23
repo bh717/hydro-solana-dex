@@ -233,8 +233,8 @@ impl SwapCalculator {
         let one = Decimal::from_u64(1).to_scale(self.x0.scale);
         if c.eq(&one) {
             // k/qi * (q0/q_new).ln()
-            let k_div_qi = k.to_scale(8).div(qi.clone().to_amount());
-            let q0_div_q_new = q0.to_scale(8).div(q_new.clone().to_amount());
+            let k_div_qi = k.to_scale(8).div(qi.clone().to_scale(self.x0.scale));
+            let q0_div_q_new = q0.to_scale(8).div(q_new.clone().to_scale(self.x0.scale));
             let log_q0_div_q_new = q0_div_q_new.ln().unwrap();
             k_div_qi.mul(log_q0_div_q_new).to_scale(self.x0.scale)
         } else {
@@ -324,7 +324,7 @@ impl SwapCalculator {
 
     // TODO: Broken; Amounts arent matching the lp tokens version of this calculation.
     fn compute_squared_k(&self, x_new: Decimal, y_new: Decimal) -> Decimal {
-        let min_liquidity = Decimal::from_u64(MIN_LIQUIDITY).to_amount();
+        let min_liquidity = Decimal::from_u64(MIN_LIQUIDITY).to_scale(self.x0.scale);
         x_new.mul(y_new).sqrt().unwrap().sub(min_liquidity).unwrap()
     }
 }
