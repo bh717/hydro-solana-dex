@@ -1,10 +1,14 @@
 import * as anchor from "@project-serum/anchor";
 import config from "config-ts/global-config.json";
 import assert from "assert";
-import { Keypair, PublicKey } from "@solana/web3.js";
+import { Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
 import { BTCD_MINT_AMOUNT, USDD_MINT_AMOUNT } from "../constants";
 import { HydraSDK } from "hydra-ts";
 import { PoolFees } from "hydra-ts/src/liquidity-pools/types";
+import { AccountLoader } from "hydra-ts";
+import { toBN } from "../../sdks/hydra-ts/src/utils";
+import * as SPLToken from "@solana/spl-token";
+import { web3 } from "@project-serum/anchor";
 
 function orderKeyPairs(a: Keypair, b: Keypair) {
   if (a.publicKey.toBuffer().compare(b.publicKey.toBuffer()) > 0) {
@@ -33,7 +37,6 @@ describe("hydra-liquidity-pool", () => {
   let poolStateBump: number;
   let tokenXVaultBump: number;
   let tokenYVaultBump: number;
-  let poolStateAccount: any;
 
   let poolFees: PoolFees;
 
@@ -381,6 +384,88 @@ describe("hydra-liquidity-pool", () => {
     );
   });
 
+  it("should swap (cpmm) from btc to usd (x to y) for a third party wallet", async () => {
+    let newUserWallet = Keypair.generate();
+    await provider.connection.confirmTransaction(
+      await provider.connection.requestAirdrop(
+        newUserWallet.publicKey,
+        10000000000
+      ),
+      "confirmed"
+    );
+
+    assert.strictEqual(
+      await provider.connection.getBalance(newUserWallet.publicKey),
+      10000000000
+    );
+
+    let newUserBtcdAccount = await sdk.common.createAssociatedAccount(
+      btcdMint,
+      newUserWallet
+    );
+
+    let newUserUsddAccount = await sdk.common.createAssociatedAccount(
+      usddMint,
+      newUserWallet
+    );
+
+    await sdk.common.transfer(btcdAccount, newUserBtcdAccount, 1_000_000n);
+
+    await sdk.common.transfer(
+      usddAccount,
+      newUserUsddAccount,
+      100_000_000_000n
+    );
+
+    let accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
+      btcdMint,
+      usddMint
+    );
+
+    // TODO: add into sdk
+    await sdk.ctx.programs.hydraLiquidityPools.rpc.swap(
+      toBN(500_000n),
+      toBN(18_255_377_657n),
+      {
+        accounts: {
+          user: newUserWallet.publicKey,
+          poolState: await accounts.poolState.key(),
+          lpTokenMint: await accounts.lpTokenMint.key(),
+          userFromToken: newUserBtcdAccount,
+          userToToken: newUserUsddAccount,
+          userToMint: usddMint,
+          tokenXVault: await accounts.tokenXVault.key(),
+          tokenYVault: await accounts.tokenYVault.key(),
+          systemProgram: SystemProgram.programId,
+          tokenProgram: SPLToken.TOKEN_PROGRAM_ID,
+          associatedTokenProgram: SPLToken.ASSOCIATED_TOKEN_PROGRAM_ID,
+          rent: web3.SYSVAR_RENT_PUBKEY,
+        },
+        signers: [newUserWallet],
+      }
+    );
+
+    assert.strictEqual(
+      await AccountLoader.Token(sdk.ctx, newUserBtcdAccount).balance(),
+      1_000_000n - 500_000n
+    );
+
+    assert.strictEqual(
+      await AccountLoader.Token(sdk.ctx, newUserUsddAccount).balance(),
+      100_000_000_000n + 19_622_226_499n
+    );
+
+    assert.strictEqual(
+      await accounts.tokenXVault.balance(),
+      6_001_960n + 500_000n // original + swap
+    );
+
+    assert.strictEqual(
+      await accounts.tokenYVault.balance(),
+      255_637_894_954n - 19_622_226_499n // original - swap
+    );
+  });
+
   it("should remove-liquidity for the last time", async () => {
     const accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
       btcdMint,
@@ -393,14 +478,8 @@ describe("hydra-liquidity-pool", () => {
 
     assert.strictEqual(await accounts.lpTokenVault.balance(), 100n);
 
-    assert.strictEqual(
-      await accounts.userTokenX.balance(),
-      21_000_000_000_000n
-    );
+    assert.strictEqual(await accounts.tokenXVault.balance(), 0n);
 
-    assert.strictEqual(
-      await accounts.userTokenY.balance(),
-      100_000_000_000_000n - 20643n // Always left in the pool.
-    );
+    assert.strictEqual(await accounts.tokenYVault.balance(), 19_059n);
   });
 });
