@@ -78,6 +78,15 @@ impl Decimal {
         }
     }
 
+    /// Create a [Decimal] from an unsigned amount with scale, assumed positive by default.
+    pub fn from_scaled_amount(amount: u64, scale: u8) -> Self {
+        Decimal {
+            value: amount.into(),
+            scale: scale.into(),
+            ..Decimal::default()
+        }
+    }
+
     /// Modify the scale (precision) of a [Decimal] to a different scale.
     pub fn to_scale(self, scale: u8) -> Self {
         Self {
