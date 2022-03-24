@@ -38,7 +38,7 @@ Direction can be found [here](https://www.rust-lang.org/tools/install)
 
 ```
 $ rustc --version
-rustc 1.58.0 (02072b482 2022-01-11)
+rustc 1.59.0 (9d1b2106e 2022-02-23)
 ```
 
 #### Installing solana cli tools:
@@ -47,7 +47,7 @@ Directions can be found [here](https://docs.solana.com/cli/install-solana-cli-to
 
 ```
 $ solana --version
-solana-cli 1.9.6 (src:781609b2; feat:2191737503)
+solana-cli 1.9.13 (src:3ac7e043; feat:1070292356)
 ```
 
 #### Installing NodeJs
@@ -56,7 +56,7 @@ Direction can be found [here](https://nodejs.org/en/)
 
 ```
 $ node --version
-v17.1.0
+v17.7.2
 ```
 
 #### Installing yarn
@@ -65,7 +65,7 @@ Direction can be found [here](https://yarnpkg.com/getting-started/install)
 
 ```
 $yarn --version
-1.22.17
+1.22.18
 ```
 
 #### Installing wasm-pack
@@ -87,7 +87,7 @@ You can also use our own fork by running `make install_anchor`
 
 ```
 $ anchor --version
-anchor-cli 0.22.0
+anchor-cli 0.23.0
 ```
 
 ### Install TS dependencies

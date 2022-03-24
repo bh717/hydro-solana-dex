@@ -86,7 +86,7 @@ export function createCtxAnchor(provider: Provider, programIds: ProgramIds) {
    * @param name
    * @returns
    */
-  function getParser<T>(program: { coder: Coder<string> }, name: string) {
+  function getParser<T>(program: { coder: Coder }, name: string) {
     return (info: AccountInfo<Buffer>) =>
       program.coder.accounts.decode(name, info.data) as T;
   }

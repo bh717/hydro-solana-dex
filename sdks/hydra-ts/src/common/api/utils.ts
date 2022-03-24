@@ -2,7 +2,6 @@ import { Provider } from "@project-serum/anchor";
 import { AccountInfo, PublicKey, SystemProgram } from "@solana/web3.js";
 import * as TokenInstructions from "@project-serum/serum/lib/token-instructions";
 import { TransactionInstruction } from "@solana/web3.js";
-import { AccountLayout, u64 } from "@solana/spl-token";
 
 export async function createMintInstructions(
   provider: Provider,
