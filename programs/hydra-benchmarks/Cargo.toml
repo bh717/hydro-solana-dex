@@ -17,5 +17,5 @@ localnet = []
 default = ["localnet"]
 
 [dependencies]
-anchor-lang = "0.22.1"
-hydra-math-rs = { version = "0.1.0", path = "../../sdks/hydra-math-rs", features = ["no-entrypoint"] }
+anchor-lang = "0.23"
+hydra-math-rs = { path = "../../sdks/hydra-math-rs", features = ["no-entrypoint"] }
