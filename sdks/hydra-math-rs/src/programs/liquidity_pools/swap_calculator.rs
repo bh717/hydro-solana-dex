@@ -1,8 +1,70 @@
 //! Swap calculator
 use crate::decimal::{Add, Compare, Decimal, Div, Ln, Mul, Pow, Sqrt, Sub};
 use crate::programs::liquidity_pools::swap_result::SwapResult;
+use thiserror::Error;
+use wasm_bindgen::prelude::*;
 
 pub const MIN_LIQUIDITY: u64 = 100;
+
+/// Interface to be used by programs and front end
+/// these functions shadow private functions of the implemented swap calculator
+#[wasm_bindgen]
+pub fn swap_x_to_y_hmm(
+    x0: u64,
+    x0_scale: u8,
+    y0: u64,
+    y0_scale: u8,
+    c: u16,
+    i: u64,
+    i_scale: u8,
+    fee_numer: u64,
+    fee_denom: u64,
+    amount: u64,
+) -> Result<u64, String> {
+    let calculator = SwapCalculator::builder()
+        .x0(x0, x0_scale)
+        .y0(y0, y0_scale)
+        .c(c)
+        .i(i, i_scale)
+        .fee(fee_numer, fee_denom)
+        .build()
+        .unwrap();
+
+    let delta_x = Decimal::from_scaled_amount(amount, 6).to_compute_scale();
+
+    let result = calculator.swap_x_to_y_hmm(&delta_x);
+
+    Ok(result.delta_y.to_scale(0).to_u64())
+}
+
+#[wasm_bindgen]
+pub fn swap_y_to_x_hmm(
+    x0: u64,
+    x0_scale: u8,
+    y0: u64,
+    y0_scale: u8,
+    c: u16,
+    i: u64,
+    i_scale: u8,
+    fee_numer: u64,
+    fee_denom: u64,
+    amount: u64,
+) -> Result<u64, String> {
+    let calculator = SwapCalculator::builder()
+        .x0(x0, x0_scale)
+        .y0(y0, y0_scale)
+        .c(c)
+        .i(i, i_scale)
+        .fee(fee_numer, fee_denom)
+        .build()
+        .unwrap();
+
+    let delta_y = Decimal::from_scaled_amount(amount, 6).to_compute_scale();
+
+    let result = calculator.swap_y_to_x_hmm(&delta_y);
+
+    Ok(result.delta_x.to_scale(0).to_u64())
+}
 
 /// Swap calculator input parameters
 pub struct SwapCalculator {
@@ -131,7 +193,64 @@ impl SwapCalculator {
     }
 
     /// Compute swap result from x to y using a constant product curve given delta x
-    pub fn swap_x_to_y_amm(&self, delta_x: &Decimal) -> SwapResult {
+    pub fn swap_x_to_y_hmm(&self, delta_x: &Decimal) -> SwapResult {
+        // fees deducted first
+        let (fees, amount_ex_fees) = self.compute_fees(delta_x);
+
+        let k = self.compute_k();
+
+        let x_new = self.compute_x_new(&amount_ex_fees);
+
+        let delta_x = x_new.sub(self.x0).unwrap();
+
+        let delta_y = self.compute_delta_y_hmm(&amount_ex_fees);
+
+        let y_new = self.y0.add(delta_y).unwrap();
+
+        let squared_k = self.compute_squared_k(x_new.add(fees).unwrap(), y_new);
+
+        SwapResult {
+            k,
+            x_new: x_new.add(fees).unwrap(),
+            y_new,
+            delta_x,
+            delta_y,
+            fees,
+            squared_k,
+        }
+    }
+
+    /// Compute swap result from y to x using a constant product curve given delta y
+    pub fn swap_y_to_x_hmm(&self, delta_y: &Decimal) -> SwapResult {
+        // fees deducted first
+        let (fees, amount_ex_fees) = self.compute_fees(delta_y);
+
+        let k = self.compute_k();
+
+        let y_new = self.compute_y_new(&amount_ex_fees);
+
+        let delta_y = y_new.sub(self.y0).unwrap();
+
+        let delta_x = self.compute_delta_x_hmm(&amount_ex_fees);
+
+        let x_new = self.x0.add(delta_x).unwrap();
+
+        let squared_k = self.compute_squared_k(x_new, y_new.add(fees).unwrap());
+
+        SwapResult {
+            k,
+            x_new,
+            y_new: y_new.add(fees).unwrap(),
+            delta_x,
+            delta_y,
+            fees,
+            squared_k,
+        }
+    }
+
+    /// Compute swap result from x to y using a constant product curve given delta x
+    #[allow(dead_code)]
+    fn swap_x_to_y_amm(&self, delta_x: &Decimal) -> SwapResult {
         // fees deducted first
         let (fees, amount_ex_fees) = self.compute_fees(delta_x);
 
@@ -163,27 +282,33 @@ impl SwapCalculator {
         }
     }
 
-    /// Compute swap result from x to y using a constant product curve given delta x
-    pub fn swap_x_to_y_hmm(&self, delta_x: &Decimal) -> SwapResult {
+    /// Compute swap result from y to x using a constant product curve given delta y
+    #[allow(dead_code)]
+    fn swap_y_to_x_amm(&self, delta_y: &Decimal) -> SwapResult {
         // fees deducted first
-        let (fees, amount_ex_fees) = self.compute_fees(delta_x);
+        let (fees, amount_ex_fees) = self.compute_fees(delta_y);
 
+        // k = x0 * y0
         let k = self.compute_k();
 
-        let x_new = self.compute_x_new(&amount_ex_fees);
+        // y_new = y0 + deltaY
+        let y_new = self.compute_y_new(&amount_ex_fees);
 
-        let delta_x = x_new.sub(self.x0).unwrap();
+        // x_new = k/y_new
+        let x_new = k.div(y_new);
 
-        let delta_y = self.compute_delta_y_hmm(&amount_ex_fees);
+        // delta_y = y_new - y0
+        let delta_y = y_new.sub(self.y0).unwrap();
 
-        let y_new = self.y0.add(delta_y).unwrap();
+        // delta_x = x0 - x_new
+        let delta_x = self.x0.sub(x_new).unwrap();
 
-        let squared_k = self.compute_squared_k(x_new.add(fees).unwrap(), y_new);
+        let squared_k = self.compute_squared_k(x_new, y_new.add(fees).unwrap());
 
         SwapResult {
             k,
-            x_new: x_new.add(fees).unwrap(),
-            y_new,
+            x_new,
+            y_new: y_new.add(fees).unwrap(),
             delta_x,
             delta_y,
             fees,
@@ -224,7 +349,7 @@ impl SwapCalculator {
     }
 
     /// Compute delta x using a constant product curve given delta y
-    pub fn compute_delta_x_amm(&self, delta_y: &Decimal) -> Decimal {
+    fn compute_delta_x_amm(&self, delta_y: &Decimal) -> Decimal {
         // Δx = K/(Y₀ + Δy) - K/Y₀
         // delta_x = k/(sef.y0 + delta_y) - k/self.y0
         let k = self.compute_k();
@@ -265,7 +390,7 @@ impl SwapCalculator {
     }
 
     /// Compute delta x using a baseline curve given delta y
-    pub fn compute_delta_x_hmm(&self, delta_y: &Decimal) -> Decimal {
+    fn compute_delta_x_hmm(&self, delta_y: &Decimal) -> Decimal {
         let y_new = self.compute_y_new(delta_y);
         let yi = self.compute_yi();
         let k = self.compute_k();
