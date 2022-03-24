@@ -18,42 +18,116 @@ pub struct SwapCalculator {
     fee: Decimal,
 }
 
+impl Default for SwapCalculator {
+    fn default() -> Self {
+        Self {
+            x0: Default::default(),
+            y0: Default::default(),
+            c: Default::default(),
+            i: Default::default(),
+            fee: Default::default(),
+        }
+    }
+}
+
+#[derive(Debug, Default)]
+pub struct SwapCalculatorBuilder {
+    pub x0: Option<Decimal>,
+    pub y0: Option<Decimal>,
+    pub c: Option<Decimal>,
+    pub i: Option<Decimal>,
+    pub fee: Option<Decimal>,
+}
+
+impl SwapCalculatorBuilder {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn x0(self, value: u64, scale: u8) -> Self {
+        Self {
+            x0: Some(Decimal::from_scaled_amount(value, scale).to_compute_scale()),
+            ..self
+        }
+    }
+
+    pub fn y0(self, value: u64, scale: u8) -> Self {
+        Self {
+            y0: Some(Decimal::from_scaled_amount(value, scale).to_compute_scale()),
+            ..self
+        }
+    }
+
+    // Range from (0 - 200) / 100 = c. With only 025 increments
+    pub fn c(self, value: u16) -> Self {
+        Self {
+            c: Some(
+                Decimal::from_u64(value as u64)
+                    .to_compute_scale()
+                    .div(Decimal::from_u64(100).to_compute_scale()),
+            ),
+            ..self
+        }
+    }
+
+    pub fn i(self, value: u64, scale: u8) -> Self {
+        Self {
+            i: Some(Decimal::from_scaled_amount(value, scale).to_compute_scale()),
+            ..self
+        }
+    }
+
+    pub fn fee(self, numerator: u64, denominator: u64) -> Self {
+        Self {
+            fee: Some(
+                Decimal::from_u64(numerator)
+                    .to_compute_scale()
+                    .div(Decimal::from_u64(denominator).to_compute_scale()),
+            ),
+            ..self
+        }
+    }
+
+    pub fn build(self) -> Result<SwapCalculator, String> {
+        let x0 = self
+            .x0
+            .ok_or(SwapCalculatorError::BuilderIncomplete)
+            .unwrap();
+        let y0 = self
+            .y0
+            .ok_or(SwapCalculatorError::BuilderIncomplete)
+            .unwrap();
+        let c = self
+            .c
+            .ok_or(SwapCalculatorError::BuilderIncomplete)
+            .unwrap();
+        let i = self
+            .i
+            .ok_or(SwapCalculatorError::BuilderIncomplete)
+            .unwrap();
+        let fee = self
+            .fee
+            .ok_or(SwapCalculatorError::BuilderIncomplete)
+            .unwrap();
+
+        Ok(SwapCalculator { x0, y0, c, i, fee })
+    }
+}
+
+#[derive(Error, Debug)]
+pub enum SwapCalculatorError {
+    #[error("Failed to build struct due to input provided")]
+    BuilderIncomplete,
+}
+
 impl SwapCalculator {
     /// Create a new token swap calculator
     pub fn new(x0: Decimal, y0: Decimal, c: Decimal, i: Decimal, fee: Decimal) -> Self {
         Self { x0, y0, c, i, fee }
     }
 
-    pub fn swap_y_to_x_amm(&self, delta_y: &Decimal) -> SwapResult {
-        // fees deducted first
-        let (fees, amount_ex_fees) = self.compute_fees(delta_y);
-
-        // k = x0 * y0
-        let k = self.compute_k();
-
-        // y_new = y0 + deltaY
-        let y_new = self.compute_y_new(&amount_ex_fees);
-
-        // x_new = k/y_new
-        let x_new = k.div(y_new);
-
-        // delta_y = y_new - y0
-        let delta_y = y_new.sub(self.y0).unwrap();
-
-        // delta_x = x0 - x_new
-        let delta_x = self.x0.sub(x_new).unwrap();
-
-        let squared_k = self.compute_squared_k(x_new, y_new.add(fees).unwrap());
-
-        SwapResult {
-            k,
-            x_new,
-            y_new: y_new.add(fees).unwrap(),
-            delta_x,
-            delta_y,
-            fees,
-            squared_k,
-        }
+    pub fn builder() -> SwapCalculatorBuilder {
+        SwapCalculatorBuilder::new()
     }
 
     /// Compute swap result from x to y using a constant product curve given delta x
