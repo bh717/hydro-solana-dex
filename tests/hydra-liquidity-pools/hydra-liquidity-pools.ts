@@ -385,7 +385,7 @@ describe("hydra-liquidity-pool", () => {
     );
   });
 
-  it("should swap tokens for a third party account", async () => {
+  it("should swap (cpmm) from btc to usd (x to y) for a third party wallet", async () => {
     let newUserWallet = Keypair.generate();
     await provider.connection.confirmTransaction(
       await provider.connection.requestAirdrop(
@@ -393,6 +393,11 @@ describe("hydra-liquidity-pool", () => {
         10000000000
       ),
       "confirmed"
+    );
+
+    assert.strictEqual(
+      await provider.connection.getBalance(newUserWallet.publicKey),
+      10000000000
     );
 
     let newUserBtcdAccount = await sdk.common.createAssociatedAccount(
@@ -413,40 +418,18 @@ describe("hydra-liquidity-pool", () => {
       100_000_000_000n
     );
 
-    console.log(
-      "newUserBtcdAccount: ",
-      await AccountLoader.Token(sdk.ctx, newUserBtcdAccount).balance()
-    );
-
-    console.log(
-      "newUserUsddAccount: ",
-      await AccountLoader.Token(sdk.ctx, newUserUsddAccount).balance()
-    );
-
-    // await sdk.liquidityPools.swap(
-    //   btcdMint,
-    //   usddMint,
-    //   newUserBtcdAccount,
-    //   newUserUsddAccount,
-    //   500_000n,
-    //   18_255_377_657n
-    // );
-
-    const accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
+    let accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
       btcdMint,
       usddMint
     );
 
-    console.log("usddMint: ", usddMint.toString());
-
-    console.log("newUserUsddAccount: ", await SPLToken.Token.get);
-
+    // TODO: add into sdk
     await sdk.ctx.programs.hydraLiquidityPools.rpc.swap(
       toBN(500_000n),
       toBN(18_255_377_657n),
       {
         accounts: {
-          user: sdk.ctx.provider.wallet.publicKey,
+          user: newUserWallet.publicKey,
           poolState: await accounts.poolState.key(),
           lpTokenMint: await accounts.lpTokenMint.key(),
           userFromToken: newUserBtcdAccount,
@@ -459,7 +442,28 @@ describe("hydra-liquidity-pool", () => {
           associatedTokenProgram: SPLToken.ASSOCIATED_TOKEN_PROGRAM_ID,
           rent: web3.SYSVAR_RENT_PUBKEY,
         },
+        signers: [newUserWallet],
       }
+    );
+
+    assert.strictEqual(
+      await AccountLoader.Token(sdk.ctx, newUserBtcdAccount).balance(),
+      1_000_000n - 500_000n
+    );
+
+    assert.strictEqual(
+      await AccountLoader.Token(sdk.ctx, newUserUsddAccount).balance(),
+      100_000_000_000n + 19_622_226_499n
+    );
+
+    assert.strictEqual(
+      await accounts.tokenXVault.balance(),
+      6_001_960n + 500_000n // original + swap
+    );
+
+    assert.strictEqual(
+      await accounts.tokenYVault.balance(),
+      255_637_894_954n - 19_622_226_499n // original - swap
     );
   });
 
@@ -475,15 +479,8 @@ describe("hydra-liquidity-pool", () => {
 
     assert.strictEqual(await accounts.lpTokenVault.balance(), 100n);
 
-    // TODO fix amounts after new swap is inplace.
-    // assert.strictEqual(
-    //   await accounts.userTokenX.balance(),
-    //   21_000_000_000_000n
-    // );
+    assert.strictEqual(await accounts.tokenXVault.balance(), 0n);
 
-    // assert.strictEqual(
-    //   await accounts.userTokenY.balance(),
-    //   100_000_000_000_000n - 20643n // Always left in the pool.
-    // );
+    assert.strictEqual(await accounts.tokenYVault.balance(), 19_059n);
   });
 });
