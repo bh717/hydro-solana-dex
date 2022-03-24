@@ -141,11 +141,13 @@ impl SwapCalculatorBuilder {
 
     pub fn fee(self, numerator: u64, denominator: u64) -> Self {
         Self {
-            fee: Some(
+            fee: Some(if numerator == 0 || denominator == 0 {
+                Decimal::from_u64(0).to_compute_scale()
+            } else {
                 Decimal::from_u64(numerator)
                     .to_compute_scale()
-                    .div(Decimal::from_u64(denominator).to_compute_scale()),
-            ),
+                    .div(Decimal::from_u64(denominator).to_compute_scale())
+            }),
             ..self
         }
     }
