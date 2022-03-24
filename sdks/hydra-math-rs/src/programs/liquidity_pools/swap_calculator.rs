@@ -769,6 +769,16 @@ mod tests {
     }
 
     #[test]
+    fn test_scalar_inputs() {
+        let actual = swap_x_to_y_hmm(
+            37_000000, 6, 126_000000, 6, 100, 3_000000, 6, 0, 0, 3_000000,
+        )
+        .unwrap();
+        let expected = 9_207_401u64;
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
     fn test_specific_curve_math() {
         // compute_delta_y_hmm when c == 1
         {
