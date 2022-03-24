@@ -31,6 +31,8 @@ export function swap(ctx: Ctx) {
     await program.rpc.swap(toBN(amountIn), toBN(minimumAmountOut), {
       accounts: {
         user: ctx.provider.wallet.publicKey,
+        tokenXMint,
+        tokenYMint,
         poolState: await poolState.key(),
         lpTokenMint: await lpTokenMint.key(),
         userFromToken,
