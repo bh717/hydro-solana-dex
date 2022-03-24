@@ -34,7 +34,7 @@ pub fn swap_x_to_y_hmm(
 
     let result = calculator.swap_x_to_y_hmm(&delta_x);
 
-    Ok(result.delta_y.to_scale(0).to_u64())
+    Ok(result.delta_y.to_scale(y0_scale).to_u64())
 }
 
 #[wasm_bindgen]
@@ -63,7 +63,7 @@ pub fn swap_y_to_x_hmm(
 
     let result = calculator.swap_y_to_x_hmm(&delta_y);
 
-    Ok(result.delta_x.to_scale(0).to_u64())
+    Ok(result.delta_x.to_scale(x0_scale).to_u64())
 }
 
 /// Swap calculator input parameters
