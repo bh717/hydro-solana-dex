@@ -20,13 +20,15 @@ install_dependencies: test
 install_rust:
 	rustup update || curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
-
+# this is the new official way to install anchor now.
 install_anchor_avm:
 	@avm use ${ANCHOR_VERSION} || cargo install --git https://github.com/project-serum/anchor avm --tag v${ANCHOR_VERSION} --locked --force && avm use ${ANCHOR_VERSION}
 
+# used in ci
 install_anchor:
-	cargo install --git https://github.com/project-serum/anchor --tag v${ANCHOR_VERSION} anchor-cli --locked
+	anchor -V || cargo install --git https://github.com/project-serum/anchor --tag v${ANCHOR_VERSION} anchor-cli --locked --force
 
+# used in ci
 install_solana:
 	solana-install update || sh -c "$$(curl -sSfL https://release.solana.com/${SOLANA_VERSION}/install)"
 
@@ -88,6 +90,7 @@ watch-test:
 watch:
 	cargo watch -- anchor build -- --features "localnet"
 
+# used for anchor ci
 anchor-ci:
 	solana-keygen new --no-bip39-passphrase || true
 	cargo fmt -- --check
@@ -100,6 +103,7 @@ anchor-ci:
 	yarn test
 	anchor test
 
+# used for react/frontend ci
 react-ci:
 	solana-keygen new --no-bip39-passphrase || true
 	cargo check
