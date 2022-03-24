@@ -294,7 +294,8 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
     }
 
     // check all amounts are correct
-    ctx.accounts.post_transfer_checks(result)?;
+    // TODO: move this logic into swap calculator itself
+    // ctx.accounts.post_transfer_checks(result)?;
 
     Ok(())
 }
