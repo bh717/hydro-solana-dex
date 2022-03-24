@@ -27,8 +27,7 @@ pub fn swap_x_to_y_hmm(
         .c(c)
         .i(i, i_scale)
         .fee(fee_numer, fee_denom)
-        .build()
-        .unwrap();
+        .build()?;
 
     let delta_x = Decimal::from_scaled_amount(amount, 6).to_compute_scale();
 
@@ -56,8 +55,7 @@ pub fn swap_y_to_x_hmm(
         .c(c)
         .i(i, i_scale)
         .fee(fee_numer, fee_denom)
-        .build()
-        .unwrap();
+        .build()?;
 
     let delta_y = Decimal::from_scaled_amount(amount, 6).to_compute_scale();
 
