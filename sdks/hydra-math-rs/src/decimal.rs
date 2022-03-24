@@ -4,6 +4,9 @@ use std::fmt;
 use std::iter::repeat;
 use thiserror::Error;
 
+/// Internal scale used for high precision compute operations
+pub const COMPUTE_SCALE: u8 = 12;
+
 /// Error codes related to [Decimal].
 #[derive(Error, Debug)]
 pub enum ErrorCode {
@@ -19,7 +22,7 @@ pub enum ErrorCode {
 
 /// [Decimal] representation of a number with a value, scale (precision in terms of number of decimal places
 /// and a negative boolean to handle signed arithmetic.
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Debug, Error)]
 pub struct Decimal {
     pub value: u128,
     pub scale: u8,
@@ -51,15 +54,6 @@ impl Decimal {
     pub fn from_u64(integer: u64) -> Self {
         Decimal {
             value: integer.into(),
-            ..Decimal::default()
-        }
-    }
-
-    /// Create a [Decimal] from an unsigned amount with scale, assumed positive by default.
-    pub fn from_scaled_amount(amount: u64, scale: u8) -> Self {
-        Decimal {
-            value: amount.into(),
-            scale: scale.into(),
             ..Decimal::default()
         }
     }
@@ -121,6 +115,11 @@ impl Decimal {
                 self.negative,
             ))
         }
+    }
+
+    /// Convert to a higher precision compute scale
+    pub fn to_compute_scale(self) -> Self {
+        self.to_scale(COMPUTE_SCALE)
     }
 
     /// Show the scale of a [Decimal] expressed as a power of 10.
