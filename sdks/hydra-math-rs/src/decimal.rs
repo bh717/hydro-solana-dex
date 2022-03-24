@@ -232,12 +232,15 @@ impl Sub<Decimal> for Decimal {
 impl Div<Decimal> for Decimal {
     fn div(self, rhs: Decimal) -> Self {
         Self {
-            value: self
-                .value
-                .checked_mul(rhs.denominator())
-                .expect("checked_mul")
-                .checked_div(rhs.value)
-                .expect("checked_div"),
+            value: if self.value == 0 || rhs.value == 0 {
+                0
+            } else {
+                self.value
+                    .checked_mul(rhs.denominator())
+                    .expect("checked_mul")
+                    .checked_div(rhs.value)
+                    .expect("checked_div")
+            },
             scale: self.scale,
             negative: !(self.negative == rhs.negative),
         }
