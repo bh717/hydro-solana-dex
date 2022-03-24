@@ -707,7 +707,7 @@ impl BitLength<Decimal> for Decimal {
 // https://docs.google.com/spreadsheets/d/19mgYjGQlpsuaTk1zXujn-yCSdbAL25sP/edit?pli=1#gid=2070648638
 impl Ln<Decimal> for Decimal {
     fn ln(self) -> Result<Self, ErrorCode> {
-        let scaled_out = self.to_scale(12);
+        let scaled_out = self.to_compute_scale();
 
         let ln_2_decimal = Decimal::new(693_147_180_559u128, 12, false);
 
@@ -959,7 +959,7 @@ mod test {
         assert_eq!(result, expected);
 
         // square root of 2 with accuracy scaled to 12 decimal places
-        let n = Decimal::from_u64(2).to_scale(12);
+        let n = Decimal::from_u64(2).to_compute_scale();
         let result = n.sqrt().unwrap();
         let expected = Decimal::new(1_414_213_562_373u128, 12, false);
         assert_eq!(result, expected);
@@ -1752,33 +1752,33 @@ mod test {
         // are given in the following specs.
 
         // 0**0.5 = 0
-        let n = Decimal::from_u64(0).to_scale(12);
+        let n = Decimal::from_u64(0).to_compute_scale();
         let result = n.sqrt().unwrap();
-        let expected = Decimal::from_u64(0).to_scale(12);
+        let expected = Decimal::from_u64(0).to_compute_scale();
         assert_eq!(result, expected);
 
         // 1**0.5 = 1
-        let n = Decimal::from_u64(1).to_scale(12);
+        let n = Decimal::from_u64(1).to_compute_scale();
         let result = n.sqrt().unwrap();
-        let expected = Decimal::from_u64(1).to_scale(12);
+        let expected = Decimal::from_u64(1).to_compute_scale();
         assert_eq!(result, expected);
 
         // 2**0.5 = 1.414213562373
-        let n = Decimal::from_u64(2).to_scale(12);
+        let n = Decimal::from_u64(2).to_compute_scale();
         let result = n.sqrt().unwrap();
         let expected = Decimal::new(1_414_213_562_373u128, 12, false);
         assert_eq!(result, expected);
 
         // 3**0.5 = 1.7320508076
-        let n = Decimal::from_u64(3).to_scale(12);
+        let n = Decimal::from_u64(3).to_compute_scale();
         let result = n.sqrt().unwrap();
         let expected = Decimal::new(1_732_050_807_568u128, 12, false);
         assert_eq!(result, expected);
 
         // 4**0.5 = 2
-        let n = Decimal::from_u64(4).to_scale(12);
+        let n = Decimal::from_u64(4).to_compute_scale();
         let result = n.sqrt().unwrap();
-        let expected = Decimal::from_u64(2).to_scale(12);
+        let expected = Decimal::from_u64(2).to_compute_scale();
         assert_eq!(result, expected);
 
         // MAX**0.5 = 4294967296
@@ -1862,7 +1862,7 @@ mod test {
                 negative: false,
             };
 
-            let n = Decimal::from_u64(10).to_scale(12);
+            let n = Decimal::from_u64(10).to_compute_scale();
             let actual = n.ln().unwrap();
 
             assert_eq!({ actual.value }, { expected.value });

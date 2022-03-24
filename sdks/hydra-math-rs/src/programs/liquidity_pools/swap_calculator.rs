@@ -795,13 +795,13 @@ mod tests {
         // compute_delta_y_hmm when c == 0
         {
             let swap = SwapCalculator {
-                x0: Decimal::from_u128(32).to_scale(12),
-                y0: Decimal::from_u128(33).to_scale(12),
-                c: Decimal::from_u128(0).to_scale(12),
-                i: Decimal::from_u128(1).to_scale(12),
+                x0: Decimal::from_u128(32).to_compute_scale(),
+                y0: Decimal::from_u128(33).to_compute_scale(),
+                c: Decimal::from_u128(0).to_compute_scale(),
+                i: Decimal::from_u128(1).to_compute_scale(),
                 fee: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
             };
-            let delta_x = Decimal::from_u128(1).to_scale(12);
+            let delta_x = Decimal::from_u128(1).to_compute_scale();
             let result = swap.compute_delta_y_hmm(&delta_x).to_scale(8);
             // python: -1.000_000_000_000
             let expected = Decimal::new(1_000_000_00, 8, false);
@@ -818,13 +818,13 @@ mod tests {
         // compute_delta_x_hmm when c == 0
         {
             let swap = SwapCalculator {
-                x0: Decimal::from_u128(216).to_scale(12),
-                y0: Decimal::from_u128(193).to_scale(12),
-                c: Decimal::from_u128(0).to_scale(12),
-                i: Decimal::from_u128(1).to_scale(12),
+                x0: Decimal::from_u128(216).to_compute_scale(),
+                y0: Decimal::from_u128(193).to_compute_scale(),
+                c: Decimal::from_u128(0).to_compute_scale(),
+                i: Decimal::from_u128(1).to_compute_scale(),
                 fee: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
             };
-            let delta_y = Decimal::from_u128(4).to_scale(12);
+            let delta_y = Decimal::from_u128(4).to_compute_scale();
             let result = swap.compute_delta_x_hmm(&delta_y).to_scale(8);
             // python: -4.385_786_802_030
             let expected = Decimal::new(4_385_786_80, 8, false);
@@ -841,15 +841,15 @@ mod tests {
         // xi specific
         {
             let swap = SwapCalculator {
-                x0: Decimal::from_u128(1000).to_scale(12),
-                y0: Decimal::from_u128(1000).to_scale(12),
-                c: Decimal::from_u128(0).to_scale(12),
-                i: Decimal::from_u128(200).to_scale(12),
+                x0: Decimal::from_u128(1000).to_compute_scale(),
+                y0: Decimal::from_u128(1000).to_compute_scale(),
+                c: Decimal::from_u128(0).to_compute_scale(),
+                i: Decimal::from_u128(200).to_compute_scale(),
                 fee: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
             };
             // ((1000*1000)/200)**0.5 = 70.710678118654752
             // https://www.wolframalpha.com/input/?i=%28%281000*1000%29%2F200%29**0.5
-            let result = swap.compute_xi().to_scale(12);
+            let result = swap.compute_xi().to_compute_scale();
             let expected = Decimal::new(70_710_678_118_654u128, 12, false);
 
             assert!(

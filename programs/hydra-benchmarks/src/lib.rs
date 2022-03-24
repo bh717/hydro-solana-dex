@@ -11,7 +11,7 @@ pub mod hydra_benchmarks {
 
     pub fn initialize(_ctx: Context<Initialize>) -> Result<()> {
         sol_log_compute_units();
-        let value = Decimal::from_u64(10).to_scale(12);
+        let value = Decimal::from_u64(10).to_compute_scale();
         msg!("Decimal::new = {:?}", value);
         sol_log_compute_units();
         let ln_value = value.ln().unwrap();
