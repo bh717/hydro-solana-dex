@@ -429,6 +429,8 @@ describe("hydra-liquidity-pool", () => {
       {
         accounts: {
           user: newUserWallet.publicKey,
+          tokenXMint: btcdMint,
+          tokenYMint: usddMint,
           poolState: await accounts.poolState.key(),
           lpTokenMint: await accounts.lpTokenMint.key(),
           userFromToken: newUserBtcdAccount,
