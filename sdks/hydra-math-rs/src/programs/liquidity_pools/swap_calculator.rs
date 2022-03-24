@@ -770,12 +770,25 @@ mod tests {
 
     #[test]
     fn test_scalar_inputs() {
-        let actual = swap_x_to_y_hmm(
-            37_000000, 6, 126_000000, 6, 100, 3_000000, 6, 0, 0, 3_000000,
-        )
-        .unwrap();
-        let expected = 9_207_401u64;
-        assert_eq!(actual, expected);
+        // x to y
+        {
+            let actual = swap_x_to_y_hmm(
+                37_000000, 6, 126_000000, 6, 100, 3_000000, 6, 0, 0, 3_000000,
+            )
+            .unwrap();
+            let expected = 9_207_401u64;
+            assert_eq!(actual, expected);
+        }
+
+        // y to x
+        {
+            let actual = swap_y_to_x_hmm(
+                37_000000, 6, 126_000000, 6, 100, 3_000000, 6, 0, 0, 3_000000,
+            )
+            .unwrap();
+            let expected = 860_465u64;
+            assert_eq!(actual, expected);
+        }
     }
 
     #[test]
