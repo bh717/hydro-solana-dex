@@ -232,15 +232,12 @@ impl Sub<Decimal> for Decimal {
 impl Div<Decimal> for Decimal {
     fn div(self, rhs: Decimal) -> Self {
         Self {
-            value: if self.value == 0 || rhs.value == 0 {
-                0
-            } else {
-                self.value
-                    .checked_mul(rhs.denominator())
-                    .expect("checked_mul")
-                    .checked_div(rhs.value)
-                    .expect("checked_div")
-            },
+            value: self
+                .value
+                .checked_mul(rhs.denominator())
+                .expect("checked_mul")
+                .checked_div(rhs.value)
+                .expect("checked_div"),
             scale: self.scale,
             negative: !(self.negative == rhs.negative),
         }
@@ -648,7 +645,11 @@ fn log_table_value(
     t_value: Decimal,
     log_table_col: usize,
 ) -> (Decimal, Decimal, u128) {
-    let s_value = s_value.div(t_value);
+    let s_value = if t_value.value == 0 {
+        Decimal::from_u64(0).to_scale(s_value.scale)
+    } else {
+        s_value.div(t_value)
+    };
     let place_value = 10u128.checked_pow((log_table_col + 1) as u32).unwrap();
     let f_value = Decimal::new(place_value, s_value.scale, false);
     let t_value = s_value.mul(f_value).div(f_value);
