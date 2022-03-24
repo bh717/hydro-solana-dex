@@ -37,7 +37,6 @@ describe("hydra-liquidity-pool", () => {
   let poolStateBump: number;
   let tokenXVaultBump: number;
   let tokenYVaultBump: number;
-  // let poolStateAccount: any;
 
   let poolFees: PoolFees;
 
