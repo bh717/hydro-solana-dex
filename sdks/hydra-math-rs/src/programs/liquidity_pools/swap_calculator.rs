@@ -495,6 +495,7 @@ impl SwapCalculator {
         // Xᵢ = √K/i
         let k = self.compute_k();
 
+        // TODO: figure out where the i==0 is coming from on chain
         let k_div_i = if self.i.value == 0 {
             Decimal::from_u64(0).to_scale(k.scale)
         } else {

@@ -645,6 +645,7 @@ fn log_table_value(
     t_value: Decimal,
     log_table_col: usize,
 ) -> (Decimal, Decimal, u128) {
+    // TODO: figure out where the t_value==0 is coming from on chain
     let s_value = if t_value.value == 0 {
         Decimal::from_u64(0).to_scale(s_value.scale)
     } else {
