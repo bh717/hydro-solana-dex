@@ -496,7 +496,13 @@ impl SwapCalculator {
     fn compute_xi(&self) -> Decimal {
         // Xᵢ = √K/i
         let k = self.compute_k();
-        let k_div_i = k.div(self.i);
+
+        let k_div_i = if self.i.value == 0 {
+            Decimal::from_u64(0).to_compute_scale()
+        } else {
+            k.div(self.i)
+        };
+
         k_div_i.sqrt().expect("xi")
     }
 
@@ -525,7 +531,7 @@ impl SwapCalculator {
 
     // TODO: Broken; Amounts arent matching the lp tokens version of this calculation.
     fn compute_squared_k(&self, x_new: Decimal, y_new: Decimal) -> Decimal {
-        let min_liquidity = Decimal::from_u64(MIN_LIQUIDITY).to_scale(self.x0.scale);
+        let min_liquidity = Decimal::from_u64(MIN_LIQUIDITY).to_compute_scale();
         x_new.mul(y_new).sqrt().unwrap().sub(min_liquidity).unwrap()
     }
 }
