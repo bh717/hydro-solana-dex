@@ -6,6 +6,7 @@ use thiserror::Error;
 
 /// Default precision for a [Decimal] expressed as an amount.
 pub const AMOUNT_SCALE: u8 = 6;
+
 // TODO: add more constants for default precision on other types e.g. fees, percentages
 
 /// Error codes related to [Decimal].
@@ -17,6 +18,8 @@ pub enum ErrorCode {
     ExceedsRange,
     #[error("Exceeds allowable range for precision")]
     ExceedsPrecisionRange,
+    #[error("Signed decimals not supported for this function")]
+    SignedDecimalsNotSupported,
 }
 
 /// [Decimal] representation of a number with a value, scale (precision in terms of number of decimal places
@@ -403,6 +406,16 @@ impl Into<f64> for Decimal {
     }
 }
 
+/// Convert a [Decimal] into a signed 32-bit integer.
+impl Into<i32> for Decimal {
+    fn into(self) -> i32 {
+        let sign = if self.negative { -1i32 } else { 1i32 };
+        (self.value as i32)
+            .checked_mul(sign)
+            .expect("signed integer")
+    }
+}
+
 /// Compare two [Decimal] values/scale with comparison query operators.
 impl Compare<Decimal> for Decimal {
     /// Show if two [Decimal] values equal each other
@@ -663,6 +676,36 @@ fn log_table_value(
     (s_value, t_value, lx_value)
 }
 
+/// Function that determines the bit length of a postive decimal
+/// based on the formula: int(log(value)/log(2))
+impl BitLength<Decimal> for Decimal {
+    fn bit_length(self) -> Result<Self, ErrorCode> {
+        if self.negative {
+            return Err(ErrorCode::SignedDecimalsNotSupported.into());
+        } else {
+            if self.value == 0 {
+                Ok(Decimal::from_u64(0))
+            } else {
+                let value: f64 = self.into();
+                let log_value_div_log_two = value.log(2.0);
+
+                let value = log_value_div_log_two.abs() * (self.denominator() as f64);
+                let scale = self.scale;
+                let negative = log_value_div_log_two.is_sign_negative();
+
+                let value = Decimal::new(value as u128, scale, negative);
+                let value = if negative {
+                    value.to_scale_up(0)
+                } else {
+                    value.to_scale(0)
+                };
+
+                Ok(Decimal::new(value.into(), 0, negative))
+            }
+        }
+    }
+}
+
 /// Calculate the natural logarithm of a [Decimal] value. For full algorithm please refer to:
 // https://docs.google.com/spreadsheets/d/19mgYjGQlpsuaTk1zXujn-yCSdbAL25sP/edit?pli=1#gid=2070648638
 impl Ln<Decimal> for Decimal {
@@ -671,26 +714,9 @@ impl Ln<Decimal> for Decimal {
 
         let ln_2_decimal = Decimal::new(693_147_180_559u128, 12, false);
 
-        // TODO: difficult to get bit length of decimal values < 1, so use float instead
-        // let value_bit_length = (128u32 - (self.to_scale(0).to_u64() as u128).leading_zeros())
-        //     .checked_sub(1)
-        //     .unwrap() as u128;
-        // let max = Decimal::from_u64((1u128 << value_bit_length) as u64).to_scale(scale);
-        // let bit_length_decimal = Decimal::from_u64(value_bit_length as u64);
-
-        // Use float to determine bit length - fixed point arithmetic doesn't matter at this point
-        let self_f64: f64 = scaled_out.into();
-        let bit_length: i32 = (self_f64.log(10.0) / 2.0_f64.log(10.0)).floor() as i32;
-        let bit_length_unsigned: u128 = bit_length.abs() as u128;
-        let bit_length_negative: bool = bit_length.is_negative();
-        let bit_length_decimal = Decimal::new(
-            bit_length_unsigned
-                .checked_mul(scaled_out.denominator())
-                .unwrap(),
-            12,
-            bit_length_negative,
-        );
-        let max_value: u128 = (2f64.powi(bit_length) * (scaled_out.denominator() as f64)) as u128;
+        let bit_length_decimal = self.bit_length().expect("bit_length");
+        let max_value: u128 =
+            (2f64.powi(bit_length_decimal.into()) * (scaled_out.denominator() as f64)) as u128;
         let max = Decimal::new(max_value, 12, false);
 
         let (s_0, t_0, lx_0) = log_table_value(scaled_out, max, 0);
@@ -811,6 +837,10 @@ pub trait Pow<T>: Sized {
 
 pub trait Sqrt<T>: Sized {
     fn sqrt(self) -> Result<Self, ErrorCode>;
+}
+
+pub trait BitLength<T>: Sized {
+    fn bit_length(self) -> Result<Self, ErrorCode>;
 }
 
 pub trait Compare<T>: Sized {
@@ -2006,5 +2036,39 @@ mod test {
         let rhs = Decimal::new(3, 0, false);
         let expected = Decimal::new(4, 0, false);
         assert_eq!(lhs.div(rhs), expected);
+    }
+
+    #[test]
+    fn test_bit_length() {
+        // 0 bit length == 0
+        let d = Decimal::new(0, 0, false);
+        assert_eq!(d.bit_length().unwrap(), Decimal::new(0, 0, false));
+
+        // 10 bit length == 3
+        let d = Decimal::new(10, 0, false);
+        assert_eq!(d.bit_length().unwrap(), Decimal::new(3, 0, false));
+
+        // 0.900000 bit length == -1
+        let d = Decimal::new(900_000, 6, false);
+        assert_eq!(d.bit_length().unwrap(), Decimal::new(1, 0, true));
+
+        // 0.01 bit length == -7
+        let d = Decimal::new(1, 2, false);
+        assert_eq!(d.bit_length().unwrap(), Decimal::new(7, 0, true));
+
+        // 0.000001 bit length == -20
+        let d = Decimal::new(1, 6, false);
+        assert_eq!(d.bit_length().unwrap(), Decimal::new(20, 0, true));
+
+        // 18446744073709551615 bit length == 64
+        let d = Decimal::from_u64(u64::MAX);
+        assert_eq!(d.bit_length().unwrap(), Decimal::new(64, 0, false));
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_bit_length_panic() {
+        let d = Decimal::new(10, 0, true);
+        assert_eq!(d.bit_length().unwrap(), Decimal::new(3, 0, false));
     }
 }

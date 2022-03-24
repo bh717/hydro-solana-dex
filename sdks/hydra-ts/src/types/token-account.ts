@@ -1,21 +1,18 @@
-import { AccountLayout, u64 } from "@solana/spl-token";
+import { AccountLayout } from "@solana/spl-token";
 import { AccountInfo, PublicKey } from "@solana/web3.js";
-function u64ToBigInt(buffer: Buffer): bigint {
-  return BigInt(u64.fromBuffer(buffer).toString());
-}
 export function Parser(info: AccountInfo<Buffer>): TokenAccount {
   const raw = AccountLayout.decode(info.data);
 
   return {
     mint: new PublicKey(raw.mint),
     owner: new PublicKey(raw.owner),
-    amount: u64ToBigInt(raw.amount),
+    amount: raw.amount,
     delegateOption: raw.delegateOption,
     delegate: new PublicKey(raw.delegate),
     state: raw.state,
     isNativeOption: raw.isNativeOption,
-    isNative: u64ToBigInt(raw.isNative),
-    delegatedAmount: u64ToBigInt(raw.delegatedAmount),
+    isNative: raw.isNative,
+    delegatedAmount: raw.delegatedAmount,
     closeAuthorityOption: raw.closeAuthorityOption,
     closeAuthority: new PublicKey(raw.closeAuthority),
   };
