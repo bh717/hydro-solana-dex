@@ -20,8 +20,8 @@ localnet = []
 default = ["localnet"]
 
 [dependencies]
-anchor-lang = { version = "0.22.1", features = ["init-if-needed"] }
-anchor-spl = "0.22.1"
-derivative = "2.2.0"
+anchor-lang = { version = "0.23", features = ["init-if-needed"] }
+anchor-spl = "0.23"
+derivative = "2.2"
 hydra-math-rs = { path = "../../sdks/hydra-math-rs" }
-num = "0.4.0"
+num = "0.4"

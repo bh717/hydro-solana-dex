@@ -2,6 +2,7 @@ use crate::constants::*;
 use crate::state::pool_state::*;
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
+use std::mem;
 
 #[derive(Accounts)]
 #[instruction(token_vault_bump: u8, pool_state_bump: u8)]
@@ -11,7 +12,9 @@ pub struct Initialize<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
 
-    #[account(init,
+    #[account(
+        init,
+        space = 8 + mem::size_of::<PoolState>(),
         payer = payer,
         seeds = [ POOL_STATE_SEED, token_mint.key().as_ref(), redeemable_mint.key().as_ref() ],
         bump,

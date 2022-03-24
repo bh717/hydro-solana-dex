@@ -99,10 +99,11 @@ export async function findAssociatedTokenAddress(
   walletAddress: PublicKey,
   tokenMintAddress: PublicKey
 ): Promise<PublicKey> {
-  return await SPLToken.Token.getAssociatedTokenAddress(
-    SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID, // always associated token program id
-    TOKEN_PROGRAM_ID, // always token program id
+  return await SPLToken.getAssociatedTokenAddress(
     tokenMintAddress, // mint
-    walletAddress // token account authority
+    walletAddress, // token account authority
+    false,
+    TOKEN_PROGRAM_ID, // always token program id
+    SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID // always associated token program id
   );
 }

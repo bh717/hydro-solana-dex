@@ -93,7 +93,7 @@ describe("hydra-liquidity-pool", () => {
       assert.ok(false, "No error was thrown");
     } catch (err: any) {
       const errMsg = "Token addresses order is invalid";
-      assert.equal(err.toString(), errMsg);
+      assert(err.toString().includes(errMsg));
     }
   });
 
@@ -251,7 +251,7 @@ describe("hydra-liquidity-pool", () => {
       assert.ok(false);
     } catch (err: any) {
       const errMsg = "Slippage Amount Exceeded";
-      assert.equal(err.toString(), errMsg);
+      assert(err.toString().includes(errMsg));
     }
 
     const accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
@@ -319,7 +319,7 @@ describe("hydra-liquidity-pool", () => {
       assert.ok(false);
     } catch (err: any) {
       const errMsg = "Slippage Amount Exceeded";
-      assert.equal(err.toString(), errMsg);
+      assert(err.toString().includes(errMsg));
     }
   });
 
