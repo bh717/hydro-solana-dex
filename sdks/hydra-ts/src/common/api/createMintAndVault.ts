@@ -23,28 +23,28 @@ async function createAccount(ctx: Ctx, mint: PublicKey) {
   });
 }
 
-function initMint(mint: PublicKey, decimals: number, owner: PublicKey) {
-  return SPLToken.Token.createInitMintInstruction(
-    SPLToken.TOKEN_PROGRAM_ID, // program id, always token program id
-    mint, // mint account public key
-    decimals, // decimals
-    owner, // mint authority (an auth to mint token)
-    null // freeze authority (we use null first, the auth can let you freeze user's token account)
-  );
-}
+// function initMint(mint: PublicKey, decimals: number, owner: PublicKey) {
+//   return SPLToken.Token.createInitMintInstruction(
+//     SPLToken.TOKEN_PROGRAM_ID, // program id, always token program id
+//     mint, // mint account public key
+//     decimals, // decimals
+//     owner, // mint authority (an auth to mint token)
+//     null // freeze authority (we use null first, the auth can let you freeze user's token account)
+//   );
+// }
 
 function createAssociatedAccountInstruction(
   mint: PublicKey,
   account: PublicKey,
   owner: PublicKey
 ) {
-  return SPLToken.Token.createAssociatedTokenAccountInstruction(
-    SPLToken.ASSOCIATED_TOKEN_PROGRAM_ID,
-    SPLToken.TOKEN_PROGRAM_ID,
-    mint,
+  return SPLToken.createAssociatedTokenAccountInstruction(
+    owner,
     account,
     owner,
-    owner
+    mint,
+    SPLToken.TOKEN_PROGRAM_ID,
+    SPLToken.ASSOCIATED_TOKEN_PROGRAM_ID
   );
 }
 
@@ -54,45 +54,46 @@ function mintToProviderWallet(
   account: PublicKey,
   amount: bigint
 ) {
-  return SPLToken.Token.createMintToInstruction(
-    SPLToken.TOKEN_PROGRAM_ID, // always token program id
+  return SPLToken.createMintToInstruction(
     mint, // mint
     account, // receiver (also need a token account)
     ctx.provider.wallet.publicKey, // mint's authority
+    Number(amount), // mint amount, you can pass whatever you want, but it is the smallest unit, so if your decimals is 9, you will need to pass 1e9 to get 1 token
     [], // if mint's authority is a multisig account, then we pass singers into it, for now is empty
-    Number(amount) // mint amount, you can pass whatever you want, but it is the smallest unit, so if your decimals is 9, you will need to pass 1e9 to get 1 token
+    SPLToken.TOKEN_PROGRAM_ID // always token program id
   );
 }
 
-export function createMintAndAssociatedVault(ctx: Ctx) {
-  return async function (
-    mint: Keypair,
-    amount: bigint,
-    owner?: PublicKey,
-    decimals = 6
-  ): Promise<[PublicKey, PublicKey]> {
-    if (owner === undefined) {
-      owner = ctx.provider.wallet.publicKey;
-    }
-
-    const vault = await SPLToken.Token.getAssociatedTokenAddress(
-      SPLToken.ASSOCIATED_TOKEN_PROGRAM_ID, // always associated token program id
-      TokenInstructions.TOKEN_PROGRAM_ID, // always token program id
-      mint.publicKey, // mint
-      owner // token account authority
-    );
-
-    const tx = new Transaction();
-    tx.add(
-      await createAccount(ctx, mint.publicKey),
-      initMint(mint.publicKey, decimals, owner),
-      createAssociatedAccountInstruction(mint.publicKey, vault, owner),
-      mintToProviderWallet(ctx, mint.publicKey, vault, amount)
-    );
-    await ctx.provider.send(tx, [mint]);
-    return [mint.publicKey, vault];
-  };
-}
+// export function createMintAndAssociatedVault(ctx: Ctx) {
+//   return async function (
+//     mint: Keypair,
+//     amount: bigint,
+//     owner?: PublicKey,
+//     decimals = 6
+//   ): Promise<[PublicKey, PublicKey]> {
+//     if (owner === undefined) {
+//       owner = ctx.provider.wallet.publicKey;
+//     }
+//
+//     const vault = await SPLToken.getAssociatedTokenAddress(
+//       mint.publicKey, // mint
+//       owner, // token account authority
+//       false,
+//       TokenInstructions.TOKEN_PROGRAM_ID, // always token program id
+//       SPLToken.ASSOCIATED_TOKEN_PROGRAM_ID // always associated token program id
+//     );
+//
+//     const tx = new Transaction();
+//     tx.add(
+//       await createAccount(ctx, mint.publicKey),
+//       initMint(mint.publicKey, decimals, owner),
+//       createAssociatedAccountInstruction(mint.publicKey, vault, owner),
+//       mintToProviderWallet(ctx, mint.publicKey, vault, amount)
+//     );
+//     await ctx.provider.send(tx, [mint]);
+//     return [mint.publicKey, vault];
+//   };
+// }
 
 export function createAssociatedAccount(ctx: Ctx) {
   return async function (
@@ -105,22 +106,23 @@ export function createAssociatedAccount(ctx: Ctx) {
       owner = (ctx.provider.wallet as NodeWallet).payer;
     }
 
-    const vault = await SPLToken.Token.getAssociatedTokenAddress(
-      SPLToken.ASSOCIATED_TOKEN_PROGRAM_ID, // always associated token program id
-      TokenInstructions.TOKEN_PROGRAM_ID, // always token program id
+    const vault = await SPLToken.getAssociatedTokenAddress(
       mint, // mint
-      owner.publicKey // token account authority
+      owner.publicKey, // token account authority
+      false,
+      TokenInstructions.TOKEN_PROGRAM_ID, // always token program id
+      SPLToken.ASSOCIATED_TOKEN_PROGRAM_ID // always associated token program id
     );
     // return await createTokenAccount(ctx)(mint, owner);
     const tx = new Transaction();
     tx.add(
-      SPLToken.Token.createAssociatedTokenAccountInstruction(
-        SPLToken.ASSOCIATED_TOKEN_PROGRAM_ID, // always associated token program id
-        SPLToken.TOKEN_PROGRAM_ID, // always token program id
-        mint, // mint (which we used to calculate ata)
+      SPLToken.createAssociatedTokenAccountInstruction(
+        payer.publicKey, // payer, fund account, like SystemProgram.createAccount's from
         vault, // the ata we calcualted early
         owner.publicKey, // token account owner (which we used to calculate ata)
-        payer.publicKey // payer, fund account, like SystemProgram.createAccount's from
+        mint, // mint (which we used to calculate ata)
+        SPLToken.TOKEN_PROGRAM_ID, // always token program id
+        SPLToken.ASSOCIATED_TOKEN_PROGRAM_ID // always associated token program id
       )
     );
 
