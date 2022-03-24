@@ -5,14 +5,20 @@ use anchor_lang::prelude::*;
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
 use anchor_spl::token::{Mint, Token, TokenAccount, Transfer};
-use hydra_math_rs::decimal::{Decimal, Div};
-use hydra_math_rs::programs::liquidity_pools::swap_calculator::SwapCalculator;
+use hydra_math_rs::programs::liquidity_pools::swap_calculator::{swap_x_to_y_hmm, swap_y_to_x_hmm};
 use hydra_math_rs::programs::liquidity_pools::swap_result::SwapResult;
 
 #[derive(Accounts)]
 pub struct Swap<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
+
+    pub token_x_mint: Box<Account<'info, Mint>>,
+
+    #[account(
+    constraint = token_x_mint.key().as_ref().lt(token_y_mint.key().as_ref()) @ ErrorCode::InvalidTokenOrder
+    )]
+    pub token_y_mint: Box<Account<'info, Mint>>,
 
     #[account(
         mut,
@@ -181,45 +187,7 @@ pub fn check_mint_addresses(ctx: &Context<Swap>) -> Result<()> {
 }
 
 pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Result<()> {
-    let x0 = Decimal::from_scaled_amount(
-        ctx.accounts.token_x_vault.amount,
-        6, // TODO: where can we get this? e.g. ctx.accounts.token_x_mint.decimals,
-    );
-
-    let y0 = Decimal::from_scaled_amount(
-        ctx.accounts.token_y_vault.amount,
-        6, // TODO: where can we get this? e.g. ctx.accounts.token_y_vault.decimals,
-    );
-
-    // Ultimately x0 and y0 can be input with different scales. Scale gets normalised during
-    // computation, typically to 12 decimal places for higher precision.
-    // We'll also make the assumption for now that c, i and fee parameters
-    // use the same scale as x0.
-
-    let c = Decimal::from_scaled_amount(
-        ctx.accounts.pool_state.compensation_parameter.into(),
-        x0.scale,
-    );
-
-    // TODO: get this from pyth || oracle source
-    let i = Decimal::from_scaled_amount(0, x0.scale);
-
-    let fee =
-        Decimal::from_scaled_amount(ctx.accounts.pool_state.fees.swap_fee_numerator, x0.scale).div(
-            Decimal::from_scaled_amount(
-                ctx.accounts.pool_state.fees.swap_fee_denominator,
-                x0.scale,
-            ),
-        );
-
-    // Setup SwapCalculate.
-    let swap = SwapCalculator::new(x0, y0, c, i, fee);
-
-    let mut result = SwapResult::default();
-
     let transfer_in_amount = amount_in;
-    let amount_in_decimal = Decimal::from_scaled_amount(amount_in, x0.scale);
-    let mut transfer_out_amount: u64 = 0;
 
     // signer
     let seeds = &[
@@ -237,8 +205,20 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
             return Err(ErrorCode::InvalidMintAddress.into());
         }
 
-        result = swap.swap_x_to_y_amm(&amount_in_decimal);
-        transfer_out_amount = result.delta_y_down();
+        let transfer_out_amount = swap_x_to_y_hmm(
+            ctx.accounts.token_x_vault.amount,
+            ctx.accounts.token_x_mint.decimals,
+            ctx.accounts.token_y_vault.amount,
+            ctx.accounts.token_y_mint.decimals,
+            ctx.accounts.pool_state.compensation_parameter,
+            // TODO: get orcale price i and scale from pyth
+            0,
+            0,
+            ctx.accounts.pool_state.fees.swap_fee_numerator,
+            ctx.accounts.pool_state.fees.swap_fee_denominator,
+            amount_in,
+        )
+        .expect("delta_y");
 
         check_slippage(
             &amount_in,
@@ -273,8 +253,20 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
             return Err(ErrorCode::InvalidMintAddress.into());
         }
 
-        result = swap.swap_y_to_x_amm(&amount_in_decimal);
-        transfer_out_amount = result.delta_x_down();
+        let transfer_out_amount = swap_y_to_x_hmm(
+            ctx.accounts.token_x_vault.amount,
+            ctx.accounts.token_x_mint.decimals,
+            ctx.accounts.token_y_vault.amount,
+            ctx.accounts.token_y_mint.decimals,
+            ctx.accounts.pool_state.compensation_parameter,
+            // TODO: get orcale price i and scale from pyth
+            0,
+            0,
+            ctx.accounts.pool_state.fees.swap_fee_numerator,
+            ctx.accounts.pool_state.fees.swap_fee_denominator,
+            amount_in,
+        )
+        .expect("delta_x");
 
         check_slippage(
             &amount_in,
