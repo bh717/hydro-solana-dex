@@ -23,15 +23,14 @@ async function createAccount(ctx: Ctx, mint: PublicKey) {
   });
 }
 
-// function initMint(mint: PublicKey, decimals: number, owner: PublicKey) {
-//   return SPLToken.Token.createInitMintInstruction(
-//     SPLToken.TOKEN_PROGRAM_ID, // program id, always token program id
-//     mint, // mint account public key
-//     decimals, // decimals
-//     owner, // mint authority (an auth to mint token)
-//     null // freeze authority (we use null first, the auth can let you freeze user's token account)
-//   );
-// }
+function initMint(mint: PublicKey, decimals: number, owner: PublicKey) {
+  return SPLToken.createInitializeMintInstruction(
+    mint, // mint account public key
+    decimals, // decimals
+    owner, // mint authority (an auth to mint token)
+    null // freeze authority (we use null first, the auth can let you freeze user's token account)
+  );
+}
 
 function createAssociatedAccountInstruction(
   mint: PublicKey,
@@ -64,36 +63,36 @@ function mintToProviderWallet(
   );
 }
 
-// export function createMintAndAssociatedVault(ctx: Ctx) {
-//   return async function (
-//     mint: Keypair,
-//     amount: bigint,
-//     owner?: PublicKey,
-//     decimals = 6
-//   ): Promise<[PublicKey, PublicKey]> {
-//     if (owner === undefined) {
-//       owner = ctx.provider.wallet.publicKey;
-//     }
-//
-//     const vault = await SPLToken.getAssociatedTokenAddress(
-//       mint.publicKey, // mint
-//       owner, // token account authority
-//       false,
-//       TokenInstructions.TOKEN_PROGRAM_ID, // always token program id
-//       SPLToken.ASSOCIATED_TOKEN_PROGRAM_ID // always associated token program id
-//     );
-//
-//     const tx = new Transaction();
-//     tx.add(
-//       await createAccount(ctx, mint.publicKey),
-//       initMint(mint.publicKey, decimals, owner),
-//       createAssociatedAccountInstruction(mint.publicKey, vault, owner),
-//       mintToProviderWallet(ctx, mint.publicKey, vault, amount)
-//     );
-//     await ctx.provider.send(tx, [mint]);
-//     return [mint.publicKey, vault];
-//   };
-// }
+export function createMintAndAssociatedVault(ctx: Ctx) {
+  return async function (
+    mint: Keypair,
+    amount: bigint,
+    owner?: PublicKey,
+    decimals = 6
+  ): Promise<[PublicKey, PublicKey]> {
+    if (owner === undefined) {
+      owner = ctx.provider.wallet.publicKey;
+    }
+
+    const vault = await SPLToken.getAssociatedTokenAddress(
+      mint.publicKey, // mint
+      owner, // token account authority
+      false,
+      TokenInstructions.TOKEN_PROGRAM_ID, // always token program id
+      SPLToken.ASSOCIATED_TOKEN_PROGRAM_ID // always associated token program id
+    );
+
+    const tx = new Transaction();
+    tx.add(
+      await createAccount(ctx, mint.publicKey),
+      initMint(mint.publicKey, decimals, owner),
+      createAssociatedAccountInstruction(mint.publicKey, vault, owner),
+      mintToProviderWallet(ctx, mint.publicKey, vault, amount)
+    );
+    await ctx.provider.send(tx, [mint]);
+    return [mint.publicKey, vault];
+  };
+}
 
 export function createAssociatedAccount(ctx: Ctx) {
   return async function (
