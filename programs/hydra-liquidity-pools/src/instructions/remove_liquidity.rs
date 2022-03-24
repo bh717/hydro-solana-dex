@@ -1,5 +1,4 @@
 use crate::constants::*;
-use crate::errors::ErrorCode;
 use crate::events::liquidity_removed::LiquidityRemoved;
 use crate::state::pool_state::PoolState;
 use anchor_lang::prelude::*;
