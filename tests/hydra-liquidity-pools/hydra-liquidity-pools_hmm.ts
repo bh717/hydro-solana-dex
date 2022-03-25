@@ -41,8 +41,12 @@ describe("hydra-liquidity-pool-hmm", () => {
 
   let poolFees: PoolFees;
 
-  let pyth_product = Keypair.generate();
-  let pyth_price = Keypair.generate();
+  let pyth_solusd_product = new PublicKey(
+    "ALP8SdU9oARYVLgLR7LrqMNCYBnhtnQz1cj6bwgwQmgj"
+  );
+  let pyth_solusd_price = new PublicKey(
+    "H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG"
+  );
 
   before(async () => {
     sdk = HydraSDK.createFromAnchorProvider(
@@ -100,8 +104,8 @@ describe("hydra-liquidity-pool-hmm", () => {
       soldMint,
       usddMint,
       poolFees,
-      pyth_product.publicKey,
-      pyth_price.publicKey
+      pyth_solusd_product,
+      pyth_solusd_price
     );
   });
 });
