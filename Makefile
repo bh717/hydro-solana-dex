@@ -93,6 +93,8 @@ watch:
 
 # used for anchor ci
 anchor-ci:
+	solana -V
+	anchor -V
 	solana-keygen new --no-bip39-passphrase || true
 	cargo fmt -- --check
 	cargo check
