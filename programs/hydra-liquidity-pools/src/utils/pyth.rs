@@ -2,8 +2,13 @@ use crate::utils::pyth::PythErrors::{
     InvalidAccountType, InvalidAccountVersion, InvalidMagicNumber, InvalidPriceAccount,
     PriceAccountMarkedInvalid,
 };
-use crate::Initialize;
 use anchor_lang::prelude::*;
+
+#[derive(AnchorSerialize, AnchorDeserialize, Default, Clone, Debug)]
+pub struct PythSettings {
+    pub pyth_product_account: Pubkey,
+    pub pyth_price_account: Pubkey,
+}
 
 #[error_code]
 pub enum PythErrors {
@@ -25,10 +30,12 @@ pub enum PythErrors {
 
 /// This function checks that the pyth product and pyth price account are a match so one can't spoof the price account
 /// and therefore trick the hmm price oracle input.
-pub fn pyth_account_security_check(ctx: &Context<Initialize>) -> Result<()> {
+pub fn pyth_account_security_check(
+    remaining_accounts: &[AccountInfo],
+) -> Result<Option<PythSettings>> {
     // checks the options pyth product and price accounts [0,1] have been passed into the contract
-    if ctx.remaining_accounts.len() == 2 {
-        let remaining_accounts = ctx.remaining_accounts.to_vec();
+    if remaining_accounts.len() == 2 {
+        let remaining_accounts = remaining_accounts.to_vec();
         let pyth_product_account = &remaining_accounts[0];
         let pyth_price_account = &remaining_accounts[1];
 
@@ -61,6 +68,11 @@ pub fn pyth_account_security_check(ctx: &Context<Initialize>) -> Result<()> {
         if &pyth_price_pubkey != pyth_price_account.key {
             return Err(InvalidPriceAccount.into());
         }
+
+        return Ok(Some(PythSettings {
+            pyth_product_account: pyth_product_account.key(),
+            pyth_price_account: pyth_price_account.key(),
+        }));
     }
-    Ok(())
+    Ok(None)
 }

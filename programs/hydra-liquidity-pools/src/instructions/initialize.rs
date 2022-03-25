@@ -2,7 +2,7 @@ use crate::constants::*;
 use crate::errors::ErrorCode;
 use crate::state::fees::Fees;
 use crate::state::pool_state::*;
-use crate::DEBUG_MODE;
+use crate::{pyth_account_security_check, DEBUG_MODE};
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use std::mem;
@@ -119,7 +119,8 @@ pub fn handle(
     fees.validate()?;
     pool_state.fees = fees;
 
-    msg!("LEN: {:?}", ctx.remaining_accounts.len());
+    // save pyth account settings once they validate.
+    pool_state.pyth = pyth_account_security_check(&ctx.remaining_accounts)?;
 
     Ok(())
 }

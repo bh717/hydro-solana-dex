@@ -70,9 +70,8 @@ export function initialize(ctx: Ctx) {
       );
     }
 
-    // TODO: I feel like there might be a better way to handle the option parameter in just one call however I'm not sure.
+    // TODO: I feel like there might be a better way to handle the optional parameter in just one call however I'm not sure with ts.
     if (pyth_product !== undefined && pyth_price !== undefined) {
-      console.log("PYTH ACCOUNTS DETECTED");
       await program.rpc.initialize(
         tokenXVaultBump,
         tokenYVaultBump,

@@ -1,4 +1,5 @@
 use crate::state::fees::Fees;
+use crate::utils::pyth::PythSettings;
 use anchor_lang::prelude::*;
 use derivative::Derivative;
 use std::io::Write;
@@ -19,12 +20,13 @@ pub struct PoolState {
     pub lp_token_mint_bump: u8,
     pub compensation_parameter: u16, // Range from (0 - 200) / 100 = c. With only 025 increments
     pub fees: Fees,
+    pub pyth: Option<PythSettings>,
     #[derivative(Default(value = "false"))]
     pub debug: bool,
     pub reserved: PoolStateReserve,
 }
 
-const POOL_STATE_RESERVE_SIZE: usize = 512;
+const POOL_STATE_RESERVE_SIZE: usize = 448;
 
 #[derive(Clone, Debug)]
 pub struct PoolStateReserve([u8; POOL_STATE_RESERVE_SIZE]);

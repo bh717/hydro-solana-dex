@@ -36,7 +36,6 @@ pub mod hydra_liquidity_pools {
     use super::*;
 
     /// initialize a new empty pool
-    #[access_control(pyth_account_security_check(&ctx))]
     pub fn initialize(
         ctx: Context<Initialize>,
         token_x_vault_bump: u8,

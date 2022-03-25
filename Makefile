@@ -52,13 +52,12 @@ build:
 	./scripts/build.sh
 	yarn turbo run build
 
-test: build validator
+test: build
 	yarn test
 	cargo fmt -- --check
 	cargo check
 	cargo test
-	anchor test --skip-local-validator
-	make validator-kill
+	anchor test
 
 # COMMON
 check:
@@ -88,7 +87,7 @@ migrate:
 	yarn ts-node scripts/migrate.ts
 
 watch-anchor-test: build
-	cargo watch -c -- anchor test --skip-local-validator -- --features "localnet"
+	cargo watch -c -- anchor test -- --features "localnet"
 
 watch-test:
 	cargo watch -cx test

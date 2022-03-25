@@ -9,7 +9,6 @@ import {
 } from "../constants";
 import { HydraSDK } from "hydra-ts";
 import { PoolFees } from "hydra-ts/src/liquidity-pools/types";
-import { BN } from "@project-serum/anchor";
 
 function orderKeyPairs(a: Keypair, b: Keypair) {
   if (a.publicKey.toBuffer().compare(b.publicKey.toBuffer()) > 0) {
@@ -37,7 +36,6 @@ describe("hydra-liquidity-pool-hmm", () => {
   let poolStateBump: number;
   let tokenXVaultBump: number;
   let tokenYVaultBump: number;
-  let poolStateAccount: any;
 
   let poolFees: PoolFees;
 
