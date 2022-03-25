@@ -48,6 +48,7 @@ install_project_deps:
 
 # build
 build:
+	yarn lint
 	./scripts/build.sh
 	yarn turbo run build
 
@@ -100,7 +101,6 @@ anchor-ci:
 	@solana -V
 	@anchor -V
 	solana-keygen new --no-bip39-passphrase || true
-	yarn lint
 	yarn --frozen-lockfile
 #	yarn turbo run build --concurrency=1
 	make test
