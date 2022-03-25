@@ -5,14 +5,23 @@ use anchor_lang::prelude::*;
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
 use anchor_spl::token::{Mint, Token, TokenAccount, Transfer};
-use hydra_math_rs::decimal::Decimal;
-use hydra_math_rs::programs::liquidity_pools::swap_calculator::SwapCalculator;
+use hydra_math_rs::programs::liquidity_pools::swap_calculator::{swap_x_to_y_hmm, swap_y_to_x_hmm};
 use hydra_math_rs::programs::liquidity_pools::swap_result::SwapResult;
 
 #[derive(Accounts)]
 pub struct Swap<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
+
+    #[account(
+        constraint = token_x_mint.key() == pool_state.token_x_mint
+    )]
+    pub token_x_mint: Box<Account<'info, Mint>>,
+
+    #[account(
+        constraint = token_y_mint.key() == pool_state.token_y_mint
+    )]
+    pub token_y_mint: Box<Account<'info, Mint>>,
 
     #[account(
         mut,
@@ -181,20 +190,7 @@ pub fn check_mint_addresses(ctx: &Context<Swap>) -> Result<()> {
 }
 
 pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Result<()> {
-    // Setup SwapCalculate.
-    let swap = SwapCalculator::new(
-        ctx.accounts.token_x_vault.amount,
-        ctx.accounts.token_y_vault.amount,
-        ctx.accounts.pool_state.compensation_parameter as u64,
-        0,
-        ctx.accounts.pool_state.fees.swap_fee_numerator,
-        ctx.accounts.pool_state.fees.swap_fee_denominator,
-    );
-
-    let mut result = SwapResult::default();
-
     let transfer_in_amount = amount_in;
-    let amount_in_decimal = Decimal::from_u64(amount_in).to_amount();
 
     // signer
     let seeds = &[
@@ -212,8 +208,20 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
             return Err(ErrorCode::InvalidMintAddress.into());
         }
 
-        result = swap.swap_x_to_y_amm(&amount_in_decimal);
-        let transfer_out_amount = result.delta_y_down();
+        let transfer_out_amount = swap_x_to_y_hmm(
+            ctx.accounts.token_x_vault.amount,
+            ctx.accounts.token_x_mint.decimals,
+            ctx.accounts.token_y_vault.amount,
+            ctx.accounts.token_y_mint.decimals,
+            ctx.accounts.pool_state.compensation_parameter,
+            // TODO: get orcale price i and scale from pyth
+            0,
+            0,
+            ctx.accounts.pool_state.fees.swap_fee_numerator,
+            ctx.accounts.pool_state.fees.swap_fee_denominator,
+            amount_in,
+        )
+        .expect("delta_y");
 
         check_slippage(
             &amount_in,
@@ -248,8 +256,20 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
             return Err(ErrorCode::InvalidMintAddress.into());
         }
 
-        result = swap.swap_y_to_x_amm(&amount_in_decimal);
-        let transfer_out_amount = result.delta_x_down();
+        let transfer_out_amount = swap_y_to_x_hmm(
+            ctx.accounts.token_x_vault.amount,
+            ctx.accounts.token_x_mint.decimals,
+            ctx.accounts.token_y_vault.amount,
+            ctx.accounts.token_y_mint.decimals,
+            ctx.accounts.pool_state.compensation_parameter,
+            // TODO: get orcale price i and scale from pyth
+            0,
+            0,
+            ctx.accounts.pool_state.fees.swap_fee_numerator,
+            ctx.accounts.pool_state.fees.swap_fee_denominator,
+            amount_in,
+        )
+        .expect("delta_x");
 
         check_slippage(
             &amount_in,
@@ -277,7 +297,8 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
     }
 
     // check all amounts are correct
-    ctx.accounts.post_transfer_checks(result)?;
+    // TODO: move this logic into swap calculator itself
+    // ctx.accounts.post_transfer_checks(result)?;
 
     Ok(())
 }
