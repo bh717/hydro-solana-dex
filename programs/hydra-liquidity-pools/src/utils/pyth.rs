@@ -33,8 +33,7 @@ pub fn pyth_account_security_check(ctx: &Context<Initialize>) -> Result<()> {
         let pyth_price_account = &remaining_accounts[1];
 
         // load product account
-        let pyth_product_info = pyth_product_account;
-        let pyth_product_data = &pyth_product_info.try_borrow_data()?;
+        let pyth_product_data = &pyth_product_account.try_borrow_data()?;
         let product_account = *pyth_client::load_product(pyth_product_data).unwrap();
 
         // validate product account checks
