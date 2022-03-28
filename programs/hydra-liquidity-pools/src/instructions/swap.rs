@@ -90,14 +90,14 @@ impl<'info> Swap<'info> {
         (&mut self.token_x_vault).reload()?;
         (&mut self.token_y_vault).reload()?;
 
-        if result.x_new_up() != self.token_x_vault.amount {
-            msg!("x_new_up: {:?}", result.x_new_up());
+        if result.x_new != self.token_x_vault.amount {
+            msg!("x_new: {:?}", result.x_new);
             msg!("token_x_vault.amount: {:?}", self.token_x_vault.amount);
             return Err(ErrorCode::InvalidVaultToSwapResultAmounts.into());
         }
 
-        if result.y_new_up() != self.token_y_vault.amount {
-            msg!("y_new_up: {:?}", result.y_new_up());
+        if result.y_new != self.token_y_vault.amount {
+            msg!("y_new: {:?}", result.y_new);
             msg!("token_y_vault.amount: {:?}", self.token_y_vault.amount);
             return Err(ErrorCode::InvalidVaultToSwapResultAmounts.into());
         }
@@ -208,20 +208,22 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
             return Err(ErrorCode::InvalidMintAddress.into());
         }
 
-        let transfer_out_amount = swap_x_to_y_hmm(
+        let swap_result = swap_x_to_y_hmm(
             ctx.accounts.token_x_vault.amount,
             ctx.accounts.token_x_mint.decimals,
             ctx.accounts.token_y_vault.amount,
             ctx.accounts.token_y_mint.decimals,
             ctx.accounts.pool_state.compensation_parameter,
-            // TODO: get orcale price i and scale from pyth
+            // TODO: get oracle price i and scale from pyth
             0,
             0,
             ctx.accounts.pool_state.fees.swap_fee_numerator,
             ctx.accounts.pool_state.fees.swap_fee_denominator,
             amount_in,
         )
-        .expect("delta_y");
+        .expect("swap_result");
+
+        let transfer_out_amount = swap_result.delta_y;
 
         check_slippage(
             &amount_in,
@@ -256,20 +258,22 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
             return Err(ErrorCode::InvalidMintAddress.into());
         }
 
-        let transfer_out_amount = swap_y_to_x_hmm(
+        let swap_result = swap_y_to_x_hmm(
             ctx.accounts.token_x_vault.amount,
             ctx.accounts.token_x_mint.decimals,
             ctx.accounts.token_y_vault.amount,
             ctx.accounts.token_y_mint.decimals,
             ctx.accounts.pool_state.compensation_parameter,
-            // TODO: get orcale price i and scale from pyth
+            // TODO: get oracle price i and scale from pyth
             0,
             0,
             ctx.accounts.pool_state.fees.swap_fee_numerator,
             ctx.accounts.pool_state.fees.swap_fee_denominator,
             amount_in,
         )
-        .expect("delta_x");
+        .expect("swap_result");
+
+        let transfer_out_amount = swap_result.delta_x;
 
         check_slippage(
             &amount_in,
@@ -294,11 +298,10 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
                 .with_signer(&signer),
             transfer_out_amount,
         )?;
-    }
 
-    // check all amounts are correct
-    // TODO: move this logic into swap calculator itself
-    // ctx.accounts.post_transfer_checks(result)?;
+        // check all amounts are correct
+        // ctx.accounts.post_transfer_checks(swap_result)?;
+    }
 
     Ok(())
 }
