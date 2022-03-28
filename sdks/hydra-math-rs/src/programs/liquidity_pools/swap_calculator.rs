@@ -11,9 +11,9 @@ pub const MIN_LIQUIDITY: u64 = 100;
 #[wasm_bindgen]
 pub fn swap_x_to_y_hmm(
     x0: u64,
-    x0_scale: u8,
+    x_scale: u8,
     y0: u64,
-    y0_scale: u8,
+    y_scale: u8,
     c: u16,
     i: u64,
     i_scale: u8,
@@ -22,8 +22,8 @@ pub fn swap_x_to_y_hmm(
     amount: u64,
 ) -> Result<u64, String> {
     let calculator = SwapCalculator::builder()
-        .x0(x0, x0_scale)
-        .y0(y0, y0_scale)
+        .x0(x0, x_scale)
+        .y0(y0, y_scale)
         .c(c)
         .i(i, i_scale)
         .fee(fee_numer, fee_denom)
@@ -39,9 +39,9 @@ pub fn swap_x_to_y_hmm(
 #[wasm_bindgen]
 pub fn swap_y_to_x_hmm(
     x0: u64,
-    x0_scale: u8,
+    x_scale: u8,
     y0: u64,
-    y0_scale: u8,
+    y_scale: u8,
     c: u16,
     i: u64,
     i_scale: u8,
@@ -50,8 +50,8 @@ pub fn swap_y_to_x_hmm(
     amount: u64,
 ) -> Result<u64, String> {
     let calculator = SwapCalculator::builder()
-        .x0(x0, x0_scale)
-        .y0(y0, y0_scale)
+        .x0(x0, x_scale)
+        .y0(y0, y_scale)
         .c(c)
         .i(i, i_scale)
         .fee(fee_numer, fee_denom)
