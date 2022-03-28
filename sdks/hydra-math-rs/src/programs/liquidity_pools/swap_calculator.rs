@@ -2,13 +2,13 @@
 use crate::decimal::{Add, Compare, Decimal, Div, Ln, Mul, Pow, Sqrt, Sub};
 use crate::programs::liquidity_pools::swap_result::SwapResult;
 use thiserror::Error;
-use wasm_bindgen::prelude::*;
+// use wasm_bindgen::prelude::wasm_bindgen;
 
 pub const MIN_LIQUIDITY: u64 = 100;
 
 /// Interface to be used by programs and front end
 /// these functions shadow private functions of the implemented swap calculator
-#[wasm_bindgen]
+// #[wasm_bindgen]
 pub fn swap_x_to_y_hmm(
     x0: u64,
     x_scale: u8,
@@ -37,7 +37,7 @@ pub fn swap_x_to_y_hmm(
     Ok(result)
 }
 
-#[wasm_bindgen]
+// #[wasm_bindgen]
 pub fn swap_y_to_x_hmm(
     x0: u64,
     x_scale: u8,
