@@ -628,8 +628,8 @@ mod tests {
         assert!(
             result.value.saturating_sub(expected.value).lt(&precision),
             "check_delta_y_hmm\n{}\n{}\n{:?}",
-            result.value,
-            expected.value,
+            result.to_string(),
+            expected.to_string(),
             result
         );
         assert_eq!(result.negative, expected.negative, "check_delta_y_hmm_sign");
@@ -657,9 +657,10 @@ mod tests {
         let precision = 10_000_000u128;
         assert!(
             result.value.saturating_sub(expected.value).lt(&precision),
-            "check_delta_x_hmm\n{}\n{}",
-            result.value,
-            expected.value
+            "check_delta_y_hmm\n{}\n{}\n{:?}",
+            result.to_string(),
+            expected.to_string(),
+            result
         );
         // TODO: something wrong with sign on larger inputs
         // assert_eq!(result.negative, expected.negative, "check_delta_x_hmm_sign");
@@ -699,12 +700,12 @@ mod tests {
             // ((2**37) - 1) = 137,438,953,471 max
             // log2(10^6) = 20 bits for 6 decimal places, 44 bits for integer
             // ((2**44) - 1) = 17,592,186,044,415 max
-            x0 in 1_000_000..100_000_000_000_000u64,
-            y0 in 1_000_000..100_000_000_000_000u64,
+            x0 in 10u64.pow(3)..10u64.pow(15),
+            y0 in 10u64.pow(3)..10u64.pow(15),
             c in (0..=3usize).prop_map(|v| ["0.0", "1.0", "1.25", "1.5"][v]),
             i in 1_000_000..=100_000_000u64,
-            delta_x in 1_000_000..=100_000_000u64,
-            delta_y in 1_000_000..=100_000_000u64,
+            delta_x in 1_000_000..=100_000_000_000u64,
+            delta_y in 1_000_000..=100_000_000_000u64,
         ) {
             for (c_numer, c_denom, c) in coefficient_allowed_values(DEFAULT_SCALE_TEST).get(c) {
                 let model = Model::new(
