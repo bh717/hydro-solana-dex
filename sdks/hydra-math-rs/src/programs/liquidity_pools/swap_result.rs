@@ -1,8 +1,9 @@
 //! Result storage
+// use wasm_bindgen::prelude::wasm_bindgen;
 
-use wasm_bindgen::prelude::*;
-
-#[wasm_bindgen]
+// #[wasm_bindgen]
+// TODO: Binding wasm cause an ELF error when executed on chain! e.g.
+//     ELF error: Found writable section (.bss._ZN12wasm_bindgen4__rt14GLOBAL_EXNDATA17h995437702f5c1196E) in ELF, read-write data not supported
 #[derive(Default, Debug)]
 /// Encodes all results of swapping from a source token to a destination token
 pub struct SwapResult {
