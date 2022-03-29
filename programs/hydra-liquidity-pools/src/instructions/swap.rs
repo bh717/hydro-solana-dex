@@ -7,7 +7,6 @@ use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
 use anchor_spl::token::{Mint, Token, TokenAccount, Transfer};
 use hydra_math_rs::programs::liquidity_pools::swap_calculator::{swap_x_to_y_hmm, swap_y_to_x_hmm};
-use hydra_math_rs::programs::liquidity_pools::swap_result::SwapResult;
 
 #[derive(Accounts)]
 pub struct Swap<'info> {
@@ -86,19 +85,19 @@ pub struct Swap<'info> {
 }
 
 impl<'info> Swap<'info> {
-    pub fn post_transfer_checks(&mut self, result: SwapResult) -> Result<()> {
+    pub fn post_transfer_checks(&mut self, result: Vec<u64>) -> Result<()> {
         // post tx checks
         (&mut self.token_x_vault).reload()?;
         (&mut self.token_y_vault).reload()?;
 
-        if result.x_new_up() != self.token_x_vault.amount {
-            msg!("x_new_up: {:?}", result.x_new_up());
+        if result[0] != self.token_x_vault.amount {
+            msg!("x_new: {:?}", result[0]);
             msg!("token_x_vault.amount: {:?}", self.token_x_vault.amount);
             return Err(ErrorCode::InvalidVaultToSwapResultAmounts.into());
         }
 
-        if result.y_new_up() != self.token_y_vault.amount {
-            msg!("y_new_up: {:?}", result.y_new_up());
+        if result[1] != self.token_y_vault.amount {
+            msg!("y_new: {:?}", result[1]);
             msg!("token_y_vault.amount: {:?}", self.token_y_vault.amount);
             return Err(ErrorCode::InvalidVaultToSwapResultAmounts.into());
         }
@@ -226,7 +225,7 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
             return Err(ErrorCode::InvalidMintAddress.into());
         }
 
-        let transfer_out_amount = swap_x_to_y_hmm(
+        let swap_result = swap_x_to_y_hmm(
             ctx.accounts.token_x_vault.amount,
             ctx.accounts.token_x_mint.decimals,
             ctx.accounts.token_y_vault.amount,
@@ -240,7 +239,9 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
             ctx.accounts.pool_state.fees.swap_fee_denominator,
             amount_in,
         )
-        .expect("delta_y");
+        .expect("swap_result");
+
+        let transfer_out_amount = swap_result[1]; // delta_y
 
         check_slippage(
             &amount_in,
@@ -275,7 +276,7 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
             return Err(ErrorCode::InvalidMintAddress.into());
         }
 
-        let transfer_out_amount = swap_y_to_x_hmm(
+        let swap_result = swap_y_to_x_hmm(
             ctx.accounts.token_x_vault.amount,
             ctx.accounts.token_x_mint.decimals,
             ctx.accounts.token_y_vault.amount,
@@ -289,7 +290,9 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
             ctx.accounts.pool_state.fees.swap_fee_denominator,
             amount_in,
         )
-        .expect("delta_x");
+        .expect("swap_result");
+
+        let transfer_out_amount = swap_result[0]; // delta_x
 
         check_slippage(
             &amount_in,
@@ -314,11 +317,10 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
                 .with_signer(&signer),
             transfer_out_amount,
         )?;
-    }
 
-    // check all amounts are correct
-    // TODO: move this logic into swap calculator itself
-    // ctx.accounts.post_transfer_checks(result)?;
+        // TODO: check all amounts are correct
+        // ctx.accounts.post_transfer_checks(swap_result)?;
+    }
 
     Ok(())
 }

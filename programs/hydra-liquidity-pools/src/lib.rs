@@ -9,7 +9,6 @@ use instructions::initialize::*;
 use instructions::remove_liquidity::*;
 use instructions::swap::check_mint_addresses;
 use instructions::swap::*;
-use state::curve_type::CurveType;
 use state::fees::Fees;
 use utils::pyth::pyth_accounts_security_check;
 use utils::pyth::pyth_price_account_check;

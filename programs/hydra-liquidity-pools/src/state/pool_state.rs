@@ -1,4 +1,3 @@
-use crate::state::curve_type::CurveType;
 use crate::state::fees::Fees;
 use crate::utils::pyth::PythSettings;
 use anchor_lang::prelude::*;

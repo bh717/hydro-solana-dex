@@ -1,6 +1,5 @@
 use crate::constants::*;
 use crate::errors::ErrorCode;
-use crate::state::curve_type::CurveType;
 use crate::state::fees::Fees;
 use crate::state::pool_state::*;
 use crate::{pyth_accounts_security_check, DEBUG_MODE};
