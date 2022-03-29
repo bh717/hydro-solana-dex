@@ -131,6 +131,6 @@ pub fn get_and_update_last_known_price(
         return Some(p.last_known_price as u64);
     }
 
-    // Otherwise return Zero.
+    // Otherwise
     None
 }
