@@ -126,6 +126,7 @@ describe("hydra-liquidity-pool-hmm", () => {
       assert(err.toString().includes(errMsg));
     }
   });
+
   it("should initialize a liquidity-pool with hmm/pyth integration", async () => {
     const accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
       soldMint,
@@ -166,5 +167,64 @@ describe("hydra-liquidity-pool-hmm", () => {
     assert.equal(poolStateAccount.poolStateBump, poolStateBump);
     assert.equal(poolStateAccount.tokenXVaultBump, tokenXVaultBump);
     assert.equal(poolStateAccount.tokenYVaultBump, tokenYVaultBump);
+  });
+
+  it("should add-liquidity to pool for the first time", async () => {
+    await sdk.liquidityPools.addLiquidity(
+      soldMint,
+      usddMint,
+      4_000_000_000n, // 4000 sol
+      440_000_000_000n, // $440,000 (@$110/sol)
+      0n
+    );
+
+    const accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
+      soldMint,
+      usddMint
+    );
+
+    assert.strictEqual(
+      await accounts.lpTokenAssociatedAccount.balance(),
+      41_952_353_826n
+    );
+
+    assert.strictEqual(
+      await accounts.userTokenX.balance(),
+      SOLD_MINT_AMOUNT - 4_000_000_000n
+    );
+
+    assert.strictEqual(
+      await accounts.userTokenY.balance(),
+      USDD_MINT_AMOUNT - 440_000_000_000n
+    );
+    assert.strictEqual(await accounts.lpTokenVault.balance(), 100n);
+    assert.strictEqual(await accounts.tokenXVault.balance(), 4_000_000_000n);
+    assert.strictEqual(await accounts.tokenYVault.balance(), 440_000_000_000n);
+  });
+
+  it("should swap (hmm) sol to usd (x to y)", async () => {
+    await sdk.liquidityPools.swap(
+      soldMint,
+      usddMint,
+      soldAccount,
+      usddAccount,
+      1_000_000_000n, // 1000 sol
+      85_000_000_000n // @$850/sol
+    );
+
+    const accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
+      soldMint,
+      usddMint
+    );
+
+    assert.strictEqual(
+      await accounts.tokenXVault.balance(),
+      4_000_000_000n + 1_000_000_000n // original amount + swap in amount + fee
+    );
+
+    assert.strictEqual(
+      await accounts.tokenYVault.balance(),
+      440_000_000_000n - 87_859_143_657n // original amount - swap out amount
+    );
   });
 });

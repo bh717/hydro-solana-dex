@@ -158,6 +158,18 @@ impl<'info> Swap<'info> {
         let cpi_program = self.token_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
     }
+
+    pub fn get_price_exponent(&self) -> Result<u8> {
+        if let Some(pyth_settings) = &self.pool_state.pyth {
+            return Ok(pyth_settings.price_exponent as u8);
+        }
+        Ok(0)
+    }
+
+    pub fn get_oracle_price(&self) -> Result<u64> {
+        // if let Some(..) = get_and_update_price(self.)
+        Ok(0)
+    }
 }
 
 // security check mint addresses are both correct as per the pool state object.
@@ -200,6 +212,8 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
     ];
     let signer = [&seeds[..]];
 
+    if let Some(..) = ctx.accounts.pool_state.pyth {}
+
     // detect swap direction. x to y
     if ctx.accounts.user_from_token.mint == ctx.accounts.pool_state.token_x_mint {
         msg!("Swapping: x to y");
@@ -214,9 +228,8 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
             ctx.accounts.token_y_vault.amount,
             ctx.accounts.token_y_mint.decimals,
             ctx.accounts.pool_state.compensation_parameter,
-            // TODO: get orcale price i and scale from pyth
-            0,
-            0,
+            ctx.accounts.get_oracle_price()?,
+            ctx.accounts.get_price_exponent()?,
             ctx.accounts.pool_state.fees.swap_fee_numerator,
             ctx.accounts.pool_state.fees.swap_fee_denominator,
             amount_in,
@@ -262,9 +275,8 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
             ctx.accounts.token_y_vault.amount,
             ctx.accounts.token_y_mint.decimals,
             ctx.accounts.pool_state.compensation_parameter,
-            // TODO: get orcale price i and scale from pyth
-            0,
-            0,
+            ctx.accounts.get_oracle_price()?,
+            ctx.accounts.get_price_exponent()?,
             ctx.accounts.pool_state.fees.swap_fee_numerator,
             ctx.accounts.pool_state.fees.swap_fee_denominator,
             amount_in,

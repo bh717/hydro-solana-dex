@@ -121,7 +121,7 @@ pub fn handle(
     fees.validate()?;
     pool_state.fees = fees;
 
-    pool_state.curve_type = curve_type;
+    // pool_state.curve_type = curve_type;
 
     // TODO is the curve_type needed?
     // if curve_type == CurveType::HMM {

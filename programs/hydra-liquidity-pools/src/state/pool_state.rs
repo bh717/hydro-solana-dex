@@ -21,7 +21,7 @@ pub struct PoolState {
     pub lp_token_mint_bump: u8,
     pub compensation_parameter: u16, // Range from (0 - 200) / 100 = c. With only 025 increments
     pub fees: Fees,
-    pub curve_type: CurveType,
+    // pub curve_type: CurveType,
     pub pyth: Option<PythSettings>,
     #[derivative(Default(value = "false"))]
     pub debug: bool,
