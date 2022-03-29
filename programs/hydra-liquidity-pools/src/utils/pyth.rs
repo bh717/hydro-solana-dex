@@ -8,6 +8,7 @@ use anchor_lang::prelude::*;
 pub struct PythSettings {
     pub pyth_product_account: Pubkey,
     pub pyth_price_account: Pubkey,
+    pub last_known_price: i64, // used to store the price as pyth can sometime return a None on: price_account.get_current_price() calls lacking enough valid publishes on a time slot.
 }
 
 #[error_code]
@@ -69,9 +70,13 @@ pub fn pyth_account_security_check(
             return Err(InvalidPriceAccount.into());
         }
 
+        let pyth_price_data = &pyth_price_account.try_borrow_data()?;
+        let price_account = pyth_client::load_price(pyth_price_data).unwrap();
+
         return Ok(Some(PythSettings {
             pyth_product_account: pyth_product_account.key(),
             pyth_price_account: pyth_price_account.key(),
+            last_known_price: price_account.agg.price,
         }));
     }
     Ok(None)
