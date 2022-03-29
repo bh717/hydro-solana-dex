@@ -209,7 +209,8 @@ describe("hydra-liquidity-pool-hmm", () => {
       soldAccount,
       usddAccount,
       1_000_000_000n, // 1000 sol
-      85_000_000_000n // @$850/sol
+      85_000_000_000n, // @$850/sol
+      pyth_solusd_price
     );
 
     const accounts = await sdk.liquidityPools.accounts.getAccountLoaders(

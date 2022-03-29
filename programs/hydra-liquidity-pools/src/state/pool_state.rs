@@ -28,6 +28,14 @@ pub struct PoolState {
     pub reserved: PoolStateReserve,
 }
 
+impl PoolState {
+    pub fn update_price(&mut self, new_price: i64) {
+        if let Some(p) = &mut self.pyth {
+            p.update_price(new_price)
+        }
+    }
+}
+
 const POOL_STATE_RESERVE_SIZE: usize = 448;
 
 #[derive(Clone, Debug)]

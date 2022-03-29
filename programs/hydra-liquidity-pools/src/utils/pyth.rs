@@ -3,6 +3,7 @@ use crate::utils::pyth::PythErrors::{
     InvalidAccount, InvalidAccountType, InvalidAccountVersion, InvalidMagicNumber,
     InvalidPriceAccount, PriceAccountMarkedInvalid,
 };
+use crate::Swap;
 use anchor_lang::prelude::*;
 use pyth_client::PriceConf;
 
@@ -11,7 +12,13 @@ pub struct PythSettings {
     pub pyth_product_account: Pubkey,
     pub pyth_price_account: Pubkey,
     pub last_known_price: i64, // used to store the price as pyth can sometime return a None on: price_account.get_current_price() calls lacking enough valid publishes on a time slot.
-    pub price_exponent: i32,
+    pub price_exponent: u8,
+}
+
+impl PythSettings {
+    pub fn update_price(&mut self, new_price: i64) {
+        self.last_known_price = new_price;
+    }
 }
 
 #[error_code]
@@ -36,7 +43,7 @@ pub enum PythErrors {
 }
 
 /// This function checks that the pyth product and pyth price account are a match so one can't spoof the price account
-/// and therefore trick the hmm price oracle input.
+/// and therefore trick the hmm price oracle algo
 pub fn pyth_accounts_security_check(
     remaining_accounts: &[AccountInfo],
 ) -> Result<Option<PythSettings>> {
@@ -85,34 +92,45 @@ pub fn pyth_accounts_security_check(
             pyth_product_account: pyth_product_account.key(),
             pyth_price_account: pyth_price_account.key(),
             last_known_price: price_account.agg.price,
-            price_exponent: price_account.expo,
+            price_exponent: -price_account.expo as u8,
         }));
     }
     msg!("Pyth: no accounts detected");
     Ok(None)
 }
 
-pub struct PythPrice {}
+/// This function checks for a given price account matchs the saved key in the pool_state onchain object for a swap instruction
+pub fn pyth_price_account_check(_ctx: &Context<Swap>) -> Result<()> {
+    // TODO: Build me!
+    Ok(())
+}
 
-// // TODO: ????
-// pub fn get_price(pyth_price_account: &AccountInfo, pool_state: PoolState) -> Result<PriceConf> {
-//     let price_account_data = &pyth_price_account.try_borrow_data()?;
-//     let price_account = pyth_client::load_price(price_account_data).map_err(|_| InvalidAccount)?;
-//
-//     if let Some(price) = price_account.get_current_price() {
-//         return Ok(price);
-//     }
-//     msg!("Returning last_known_price");
-//     Ok(PriceConf {
-//         price: &pool_state.pyth.unwrap().last_known_price.clone(),
-//         conf: 0,
-//         expo: &pool_state.pyth.unwrap().price_exponent.clone(),
-//     })
-// }
-
-pub fn get_and_update_price(
+pub fn get_and_update_last_known_price(
     pyth_price_account: &AccountInfo,
-    pool_state: PoolState,
-) -> Result<u64> {
-    Ok(0)
+    pool_state: &mut PoolState,
+) -> Option<u64> {
+    let price_account_data = &pyth_price_account.try_borrow_data().ok()?;
+    let price_account = pyth_client::load_price(price_account_data).ok()?;
+
+    // Get a valid price from pyth price contracts
+    msg!(
+        "price_account.get_current_price(): {:?}",
+        price_account.get_current_price()
+    );
+    if let Some(p) = price_account.get_current_price() {
+        pool_state.update_price(p.price);
+        msg!("Oracle Price: {}", p.price as u64);
+        return Some(p.price as u64);
+    }
+
+    msg!("PriceInfo: {:?}", price_account.agg);
+
+    // Otherwise get price from last_known_price
+    if let Some(p) = &pool_state.pyth {
+        msg!("Last known Price: {}", p.last_known_price as u64);
+        return Some(p.last_known_price as u64);
+    }
+
+    // Otherwise return Zero.
+    None
 }

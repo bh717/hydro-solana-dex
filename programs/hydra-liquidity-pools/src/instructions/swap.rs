@@ -1,6 +1,7 @@
 use crate::constants::*;
 use crate::errors::ErrorCode;
 use crate::state::pool_state::PoolState;
+use crate::utils::pyth::get_and_update_last_known_price;
 use anchor_lang::prelude::*;
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
@@ -159,16 +160,20 @@ impl<'info> Swap<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn get_price_exponent(&self) -> Result<u8> {
+    pub fn get_oracle_price_exponent(&self) -> Option<u8> {
         if let Some(pyth_settings) = &self.pool_state.pyth {
-            return Ok(pyth_settings.price_exponent as u8);
+            return Some(pyth_settings.price_exponent);
         }
-        Ok(0)
+        None
     }
 
-    pub fn get_oracle_price(&self) -> Result<u64> {
-        // if let Some(..) = get_and_update_price(self.)
-        Ok(0)
+    pub fn get_oracle_price(&mut self, remaining_accounts: &[AccountInfo]) -> Option<u64> {
+        if remaining_accounts.len() > 0 {
+            msg!("Oracle: Detected");
+            return get_and_update_last_known_price(&remaining_accounts[0], &mut self.pool_state);
+        }
+        msg!("Oracle: Not detected");
+        None
     }
 }
 
@@ -205,14 +210,13 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
     let transfer_in_amount = amount_in;
 
     // signer
+    let lp_token_mint = ctx.accounts.pool_state.lp_token_mint.clone(); // TODO Review
     let seeds = &[
         POOL_STATE_SEED,
-        ctx.accounts.pool_state.lp_token_mint.as_ref(),
+        lp_token_mint.as_ref(),
         &[ctx.accounts.pool_state.pool_state_bump],
     ];
     let signer = [&seeds[..]];
-
-    if let Some(..) = ctx.accounts.pool_state.pyth {}
 
     // detect swap direction. x to y
     if ctx.accounts.user_from_token.mint == ctx.accounts.pool_state.token_x_mint {
@@ -228,8 +232,10 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
             ctx.accounts.token_y_vault.amount,
             ctx.accounts.token_y_mint.decimals,
             ctx.accounts.pool_state.compensation_parameter,
-            ctx.accounts.get_oracle_price()?,
-            ctx.accounts.get_price_exponent()?,
+            ctx.accounts
+                .get_oracle_price(&ctx.remaining_accounts)
+                .unwrap_or(0),
+            ctx.accounts.get_oracle_price_exponent().unwrap_or(0),
             ctx.accounts.pool_state.fees.swap_fee_numerator,
             ctx.accounts.pool_state.fees.swap_fee_denominator,
             amount_in,
@@ -275,8 +281,10 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
             ctx.accounts.token_y_vault.amount,
             ctx.accounts.token_y_mint.decimals,
             ctx.accounts.pool_state.compensation_parameter,
-            ctx.accounts.get_oracle_price()?,
-            ctx.accounts.get_price_exponent()?,
+            ctx.accounts
+                .get_oracle_price(&ctx.remaining_accounts)
+                .unwrap_or(0),
+            ctx.accounts.get_oracle_price_exponent().unwrap_or(0),
             ctx.accounts.pool_state.fees.swap_fee_numerator,
             ctx.accounts.pool_state.fees.swap_fee_denominator,
             amount_in,
