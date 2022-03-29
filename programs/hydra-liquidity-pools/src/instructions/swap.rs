@@ -223,7 +223,7 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
         )
         .expect("swap_result");
 
-        let transfer_out_amount = swap_result.delta_y;
+        let transfer_out_amount = swap_result[0];
 
         check_slippage(
             &amount_in,
@@ -273,7 +273,7 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
         )
         .expect("swap_result");
 
-        let transfer_out_amount = swap_result.delta_x;
+        let transfer_out_amount = swap_result[0];
 
         check_slippage(
             &amount_in,

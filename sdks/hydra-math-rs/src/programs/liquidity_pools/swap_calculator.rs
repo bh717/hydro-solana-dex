@@ -2,13 +2,13 @@
 use crate::decimal::{Add, Compare, Decimal, Div, Ln, Mul, Pow, Sqrt, Sub};
 use crate::programs::liquidity_pools::swap_result::SwapResult;
 use thiserror::Error;
-// use wasm_bindgen::prelude::wasm_bindgen;
+use wasm_bindgen::prelude::wasm_bindgen;
 
 pub const MIN_LIQUIDITY: u64 = 100;
 
 /// Interface to be used by programs and front end
-/// these functions shadow private functions of the implemented swap calculator
-// #[wasm_bindgen]
+/// these functions shadow functions of the implemented swap calculator
+#[wasm_bindgen]
 pub fn swap_x_to_y_hmm(
     x0: u64,
     x_scale: u8,
@@ -20,7 +20,7 @@ pub fn swap_x_to_y_hmm(
     fee_numer: u64,
     fee_denom: u64,
     amount: u64,
-) -> Result<SwapResult, String> {
+) -> Result<Vec<u64>, String> {
     let calculator = SwapCalculator::builder()
         .x0(x0, x_scale)
         .y0(y0, y_scale)
@@ -34,10 +34,10 @@ pub fn swap_x_to_y_hmm(
 
     let result = calculator.swap_x_to_y_hmm(&delta_x);
 
-    Ok(result)
+    Ok(vec![result.delta_y, result.fees])
 }
 
-// #[wasm_bindgen]
+#[wasm_bindgen]
 pub fn swap_y_to_x_hmm(
     x0: u64,
     x_scale: u8,
@@ -49,7 +49,7 @@ pub fn swap_y_to_x_hmm(
     fee_numer: u64,
     fee_denom: u64,
     amount: u64,
-) -> Result<SwapResult, String> {
+) -> Result<Vec<u64>, String> {
     let calculator = SwapCalculator::builder()
         .x0(x0, x_scale)
         .y0(y0, y_scale)
@@ -63,7 +63,7 @@ pub fn swap_y_to_x_hmm(
 
     let result = calculator.swap_y_to_x_hmm(&delta_y);
 
-    Ok(result)
+    Ok(vec![result.delta_x, result.fees])
 }
 
 /// Swap calculator input parameters
@@ -623,7 +623,7 @@ mod tests {
         let (value, negative) = model.sim_delta_y_hmm(delta_x);
         let expected = Decimal::new(value, DEFAULT_SCALE_TEST, negative);
 
-        // TODO: figure our precision requirements, lower means more accurate
+        // TODO: larger range is causing precision issues
         let precision = 10_000_000u128;
         assert!(
             result.value.saturating_sub(expected.value).lt(&precision),
@@ -730,7 +730,7 @@ mod tests {
             )
             .unwrap();
             let expected = 9_207_401u64;
-            assert_eq!(actual.delta_y, expected);
+            assert_eq!(actual[0], expected);
         }
 
         // y to x
@@ -740,7 +740,7 @@ mod tests {
             )
             .unwrap();
             let expected = 860_465u64;
-            assert_eq!(actual.delta_x, expected);
+            assert_eq!(actual[0], expected);
         }
     }
 
