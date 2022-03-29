@@ -46,7 +46,6 @@ pub mod hydra_liquidity_pools {
         lp_token_mint_bump: u8,
         compensation_parameter: u16,
         fees: Fees,
-        curve_type: CurveType,
     ) -> Result<()> {
         instructions::initialize::handle(
             ctx,
@@ -57,7 +56,6 @@ pub mod hydra_liquidity_pools {
             lp_token_mint_bump,
             compensation_parameter,
             fees,
-            curve_type,
         )
     }
 

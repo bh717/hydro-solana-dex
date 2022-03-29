@@ -90,7 +90,6 @@ pub fn handle(
     lp_token_mint_bump: u8,
     compensation_parameter: u16,
     fees: Fees,
-    curve_type: CurveType,
 ) -> Result<()> {
     let pool_state = &mut ctx.accounts.pool_state;
 
@@ -121,13 +120,7 @@ pub fn handle(
     fees.validate()?;
     pool_state.fees = fees;
 
-    // pool_state.curve_type = curve_type;
-
-    // TODO is the curve_type needed?
-    // if curve_type == CurveType::HMM {
-    // save pyth account settings once they validate.
     pool_state.pyth = pyth_accounts_security_check(&ctx.remaining_accounts)?;
-    // }
 
     Ok(())
 }

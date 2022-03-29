@@ -35,10 +35,6 @@ describe("hydra-liquidity-pool-hmm", () => {
 
   let poolFees: PoolFees;
 
-  const curveType = {
-    hmm: {},
-  };
-
   let pyth_solusd_product = new PublicKey(
     "ALP8SdU9oARYVLgLR7LrqMNCYBnhtnQz1cj6bwgwQmgj"
   );
@@ -98,7 +94,6 @@ describe("hydra-liquidity-pool-hmm", () => {
         soldMint,
         usddMint,
         poolFees,
-        curveType,
         Keypair.generate().publicKey, // spoofed product account
         Keypair.generate().publicKey // spoofed price account
       );
@@ -115,7 +110,6 @@ describe("hydra-liquidity-pool-hmm", () => {
         soldMint,
         usddMint,
         poolFees,
-        curveType,
         pyth_solusd_product,
         Keypair.generate().publicKey // spoofed price account
       );
@@ -137,7 +131,6 @@ describe("hydra-liquidity-pool-hmm", () => {
       soldMint,
       usddMint,
       poolFees,
-      curveType,
       pyth_solusd_product,
       pyth_solusd_price
     );

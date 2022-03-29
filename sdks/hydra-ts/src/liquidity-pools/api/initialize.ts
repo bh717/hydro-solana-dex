@@ -27,7 +27,6 @@ export function initialize(ctx: Ctx) {
     tokenXMint: PublicKey,
     tokenYMint: PublicKey,
     poolFees: PoolFees,
-    curveType: any,
     pyth_product?: PublicKey,
     pyth_price?: PublicKey
   ) => {
@@ -51,7 +50,6 @@ export function initialize(ctx: Ctx) {
         lpTokenMintBump,
         0, // compensation_parameter
         toAnchorPoolFees(poolFees),
-        curveType,
         {
           accounts: {
             authority: program.provider.wallet.publicKey,
@@ -81,7 +79,6 @@ export function initialize(ctx: Ctx) {
         lpTokenMintBump,
         0, // compensation_parameter
         toAnchorPoolFees(poolFees),
-        curveType,
         {
           accounts: {
             authority: program.provider.wallet.publicKey,

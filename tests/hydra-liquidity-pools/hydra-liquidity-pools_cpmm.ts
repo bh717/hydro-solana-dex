@@ -40,10 +40,6 @@ describe("hydra-liquidity-pool-cpmm", () => {
 
   let poolFees: PoolFees;
 
-  let curveType = {
-    constantProduct: {},
-  };
-
   before(async () => {
     sdk = HydraSDK.createFromAnchorProvider(
       provider,
@@ -92,12 +88,7 @@ describe("hydra-liquidity-pool-cpmm", () => {
 
   it("should fail to initialize because tokens are in the wrong order", async () => {
     try {
-      await sdk.liquidityPools.initialize(
-        usddMint,
-        btcdMint,
-        poolFees,
-        curveType
-      );
+      await sdk.liquidityPools.initialize(usddMint, btcdMint, poolFees);
       assert.ok(false, "No error was thrown");
     } catch (err: any) {
       const errMsg = "Token addresses order is invalid";
@@ -111,12 +102,7 @@ describe("hydra-liquidity-pool-cpmm", () => {
       usddMint
     );
 
-    await sdk.liquidityPools.initialize(
-      btcdMint,
-      usddMint,
-      poolFees,
-      curveType
-    );
+    await sdk.liquidityPools.initialize(btcdMint, usddMint, poolFees);
 
     const poolStateInfo = await accounts.poolState.info();
     const poolStateAccount = poolStateInfo.data;
