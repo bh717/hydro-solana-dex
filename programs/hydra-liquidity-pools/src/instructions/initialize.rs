@@ -1,5 +1,6 @@
 use crate::constants::*;
 use crate::errors::ErrorCode;
+use crate::state::curve_type::CurveType;
 use crate::state::fees::Fees;
 use crate::state::pool_state::*;
 use crate::{pyth_account_security_check, DEBUG_MODE};
@@ -89,6 +90,7 @@ pub fn handle(
     lp_token_mint_bump: u8,
     compensation_parameter: u16,
     fees: Fees,
+    curve_type: CurveType,
 ) -> Result<()> {
     let pool_state = &mut ctx.accounts.pool_state;
 
@@ -118,6 +120,8 @@ pub fn handle(
     // save fees
     fees.validate()?;
     pool_state.fees = fees;
+
+    pool_state.curve_type = curve_type;
 
     // save pyth account settings once they validate.
     pool_state.pyth = pyth_account_security_check(&ctx.remaining_accounts)?;

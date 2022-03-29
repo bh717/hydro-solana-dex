@@ -1,14 +1,8 @@
 import * as anchor from "@project-serum/anchor";
 import config from "config-ts/global-config.json";
-import assert from "assert";
 import { Keypair, PublicKey } from "@solana/web3.js";
-import {
-  BTCD_MINT_AMOUNT,
-  SOLD_MINT_AMOUNT,
-  USDD_MINT_AMOUNT,
-} from "../constants";
+import { SOLD_MINT_AMOUNT, USDD_MINT_AMOUNT } from "../constants";
 import { HydraSDK } from "hydra-ts";
-import { PoolFees } from "hydra-ts/src/liquidity-pools/types";
 
 function orderKeyPairs(a: Keypair, b: Keypair) {
   if (a.publicKey.toBuffer().compare(b.publicKey.toBuffer()) > 0) {
@@ -38,6 +32,10 @@ describe("hydra-liquidity-pool-hmm", () => {
   let tokenYVaultBump: number;
 
   let poolFees: PoolFees;
+
+  const curveType = {
+    hmm: {},
+  };
 
   let pyth_solusd_product = new PublicKey(
     "ALP8SdU9oARYVLgLR7LrqMNCYBnhtnQz1cj6bwgwQmgj"
@@ -102,6 +100,7 @@ describe("hydra-liquidity-pool-hmm", () => {
       soldMint,
       usddMint,
       poolFees,
+      curveType,
       pyth_solusd_product,
       pyth_solusd_price
     );

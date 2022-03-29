@@ -5,8 +5,6 @@ import { inject } from "../../utils/meta-utils";
 import { TOKEN_PROGRAM_ID } from "@project-serum/serum/lib/token-instructions";
 import { PublicKey } from "@solana/web3.js";
 import { PoolFees } from "../types";
-import { stringifyProps, toBN } from "../../utils";
-import { publicKey } from "@solana/buffer-layout-utils";
 
 type AnchorPoolFees = { [K in keyof PoolFees]: anchor.BN };
 
@@ -28,6 +26,7 @@ export function initialize(ctx: Ctx) {
     tokenXMint: PublicKey,
     tokenYMint: PublicKey,
     poolFees: PoolFees,
+    curveType: any,
     pyth_product?: PublicKey,
     pyth_price?: PublicKey
   ) => {
@@ -51,6 +50,7 @@ export function initialize(ctx: Ctx) {
         lpTokenMintBump,
         0, // compensation_parameter
         toAnchorPoolFees(poolFees),
+        curveType,
         {
           accounts: {
             authority: program.provider.wallet.publicKey,
@@ -80,6 +80,7 @@ export function initialize(ctx: Ctx) {
         lpTokenMintBump,
         0, // compensation_parameter
         toAnchorPoolFees(poolFees),
+        curveType,
         {
           accounts: {
             authority: program.provider.wallet.publicKey,
