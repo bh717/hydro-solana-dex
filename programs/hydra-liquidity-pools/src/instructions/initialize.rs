@@ -3,7 +3,7 @@ use crate::errors::ErrorCode;
 use crate::state::curve_type::CurveType;
 use crate::state::fees::Fees;
 use crate::state::pool_state::*;
-use crate::{pyth_account_security_check, DEBUG_MODE};
+use crate::{pyth_accounts_security_check, DEBUG_MODE};
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use std::mem;
@@ -123,8 +123,11 @@ pub fn handle(
 
     pool_state.curve_type = curve_type;
 
+    // TODO is the curve_type needed?
+    // if curve_type == CurveType::HMM {
     // save pyth account settings once they validate.
-    pool_state.pyth = pyth_account_security_check(&ctx.remaining_accounts)?;
+    pool_state.pyth = pyth_accounts_security_check(&ctx.remaining_accounts)?;
+    // }
 
     Ok(())
 }

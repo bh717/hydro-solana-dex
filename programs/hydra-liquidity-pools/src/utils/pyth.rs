@@ -1,6 +1,6 @@
 use crate::utils::pyth::PythErrors::{
-    InvalidAccountType, InvalidAccountVersion, InvalidMagicNumber, InvalidPriceAccount,
-    PriceAccountMarkedInvalid,
+    InvalidAccount, InvalidAccountType, InvalidAccountVersion, InvalidMagicNumber,
+    InvalidPriceAccount, PriceAccountMarkedInvalid,
 };
 use anchor_lang::prelude::*;
 
@@ -16,6 +16,9 @@ pub enum PythErrors {
     #[msg("Pyth product account provided has an invalid MAGIC number")]
     InvalidMagicNumber,
 
+    #[msg("Pyth product account is invalid")]
+    InvalidAccount,
+
     #[msg("Pyth product account provided has an invalid account type")]
     InvalidAccountType,
 
@@ -25,13 +28,13 @@ pub enum PythErrors {
     #[msg("Pyth product price account is marked as invalid")]
     PriceAccountMarkedInvalid,
 
-    #[msg("Pyth product price account does not match the Pyth price account provided")]
+    #[msg("Pyth price account does not match the Pyth price account provided")]
     InvalidPriceAccount,
 }
 
 /// This function checks that the pyth product and pyth price account are a match so one can't spoof the price account
 /// and therefore trick the hmm price oracle input.
-pub fn pyth_account_security_check(
+pub fn pyth_accounts_security_check(
     remaining_accounts: &[AccountInfo],
 ) -> Result<Option<PythSettings>> {
     // checks the options pyth product and price accounts [0,1] have been passed into the contract
@@ -42,7 +45,8 @@ pub fn pyth_account_security_check(
 
         // load product account
         let pyth_product_data = &pyth_product_account.try_borrow_data()?;
-        let product_account = *pyth_client::load_product(pyth_product_data).unwrap();
+        let product_account =
+            pyth_client::load_product(pyth_product_data).map_err(|_| InvalidAccount)?;
 
         // validate product account checks
 

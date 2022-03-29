@@ -5,6 +5,7 @@ import { inject } from "../../utils/meta-utils";
 import { TOKEN_PROGRAM_ID } from "@project-serum/serum/lib/token-instructions";
 import { PublicKey } from "@solana/web3.js";
 import { PoolFees } from "../types";
+import { toBN } from "../../utils";
 
 type AnchorPoolFees = { [K in keyof PoolFees]: anchor.BN };
 
