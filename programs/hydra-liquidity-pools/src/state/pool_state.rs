@@ -27,9 +27,9 @@ pub struct PoolState {
 }
 
 impl PoolState {
-    pub fn update_oracle_price(&mut self, new_price: i64) {
+    pub fn update_oracle_price(&mut self, new_price: i64, valid_slot: u64) {
         if let Some(p) = &mut self.pyth {
-            p.update_price(new_price)
+            p.update_price(new_price, valid_slot)
         }
     }
 }

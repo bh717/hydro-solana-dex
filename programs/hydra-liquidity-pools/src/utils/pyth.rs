@@ -17,10 +17,9 @@ pub struct PythSettings {
 }
 
 impl PythSettings {
-    pub fn update_price(&mut self, new_price: i64) {
-        let clock = Clock::get().unwrap();
+    pub fn update_price(&mut self, new_price: i64, slot: u64) {
         self.last_known_price = new_price;
-        self.last_known_price_slot = clock.slot as u64; // TODO might need later to confirm last_known_price
+        self.last_known_price_slot = valid_slot;
     }
 }
 
@@ -92,7 +91,6 @@ pub fn pyth_accounts_security_check(
 
         let pyth_price_data = &pyth_price_account.try_borrow_data()?;
         let price_account = pyth_client::load_price(pyth_price_data).map_err(|_| InvalidAccount)?;
-        let clock = Clock::get()?;
 
         msg!("Pyth: accounts detected");
         return Ok(Some(PythSettings {
@@ -100,7 +98,7 @@ pub fn pyth_accounts_security_check(
             pyth_price_account: pyth_price_account.key(),
             price_exponent: price_account.expo.unsigned_abs() as u8,
             last_known_price: price_account.agg.price,
-            last_known_price_slot: clock.slot,
+            last_known_price_slot: price_account.valid_slot,
         }));
     }
     msg!("Pyth: no accounts detected");
@@ -140,7 +138,7 @@ pub fn get_and_update_last_known_price(
 
     // Get a valid price from pyth price contracts if feed is considered live
     if let Some(p) = price_account.get_current_price() {
-        pool_state.update_oracle_price(p.price);
+        pool_state.update_oracle_price(p.price, price_account.valid_slot);
         msg!("Oracle Price: {}", p.price);
         return Some(p.price as u64);
     }
