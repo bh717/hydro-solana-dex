@@ -16,7 +16,7 @@ export function swap(ctx: Ctx) {
     userToToken: PublicKey,
     amountIn: bigint,
     minimumAmountOut: bigint,
-    pyth_price?: PublicKey
+    pythPrice?: PublicKey
   ) => {
     const program = ctx.programs.hydraLiquidityPools;
     const accounts = inject(accs, ctx);
@@ -29,49 +29,31 @@ export function swap(ctx: Ctx) {
         ? tokenYMint
         : tokenXMint;
 
-    if (pyth_price === undefined) {
-      await program.rpc.swap(toBN(amountIn), toBN(minimumAmountOut), {
-        accounts: {
-          user: ctx.provider.wallet.publicKey,
-          tokenXMint,
-          tokenYMint,
-          poolState: await poolState.key(),
-          lpTokenMint: await lpTokenMint.key(),
-          userFromToken,
-          userToToken,
-          userToMint,
-          tokenXVault: await tokenXVault.key(),
-          tokenYVault: await tokenYVault.key(),
-          systemProgram: SystemProgram.programId,
-          tokenProgram: SPLToken.TOKEN_PROGRAM_ID,
-          associatedTokenProgram: SPLToken.ASSOCIATED_TOKEN_PROGRAM_ID,
-          rent: web3.SYSVAR_RENT_PUBKEY,
-        },
+    const swapBase = program.methods
+      .swap(toBN(amountIn), toBN(minimumAmountOut))
+      .accounts({
+        user: ctx.provider.wallet.publicKey,
+        tokenXMint,
+        tokenYMint,
+        poolState: await poolState.key(),
+        lpTokenMint: await lpTokenMint.key(),
+        userFromToken,
+        userToToken,
+        userToMint,
+        tokenXVault: await tokenXVault.key(),
+        tokenYVault: await tokenYVault.key(),
+        systemProgram: SystemProgram.programId,
+        tokenProgram: SPLToken.TOKEN_PROGRAM_ID,
+        associatedTokenProgram: SPLToken.ASSOCIATED_TOKEN_PROGRAM_ID,
+        rent: web3.SYSVAR_RENT_PUBKEY,
       });
-    }
 
-    if (pyth_price !== undefined) {
-      await program.rpc.swap(toBN(amountIn), toBN(minimumAmountOut), {
-        accounts: {
-          user: ctx.provider.wallet.publicKey,
-          tokenXMint,
-          tokenYMint,
-          poolState: await poolState.key(),
-          lpTokenMint: await lpTokenMint.key(),
-          userFromToken,
-          userToToken,
-          userToMint,
-          tokenXVault: await tokenXVault.key(),
-          tokenYVault: await tokenYVault.key(),
-          systemProgram: SystemProgram.programId,
-          tokenProgram: SPLToken.TOKEN_PROGRAM_ID,
-          associatedTokenProgram: SPLToken.ASSOCIATED_TOKEN_PROGRAM_ID,
-          rent: web3.SYSVAR_RENT_PUBKEY,
-        },
-        remainingAccounts: [
-          { pubkey: pyth_price, isSigner: false, isWritable: false },
-        ],
-      });
-    }
+    const instruction = pythPrice
+      ? swapBase.remainingAccounts([
+          { pubkey: pythPrice, isSigner: false, isWritable: false },
+        ])
+      : swapBase;
+
+    await instruction.rpc();
   };
 }
