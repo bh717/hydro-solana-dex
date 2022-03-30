@@ -7,11 +7,11 @@ mod utils;
 use instructions::add_liquidity::*;
 use instructions::initialize::*;
 use instructions::remove_liquidity::*;
-use instructions::swap::check_mint_addresses;
+use instructions::swap::mint_addresses_security_check;
 use instructions::swap::*;
 use state::fees::Fees;
 use utils::pyth::pyth_accounts_security_check;
-use utils::pyth::pyth_price_account_check;
+use utils::pyth::pyth_price_account_security_check;
 
 use anchor_lang::prelude::*;
 
@@ -80,8 +80,8 @@ pub mod hydra_liquidity_pools {
     }
 
     #[access_control(
-        check_mint_addresses(&ctx)
-        pyth_price_account_check(&ctx)
+        mint_addresses_security_check(&ctx)
+        pyth_price_account_security_check(&ctx)
     )]
     pub fn swap(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Result<()> {
         instructions::swap::handle(ctx, amount_in, minimum_amount_out)

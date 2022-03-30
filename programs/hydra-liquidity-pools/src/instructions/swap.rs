@@ -177,7 +177,7 @@ impl<'info> Swap<'info> {
 }
 
 // security check mint addresses are both correct as per the pool state object.
-pub fn check_mint_addresses(ctx: &Context<Swap>) -> Result<()> {
+pub fn mint_addresses_security_check(ctx: &Context<Swap>) -> Result<()> {
     let mut user_to_token_valid = false;
     let mut user_from_token_valid = false;
 
@@ -209,7 +209,7 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
     let transfer_in_amount = amount_in;
 
     // signer
-    let lp_token_mint = ctx.accounts.pool_state.lp_token_mint.clone(); // TODO Review
+    let lp_token_mint = ctx.accounts.pool_state.lp_token_mint.clone();
     let seeds = &[
         POOL_STATE_SEED,
         lp_token_mint.as_ref(),
