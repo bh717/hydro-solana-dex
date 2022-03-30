@@ -129,6 +129,8 @@ pub fn pyth_price_account_security_check(ctx: &Context<Swap>) -> Result<()> {
     Ok(())
 }
 
+/// Get and update last known price will fetch a price from the Oracle if the feeds are returning as valid. For a valid fetch the price is also saved as last_known_price.
+/// For an invalid feed the last_known_price is returned. Where no oracle is enabled on a pool a None is returned.  
 pub fn get_and_update_last_known_price(
     pyth_price_account: &AccountInfo,
     pool_state: &mut PoolState,
@@ -149,6 +151,6 @@ pub fn get_and_update_last_known_price(
         return Some(p.last_known_price as u64);
     }
 
-    // Otherwise
+    // Otherwise, no Oracle enabled on pool
     None
 }

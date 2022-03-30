@@ -159,6 +159,7 @@ impl<'info> Swap<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
+    /// Get saved oracle price exponent if oracle settings exist for the pool_state
     pub fn get_oracle_price_exponent(&self) -> Option<u8> {
         if let Some(pyth_settings) = &self.pool_state.pyth {
             return Some(pyth_settings.price_exponent);
@@ -166,6 +167,7 @@ impl<'info> Swap<'info> {
         None
     }
 
+    /// Get Oracle price from either a live feed or last_known_price if the feed is offline.
     pub fn get_oracle_price(&mut self, remaining_accounts: &[AccountInfo]) -> Option<u64> {
         if remaining_accounts.len() == 1 {
             return get_and_update_last_known_price(&remaining_accounts[0], &mut self.pool_state);
