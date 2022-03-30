@@ -1,23 +1,26 @@
 use crate::state::pool_state::PoolState;
 use crate::utils::pyth::PythErrors::{
     InvalidAccount, InvalidAccountType, InvalidAccountVersion, InvalidMagicNumber,
-    InvalidPriceAccount, PriceAccountMarkedInvalid,
+    InvalidPriceAccount, InvalidSettingsForAccount, PriceAccountMarkedInvalid,
 };
 use crate::Swap;
 use anchor_lang::prelude::*;
-use pyth_client::PriceConf;
+use anchor_lang::solana_program::clock::Slot;
 
 #[derive(AnchorSerialize, AnchorDeserialize, Default, Clone, Debug)]
 pub struct PythSettings {
     pub pyth_product_account: Pubkey,
     pub pyth_price_account: Pubkey,
     pub last_known_price: i64, // used to store the price as pyth can sometime return a None on: price_account.get_current_price() calls lacking enough valid publishes on a time slot.
+    pub last_known_price_slot: u64, // TODO: will possible need this to check how long ago the last_known_price was valid
     pub price_exponent: u8,
 }
 
 impl PythSettings {
     pub fn update_price(&mut self, new_price: i64) {
+        let clock = Clock::get().unwrap();
         self.last_known_price = new_price;
+        self.last_known_price_slot = clock.slot as u64; // TODO might need later to confirm last_known_price
     }
 }
 
@@ -40,6 +43,9 @@ pub enum PythErrors {
 
     #[msg("Pyth price account does not match the Pyth price account provided")]
     InvalidPriceAccount,
+
+    #[msg("No pyth settings saved for account data")]
+    InvalidSettingsForAccount,
 }
 
 /// This function checks that the pyth product and pyth price account are a match so one can't spoof the price account
@@ -86,22 +92,40 @@ pub fn pyth_accounts_security_check(
 
         let pyth_price_data = &pyth_price_account.try_borrow_data()?;
         let price_account = pyth_client::load_price(pyth_price_data).map_err(|_| InvalidAccount)?;
+        let clock = Clock::get()?;
 
         msg!("Pyth: accounts detected");
         return Ok(Some(PythSettings {
             pyth_product_account: pyth_product_account.key(),
             pyth_price_account: pyth_price_account.key(),
+            price_exponent: price_account.expo.unsigned_abs() as u8,
             last_known_price: price_account.agg.price,
-            price_exponent: -price_account.expo as u8,
+            last_known_price_slot: clock.slot,
         }));
     }
     msg!("Pyth: no accounts detected");
     Ok(None)
 }
 
-/// This function checks for a given price account matchs the saved key in the pool_state onchain object for a swap instruction
-pub fn pyth_price_account_check(_ctx: &Context<Swap>) -> Result<()> {
-    // TODO: Build me!
+/// This function checks for a given price account matches the saved key in the pool_state.pyth onchain object for a swap instruction
+pub fn pyth_price_account_security_check(ctx: &Context<Swap>) -> Result<()> {
+    // price account is the only optional account required for a swap to then be a hmm swap.
+    if ctx.remaining_accounts.len() == 1 {
+        // first check we have settings saved for pyth/hmm
+        if let Some(pyth_settings) = &ctx.accounts.pool_state.pyth {
+            let possible_price_account = &ctx.remaining_accounts[0];
+            // then check account against saved key settings
+            if pyth_settings.pyth_price_account == possible_price_account.key() {
+                msg!("Oracle: Valid Price account detected");
+                return Ok(());
+            } else {
+                return Err(InvalidPriceAccount.into());
+            }
+        } else {
+            return Err(InvalidSettingsForAccount.into());
+        }
+    }
+    // No optional accounts passed into contract. Swap will be cpmm.
     Ok(())
 }
 
@@ -112,18 +136,12 @@ pub fn get_and_update_last_known_price(
     let price_account_data = &pyth_price_account.try_borrow_data().ok()?;
     let price_account = pyth_client::load_price(price_account_data).ok()?;
 
-    // Get a valid price from pyth price contracts
-    msg!(
-        "price_account.get_current_price(): {:?}",
-        price_account.get_current_price()
-    );
+    // Get a valid price from pyth price contracts if feed is considered live
     if let Some(p) = price_account.get_current_price() {
-        pool_state.update_price(p.price);
-        msg!("Oracle Price: {}", p.price as u64);
+        pool_state.update_oracle_price(p.price);
+        msg!("Oracle Price: {}", p.price);
         return Some(p.price as u64);
     }
-
-    msg!("PriceInfo: {:?}", price_account.agg);
 
     // Otherwise get price from last_known_price
     if let Some(p) = &pool_state.pyth {

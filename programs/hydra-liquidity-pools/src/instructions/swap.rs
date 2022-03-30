@@ -167,11 +167,9 @@ impl<'info> Swap<'info> {
     }
 
     pub fn get_oracle_price(&mut self, remaining_accounts: &[AccountInfo]) -> Option<u64> {
-        if remaining_accounts.len() > 0 {
-            msg!("Oracle: Detected");
+        if remaining_accounts.len() == 1 {
             return get_and_update_last_known_price(&remaining_accounts[0], &mut self.pool_state);
         }
-        msg!("Oracle: Not detected");
         None
     }
 }

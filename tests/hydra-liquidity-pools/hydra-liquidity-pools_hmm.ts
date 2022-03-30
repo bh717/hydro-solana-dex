@@ -221,4 +221,22 @@ describe("hydra-liquidity-pool-hmm", () => {
       440_000_000_000n - 87_859_143_657n // original amount - swap out amount
     );
   });
+
+  it("should not swap (hmm) sol to usd (x to y) due to invalid price account", async () => {
+    try {
+      await sdk.liquidityPools.swap(
+        soldMint,
+        usddMint,
+        soldAccount,
+        usddAccount,
+        1_000_000_000n, // 1000 sol
+        85_000_000_000n, // @$850/sol
+        Keypair.generate().publicKey // bad price account
+      );
+      assert.ok(false);
+    } catch (err: any) {
+      let errMsg = "";
+      assert(err.toString().includes(errMsg));
+    }
+  });
 });
