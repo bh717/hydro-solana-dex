@@ -5,7 +5,6 @@ use crate::utils::pyth::PythErrors::{
 };
 use crate::Swap;
 use anchor_lang::prelude::*;
-use anchor_lang::solana_program::clock::Slot;
 
 const DELAY_TOLERANCE: u8 = 5;
 
