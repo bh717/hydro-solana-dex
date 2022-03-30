@@ -121,5 +121,7 @@ pub fn handle(
 
     pool_state.pyth = pyth_accounts_security_check(&ctx.remaining_accounts)?;
 
+    msg!("pool_state: {:?}", pool_state);
+
     Ok(())
 }

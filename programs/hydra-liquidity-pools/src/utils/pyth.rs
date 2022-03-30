@@ -17,7 +17,7 @@ pub struct PythSettings {
 }
 
 impl PythSettings {
-    pub fn update_price(&mut self, new_price: i64, slot: u64) {
+    pub fn update_price(&mut self, new_price: i64, valid_slot: u64) {
         self.last_known_price = new_price;
         self.last_known_price_slot = valid_slot;
     }
@@ -140,12 +140,14 @@ pub fn get_and_update_last_known_price(
     if let Some(p) = price_account.get_current_price() {
         pool_state.update_oracle_price(p.price, price_account.valid_slot);
         msg!("Oracle Price: {}", p.price);
+        msg!("Valid slot: {}", price_account.valid_slot);
         return Some(p.price as u64);
     }
 
     // Otherwise get price from last_known_price
     if let Some(p) = &pool_state.pyth {
-        msg!("Last known Price: {}", p.last_known_price as u64);
+        msg!("last_known_price: {}", p.last_known_price as u64);
+        msg!("last_known_price_slot: {}", p.last_known_price_slot);
         return Some(p.last_known_price as u64);
     }
 
