@@ -7,6 +7,8 @@ use crate::Swap;
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::clock::Slot;
 
+const DELAY_TOLERANCE: u8 = 5;
+
 #[derive(AnchorSerialize, AnchorDeserialize, Default, Clone, Debug)]
 pub struct PythSettings {
     pub pyth_product_account: Pubkey,
@@ -146,11 +148,23 @@ pub fn get_and_update_last_known_price(
 
     // Otherwise get price from last_known_price
     if let Some(p) = &pool_state.pyth {
-        msg!("last_known_price: {}", p.last_known_price as u64);
-        msg!("last_known_price_slot: {}", p.last_known_price_slot);
-        return Some(p.last_known_price as u64);
+        let current = Clock::get().ok()?;
+        let diff: i64 = (current.slot as i64)
+            .checked_sub(p.last_known_price_slot as i64)
+            .unwrap()
+            .checked_abs()
+            .unwrap();
+
+        if diff > DELAY_TOLERANCE as i64 {
+            msg!("last_known_price: {}", p.last_known_price as u64);
+            msg!("last_known_price_slot: {}", p.last_known_price_slot);
+            return Some(p.last_known_price as u64);
+        }
+
+        return None;
     }
 
     // Otherwise, no Oracle enabled on pool
+    msg!("No oracle or last_known_price available");
     None
 }
