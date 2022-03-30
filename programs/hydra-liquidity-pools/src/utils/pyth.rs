@@ -155,16 +155,14 @@ pub fn get_and_update_last_known_price(
             .checked_abs()
             .unwrap();
 
-        if diff > DELAY_TOLERANCE as i64 {
+        if diff <= DELAY_TOLERANCE as i64 {
             msg!("last_known_price: {}", p.last_known_price as u64);
             msg!("last_known_price_slot: {}", p.last_known_price_slot);
             return Some(p.last_known_price as u64);
         }
-
-        return None;
     }
 
     // Otherwise, no Oracle enabled on pool
-    msg!("No oracle or last_known_price available");
+    msg!("Oracle: no live or last_known_price available");
     None
 }
