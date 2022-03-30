@@ -27,6 +27,7 @@ export function initialize(ctx: Ctx) {
     tokenXMint: PublicKey,
     tokenYMint: PublicKey,
     poolFees: PoolFees,
+    compensationParameter: number = 0,
     pyth_product?: PublicKey,
     pyth_price?: PublicKey
   ) => {
@@ -48,7 +49,7 @@ export function initialize(ctx: Ctx) {
         poolStateBump,
         lpTokenVaultBump,
         lpTokenMintBump,
-        0, // compensation_parameter
+        compensationParameter,
         toAnchorPoolFees(poolFees),
         {
           accounts: {
@@ -77,7 +78,7 @@ export function initialize(ctx: Ctx) {
         poolStateBump,
         lpTokenVaultBump,
         lpTokenMintBump,
-        0, // compensation_parameter
+        compensationParameter,
         toAnchorPoolFees(poolFees),
         {
           accounts: {

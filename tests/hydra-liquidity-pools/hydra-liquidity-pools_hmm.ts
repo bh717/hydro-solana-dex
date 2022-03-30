@@ -94,6 +94,7 @@ describe("hydra-liquidity-pool-hmm", () => {
         soldMint,
         usddMint,
         poolFees,
+        100,
         Keypair.generate().publicKey, // spoofed product account
         Keypair.generate().publicKey // spoofed price account
       );
@@ -110,6 +111,7 @@ describe("hydra-liquidity-pool-hmm", () => {
         soldMint,
         usddMint,
         poolFees,
+        100,
         pyth_solusd_product,
         Keypair.generate().publicKey // spoofed price account
       );
@@ -131,6 +133,7 @@ describe("hydra-liquidity-pool-hmm", () => {
       soldMint,
       usddMint,
       poolFees,
+      150,
       pyth_solusd_product,
       pyth_solusd_price
     );
