@@ -28,8 +28,8 @@ export function initialize(ctx: Ctx) {
     tokenYMint: PublicKey,
     poolFees: PoolFees,
     compensationParameter: number = 0,
-    pyth_product?: PublicKey,
-    pyth_price?: PublicKey
+    pythProduct?: PublicKey,
+    pythPrice?: PublicKey
   ) => {
     const program = ctx.programs.hydraLiquidityPools;
     const accounts = await inject(accs, ctx).getAccountLoaders(
@@ -42,65 +42,39 @@ export function initialize(ctx: Ctx) {
     const lpTokenVaultBump = await accounts.lpTokenVault.bump();
     const lpTokenMintBump = await accounts.lpTokenMint.bump();
 
-    if (pyth_product === undefined && pyth_price === undefined) {
-      await program.rpc.initialize(
+    const initializeBase = program.methods
+      .initialize(
         tokenXVaultBump,
         tokenYVaultBump,
         poolStateBump,
         lpTokenVaultBump,
         lpTokenMintBump,
         compensationParameter,
-        toAnchorPoolFees(poolFees),
-        {
-          accounts: {
-            authority: program.provider.wallet.publicKey,
-            payer: program.provider.wallet.publicKey,
-            poolState: await accounts.poolState.key(),
-            tokenXMint,
-            tokenYMint,
-            lpTokenMint: await accounts.lpTokenMint.key(),
-            tokenXVault: await accounts.tokenXVault.key(),
-            tokenYVault: await accounts.tokenYVault.key(),
-            lpTokenVault: await accounts.lpTokenVault.key(),
-            systemProgram: anchor.web3.SystemProgram.programId,
-            tokenProgram: TOKEN_PROGRAM_ID,
-            rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-          },
-        }
-      );
-    }
+        toAnchorPoolFees(poolFees)
+      )
+      .accounts({
+        authority: program.provider.wallet.publicKey,
+        payer: program.provider.wallet.publicKey,
+        poolState: await accounts.poolState.key(),
+        tokenXMint,
+        tokenYMint,
+        lpTokenMint: await accounts.lpTokenMint.key(),
+        tokenXVault: await accounts.tokenXVault.key(),
+        tokenYVault: await accounts.tokenYVault.key(),
+        lpTokenVault: await accounts.lpTokenVault.key(),
+        systemProgram: anchor.web3.SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      });
 
-    // TODO: I feel like there might be a better way to handle the optional parameter in just one call however I'm not sure with ts.
-    if (pyth_product !== undefined && pyth_price !== undefined) {
-      await program.rpc.initialize(
-        tokenXVaultBump,
-        tokenYVaultBump,
-        poolStateBump,
-        lpTokenVaultBump,
-        lpTokenMintBump,
-        compensationParameter,
-        toAnchorPoolFees(poolFees),
-        {
-          accounts: {
-            authority: program.provider.wallet.publicKey,
-            payer: program.provider.wallet.publicKey,
-            poolState: await accounts.poolState.key(),
-            tokenXMint,
-            tokenYMint,
-            lpTokenMint: await accounts.lpTokenMint.key(),
-            tokenXVault: await accounts.tokenXVault.key(),
-            tokenYVault: await accounts.tokenYVault.key(),
-            lpTokenVault: await accounts.lpTokenVault.key(),
-            systemProgram: anchor.web3.SystemProgram.programId,
-            tokenProgram: TOKEN_PROGRAM_ID,
-            rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-          },
-          remainingAccounts: [
-            { pubkey: pyth_product, isSigner: false, isWritable: false },
-            { pubkey: pyth_price, isSigner: false, isWritable: false },
-          ],
-        }
-      );
-    }
+    const instruction =
+      pythProduct && pythPrice
+        ? initializeBase.remainingAccounts([
+            { pubkey: pythProduct, isSigner: false, isWritable: false },
+            { pubkey: pythPrice, isSigner: false, isWritable: false },
+          ])
+        : initializeBase;
+
+    await instruction.rpc();
   };
 }
