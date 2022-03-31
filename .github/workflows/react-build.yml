@@ -142,7 +142,7 @@ jobs:
           status: REACT-CI-FAILED
           color: danger
 
-      # ipfs deployments are currently broken.
+      # TODO: ipfs deployments are currently broken.
       #      - id: ipfs-deploy
       #        name: ipfs-deploy
       #        uses: aquiladev/ipfs-action@v0.2.0
