@@ -261,8 +261,6 @@ impl SwapCalculator {
 
         let y_new = self.y0.add(delta_y).unwrap();
 
-        let squared_k = self.compute_squared_k(x_new.add(fees).unwrap(), y_new);
-
         let x_new = x_new.add(fees).unwrap();
 
         SwapResult {
@@ -272,7 +270,6 @@ impl SwapCalculator {
             delta_x: delta_x.to_scaled_amount(self.scale.x),
             delta_y: delta_y.to_scaled_amount(self.scale.y),
             fees: fees.to_scaled_amount(self.scale.x),
-            squared_k: squared_k.to_scaled_amount(self.scale.x),
         }
     }
 
@@ -291,8 +288,6 @@ impl SwapCalculator {
 
         let x_new = self.x0.add(delta_x).unwrap();
 
-        let squared_k = self.compute_squared_k(x_new, y_new.add(fees).unwrap());
-
         let y_new = y_new.add(fees).unwrap();
 
         SwapResult {
@@ -302,7 +297,6 @@ impl SwapCalculator {
             delta_x: delta_x.to_scaled_amount(self.scale.x),
             delta_y: delta_y.to_scaled_amount(self.scale.y),
             fees: fees.to_scaled_amount(self.scale.y),
-            squared_k: squared_k.to_scaled_amount(self.scale.x),
         }
     }
 
@@ -516,12 +510,6 @@ impl SwapCalculator {
     fn compute_y_new(&self, delta_y: &Decimal) -> Decimal {
         // y_new = y0 + delta_y
         self.y0.add(*delta_y).expect("compute_y_new")
-    }
-
-    // TODO: Broken; Amounts arent matching the lp tokens version of this calculation.
-    fn compute_squared_k(&self, x_new: Decimal, y_new: Decimal) -> Decimal {
-        let min_liquidity = Decimal::from_u64(MIN_LIQUIDITY).to_scale(x_new.scale);
-        x_new.mul(y_new).sqrt().unwrap().sub(min_liquidity).unwrap()
     }
 }
 

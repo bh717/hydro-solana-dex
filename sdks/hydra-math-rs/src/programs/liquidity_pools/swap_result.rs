@@ -9,8 +9,6 @@
 pub struct SwapResult {
     /// Invariant expressed as k
     pub k: u64,
-    /// squared_k is the k version used to calculate the lp tokens
-    pub squared_k: u64,
     /// New base token amount expressed as x_new
     pub x_new: u64,
     /// New quote token amount expressed as y_new
@@ -39,7 +37,6 @@ impl From<Vec<u64>> for SwapResult {
     fn from(vector: Vec<u64>) -> Self {
         SwapResult {
             k: 0,
-            squared_k: 0,
             x_new: vector[0],
             y_new: vector[1],
             delta_x: vector[2],
