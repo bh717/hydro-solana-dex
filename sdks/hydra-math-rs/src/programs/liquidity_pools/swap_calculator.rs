@@ -14,7 +14,7 @@ pub fn swap_x_to_y_hmm(
     x_scale: u8,
     y0: u64,
     y_scale: u8,
-    c: u16,
+    c: u8,
     i: u64,
     i_scale: u8,
     fee_numer: u64,
@@ -43,7 +43,7 @@ pub fn swap_y_to_x_hmm(
     x_scale: u8,
     y0: u64,
     y_scale: u8,
-    c: u16,
+    c: u8,
     i: u64,
     i_scale: u8,
     fee_numer: u64,
@@ -140,8 +140,8 @@ impl SwapCalculatorBuilder {
         }
     }
 
-    // Range from (0 - 200) / 100 = c. With only 025 increments
-    pub fn c(self, value: u16) -> Self {
+    // Range c = [0, 100, 125, 150] / 100
+    pub fn c(self, value: u8) -> Self {
         Self {
             c: Some(
                 Decimal::from_u64(value as u64)
