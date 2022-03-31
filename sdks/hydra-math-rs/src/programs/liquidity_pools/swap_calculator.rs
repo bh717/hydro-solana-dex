@@ -14,7 +14,7 @@ pub fn swap_x_to_y_hmm(
     x_scale: u8,
     y0: u64,
     y_scale: u8,
-    c: u16,
+    c: u8,
     i: u64,
     i_scale: u8,
     fee_numer: u64,
@@ -34,7 +34,7 @@ pub fn swap_x_to_y_hmm(
 
     let result = calculator.swap_x_to_y_hmm(&delta_x);
 
-    Ok(vec![result.delta_x, result.delta_y, result.fees])
+    Ok(result.into())
 }
 
 #[wasm_bindgen]
@@ -43,7 +43,7 @@ pub fn swap_y_to_x_hmm(
     x_scale: u8,
     y0: u64,
     y_scale: u8,
-    c: u16,
+    c: u8,
     i: u64,
     i_scale: u8,
     fee_numer: u64,
@@ -63,7 +63,7 @@ pub fn swap_y_to_x_hmm(
 
     let result = calculator.swap_y_to_x_hmm(&delta_y);
 
-    Ok(vec![result.delta_x, result.delta_y, result.fees])
+    Ok(result.into())
 }
 
 /// Swap calculator input parameters
@@ -140,8 +140,8 @@ impl SwapCalculatorBuilder {
         }
     }
 
-    // Range from (0 - 200) / 100 = c. With only 025 increments
-    pub fn c(self, value: u16) -> Self {
+    // Range c = [0, 100, 125, 150] / 100
+    pub fn c(self, value: u8) -> Self {
         Self {
             c: Some(
                 Decimal::from_u64(value as u64)
@@ -251,8 +251,6 @@ impl SwapCalculator {
         // fees deducted first
         let (fees, amount_ex_fees) = self.compute_fees(delta_x);
 
-        let k = self.compute_k();
-
         let x_new = self.compute_x_new(&amount_ex_fees);
 
         let delta_x = x_new.sub(self.x0).unwrap();
@@ -261,18 +259,14 @@ impl SwapCalculator {
 
         let y_new = self.y0.add(delta_y).unwrap();
 
-        let squared_k = self.compute_squared_k(x_new.add(fees).unwrap(), y_new);
-
         let x_new = x_new.add(fees).unwrap();
 
         SwapResult {
-            k: k.to_scaled_amount(self.scale.x),
-            x_new: x_new.to_scaled_amount(self.scale.x),
-            y_new: y_new.to_scaled_amount(self.scale.y),
+            x_new: x_new.to_scaled_amount_up(self.scale.x),
+            y_new: y_new.to_scaled_amount_up(self.scale.y),
             delta_x: delta_x.to_scaled_amount(self.scale.x),
             delta_y: delta_y.to_scaled_amount(self.scale.y),
             fees: fees.to_scaled_amount(self.scale.x),
-            squared_k: squared_k.to_scaled_amount(self.scale.x),
         }
     }
 
@@ -280,8 +274,6 @@ impl SwapCalculator {
     pub fn swap_y_to_x_hmm(&self, delta_y: &Decimal) -> SwapResult {
         // fees deducted first
         let (fees, amount_ex_fees) = self.compute_fees(delta_y);
-
-        let k = self.compute_k();
 
         let y_new = self.compute_y_new(&amount_ex_fees);
 
@@ -291,18 +283,14 @@ impl SwapCalculator {
 
         let x_new = self.x0.add(delta_x).unwrap();
 
-        let squared_k = self.compute_squared_k(x_new, y_new.add(fees).unwrap());
-
         let y_new = y_new.add(fees).unwrap();
 
         SwapResult {
-            k: k.to_scaled_amount(self.scale.x),
-            x_new: x_new.to_scaled_amount(self.scale.x),
-            y_new: y_new.to_scaled_amount(self.scale.y),
+            x_new: x_new.to_scaled_amount_up(self.scale.x),
+            y_new: y_new.to_scaled_amount_up(self.scale.y),
             delta_x: delta_x.to_scaled_amount(self.scale.x),
             delta_y: delta_y.to_scaled_amount(self.scale.y),
             fees: fees.to_scaled_amount(self.scale.y),
-            squared_k: squared_k.to_scaled_amount(self.scale.x),
         }
     }
 
@@ -517,12 +505,6 @@ impl SwapCalculator {
         // y_new = y0 + delta_y
         self.y0.add(*delta_y).expect("compute_y_new")
     }
-
-    // TODO: Broken; Amounts arent matching the lp tokens version of this calculation.
-    fn compute_squared_k(&self, x_new: Decimal, y_new: Decimal) -> Decimal {
-        let min_liquidity = Decimal::from_u64(MIN_LIQUIDITY).to_scale(x_new.scale);
-        x_new.mul(y_new).sqrt().unwrap().sub(min_liquidity).unwrap()
-    }
 }
 
 #[cfg(test)]
@@ -717,22 +699,26 @@ mod tests {
     fn test_scalar_inputs() {
         // x to y
         {
-            let actual = swap_x_to_y_hmm(
-                37_000000, 6, 126_000000, 6, 100, 3_000000, 6, 0, 0, 3_000000,
-            )
-            .unwrap();
+            let actual: SwapResult = From::from(
+                swap_x_to_y_hmm(
+                    37_000000, 6, 126_000000, 6, 100, 3_000000, 6, 0, 0, 3_000000,
+                )
+                .unwrap(),
+            );
             let expected = 9_207_401u64;
-            assert_eq!(actual[1], expected);
+            assert_eq!(actual.delta_y, expected);
         }
 
         // y to x
         {
-            let actual = swap_y_to_x_hmm(
-                37_000000, 6, 126_000000, 6, 100, 3_000000, 6, 0, 0, 3_000000,
-            )
-            .unwrap();
+            let actual: SwapResult = From::from(
+                swap_y_to_x_hmm(
+                    37_000000, 6, 126_000000, 6, 100, 3_000000, 6, 0, 0, 3_000000,
+                )
+                .unwrap(),
+            );
             let expected = 860_465u64;
-            assert_eq!(actual[0], expected);
+            assert_eq!(actual.delta_x, expected);
         }
     }
 

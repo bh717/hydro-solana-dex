@@ -86,6 +86,12 @@ impl Decimal {
         self.to_scale(scale).to_u64()
     }
 
+    /// Convert a [Decimal] back to a scaled u64 amount
+    /// and round up (ceiling) the value.
+    pub fn to_scaled_amount_up(self, scale: u8) -> u64 {
+        self.to_scale_up(scale).to_u64()
+    }
+
     /// Modify the scale (precision) of a [Decimal] to a different scale.
     pub fn to_scale(self, scale: u8) -> Self {
         Self {

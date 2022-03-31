@@ -7,6 +7,7 @@ use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
 use anchor_spl::token::{Mint, Token, TokenAccount, Transfer};
 use hydra_math_rs::programs::liquidity_pools::swap_calculator::{swap_x_to_y_hmm, swap_y_to_x_hmm};
+use hydra_math_rs::programs::liquidity_pools::swap_result::SwapResult;
 
 #[derive(Accounts)]
 pub struct Swap<'info> {
@@ -85,29 +86,23 @@ pub struct Swap<'info> {
 }
 
 impl<'info> Swap<'info> {
-    pub fn post_transfer_checks(&mut self, result: Vec<u64>) -> Result<()> {
+    pub fn post_transfer_checks(&mut self, swap_result: SwapResult) -> Result<()> {
         // post tx checks
         (&mut self.token_x_vault).reload()?;
         (&mut self.token_y_vault).reload()?;
 
-        if result[0] != self.token_x_vault.amount {
-            msg!("x_new: {:?}", result[0]);
+        if swap_result.x_new != self.token_x_vault.amount {
+            msg!("x_new: {:?}", swap_result.x_new);
             msg!("token_x_vault.amount: {:?}", self.token_x_vault.amount);
             return Err(ErrorCode::InvalidVaultToSwapResultAmounts.into());
         }
 
-        if result[1] != self.token_y_vault.amount {
-            msg!("y_new: {:?}", result[1]);
+        if swap_result.y_new != self.token_y_vault.amount {
+            msg!("y_new: {:?}", swap_result.y_new);
             msg!("token_y_vault.amount: {:?}", self.token_y_vault.amount);
             return Err(ErrorCode::InvalidVaultToSwapResultAmounts.into());
         }
 
-        // TODO: Broken for some random reason... Come back to laterz
-        // if result.squared_k_down() != self.lp_token_mint.supply {
-        //     msg!("squared_k_down: {:?}", result.squared_k_down());
-        //     msg!("lp_token_mint.supply: {:?}", self.lp_token_mint.supply);
-        //     return Err(ErrorCode::InvalidVaultToSwapResultAmounts.into());
-        // }
         Ok(())
     }
 
@@ -225,23 +220,25 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
             return Err(ErrorCode::InvalidMintAddress.into());
         }
 
-        let swap_result = swap_x_to_y_hmm(
-            ctx.accounts.token_x_vault.amount,
-            ctx.accounts.token_x_mint.decimals,
-            ctx.accounts.token_y_vault.amount,
-            ctx.accounts.token_y_mint.decimals,
-            ctx.accounts.pool_state.compensation_parameter,
-            ctx.accounts
-                .get_oracle_price(&ctx.remaining_accounts)
-                .unwrap_or(0),
-            ctx.accounts.get_oracle_price_exponent().unwrap_or(0),
-            ctx.accounts.pool_state.fees.swap_fee_numerator,
-            ctx.accounts.pool_state.fees.swap_fee_denominator,
-            amount_in,
-        )
-        .expect("swap_result");
+        let swap_result: SwapResult = From::from(
+            swap_x_to_y_hmm(
+                ctx.accounts.token_x_vault.amount,
+                ctx.accounts.token_x_mint.decimals,
+                ctx.accounts.token_y_vault.amount,
+                ctx.accounts.token_y_mint.decimals,
+                ctx.accounts.pool_state.compensation_parameter,
+                ctx.accounts
+                    .get_oracle_price(&ctx.remaining_accounts)
+                    .unwrap_or(0),
+                ctx.accounts.get_oracle_price_exponent().unwrap_or(0),
+                ctx.accounts.pool_state.fees.swap_fee_numerator,
+                ctx.accounts.pool_state.fees.swap_fee_denominator,
+                amount_in,
+            )
+            .expect("swap_result"),
+        );
 
-        let transfer_out_amount = swap_result[1]; // delta_y
+        let transfer_out_amount = swap_result.delta_y;
 
         check_slippage(
             &amount_in,
@@ -276,23 +273,25 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
             return Err(ErrorCode::InvalidMintAddress.into());
         }
 
-        let swap_result = swap_y_to_x_hmm(
-            ctx.accounts.token_x_vault.amount,
-            ctx.accounts.token_x_mint.decimals,
-            ctx.accounts.token_y_vault.amount,
-            ctx.accounts.token_y_mint.decimals,
-            ctx.accounts.pool_state.compensation_parameter,
-            ctx.accounts
-                .get_oracle_price(&ctx.remaining_accounts)
-                .unwrap_or(0),
-            ctx.accounts.get_oracle_price_exponent().unwrap_or(0),
-            ctx.accounts.pool_state.fees.swap_fee_numerator,
-            ctx.accounts.pool_state.fees.swap_fee_denominator,
-            amount_in,
-        )
-        .expect("swap_result");
+        let swap_result: SwapResult = From::from(
+            swap_y_to_x_hmm(
+                ctx.accounts.token_x_vault.amount,
+                ctx.accounts.token_x_mint.decimals,
+                ctx.accounts.token_y_vault.amount,
+                ctx.accounts.token_y_mint.decimals,
+                ctx.accounts.pool_state.compensation_parameter,
+                ctx.accounts
+                    .get_oracle_price(&ctx.remaining_accounts)
+                    .unwrap_or(0),
+                ctx.accounts.get_oracle_price_exponent().unwrap_or(0),
+                ctx.accounts.pool_state.fees.swap_fee_numerator,
+                ctx.accounts.pool_state.fees.swap_fee_denominator,
+                amount_in,
+            )
+            .expect("swap_result"),
+        );
 
-        let transfer_out_amount = swap_result[0]; // delta_x
+        let transfer_out_amount = swap_result.delta_x;
 
         check_slippage(
             &amount_in,
@@ -318,8 +317,7 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
             transfer_out_amount,
         )?;
 
-        // TODO: check all amounts are correct
-        // ctx.accounts.post_transfer_checks(swap_result)?;
+        ctx.accounts.post_transfer_checks(swap_result)?;
     }
 
     Ok(())

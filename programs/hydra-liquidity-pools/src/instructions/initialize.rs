@@ -87,7 +87,7 @@ pub fn handle(
     pool_state_bump: u8,
     lp_token_vault_bump: u8,
     lp_token_mint_bump: u8,
-    compensation_parameter: u16,
+    compensation_parameter: u8,
     fees: Fees,
 ) -> Result<()> {
     let pool_state = &mut ctx.accounts.pool_state;

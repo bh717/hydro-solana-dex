@@ -18,7 +18,7 @@ pub struct PoolState {
     pub token_y_vault_bump: u8,
     pub lp_token_vault_bump: u8,
     pub lp_token_mint_bump: u8,
-    pub compensation_parameter: u16, // Range from (0 - 200) / 100 = c. With only 025 increments
+    pub compensation_parameter: u8, // expects 0, 100, 125, or 150
     pub fees: Fees,
     pub pyth: Option<PythSettings>,
     #[derivative(Default(value = "false"))]

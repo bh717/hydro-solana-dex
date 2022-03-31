@@ -7,10 +7,6 @@
 #[derive(Default, Debug)]
 /// Encodes all results of swapping from a source token to a destination token
 pub struct SwapResult {
-    /// Invariant expressed as k
-    pub k: u64,
-    /// squared_k is the k version used to calculate the lp tokens
-    pub squared_k: u64,
     /// New base token amount expressed as x_new
     pub x_new: u64,
     /// New quote token amount expressed as y_new
@@ -21,4 +17,28 @@ pub struct SwapResult {
     pub delta_y: u64,
     /// Amount of fees deducted from source token before operation
     pub fees: u64,
+}
+
+impl Into<Vec<u64>> for SwapResult {
+    fn into(self) -> Vec<u64> {
+        vec![
+            self.x_new,
+            self.y_new,
+            self.delta_x,
+            self.delta_y,
+            self.fees,
+        ]
+    }
+}
+
+impl From<Vec<u64>> for SwapResult {
+    fn from(vector: Vec<u64>) -> Self {
+        SwapResult {
+            x_new: vector[0],
+            y_new: vector[1],
+            delta_x: vector[2],
+            delta_y: vector[3],
+            fees: vector[4],
+        }
+    }
 }
