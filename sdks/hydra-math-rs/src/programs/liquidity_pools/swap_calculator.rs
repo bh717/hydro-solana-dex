@@ -34,7 +34,7 @@ pub fn swap_x_to_y_hmm(
 
     let result = calculator.swap_x_to_y_hmm(&delta_x);
 
-    Ok(vec![result.delta_x, result.delta_y, result.fees])
+    Ok(result.into())
 }
 
 #[wasm_bindgen]
@@ -63,7 +63,7 @@ pub fn swap_y_to_x_hmm(
 
     let result = calculator.swap_y_to_x_hmm(&delta_y);
 
-    Ok(vec![result.delta_x, result.delta_y, result.fees])
+    Ok(result.into())
 }
 
 /// Swap calculator input parameters
@@ -717,22 +717,26 @@ mod tests {
     fn test_scalar_inputs() {
         // x to y
         {
-            let actual = swap_x_to_y_hmm(
-                37_000000, 6, 126_000000, 6, 100, 3_000000, 6, 0, 0, 3_000000,
-            )
-            .unwrap();
+            let actual: SwapResult = From::from(
+                swap_x_to_y_hmm(
+                    37_000000, 6, 126_000000, 6, 100, 3_000000, 6, 0, 0, 3_000000,
+                )
+                .unwrap(),
+            );
             let expected = 9_207_401u64;
-            assert_eq!(actual[1], expected);
+            assert_eq!(actual.delta_y, expected);
         }
 
         // y to x
         {
-            let actual = swap_y_to_x_hmm(
-                37_000000, 6, 126_000000, 6, 100, 3_000000, 6, 0, 0, 3_000000,
-            )
-            .unwrap();
+            let actual: SwapResult = From::from(
+                swap_y_to_x_hmm(
+                    37_000000, 6, 126_000000, 6, 100, 3_000000, 6, 0, 0, 3_000000,
+                )
+                .unwrap(),
+            );
             let expected = 860_465u64;
-            assert_eq!(actual[0], expected);
+            assert_eq!(actual.delta_x, expected);
         }
     }
 
