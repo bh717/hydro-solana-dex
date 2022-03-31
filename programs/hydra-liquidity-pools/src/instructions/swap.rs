@@ -317,8 +317,7 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
             transfer_out_amount,
         )?;
 
-        // TODO: check all amounts are correct
-        // ctx.accounts.post_transfer_checks(swap_result)?;
+        ctx.accounts.post_transfer_checks(swap_result)?;
     }
 
     Ok(())
