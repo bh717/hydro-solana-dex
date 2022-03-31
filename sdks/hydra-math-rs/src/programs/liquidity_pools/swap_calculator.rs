@@ -267,8 +267,8 @@ impl SwapCalculator {
 
         SwapResult {
             k: k.to_scaled_amount(self.scale.x),
-            x_new: x_new.to_scaled_amount(self.scale.x),
-            y_new: y_new.to_scaled_amount(self.scale.y),
+            x_new: x_new.to_scaled_amount_up(self.scale.x),
+            y_new: y_new.to_scaled_amount_up(self.scale.y),
             delta_x: delta_x.to_scaled_amount(self.scale.x),
             delta_y: delta_y.to_scaled_amount(self.scale.y),
             fees: fees.to_scaled_amount(self.scale.x),
@@ -297,8 +297,8 @@ impl SwapCalculator {
 
         SwapResult {
             k: k.to_scaled_amount(self.scale.x),
-            x_new: x_new.to_scaled_amount(self.scale.x),
-            y_new: y_new.to_scaled_amount(self.scale.y),
+            x_new: x_new.to_scaled_amount_up(self.scale.x),
+            y_new: y_new.to_scaled_amount_up(self.scale.y),
             delta_x: delta_x.to_scaled_amount(self.scale.x),
             delta_y: delta_y.to_scaled_amount(self.scale.y),
             fees: fees.to_scaled_amount(self.scale.y),
