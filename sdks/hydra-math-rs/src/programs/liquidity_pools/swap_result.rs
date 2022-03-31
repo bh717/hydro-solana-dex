@@ -7,8 +7,6 @@
 #[derive(Default, Debug)]
 /// Encodes all results of swapping from a source token to a destination token
 pub struct SwapResult {
-    /// Invariant expressed as k
-    pub k: u64,
     /// New base token amount expressed as x_new
     pub x_new: u64,
     /// New quote token amount expressed as y_new
@@ -36,7 +34,6 @@ impl Into<Vec<u64>> for SwapResult {
 impl From<Vec<u64>> for SwapResult {
     fn from(vector: Vec<u64>) -> Self {
         SwapResult {
-            k: 0,
             x_new: vector[0],
             y_new: vector[1],
             delta_x: vector[2],

@@ -251,8 +251,6 @@ impl SwapCalculator {
         // fees deducted first
         let (fees, amount_ex_fees) = self.compute_fees(delta_x);
 
-        let k = self.compute_k();
-
         let x_new = self.compute_x_new(&amount_ex_fees);
 
         let delta_x = x_new.sub(self.x0).unwrap();
@@ -264,7 +262,6 @@ impl SwapCalculator {
         let x_new = x_new.add(fees).unwrap();
 
         SwapResult {
-            k: k.to_scaled_amount(self.scale.x),
             x_new: x_new.to_scaled_amount_up(self.scale.x),
             y_new: y_new.to_scaled_amount_up(self.scale.y),
             delta_x: delta_x.to_scaled_amount(self.scale.x),
@@ -278,8 +275,6 @@ impl SwapCalculator {
         // fees deducted first
         let (fees, amount_ex_fees) = self.compute_fees(delta_y);
 
-        let k = self.compute_k();
-
         let y_new = self.compute_y_new(&amount_ex_fees);
 
         let delta_y = y_new.sub(self.y0).unwrap();
@@ -291,7 +286,6 @@ impl SwapCalculator {
         let y_new = y_new.add(fees).unwrap();
 
         SwapResult {
-            k: k.to_scaled_amount(self.scale.x),
             x_new: x_new.to_scaled_amount_up(self.scale.x),
             y_new: y_new.to_scaled_amount_up(self.scale.y),
             delta_x: delta_x.to_scaled_amount(self.scale.x),
