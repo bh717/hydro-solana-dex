@@ -1,5 +1,6 @@
 //! Swap calculator
 use crate::decimal::{Add, Compare, Decimal, Div, Ln, Mul, Pow, Sqrt, Sub};
+use crate::programs::fees::fee_calculator::FeeCalculator;
 use crate::programs::liquidity_pools::swap_result::SwapResult;
 use thiserror::Error;
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -76,8 +77,8 @@ pub struct SwapCalculator {
     c: Decimal,
     /// Oracle price relative to x
     i: Decimal,
-    /// Fee as a fraction
-    fee: Decimal,
+    /// Fees as a percentage
+    fee: FeeCalculator,
     /// Scale of the various input amounts/fees/prices
     scale: SwapCalculatorScale,
 }
@@ -89,7 +90,7 @@ impl Default for SwapCalculator {
             y0: Default::default(),
             c: Default::default(),
             i: Default::default(),
-            fee: Default::default(),
+            fee: FeeCalculator::default(),
             scale: Default::default(),
         }
     }
@@ -117,7 +118,7 @@ pub struct SwapCalculatorBuilder {
     pub y0: Option<Decimal>,
     pub c: Option<Decimal>,
     pub i: Option<Decimal>,
-    pub fee: Option<Decimal>,
+    pub fee: Option<FeeCalculator>,
     pub scale: Option<SwapCalculatorScale>,
 }
 
@@ -162,11 +163,13 @@ impl SwapCalculatorBuilder {
     pub fn fee(self, numerator: u64, denominator: u64) -> Self {
         Self {
             fee: Some(if numerator == 0 || denominator == 0 {
-                Decimal::from_u64(0).to_compute_scale()
+                FeeCalculator::new(Decimal::from_u64(0).to_compute_scale())
             } else {
-                Decimal::from_u64(numerator)
-                    .to_compute_scale()
-                    .div(Decimal::from_u64(denominator).to_compute_scale())
+                FeeCalculator::new(
+                    Decimal::from_u64(numerator)
+                        .to_compute_scale()
+                        .div(Decimal::from_u64(denominator).to_compute_scale()),
+                )
             }),
             ..self
         }
@@ -229,7 +232,7 @@ impl SwapCalculator {
         y0: Decimal,
         c: Decimal,
         i: Decimal,
-        fee: Decimal,
+        fee: FeeCalculator,
         scale: SwapCalculatorScale,
     ) -> Self {
         Self {
@@ -249,7 +252,7 @@ impl SwapCalculator {
     /// Compute swap result from x to y using a constant product curve given delta x
     pub fn swap_x_to_y_hmm(&self, delta_x: &Decimal) -> SwapResult {
         // fees deducted first
-        let (fees, amount_ex_fees) = self.compute_fees(delta_x);
+        let (fees, amount_ex_fees) = self.fee.compute_fees(delta_x);
 
         let x_new = self.compute_x_new(&amount_ex_fees);
 
@@ -273,7 +276,7 @@ impl SwapCalculator {
     /// Compute swap result from y to x using a constant product curve given delta y
     pub fn swap_y_to_x_hmm(&self, delta_y: &Decimal) -> SwapResult {
         // fees deducted first
-        let (fees, amount_ex_fees) = self.compute_fees(delta_y);
+        let (fees, amount_ex_fees) = self.fee.compute_fees(delta_y);
 
         let y_new = self.compute_y_new(&amount_ex_fees);
 
@@ -292,28 +295,6 @@ impl SwapCalculator {
             delta_y: delta_y.to_scaled_amount(self.scale.y),
             fees: fees.to_scaled_amount(self.scale.y),
         }
-    }
-
-    /// compute fees amount and amount_ex_fee based on input and settings
-    fn compute_fees(&self, input_amount: &Decimal) -> (Decimal, Decimal) {
-        // default to zero if fee_rate numerator or denominator are 0
-        let zero = Decimal::from_scaled_amount(0, input_amount.scale);
-
-        if self.fee.eq(zero).unwrap() {
-            return (zero, *input_amount);
-        }
-
-        let scaled_fee = self.fee.to_scale(input_amount.scale);
-
-        let fees = input_amount.mul(scaled_fee);
-
-        if fees.gte(*input_amount).unwrap() {
-            //TODO: add some error handling for this if fees are gt input amount
-        }
-
-        let amount_ex_fees = input_amount.sub(fees).expect("amount_ex_fees");
-
-        (fees, amount_ex_fees)
     }
 
     /// Compute delta y using a constant product curve given delta x
@@ -553,7 +534,7 @@ mod tests {
             y0: Decimal::from_scaled_amount(y0, DEFAULT_SCALE_TEST),
             c: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
             i: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
-            fee: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
+            fee: FeeCalculator::new(Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST)),
             scale: SwapCalculatorScale {
                 x: DEFAULT_SCALE_TEST,
                 y: DEFAULT_SCALE_TEST,
@@ -571,7 +552,7 @@ mod tests {
             y0: Decimal::from_scaled_amount(y0, DEFAULT_SCALE_TEST),
             c: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
             i: Decimal::from_scaled_amount(i, DEFAULT_SCALE_TEST),
-            fee: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
+            fee: FeeCalculator::new(Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST)),
             scale: SwapCalculatorScale {
                 x: DEFAULT_SCALE_TEST,
                 y: DEFAULT_SCALE_TEST,
@@ -589,7 +570,7 @@ mod tests {
             y0: Decimal::from_scaled_amount(y0, DEFAULT_SCALE_TEST),
             c,
             i: Decimal::from_scaled_amount(i, DEFAULT_SCALE_TEST),
-            fee: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
+            fee: FeeCalculator::new(Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST)),
             scale: SwapCalculatorScale {
                 x: DEFAULT_SCALE_TEST,
                 y: DEFAULT_SCALE_TEST,
@@ -618,7 +599,7 @@ mod tests {
             y0: Decimal::from_scaled_amount(y0, DEFAULT_SCALE_TEST),
             c,
             i: Decimal::from_scaled_amount(i, DEFAULT_SCALE_TEST),
-            fee: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
+            fee: FeeCalculator::new(Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST)),
             scale: SwapCalculatorScale {
                 x: DEFAULT_SCALE_TEST,
                 y: DEFAULT_SCALE_TEST,
@@ -731,7 +712,7 @@ mod tests {
                 y0: Decimal::from_scaled_amount(126_000000, DEFAULT_SCALE_TEST),
                 c: Decimal::from_scaled_amount(1_000000, DEFAULT_SCALE_TEST),
                 i: Decimal::from_scaled_amount(3_000000, DEFAULT_SCALE_TEST),
-                fee: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
+                fee: FeeCalculator::new(Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST)),
                 scale: SwapCalculatorScale {
                     x: DEFAULT_SCALE_TEST,
                     y: DEFAULT_SCALE_TEST,
@@ -759,7 +740,7 @@ mod tests {
                 y0: Decimal::from_u128(33).to_compute_scale(),
                 c: Decimal::from_u128(0).to_compute_scale(),
                 i: Decimal::from_u128(1).to_compute_scale(),
-                fee: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
+                fee: FeeCalculator::new(Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST)),
                 scale: SwapCalculatorScale {
                     x: DEFAULT_SCALE_TEST,
                     y: DEFAULT_SCALE_TEST,
@@ -786,7 +767,7 @@ mod tests {
                 y0: Decimal::from_u128(193).to_compute_scale(),
                 c: Decimal::from_u128(0).to_compute_scale(),
                 i: Decimal::from_u128(1).to_compute_scale(),
-                fee: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
+                fee: FeeCalculator::new(Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST)),
                 scale: SwapCalculatorScale {
                     x: DEFAULT_SCALE_TEST,
                     y: DEFAULT_SCALE_TEST,
@@ -813,7 +794,7 @@ mod tests {
                 y0: Decimal::from_u128(1000).to_compute_scale(),
                 c: Decimal::from_u128(0).to_compute_scale(),
                 i: Decimal::from_u128(200).to_compute_scale(),
-                fee: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
+                fee: FeeCalculator::new(Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST)),
                 scale: SwapCalculatorScale {
                     x: DEFAULT_SCALE_TEST,
                     y: DEFAULT_SCALE_TEST,
