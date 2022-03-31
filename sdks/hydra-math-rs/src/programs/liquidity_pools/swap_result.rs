@@ -22,3 +22,29 @@ pub struct SwapResult {
     /// Amount of fees deducted from source token before operation
     pub fees: u64,
 }
+
+impl Into<Vec<u64>> for SwapResult {
+    fn into(self) -> Vec<u64> {
+        vec![
+            self.x_new,
+            self.y_new,
+            self.delta_x,
+            self.delta_y,
+            self.fees,
+        ]
+    }
+}
+
+impl From<Vec<u64>> for SwapResult {
+    fn from(vector: Vec<u64>) -> Self {
+        SwapResult {
+            k: 0,
+            squared_k: 0,
+            x_new: vector[0],
+            y_new: vector[1],
+            delta_x: vector[2],
+            delta_y: vector[3],
+            fees: vector[4],
+        }
+    }
+}
