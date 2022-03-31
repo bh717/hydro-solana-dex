@@ -7,6 +7,7 @@ use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
 use anchor_spl::token::{Mint, Token, TokenAccount, Transfer};
 use hydra_math_rs::programs::liquidity_pools::swap_calculator::{swap_x_to_y_hmm, swap_y_to_x_hmm};
+use hydra_math_rs::programs::liquidity_pools::swap_result::SwapResult;
 
 #[derive(Accounts)]
 pub struct Swap<'info> {
@@ -102,12 +103,6 @@ impl<'info> Swap<'info> {
             return Err(ErrorCode::InvalidVaultToSwapResultAmounts.into());
         }
 
-        // TODO: Broken for some random reason... Come back to laterz
-        // if result.squared_k_down() != self.lp_token_mint.supply {
-        //     msg!("squared_k_down: {:?}", result.squared_k_down());
-        //     msg!("lp_token_mint.supply: {:?}", self.lp_token_mint.supply);
-        //     return Err(ErrorCode::InvalidVaultToSwapResultAmounts.into());
-        // }
         Ok(())
     }
 
