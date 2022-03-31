@@ -678,7 +678,7 @@ mod tests {
 
     #[test]
     fn test_scalar_inputs() {
-        // x to y
+        // x to y (given delta X what is delta Y?)
         {
             let actual: SwapResult = From::from(
                 swap_x_to_y_hmm(
@@ -690,7 +690,7 @@ mod tests {
             assert_eq!(actual.delta_y, expected);
         }
 
-        // y to x
+        // y to x (given delta Y what is delta X?)
         {
             let actual: SwapResult = From::from(
                 swap_y_to_x_hmm(
