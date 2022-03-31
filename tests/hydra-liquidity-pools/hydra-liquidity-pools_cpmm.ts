@@ -18,7 +18,7 @@ function orderKeyPairs(a: Keypair, b: Keypair) {
   return [a, b];
 }
 
-describe("hydra-liquidity-pool", () => {
+describe("hydra-liquidity-pool-cpmm", () => {
   // Configure the client to use the local cluster.
   const provider = anchor.Provider.env();
   anchor.setProvider(provider);

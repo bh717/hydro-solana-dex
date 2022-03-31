@@ -142,11 +142,12 @@ jobs:
           status: REACT-CI-FAILED
           color: danger
 
-      - id: ipfs-deploy
-        name: ipfs-deploy
-        uses: aquiladev/ipfs-action@v0.2.0
-        with:
-          path: ./app/build
+      # TODO: ipfs deployments are currently broken.
+      #      - id: ipfs-deploy
+      #        name: ipfs-deploy
+      #        uses: aquiladev/ipfs-action@v0.2.0
+      #        with:
+      #          path: ./app/build
 
       - run: echo ${{steps.ipfs-deploy.outputs.cid}}
 

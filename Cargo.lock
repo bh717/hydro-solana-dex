@@ -758,6 +758,7 @@ dependencies = [
  "derivative",
  "hydra-math-rs",
  "num",
+ "pyth-client",
 ]
 
 [[package]]
@@ -1253,6 +1254,22 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "pyth-client"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f779e98b8c8016d0c1409247a204bd4fcdea8b67ceeef545f04e324d66c49e52"
+dependencies = [
+ "borsh 0.9.2",
+ "borsh-derive 0.9.2",
+ "bytemuck",
+ "num-derive",
+ "num-traits",
+ "serde",
+ "solana-program",
+ "thiserror",
 ]
 
 [[package]]

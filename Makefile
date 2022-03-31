@@ -48,10 +48,14 @@ install_project_deps:
 
 # build
 build:
+	yarn lint
 	./scripts/build.sh
 	yarn turbo run build
 
 test: build
+	yarn test
+	cargo fmt -- --check
+	cargo check
 	cargo test
 	anchor test
 
@@ -64,7 +68,7 @@ clean:
 	cargo clean
 
 validator:
-	@pgrep "solana-test-val" || solana-test-validator &
+	@pgrep "solana-test-val" || solana-test-validator -q -r -c ALP8SdU9oARYVLgLR7LrqMNCYBnhtnQz1cj6bwgwQmgj H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG --url https://api.mainnet-beta.solana.com &
 
 validator-kill:
 	@pkill -9 "solana-test-val"
@@ -93,18 +97,12 @@ watch:
 
 # used for anchor ci
 anchor-ci:
-	solana -V
-	anchor -V
+	@solana -V
+	@anchor -V
 	solana-keygen new --no-bip39-passphrase || true
-	cargo fmt -- --check
-	cargo check
-	cargo test
 	yarn --frozen-lockfile
-	./scripts/build.sh
-	yarn lint
-	yarn turbo run build --concurrency=1
-	yarn test
-	anchor test
+#	yarn turbo run build --concurrency=1
+	make test
 
 # used for react/frontend ci
 react-ci:
@@ -119,7 +117,7 @@ react-ci:
 
 # start the local development stack
 start:
-	solana-test-validator --quiet --reset &
+	make validator
 	yarn
 	./scripts/build.sh
 	anchor deploy

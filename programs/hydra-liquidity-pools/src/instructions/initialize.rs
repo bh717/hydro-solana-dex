@@ -2,7 +2,7 @@ use crate::constants::*;
 use crate::errors::ErrorCode;
 use crate::state::fees::Fees;
 use crate::state::pool_state::*;
-use crate::DEBUG_MODE;
+use crate::{pyth_accounts_security_check, DEBUG_MODE};
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use std::mem;
@@ -119,5 +119,10 @@ pub fn handle(
     fees.validate()?;
     pool_state.fees = fees;
 
+    pool_state.pyth = pyth_accounts_security_check(&ctx.remaining_accounts)?;
+
+    if pool_state.debug {
+        msg!("pool_state: {:?}", pool_state);
+    }
     Ok(())
 }

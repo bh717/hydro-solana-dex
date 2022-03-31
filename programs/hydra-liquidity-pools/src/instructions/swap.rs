@@ -1,6 +1,7 @@
 use crate::constants::*;
 use crate::errors::ErrorCode;
 use crate::state::pool_state::PoolState;
+use crate::utils::pyth::get_and_update_last_known_price;
 use anchor_lang::prelude::*;
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
@@ -157,10 +158,26 @@ impl<'info> Swap<'info> {
         let cpi_program = self.token_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
     }
+
+    /// Get saved oracle price exponent if oracle settings exist for the pool_state
+    pub fn get_oracle_price_exponent(&self) -> Option<u8> {
+        if let Some(pyth_settings) = &self.pool_state.pyth {
+            return Some(pyth_settings.price_exponent);
+        }
+        None
+    }
+
+    /// Get Oracle price from either a live feed or last_known_price if the feed is offline.
+    pub fn get_oracle_price(&mut self, remaining_accounts: &[AccountInfo]) -> Option<u64> {
+        if remaining_accounts.len() == 1 {
+            return get_and_update_last_known_price(&remaining_accounts[0], &mut self.pool_state);
+        }
+        None
+    }
 }
 
 // security check mint addresses are both correct as per the pool state object.
-pub fn check_mint_addresses(ctx: &Context<Swap>) -> Result<()> {
+pub fn mint_addresses_security_check(ctx: &Context<Swap>) -> Result<()> {
     let mut user_to_token_valid = false;
     let mut user_from_token_valid = false;
 
@@ -192,9 +209,10 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
     let transfer_in_amount = amount_in;
 
     // signer
+    let lp_token_mint = ctx.accounts.pool_state.lp_token_mint.clone();
     let seeds = &[
         POOL_STATE_SEED,
-        ctx.accounts.pool_state.lp_token_mint.as_ref(),
+        lp_token_mint.as_ref(),
         &[ctx.accounts.pool_state.pool_state_bump],
     ];
     let signer = [&seeds[..]];
@@ -213,9 +231,10 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
             ctx.accounts.token_y_vault.amount,
             ctx.accounts.token_y_mint.decimals,
             ctx.accounts.pool_state.compensation_parameter,
-            // TODO: get oracle price i and scale from pyth
-            0,
-            0,
+            ctx.accounts
+                .get_oracle_price(&ctx.remaining_accounts)
+                .unwrap_or(0),
+            ctx.accounts.get_oracle_price_exponent().unwrap_or(0),
             ctx.accounts.pool_state.fees.swap_fee_numerator,
             ctx.accounts.pool_state.fees.swap_fee_denominator,
             amount_in,
@@ -263,9 +282,10 @@ pub fn handle(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Re
             ctx.accounts.token_y_vault.amount,
             ctx.accounts.token_y_mint.decimals,
             ctx.accounts.pool_state.compensation_parameter,
-            // TODO: get oracle price i and scale from pyth
-            0,
-            0,
+            ctx.accounts
+                .get_oracle_price(&ctx.remaining_accounts)
+                .unwrap_or(0),
+            ctx.accounts.get_oracle_price_exponent().unwrap_or(0),
             ctx.accounts.pool_state.fees.swap_fee_numerator,
             ctx.accounts.pool_state.fees.swap_fee_denominator,
             amount_in,
