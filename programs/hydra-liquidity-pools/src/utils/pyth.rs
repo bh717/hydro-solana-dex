@@ -13,7 +13,7 @@ pub struct PythSettings {
     pub pyth_product_account: Pubkey,
     pub pyth_price_account: Pubkey,
     pub last_known_price: i64, // used to store the price as pyth can sometime return a None on: price_account.get_current_price() calls lacking enough valid publishes on a time slot.
-    pub last_known_price_slot: u64, // TODO: will possible need this to check how long ago the last_known_price was valid
+    pub last_known_price_slot: u64,
     pub price_exponent: u8,
 }
 
