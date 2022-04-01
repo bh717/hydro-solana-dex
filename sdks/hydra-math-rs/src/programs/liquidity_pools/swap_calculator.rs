@@ -33,7 +33,9 @@ pub fn swap_x_to_y_hmm(
 
     let delta_x = Decimal::from_scaled_amount(amount, x_scale).to_compute_scale();
 
-    let result = calculator.swap_x_to_y_hmm(&delta_x);
+    let result = calculator
+        .swap_x_to_y_hmm(&delta_x)
+        .expect("failed to swap x to y");
 
     Ok(result.into())
 }
@@ -62,7 +64,9 @@ pub fn swap_y_to_x_hmm(
 
     let delta_y = Decimal::from_scaled_amount(amount, y_scale).to_compute_scale();
 
-    let result = calculator.swap_y_to_x_hmm(&delta_y);
+    let result = calculator
+        .swap_y_to_x_hmm(&delta_y)
+        .expect("failed to swap y to x");
 
     Ok(result.into())
 }
@@ -223,6 +227,8 @@ impl SwapCalculatorBuilder {
 pub enum SwapCalculatorError {
     #[error("Failed to build struct due to input provided")]
     BuilderIncomplete,
+    #[error("Negative input not allowed")]
+    NegativeInput,
 }
 
 impl SwapCalculator {
@@ -250,8 +256,11 @@ impl SwapCalculator {
     }
 
     /// Compute swap result from x to y using a constant product curve given delta x
-    pub fn swap_x_to_y_hmm(&self, delta_x: &Decimal) -> SwapResult {
-        // fees deducted first
+    pub fn swap_x_to_y_hmm(&self, delta_x: &Decimal) -> Result<SwapResult, SwapCalculatorError> {
+        if delta_x.negative {
+            return Err(SwapCalculatorError::NegativeInput.into());
+        }
+
         let (fees, amount_ex_fees) = self.fee.compute_fees(delta_x);
 
         let x_new = self.compute_x_new(&amount_ex_fees);
@@ -264,18 +273,21 @@ impl SwapCalculator {
 
         let x_new = x_new.add(fees).unwrap();
 
-        SwapResult {
+        Ok(SwapResult {
             x_new: x_new.to_scaled_amount_up(self.scale.x),
             y_new: y_new.to_scaled_amount_up(self.scale.y),
             delta_x: delta_x.to_scaled_amount(self.scale.x),
             delta_y: delta_y.to_scaled_amount(self.scale.y),
             fees: fees.to_scaled_amount(self.scale.x),
-        }
+        })
     }
 
     /// Compute swap result from y to x using a constant product curve given delta y
-    pub fn swap_y_to_x_hmm(&self, delta_y: &Decimal) -> SwapResult {
-        // fees deducted first
+    pub fn swap_y_to_x_hmm(&self, delta_y: &Decimal) -> Result<SwapResult, SwapCalculatorError> {
+        if delta_y.negative {
+            return Err(SwapCalculatorError::NegativeInput.into());
+        }
+
         let (fees, amount_ex_fees) = self.fee.compute_fees(delta_y);
 
         let y_new = self.compute_y_new(&amount_ex_fees);
@@ -288,13 +300,13 @@ impl SwapCalculator {
 
         let y_new = y_new.add(fees).unwrap();
 
-        SwapResult {
+        Ok(SwapResult {
             x_new: x_new.to_scaled_amount_up(self.scale.x),
             y_new: y_new.to_scaled_amount_up(self.scale.y),
             delta_x: delta_x.to_scaled_amount(self.scale.x),
             delta_y: delta_y.to_scaled_amount(self.scale.y),
             fees: fees.to_scaled_amount(self.scale.y),
-        }
+        })
     }
 
     /// Compute delta y using a constant product curve given delta x
