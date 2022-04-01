@@ -642,6 +642,7 @@ mod tests {
             // ((2**37) - 1) = 137,438,953,471 max
             // log2(10^6) = 20 bits for 6 decimal places, 44 bits for integer
             // ((2**44) - 1) = 17,592,186,044,415 max
+            // TODO: why do we lose so much accuracy after 10^15 ?
             x0 in 10u64.pow(3)..10u64.pow(15),
             y0 in 10u64.pow(3)..10u64.pow(15),
             c in (0..=3usize).prop_map(|v| ["0.0", "1.0", "1.25", "1.5"][v]),
