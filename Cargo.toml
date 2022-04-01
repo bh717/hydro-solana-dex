@@ -3,9 +3,5 @@ members = [
     "programs/*",
     "sdks/hydra-math-rs",
     "sdks/wasm-loader-ts/wasm-test",
-    # libs/* To be deprecated
-    # "libs/math/hmm",
-    # "libs/math/prototypes",
-    # "libs/math/sim",
     # "tools/*" # Removed until we have the space to build this out.
 ]
