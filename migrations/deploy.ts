@@ -125,33 +125,6 @@ async function setupLiquidityPoolState(provider: anchor.Provider, tokens: any) {
     atas.push(await createMintAssociatedVaultFromAsset(sdk, asset, amount));
   }
 
-  // console.log("Creating usdc...");
-  // const [, usdcATA] = await sdk.common.createMintAndAssociatedVault(
-  //   tokens.usdc,
-  //   100_000_000n * 1_000_000n,
-  //   sdk.ctx.provider.wallet.publicKey,
-  //   decimals: tokens.
-  // );
-  // console.log(`usdcATA: ${usdcATA}\n`);
-  // console.log("Creating wbtc...");
-  // const [, wbtcATA] = await sdk.common.createMintAndAssociatedVault(
-  //   tokens.wbtc,
-  //   100_000_000n * 100_000_000n
-  // );
-  // console.log(`wbtcATA: ${wbtcATA}\n`);
-  // console.log("Creating weth...");
-  // const [, wethATA] = await sdk.common.createMintAndAssociatedVault(
-  //   tokens.weth,
-  //   100_000_000n * 1_000_000_000n
-  // );
-  // console.log(`wethATA: ${wethATA}\n`);
-  // console.log("Creating sol...");
-  // const [, solATA] = await sdk.common.createMintAndAssociatedVault(
-  //   tokens.sol,
-  //   100_000_000n * 1_000_000_000n
-  // );
-  // console.log(`solATA: ${solATA}\n`);
-
   const fees = {
     swapFeeNumerator: 1n,
     swapFeeDenominator: 500n,
@@ -175,8 +148,8 @@ async function setupLiquidityPoolState(provider: anchor.Provider, tokens: any) {
   await sdk.liquidityPools.addLiquidity(
     tokens.wbtc.publicKey,
     tokens.usdc.publicKey,
-    2_084_000n,
-    100_000_000_000n,
+    1_000n * 1_000_000_000n,
+    45_166_800n * 1_000_000n,
     0n
   );
 
@@ -189,8 +162,8 @@ async function setupLiquidityPoolState(provider: anchor.Provider, tokens: any) {
   await sdk.liquidityPools.addLiquidity(
     tokens.weth.publicKey,
     tokens.usdc.publicKey,
-    1_000_000n * 1_000_000_000n,
-    1_000_000n * 1_000_000n,
+    1_000n * 1_000_000_000n,
+    3_281_000n * 1_000_000n,
     0n
   );
   // Load up a trader account
