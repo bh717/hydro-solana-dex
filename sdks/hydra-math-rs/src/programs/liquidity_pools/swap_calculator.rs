@@ -334,7 +334,7 @@ impl SwapCalculator {
         let x_new = self.compute_x_new(delta_x);
         let k = self.compute_k();
 
-        if self.i.value == 0 {
+        if self.i.is_zero() {
             // Condition 0 - use AMM
             // Oracle price is zero, return early.
             return self.compute_delta_y_amm(delta_x);
@@ -371,7 +371,7 @@ impl SwapCalculator {
         let y_new = self.compute_y_new(delta_y);
         let k = self.compute_k();
 
-        if self.i.value == 0 {
+        if self.i.is_zero() {
             // Condition 0 - use AMM
             // Oracle price is zero, return early.
             return self.compute_delta_x_amm(delta_y);
