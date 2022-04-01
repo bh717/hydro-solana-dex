@@ -43,7 +43,6 @@ export function useCalculateSwapResult(
         );
 
       const out = { amount: direction === "xy" ? deltaY : deltaX, fees };
-      // if reverse we just want
       return out;
     },
     [
