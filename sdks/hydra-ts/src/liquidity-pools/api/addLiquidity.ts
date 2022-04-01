@@ -27,6 +27,7 @@ export function addLiquidity(ctx: Ctx) {
       lpTokenAssociatedAccount,
       poolState,
     } = await accounts.getAccountLoaders(tokenXMint, tokenYMint);
+    console.log({ tokenXMaxAmount, tokenYMaxAmount, expectedLpTokens });
 
     await program.rpc.addLiquidity(
       toBN(tokenXMaxAmount),

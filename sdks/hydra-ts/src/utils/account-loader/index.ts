@@ -3,12 +3,14 @@ import { Ctx } from "../../types";
 import { findAssociatedTokenAddress } from "..";
 import * as TokenAccount from "../../types/token-account";
 import * as TokenMint from "../../types/token-mint";
-import { Observable } from "rxjs";
-import { withBump, withBalance } from "./utils";
-import { Getter, Parser, IAccountLoader } from "./types";
-
+import { Observable, Subject } from "rxjs";
+import { withBump, withTokenMethods } from "./utils";
+import { Getter, Parser, IAccountLoader, AccountData } from "./types";
 export * from "./types";
 type KeyOrGetter = Getter<PublicKey> | PublicKey;
+
+// TODO: maintain a list of streams by public key to avoid setting up too many streams
+
 export function AccountLoader<T>(
   ctx: Ctx,
   getter: KeyOrGetter,
@@ -19,9 +21,10 @@ export function AccountLoader<T>(
 
   async function info(commitment?: Commitment) {
     const key = await getKey();
+
     let info = await ctx.connection.getAccountInfo(key, commitment);
     if (info === null) {
-      throw new Error("info couldnt be fetched");
+      throw new Error("info couldnt be fetched for " + key.toString());
     }
 
     return { ...info, data: accountParser(info) };
@@ -64,12 +67,14 @@ export function AccountLoader<T>(
         });
       };
     },
-    stream(commitment?: Commitment) {
+    stream(commitment?: Commitment): Observable<AccountData<T>> {
       return new Observable((subscriber) => {
+        console.log("Getting initial stream state");
         info(commitment)
           .then(async (account) => {
             if (account) {
               const pubkey = await key();
+              console.log("Received account from initial info()", `${pubkey}`);
               subscriber.next({
                 account,
                 pubkey,
@@ -77,6 +82,7 @@ export function AccountLoader<T>(
             }
           })
           .catch(async (err) => {
+            console.log(err.message);
             subscriber.next();
           });
         let id: number;
@@ -85,12 +91,20 @@ export function AccountLoader<T>(
           id = ctx.connection.onAccountChange(
             pubkey,
             async (rawAccount: AccountInfo<Buffer> | null) => {
+              console.log("Stream received data..." + rawAccount);
+
               if (rawAccount) {
                 const account = {
                   ...rawAccount,
                   data: accountParser(rawAccount),
                 };
-                subscriber.next({ pubkey: await key(), account });
+                const pubkey = await key();
+
+                console.log("Stream received account update", {
+                  pubkey,
+                  account,
+                });
+                subscriber.next({ pubkey, account });
               } else {
                 subscriber.next();
               }
@@ -119,16 +133,22 @@ export function PDAToken(
   programId: PublicKey,
   seeds: (PublicKey | string)[]
 ) {
-  return withBalance(PDA(ctx, programId, seeds, TokenAccount.Parser));
+  return withTokenMethods(PDA(ctx, programId, seeds, TokenAccount.Parser));
 }
 
+export type PDATokenLoader = ReturnType<typeof PDAToken>;
+
 export function Token(ctx: Ctx, getter: KeyOrGetter) {
-  return withBalance(AccountLoader(ctx, getter, TokenAccount.Parser));
+  return withTokenMethods(AccountLoader(ctx, getter, TokenAccount.Parser));
 }
+
+export type TokenLoader = ReturnType<typeof Token>;
 
 export function Mint(ctx: Ctx, getter: KeyOrGetter) {
   return AccountLoader(ctx, getter, TokenMint.Parser);
 }
+
+export type MintLoader = ReturnType<typeof Mint>;
 
 export function PDAMint(
   ctx: Ctx,
@@ -138,6 +158,8 @@ export function PDAMint(
   return PDA(ctx, programId, seeds, TokenMint.Parser);
 }
 
+export type PDAMintLoader = ReturnType<typeof PDAMint>;
+
 export function AssociatedToken(
   ctx: Ctx,
   mint: PublicKey,
@@ -145,6 +167,7 @@ export function AssociatedToken(
 ) {
   return Token(ctx, () => findAssociatedTokenAddress(walletAddress, mint));
 }
+export type AssociatedTokenLoader = ReturnType<typeof AssociatedToken>;
 
 export function PDA<T>(
   ctx: Ctx,
@@ -157,3 +180,4 @@ export function PDA<T>(
     (keyGetter) => AccountLoader<T>(ctx, keyGetter, parser)
   );
 }
+export type PDALoader = ReturnType<typeof PDA>;

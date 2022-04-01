@@ -61,7 +61,7 @@ describe("HydraSDK", () => {
     it("should emit a value on subscription", async () => {
       const { account, mint, owner } = await setup();
       const [val] = await new Promise<
-        AccountLoader.AccountPubkey<TokenAccount>[]
+        AccountLoader.AccountData<TokenAccount>[]
       >((resolve) => {
         account.stream().pipe(take(1), toArray()).subscribe(resolve);
       });
@@ -75,7 +75,7 @@ describe("HydraSDK", () => {
       const { account, vault, token } = await setup();
 
       const [val1, val2] = await new Promise<
-        AccountLoader.AccountPubkey<TokenAccount>[]
+        AccountLoader.AccountData<TokenAccount>[]
       >((resolve) => {
         account.stream().pipe(take(2), toArray()).subscribe(resolve);
 
@@ -84,6 +84,122 @@ describe("HydraSDK", () => {
 
       assert.strictEqual(`${val1.account.data.amount}`, `0`);
       assert.strictEqual(`${val2.account.data.amount}`, `1000`);
+    });
+  });
+
+  describe("calculateSwap", () => {
+    it("swapYToXHmm", async () => {
+      type Test = {
+        input: [
+          bigint,
+          number,
+          bigint,
+          number,
+          number,
+          bigint,
+          number,
+          bigint,
+          bigint,
+          bigint
+        ];
+        output: [bigint, bigint, bigint];
+      };
+      const tests: Test[] = [
+        {
+          input: [
+            1000000000000000n,
+            9,
+            1000000000000n,
+            6,
+            0,
+            0n,
+            0,
+            1n,
+            500n,
+            1000000n,
+          ],
+          output: [0n, 0n, 0n],
+        },
+      ];
+
+      for (let { input, output } of tests) {
+        await sdk.liquidityPools.swapYToXHmm(...input);
+      }
+    });
+    it("swapXToYHmm", async () => {
+      type Test = {
+        name: string;
+        input: [
+          bigint,
+          number,
+          bigint,
+          number,
+          number,
+          bigint,
+          number,
+          bigint,
+          bigint,
+          bigint
+        ];
+        dir: "xy" | "yx";
+        output: [bigint, bigint, bigint, bigint, bigint];
+      };
+      const tests: Test[] = [
+        {
+          name: "forward",
+          input: [
+            1000000000000000n,
+            9,
+            1000000000000n,
+            6,
+            0,
+            0n,
+            0,
+            1n,
+            500n,
+            1000000n,
+          ],
+          output: [
+            1000001000000000n, // x_new
+            999999002001n, // y_new
+            998000000n, // delta_x
+            997999n, // delta_y
+            2000000n, // fees
+          ],
+          dir: "xy",
+        },
+        {
+          name: "backward",
+          input: [
+            1000000000000000n,
+            9,
+            1000000000000n,
+            6,
+            0,
+            0n,
+            0,
+            1n,
+            500n,
+            1000000000n,
+          ],
+          output: [
+            999002995010980n, // x_new
+            1001000000000n, // y_new
+            997004989020n, // delta_x
+            998000000n, // delta_y
+            2000000n, // fees
+          ],
+          dir: "yx",
+        },
+      ];
+
+      for (let { name, input, dir, output } of tests) {
+        const ans =
+          dir === "xy"
+            ? await sdk.liquidityPools.swapXToYHmm(...input)
+            : await sdk.liquidityPools.swapYToXHmm(...input);
+        assert.deepStrictEqual(ans, output);
+      }
     });
   });
 });

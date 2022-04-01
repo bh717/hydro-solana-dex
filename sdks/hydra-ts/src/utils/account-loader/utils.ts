@@ -1,4 +1,5 @@
 import { PublicKey } from "@solana/web3.js";
+import * as AccountLoader from ".";
 import {
   IAccountLoader,
   Getter,
@@ -25,7 +26,7 @@ export function withBump<T extends IAccountLoader<any>>(
   };
 }
 
-export function withBalance<T extends IAccountLoader<any>>(
+export function withTokenMethods<T extends IAccountLoader<any>>(
   loader: T
 ): T & ITokenAccountLoader {
   return {
@@ -37,6 +38,13 @@ export function withBalance<T extends IAccountLoader<any>>(
         .connection.getTokenAccountBalance(await loader.key(), commitment);
 
       return BigInt(bal.value.amount);
+    },
+
+    async mint() {
+      const key = await loader.key();
+      const token = AccountLoader.Token(loader.ctx(), key);
+      const info = await token.info();
+      return AccountLoader.Mint(loader.ctx(), info.data.mint);
     },
   };
 }

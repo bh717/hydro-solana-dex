@@ -10,6 +10,10 @@ export function prepareWasmResult<T>(o: T): Omit<T, "free"> {
   // If bigint or number or other type of value just return it
   if (typeof o !== "object") return o;
 
+  if (isTypedArray(o)) {
+    return Array.from(o) as any as Omit<T, "free">;
+  }
+
   // Our object is a struct
   const oldObj = o as any;
   const newObj = {} as any;
@@ -60,6 +64,10 @@ function filterPropertyNames(names: string[]) {
     valueOf: 1,
   };
   return names.filter((name) => !propMap[name]);
+}
+
+function isTypedArray(val: any): val is BigUint64Array {
+  return typeof val.BYTES_PER_ELEMENT !== "undefined";
 }
 
 function getRustStructPropKeys(o: any) {

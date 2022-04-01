@@ -39,6 +39,7 @@ export function loadWasm<T extends FnBag>(instance: T): WasmLoaderReturn<T> {
         // last switch rethrow
         if (err.message === "unreachable") {
           const { stack, message } = err;
+          console.log(err);
           err = new Error(
             `An unknown error was thrown while executing the '${name}()' handler in your wasm module.`
           );

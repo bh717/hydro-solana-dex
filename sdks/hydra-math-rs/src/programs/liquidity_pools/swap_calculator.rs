@@ -31,7 +31,7 @@ pub fn swap_x_to_y_hmm(
         .scale(x_scale, y_scale)
         .build()?;
 
-    let delta_x = Decimal::from_scaled_amount(amount, 6).to_compute_scale();
+    let delta_x = Decimal::from_scaled_amount(amount, x_scale).to_compute_scale();
 
     let result = calculator.swap_x_to_y_hmm(&delta_x);
 
@@ -60,7 +60,7 @@ pub fn swap_y_to_x_hmm(
         .scale(x_scale, y_scale)
         .build()?;
 
-    let delta_y = Decimal::from_scaled_amount(amount, 6).to_compute_scale();
+    let delta_y = Decimal::from_scaled_amount(amount, y_scale).to_compute_scale();
 
     let result = calculator.swap_y_to_x_hmm(&delta_y);
 
@@ -679,6 +679,25 @@ mod tests {
     #[test]
     fn test_scalar_inputs() {
         // x to y
+        {
+            let actual = swap_x_to_y_hmm(
+                1000000_000000000, // 1 million x tokens
+                9,
+                1000000_000000, // 1 million y tokens
+                6,
+                0,
+                0,
+                0,
+                1,
+                500,
+                9_979900400, // just under 10 X tokens
+            )
+            .unwrap();
+            let expected = 9_59841;
+            let result = SwapResult::from(actual);
+            assert_eq!(result.delta_y, 9_59841);
+        }
+
         {
             let actual: SwapResult = From::from(
                 swap_x_to_y_hmm(
