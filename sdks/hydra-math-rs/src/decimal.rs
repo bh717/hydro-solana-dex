@@ -680,12 +680,7 @@ fn log_table_value(
     t_value: Decimal,
     log_table_col: usize,
 ) -> (Decimal, Decimal, u128) {
-    // TODO: figure out where the t_value==0 is coming from on chain
-    let s_value = if t_value.value == 0 {
-        Decimal::from_u64(0).to_scale(s_value.scale)
-    } else {
-        s_value.div(t_value)
-    };
+    let s_value = s_value.div(t_value);
     let place_value = 10u128.checked_pow((log_table_col + 1) as u32).unwrap();
     let f_value = Decimal::new(place_value, s_value.scale, false);
     let t_value = s_value.mul(f_value).div(f_value);
