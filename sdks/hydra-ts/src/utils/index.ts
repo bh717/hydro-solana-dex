@@ -42,7 +42,6 @@ export function toBigInt(amount: BN): BigInt {
 
 export function toBN(amount: BigInt): BN {
   const str = amount.toString();
-  console.log({ str });
   return new BN(str);
 }
 

@@ -198,6 +198,11 @@ async function setupLiquidityPoolState(provider: anchor.Provider, tokens: any) {
     `keys/localnet/users/usrQpqgkvUjPgAVnGm8Dk3HmX3qXr1w4gLJMazLNyiW.json`
   );
 
+  await provider.connection.confirmTransaction(
+    await provider.connection.requestAirdrop(trader.publicKey, 10000000000),
+    "confirmed"
+  );
+
   // 3. Transfer some funds to the trader account
   const traderUsdc = await sdk.common.createAssociatedAccount(
     tokens.usdc.publicKey,
