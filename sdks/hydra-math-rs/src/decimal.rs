@@ -309,6 +309,15 @@ impl DivScale<Decimal> for Decimal {
 /// Calculate the power of a [Decimal] with another [Decimal] as the exponent.
 impl Pow<Decimal> for Decimal {
     fn pow(self, exp: Decimal) -> Self {
+        if exp.negative {
+            let new_exp = Decimal::new(exp.value, exp.scale, false); // flip the sign of exp
+
+            // then return 1 / x^new_exp
+            return Decimal::from_u64(1)
+                .to_scale(self.scale)
+                .div(self.pow(new_exp));
+        }
+
         // 0.25 to scale
         let divisor = Decimal::from_u64(1)
             .to_scale(self.scale)
@@ -1591,8 +1600,22 @@ mod test {
 
     #[test]
     fn test_pow_with_decimal_exp() {
+        // 42^-0.25 = 0.3928146509
+        let base = Decimal::new(42_000000, 6, false);
+        let exp = Decimal::new(250000, 6, true);
+        let result = base.pow(exp);
+        let expected = Decimal::new(392814, 6, false);
+        assert_eq!(result, expected);
+
+        // 42^-1 = 0.02380952381
+        let base = Decimal::new(42_000000, 6, false);
+        let exp = Decimal::new(1_000000, 6, true);
+        let result = base.pow(exp);
+        let expected = Decimal::new(23809, 6, false);
+        assert_eq!(result, expected);
+
         // 42^0 = 1
-        let base = Decimal::new(42, 6, false);
+        let base = Decimal::new(42_000000, 6, false);
         let exp = Decimal::new(0, 6, false);
         let result = base.pow(exp);
         let expected = Decimal::new(1_000000, 6, false);
