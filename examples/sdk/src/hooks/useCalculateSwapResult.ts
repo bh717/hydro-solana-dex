@@ -3,24 +3,21 @@ import { useCallback, useEffect, useState } from "react";
 import { HydraSDK } from "hydra-ts";
 import { Asset } from "../types";
 import { getDirection } from "./useSwap";
+import { useToken } from "./useToken";
 
 export function useCalculateSwapResult(
   client: HydraSDK,
   pool: ReturnType<typeof usePool>,
-  amount: bigint,
-  asset?: Asset
+  tokenFrom: ReturnType<typeof useToken>,
+  tokenTo: ReturnType<typeof useToken>,
+  focus: "from" | "to"
 ) {
-  const [result, setResult] = useState<{
-    amount: bigint;
-    fees: bigint;
-  }>({ amount: 0n, fees: 0n });
-
+  // const { amount, asset } = tokenFrom;
+  console.log({ focus });
   const { tokenXMint, tokenYMint, tokenXVault, tokenYVault, poolState } = pool;
 
   const calculateSwap = useCallback(
     async (amount: bigint, asset: Asset) => {
-      // console.log(`calculateSwap(${amount}, ${asset.symbol})`);
-
       if (
         !tokenXMint ||
         !tokenYMint ||
@@ -30,7 +27,7 @@ export function useCalculateSwapResult(
       )
         return { amount: 0n, fees: 0n };
 
-      const direction = getDirection(tokenXMint, tokenYMint, asset.address);
+      let direction = getDirection(tokenXMint, tokenYMint, asset.address);
 
       if (!direction) throw new Error("Asset is not part of pool mints");
 
@@ -44,8 +41,9 @@ export function useCalculateSwapResult(
           amount,
           direction
         );
-      // console.log({ xNew, yNew, deltaX, deltaY, fees });
+
       const out = { amount: direction === "xy" ? deltaY : deltaX, fees };
+      // if reverse we just want
       return out;
     },
     [
@@ -59,10 +57,25 @@ export function useCalculateSwapResult(
   );
 
   useEffect(() => {
-    if (!asset) return;
-
-    calculateSwap(amount, asset).then(setResult);
-  }, [calculateSwap, amount, asset]);
-
-  return result;
+    if (focus === "from") {
+      if (!tokenFrom.asset) return;
+      calculateSwap(tokenFrom.amount, tokenFrom.asset).then((result) => {
+        tokenTo.setAmount(result.amount);
+      });
+    }
+    if (focus === "to") {
+      if (!tokenTo.asset) return;
+      calculateSwap(tokenTo.amount, tokenTo.asset).then((result) => {
+        tokenFrom.setAmount(result.amount);
+      });
+    }
+  }, [
+    // deliberately ignoring tokenTo and
+    // tokenFrom changes to avoid re-rendering
+    calculateSwap,
+    tokenFrom.asset,
+    tokenFrom.amount,
+    tokenTo.asset,
+    tokenTo.amount,
+  ]);
 }

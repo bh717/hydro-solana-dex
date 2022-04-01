@@ -3,8 +3,10 @@ import React, { useCallback, useState } from "react";
 
 export function NumericField({
   value,
+  onFocus,
   onChange,
 }: {
+  onFocus: (e: React.FocusEvent<HTMLInputElement>) => void;
   value: number;
   onChange: (value: number) => void;
 }) {
@@ -16,7 +18,12 @@ export function NumericField({
     setError("");
 
     const rawValue = e.target.value;
-    setLocalState(rawValue.replace(/[^0-9\\.]/, ""));
+    const allowedString = rawValue.replace(/[^0-9\\.]/, "");
+    setLocalState(allowedString);
+    const num = Number(allowedString);
+    if (!isNaN(num)) {
+      onChange(num);
+    }
   }, []);
 
   const handleBlur = useCallback(
@@ -37,6 +44,7 @@ export function NumericField({
     (e: React.FocusEvent<HTMLInputElement>) => {
       setDraftMode(true);
       if (!error) setLocalState(`${value}`);
+      onFocus(e);
     },
     [value, error]
   );

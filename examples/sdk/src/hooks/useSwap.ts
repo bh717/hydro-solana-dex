@@ -91,7 +91,7 @@ export function getDirection(
   tokenXMint: AccountData<TokenMint>,
   tokenYMint: AccountData<TokenMint>,
   address: string
-) {
+): "xy" | "yx" | null {
   return `${tokenXMint.pubkey}` === address
     ? "xy"
     : `${tokenYMint.pubkey}`
@@ -100,7 +100,6 @@ export function getDirection(
 }
 
 export function useSwap() {
-  // console.log("useSwap");
   const sdk = useHydraClient();
   const tokenFormProps = useTokenForm(sdk);
   const accounts = useLiquidityPoolAccounts(
@@ -108,21 +107,20 @@ export function useSwap() {
     tokenFormProps.tokenXMint,
     tokenFormProps.tokenYMint
   );
-
+  const { tokenFrom, tokenTo, focus } = tokenFormProps;
   const pool = usePool(accounts);
   const { executeSwap } = useSwapCommands(sdk, tokenFormProps);
 
-  const calculation = useCalculateSwapResult(
+  useCalculateSwapResult(
     sdk,
     pool,
-    tokenFormProps.tokenFrom.amount,
-    tokenFormProps.tokenFrom.asset
+    // accept tokenFrom,tokenTo and focus
+    // if focus is To then run reverse swap to set tokenFrom
+    // if not run swap to set tokenTo
+    tokenFrom,
+    tokenTo,
+    focus
   );
-
-  useEffect(() => {
-    if (!calculation) return;
-    tokenFormProps.tokenTo.setAmount(calculation.amount);
-  }, [calculation, tokenFormProps.tokenTo]);
 
   const [state, send] = useMachine(swapMachine, {
     actions: {
@@ -167,7 +165,7 @@ export function useSwap() {
     canSwap,
     onSubmitRequested,
     onCancelRequested,
-    // calculateSwap,
+    setFocus: tokenFormProps.setFocus,
     state,
   };
 }

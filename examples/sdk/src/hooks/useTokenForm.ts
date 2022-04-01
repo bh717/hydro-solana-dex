@@ -1,5 +1,5 @@
 import { useToken } from "./useToken";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import localnetTokens from "config-ts/tokens/localnet.json";
 import { HydraSDK } from "hydra-ts";
 
@@ -9,7 +9,7 @@ export function useTokenForm(client: HydraSDK) {
 
   const tokenFrom = useToken();
   const tokenTo = useToken();
-  // const [inverted, setInverted] = useState(false);
+  const [focus, setFocus] = useState<"from" | "to">("from");
   const assetsTokenFrom = useMemo(
     () => assets.filter(({ symbol }) => symbol !== tokenTo.asset?.symbol),
     [tokenTo]
@@ -21,14 +21,9 @@ export function useTokenForm(client: HydraSDK) {
 
   // toggle fields
   const toggleFields = useCallback(() => {
-    // console.log("swappy:toggleFields");
     const bottomAmount = tokenTo.amount;
     const bottomAsset = tokenTo.asset;
     const topAsset = tokenFrom.asset;
-    // console.log("swappy:toggleFields:tokenFrom.asset", tokenFrom.asset);
-    // console.log("swappy:toggleFields:tokenFrom.amount", tokenFrom.amount);
-    // console.log("swappy:toggleFields:tokenTo.asset", tokenTo.asset);
-    // console.log("swappy:toggleFields:tokenTo.amount", tokenTo.amount);
 
     topAsset && tokenTo.setInternalAsset(topAsset);
     bottomAsset && tokenFrom.setInternalAsset(bottomAsset);
@@ -45,17 +40,9 @@ export function useTokenForm(client: HydraSDK) {
     );
   }, [tokenFromMint, tokenToMint]);
 
-  // console.log("swappy:tokens", {
-  //   tokenFrom: {
-  //     asset: tokenFrom.asset?.symbol,
-  //     amount: tokenFrom.amount,
-  //   },
-  //   tokenTo: { asset: tokenTo.asset?.symbol, amount: tokenTo.amount },
-  //   tokenXMint: `${tokenXMint}`,
-  //   tokenYMint: `${tokenYMint}`,
-  // });
-
   return {
+    focus,
+    setFocus,
     tokenFrom,
     tokenTo,
     assetsTokenFrom,

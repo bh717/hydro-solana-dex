@@ -7,6 +7,7 @@ import {
   Table,
   TableRow,
   TableCell,
+  TableBody,
 } from "@mui/material";
 import { toFormat } from "../utils/toFormat";
 import IconButton from "@mui/material/IconButton";
@@ -79,6 +80,7 @@ export function Swap() {
     poolExists,
     poolPairSelected,
     canSwap,
+    setFocus,
     onSubmitRequested,
     state,
     onCancelRequested,
@@ -108,7 +110,12 @@ export function Swap() {
                 Swap
               </Typography>
               <Stack direction={"row"}>
-                <TokenField token={tokenFrom} assets={assetsTokenFrom} />
+                <TokenField
+                  token={tokenFrom}
+                  onFocus={setFocus}
+                  focusLabel="from"
+                  assets={assetsTokenFrom}
+                />
               </Stack>
               <Box>
                 <IconButton
@@ -120,7 +127,12 @@ export function Swap() {
                 </IconButton>
               </Box>
               <Stack direction={"row"}>
-                <TokenField token={tokenTo} assets={assetsTokenTo} />
+                <TokenField
+                  focusLabel="to"
+                  onFocus={setFocus}
+                  token={tokenTo}
+                  assets={assetsTokenTo}
+                />
               </Stack>
 
               <Button
@@ -151,14 +163,16 @@ export function Swap() {
                 <Box>No wallet connected. Please connect a wallet.</Box>
               ) : (
                 <Table>
-                  {balances.map((balance) => (
-                    <TableRow key={balance.address}>
-                      <TableCell>{balance.symbol}</TableCell>
-                      <TableCell align="right">
-                        {toFormat(balance.balance, balance.decimals)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  <TableBody>
+                    {balances.map((balance) => (
+                      <TableRow key={balance.address}>
+                        <TableCell>{balance.symbol}</TableCell>
+                        <TableCell align="right">
+                          {toFormat(balance.balance, balance.decimals)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
                 </Table>
               )}
             </Box>
