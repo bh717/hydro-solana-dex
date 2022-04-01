@@ -227,8 +227,8 @@ impl SwapCalculatorBuilder {
 pub enum SwapCalculatorError {
     #[error("Failed to build struct due to input provided")]
     BuilderIncomplete,
-    #[error("Negative input not allowed")]
-    NegativeInput,
+    #[error("Delta input provided was not positive or greater than zero")]
+    DeltaNotPositive,
 }
 
 impl SwapCalculator {
@@ -257,8 +257,8 @@ impl SwapCalculator {
 
     /// Compute swap result from x to y using a constant product curve given delta x
     pub fn swap_x_to_y_hmm(&self, delta_x: &Decimal) -> Result<SwapResult, SwapCalculatorError> {
-        if delta_x.negative {
-            return Err(SwapCalculatorError::NegativeInput.into());
+        if delta_x.is_negative() || delta_x.is_zero() {
+            return Err(SwapCalculatorError::DeltaNotPositive.into());
         }
 
         let (fees, amount_ex_fees) = self.fee.compute_fees(delta_x);
@@ -284,8 +284,8 @@ impl SwapCalculator {
 
     /// Compute swap result from y to x using a constant product curve given delta y
     pub fn swap_y_to_x_hmm(&self, delta_y: &Decimal) -> Result<SwapResult, SwapCalculatorError> {
-        if delta_y.negative {
-            return Err(SwapCalculatorError::NegativeInput.into());
+        if delta_y.is_negative() || delta_y.is_zero() {
+            return Err(SwapCalculatorError::DeltaNotPositive.into());
         }
 
         let (fees, amount_ex_fees) = self.fee.compute_fees(delta_y);
