@@ -160,11 +160,11 @@ describe("HydraSDK", () => {
             1000000n,
           ],
           output: [
-            1000001000000000n, // x_new
-            999999002001n, // y_new
-            998000000n, // delta_x
-            997999n, // delta_y
-            2000000n, // fees
+            1000000001000000n, // x_new
+            999999999002n, // y_new
+            998000n, // delta_x
+            998n, // delta_y
+            2000n, // fees
           ],
           dir: "xy",
         },
