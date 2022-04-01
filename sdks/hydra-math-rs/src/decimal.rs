@@ -717,10 +717,10 @@ fn log_table_value(
 /// based on the formula: int(log(value)/log(2))
 impl BitLength<Decimal> for Decimal {
     fn bit_length(self) -> Result<Self, ErrorCode> {
-        if self.negative {
+        if self.is_negative() {
             return Err(ErrorCode::SignedDecimalsNotSupported.into());
         } else {
-            if self.value == 0 {
+            if self.is_zero() {
                 Ok(Decimal::from_u64(0))
             } else {
                 let value: f64 = self.into();
