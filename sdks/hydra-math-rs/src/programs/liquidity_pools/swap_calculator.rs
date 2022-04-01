@@ -332,21 +332,27 @@ impl SwapCalculator {
     /// Compute delta y using a baseline curve given delta y
     fn compute_delta_y_hmm(&self, delta_x: &Decimal) -> Decimal {
         let x_new = self.compute_x_new(delta_x);
-        let xi = self.compute_xi();
         let k = self.compute_k();
 
+        if self.i.value == 0 {
+            // Condition 0 - use AMM
+            // Oracle price is zero, return early.
+            return self.compute_delta_y_amm(delta_x);
+        }
+
+        let xi = self.compute_xi();
         if x_new.gt(self.x0).unwrap() && self.x0.gte(xi).unwrap() {
-            // Condition 1
+            // Condition 1 - use AMM
             // (Δx > 0 AND X₀ >= Xᵢ) [OR (Δx < 0 AND X₀ <= Xᵢ)] <= redundant because delta x always > 0
-            // Oracle price is better than the constant product price.
+            // Oracle price is better than the constant product price
             self.compute_delta_y_amm(delta_x)
         } else if x_new.gt(self.x0).unwrap() && x_new.lte(xi).unwrap() {
-            // Condition 2
+            // Condition 2 - use HMM
             // (Δx > 0 AND X_new <= Xᵢ) [OR (Δx < 0 AND X_new >= Xᵢ)]
             // Constant product price is better than the oracle price even after the full trade.
             self.compute_integral(&k, &self.x0, &x_new, &xi, &self.c)
         } else {
-            // Condition 3
+            // Condition 3 - use HMM
             // Constant product price is better than the oracle price at the start of the trade.
             // delta_y = compute_integral(k, x0, xi, xi, c) + (k/x_new - k/xi)
             let integral = self.compute_integral(&k, &self.x0, &xi, &xi, &self.c);
@@ -363,21 +369,27 @@ impl SwapCalculator {
     /// Compute delta x using a baseline curve given delta y
     fn compute_delta_x_hmm(&self, delta_y: &Decimal) -> Decimal {
         let y_new = self.compute_y_new(delta_y);
-        let yi = self.compute_yi();
         let k = self.compute_k();
 
+        if self.i.value == 0 {
+            // Condition 0 - use AMM
+            // Oracle price is zero, return early.
+            return self.compute_delta_x_amm(delta_y);
+        }
+
+        let yi = self.compute_yi();
         if y_new.gt(self.y0).unwrap() && self.y0.gte(yi).unwrap() {
-            // Condition 1
+            // Condition 1 - use AMM
             // (Δy > 0 AND Y₀ >= Yᵢ) [OR (Δy < 0 AND Y₀ <= Yᵢ)] <= redundant because delta y always > 0
             // Oracle price is better than the constant product price.
             self.compute_delta_x_amm(delta_y)
         } else if y_new.gt(self.y0).unwrap() && y_new.lte(yi).unwrap() {
-            // Condition 2
+            // Condition 2 - use HMM
             // (Δy > 0 AND Y_new <= Yᵢ) [OR (Δy < 0 AND Y_new >= Yᵢ)] <= redundant because delta y always > 0
             // Constant product price is better than the oracle price even after the full trade.
             self.compute_integral(&k, &self.y0, &y_new, &yi, &self.c)
         } else {
-            // Condition 3
+            // Condition 3 - use HMM
             // Constant product price is better than the oracle price at the start of the trade.
             // delta_x = compute_integral(k, y0, yi, yi, c) + (k/x_new - k/xi)
             let integral = self.compute_integral(&k, &self.y0, &yi, &yi, &self.c);
@@ -452,15 +464,7 @@ impl SwapCalculator {
     fn compute_xi(&self) -> Decimal {
         // Xᵢ = √K/i
         let k = self.compute_k();
-
-        // TODO: figure out where the i==0 is coming from on chain
-        let k_div_i = if self.i.value == 0 {
-            Decimal::from_u64(0).to_scale(k.scale)
-        } else {
-            k.div(self.i)
-        };
-
-        k_div_i.sqrt().expect("xi")
+        k.div(self.i).sqrt().expect("xi")
     }
 
     /// Compute the token balance of y assuming the constant product price
@@ -469,9 +473,7 @@ impl SwapCalculator {
     fn compute_yi(&self) -> Decimal {
         // Yᵢ = √(K/1/i) = √(K * i)
         let k = self.compute_k();
-        // TODO: consider using u256 type to avoid overflow.
-        let k_mul_i = k.mul(self.i);
-        k_mul_i.sqrt().expect("yi")
+        k.mul(self.i).sqrt().expect("yi")
     }
 
     /// Compute new amount for x
