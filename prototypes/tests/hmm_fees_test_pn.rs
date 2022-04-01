@@ -4,8 +4,8 @@
 #[cfg(test)]
 mod tests {
 
-    use hydra_proto::cl_pool_pn::hydra_math_legacy::sqrt_precise;
-    use hydra_proto::cl_pool_pn::*;
+    use prototypes::cl_pool_pn::hydra_math_legacy::sqrt_precise;
+    use prototypes::cl_pool_pn::*;
 
     #[test]
     fn test_hmm_no_fees() {
