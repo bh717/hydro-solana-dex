@@ -693,9 +693,9 @@ mod tests {
                 9_979900400, // just under 10 X tokens
             )
             .unwrap();
-            let expected = 9_59841;
+            let expected = 99_59841;
             let result = SwapResult::from(actual);
-            assert_eq!(result.delta_y, 9_59841);
+            assert_eq!(result.delta_y, expected);
         }
 
         {
