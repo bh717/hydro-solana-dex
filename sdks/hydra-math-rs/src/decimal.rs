@@ -137,6 +137,21 @@ impl Decimal {
     pub fn denominator(self) -> u128 {
         10u128.pow(self.scale.into())
     }
+
+    /// Returns true if [Decimal] is positive and false if the number is zero or negative.
+    pub fn is_positive(self) -> bool {
+        !self.negative && !self.is_zero()
+    }
+
+    /// Returns true if [Decimal] is negative and false if the number is zero or positive.
+    pub fn is_negative(self) -> bool {
+        self.negative && !self.is_zero()
+    }
+
+    /// Returns true if [Decimal] value is zero.
+    pub fn is_zero(self) -> bool {
+        self.value == 0
+    }
 }
 
 /// Multiply another [Decimal] value against itself, including signed multiplication.
@@ -1554,6 +1569,39 @@ mod test {
             let expected = false;
 
             assert_eq!(actual, expected);
+        }
+    }
+
+    #[test]
+    fn test_sign() {
+        // is zero
+        {
+            let decimal = Decimal::new(0, 0, false);
+            assert_eq!(decimal.is_zero(), true);
+        }
+
+        // is positive
+        {
+            let decimal = Decimal::new(42, 4, false);
+            assert_eq!(decimal.is_positive(), true);
+
+            let decimal = Decimal::new(0, 0, false);
+            assert_eq!(decimal.is_positive(), false);
+
+            let decimal = Decimal::new(24, 4, true);
+            assert_eq!(decimal.is_positive(), false);
+        }
+
+        // is negative
+        {
+            let decimal = Decimal::new(42, 4, false);
+            assert_eq!(decimal.is_negative(), false);
+
+            let decimal = Decimal::new(0, 0, false);
+            assert_eq!(decimal.is_negative(), false);
+
+            let decimal = Decimal::new(24, 4, true);
+            assert_eq!(decimal.is_negative(), true);
         }
     }
 
