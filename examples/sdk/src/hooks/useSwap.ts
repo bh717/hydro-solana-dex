@@ -4,7 +4,7 @@ import { useLiquidityPoolAccounts } from "./useLiquidityPoolAccounts";
 import { useHydraClient } from "../components/HydraClientProvider";
 import { createMachine, assign } from "xstate";
 import { useMachine } from "@xstate/react";
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import { AccountData } from "hydra-ts/src/utils/account-loader";
 import { TokenMint } from "hydra-ts/src/types/token-mint";
 import { useSwapCommands } from "./useSwapCommands";

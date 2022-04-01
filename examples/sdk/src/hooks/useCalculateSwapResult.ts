@@ -1,5 +1,5 @@
 import { usePool } from "./usePool";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 import { HydraSDK } from "hydra-ts";
 import { Asset } from "../types";
 import { getDirection } from "./useSwap";
@@ -68,6 +68,7 @@ export function useCalculateSwapResult(
         tokenFrom.setAmount(result.amount);
       });
     }
+    /* eslint-disable react-hooks/exhaustive-deps */
   }, [
     // deliberately ignoring tokenTo and
     // tokenFrom changes to avoid re-rendering

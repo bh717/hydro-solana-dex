@@ -14,17 +14,20 @@ export function NumericField({
   const [localState, setLocalState] = useState("0");
   const [error, setError] = useState("");
 
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setError("");
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setError("");
 
-    const rawValue = e.target.value;
-    const allowedString = rawValue.replace(/[^0-9\\.]/, "");
-    setLocalState(allowedString);
-    const num = Number(allowedString);
-    if (!isNaN(num)) {
-      onChange(num);
-    }
-  }, []);
+      const rawValue = e.target.value;
+      const allowedString = rawValue.replace(/[^0-9\\.]/, "");
+      setLocalState(allowedString);
+      const num = Number(allowedString);
+      if (!isNaN(num)) {
+        onChange(num);
+      }
+    },
+    [onChange]
+  );
 
   const handleBlur = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
@@ -46,7 +49,7 @@ export function NumericField({
       if (!error) setLocalState(`${value}`);
       onFocus(e);
     },
-    [value, error]
+    [value, onFocus, error]
   );
 
   return (
