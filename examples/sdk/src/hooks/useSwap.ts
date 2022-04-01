@@ -111,16 +111,7 @@ export function useSwap() {
   const pool = usePool(accounts);
   const { executeSwap } = useSwapCommands(sdk, tokenFormProps);
 
-  useCalculateSwapResult(
-    sdk,
-    pool,
-    // accept tokenFrom,tokenTo and focus
-    // if focus is To then run reverse swap to set tokenFrom
-    // if not run swap to set tokenTo
-    tokenFrom,
-    tokenTo,
-    focus
-  );
+  useCalculateSwapResult(sdk, pool, tokenFrom, tokenTo, focus);
 
   const [state, send] = useMachine(swapMachine, {
     actions: {
