@@ -31,7 +31,7 @@ pub fn swap_x_to_y_hmm(
         .scale(x_scale, y_scale)
         .build()?;
 
-    let delta_x = Decimal::from_scaled_amount(amount, 6).to_compute_scale();
+    let delta_x = Decimal::from_scaled_amount(amount, x_scale).to_compute_scale();
 
     let result = calculator.swap_x_to_y_hmm(&delta_x);
 
@@ -60,7 +60,7 @@ pub fn swap_y_to_x_hmm(
         .scale(x_scale, y_scale)
         .build()?;
 
-    let delta_y = Decimal::from_scaled_amount(amount, 6).to_compute_scale();
+    let delta_y = Decimal::from_scaled_amount(amount, y_scale).to_compute_scale();
 
     let result = calculator.swap_y_to_x_hmm(&delta_y);
 
