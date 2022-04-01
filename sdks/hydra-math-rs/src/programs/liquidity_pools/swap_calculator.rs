@@ -408,36 +408,23 @@ impl SwapCalculator {
             // qi**c
             let qi_pow_c = qi.pow(*c);
 
-            if c_sub_one.negative {
-                // a = k/q0**(c-1)
-                let a = k.div(q0.pow(c_sub_one));
-                // b = k/q_new**(c-1)
-                let b = k.div(q_new.pow(c_sub_one));
+            // a = k*q0**(c-1)
+            // b = k*q_new**(c-1)
+            // lhs = k/((qi**c)*(c-1))
+            // (qi**c)*(c-1)
+            let lhs_den = qi_pow_c.mul(c_sub_one);
+            let lhs = k.div(lhs_den);
 
-                let a_sub_b = a.sub(b).unwrap();
+            // q0**(c-1)
+            let q0_pow_c_sub_one = q0.pow(c_sub_one);
+            // q_new**(c-1)
+            let q_new_pow_c_sub_one = q_new.pow(c_sub_one);
 
-                // (a - b) / (qi**c) / (c-1)
-                let result = a_sub_b.div(qi_pow_c).div(c_sub_one);
-                result
-            } else {
-                // a = k*q0**(c-1)
-                // b = k*q_new**(c-1)
-                // lhs = k/((qi**c)*(c-1))
-                // (qi**c)*(c-1)
-                let lhs_den = qi_pow_c.mul(c_sub_one);
-                let lhs = k.div(lhs_den);
+            // rhs = q0**(c-1) - q_new**(c-1)
+            let rhs = q0_pow_c_sub_one.sub(q_new_pow_c_sub_one).unwrap();
 
-                // q0**(c-1)
-                let q0_pow_c_sub_one = q0.pow(c_sub_one);
-                // q_new**(c-1)
-                let q_new_pow_c_sub_one = q_new.pow(c_sub_one);
-
-                // rhs = q0**(c-1) - q_new**(c-1)
-                let rhs = q0_pow_c_sub_one.sub(q_new_pow_c_sub_one).unwrap();
-
-                // lhs * rhs
-                lhs.mul(rhs)
-            }
+            // lhs * rhs
+            lhs.mul(rhs)
         }
     }
 
@@ -774,9 +761,11 @@ mod tests {
                 },
             };
             let delta_y = Decimal::from_u128(4).to_compute_scale();
-            let result = swap.compute_delta_x_hmm(&delta_y).to_scale(8);
+            let result = swap
+                .compute_delta_x_hmm(&delta_y)
+                .to_scale(DEFAULT_SCALE_TEST);
             // python: -4.385_786_802_030
-            let expected = Decimal::new(4_385_786_80, 8, false);
+            let expected = Decimal::new(4_385_786, DEFAULT_SCALE_TEST, false);
 
             assert!(
                 result.eq(expected).unwrap(),
