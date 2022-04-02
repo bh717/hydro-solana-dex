@@ -4,7 +4,7 @@
 #[cfg(test)]
 mod tests {
 
-    use hydra_proto::cl_pool_float::*;
+    use prototypes::cl_pool_float::*;
 
     #[test]
     fn test_hmm_no_fees() {

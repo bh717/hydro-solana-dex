@@ -408,36 +408,23 @@ impl SwapCalculator {
             // qi**c
             let qi_pow_c = qi.pow(*c);
 
-            if c_sub_one.negative {
-                // a = k/q0**(c-1)
-                let a = k.div(q0.pow(c_sub_one));
-                // b = k/q_new**(c-1)
-                let b = k.div(q_new.pow(c_sub_one));
+            // a = k*q0**(c-1)
+            // b = k*q_new**(c-1)
+            // lhs = k/((qi**c)*(c-1))
+            // (qi**c)*(c-1)
+            let lhs_den = qi_pow_c.mul(c_sub_one);
+            let lhs = k.div(lhs_den);
 
-                let a_sub_b = a.sub(b).unwrap();
+            // q0**(c-1)
+            let q0_pow_c_sub_one = q0.pow(c_sub_one);
+            // q_new**(c-1)
+            let q_new_pow_c_sub_one = q_new.pow(c_sub_one);
 
-                // (a - b) / (qi**c) / (c-1)
-                let result = a_sub_b.div(qi_pow_c).div(c_sub_one);
-                result
-            } else {
-                // a = k*q0**(c-1)
-                // b = k*q_new**(c-1)
-                // lhs = k/((qi**c)*(c-1))
-                // (qi**c)*(c-1)
-                let lhs_den = qi_pow_c.mul(c_sub_one);
-                let lhs = k.div(lhs_den);
+            // rhs = q0**(c-1) - q_new**(c-1)
+            let rhs = q0_pow_c_sub_one.sub(q_new_pow_c_sub_one).unwrap();
 
-                // q0**(c-1)
-                let q0_pow_c_sub_one = q0.pow(c_sub_one);
-                // q_new**(c-1)
-                let q_new_pow_c_sub_one = q_new.pow(c_sub_one);
-
-                // rhs = q0**(c-1) - q_new**(c-1)
-                let rhs = q0_pow_c_sub_one.sub(q_new_pow_c_sub_one).unwrap();
-
-                // lhs * rhs
-                lhs.mul(rhs)
-            }
+            // lhs * rhs
+            lhs.mul(rhs)
         }
     }
 
@@ -655,6 +642,7 @@ mod tests {
             // ((2**37) - 1) = 137,438,953,471 max
             // log2(10^6) = 20 bits for 6 decimal places, 44 bits for integer
             // ((2**44) - 1) = 17,592,186,044,415 max
+            // TODO: why do we lose so much accuracy after 10^15 ?
             x0 in 10u64.pow(3)..10u64.pow(15),
             y0 in 10u64.pow(3)..10u64.pow(15),
             c in (0..=3usize).prop_map(|v| ["0.0", "1.0", "1.25", "1.5"][v]),
@@ -678,7 +666,7 @@ mod tests {
 
     #[test]
     fn test_scalar_inputs() {
-        // x to y
+        // x to y (given delta X what is delta Y?)
         {
             let actual = swap_x_to_y_hmm(
                 1000000_000000000, // 1 million x tokens
@@ -709,7 +697,7 @@ mod tests {
             assert_eq!(actual.delta_y, expected);
         }
 
-        // y to x
+        // y to x (given delta Y what is delta X?)
         {
             let actual: SwapResult = From::from(
                 swap_y_to_x_hmm(
@@ -793,9 +781,11 @@ mod tests {
                 },
             };
             let delta_y = Decimal::from_u128(4).to_compute_scale();
-            let result = swap.compute_delta_x_hmm(&delta_y).to_scale(8);
+            let result = swap
+                .compute_delta_x_hmm(&delta_y)
+                .to_scale(DEFAULT_SCALE_TEST);
             // python: -4.385_786_802_030
-            let expected = Decimal::new(4_385_786_80, 8, false);
+            let expected = Decimal::new(4_385_786, DEFAULT_SCALE_TEST, false);
 
             assert!(
                 result.eq(expected).unwrap(),
