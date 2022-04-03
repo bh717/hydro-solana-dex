@@ -469,7 +469,15 @@ impl Compare<Decimal> for Decimal {
         if !(self.scale == other.scale) {
             return Err(ErrorCode::DifferentScale.into());
         } else {
-            Ok(self.value < other.value)
+            if self.negative && other.negative {
+                Ok(self.value > other.value)
+            } else if self.negative && !other.negative {
+                Ok(true)
+            } else if !self.negative && other.negative {
+                Ok(false)
+            } else {
+                Ok(self.value < other.value)
+            }
         }
     }
 
@@ -478,7 +486,15 @@ impl Compare<Decimal> for Decimal {
         if !(self.scale == other.scale) {
             return Err(ErrorCode::DifferentScale.into());
         } else {
-            Ok(self.value > other.value)
+            if self.negative && other.negative {
+                Ok(self.value < other.value)
+            } else if self.negative && !other.negative {
+                Ok(false)
+            } else if !self.negative && other.negative {
+                Ok(true)
+            } else {
+                Ok(self.value > other.value)
+            }
         }
     }
 
@@ -487,7 +503,15 @@ impl Compare<Decimal> for Decimal {
         if !(self.scale == other.scale) {
             return Err(ErrorCode::DifferentScale.into());
         } else {
-            Ok(self.value >= other.value)
+            if self.negative && other.negative {
+                Ok(self.value <= other.value)
+            } else if self.negative && !other.negative {
+                Ok(false)
+            } else if !self.negative && other.negative {
+                Ok(true)
+            } else {
+                Ok(self.value >= other.value)
+            }
         }
     }
 
@@ -496,7 +520,15 @@ impl Compare<Decimal> for Decimal {
         if !(self.scale == other.scale) {
             return Err(ErrorCode::DifferentScale.into());
         } else {
-            Ok(self.value <= other.value)
+            if self.negative && other.negative {
+                Ok(self.value >= other.value)
+            } else if self.negative && !other.negative {
+                Ok(true)
+            } else if !self.negative && other.negative {
+                Ok(false)
+            } else {
+                Ok(self.value <= other.value)
+            }
         }
     }
 }
@@ -1446,6 +1478,33 @@ mod test {
 
             assert_eq!(actual, expected);
         }
+
+        {
+            let decimal = Decimal::new(42, 0, true);
+            let other = Decimal::new(42, 0, true);
+            let actual = decimal.lte(other).unwrap();
+            let expected = true;
+
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let decimal = Decimal::new(42, 0, false);
+            let other = Decimal::new(42, 0, true);
+            let actual = decimal.lte(other).unwrap();
+            let expected = false;
+
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let decimal = Decimal::new(42, 0, true);
+            let other = Decimal::new(42, 0, false);
+            let actual = decimal.lte(other).unwrap();
+            let expected = true;
+
+            assert_eq!(actual, expected);
+        }
     }
 
     #[test]
@@ -1479,6 +1538,33 @@ mod test {
         {
             let decimal = Decimal::new(10, 4, false);
             let other = Decimal::new(33, 4, false);
+            let actual = decimal.lt(other).unwrap();
+            let expected = true;
+
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let decimal = Decimal::new(43, 0, true);
+            let other = Decimal::new(42, 0, true);
+            let actual = decimal.lt(other).unwrap();
+            let expected = true;
+
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let decimal = Decimal::new(43, 0, false);
+            let other = Decimal::new(42, 0, true);
+            let actual = decimal.lt(other).unwrap();
+            let expected = false;
+
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let decimal = Decimal::new(43, 0, true);
+            let other = Decimal::new(42, 0, false);
             let actual = decimal.lt(other).unwrap();
             let expected = true;
 
@@ -1522,6 +1608,33 @@ mod test {
 
             assert_eq!(actual, expected);
         }
+
+        {
+            let decimal = Decimal::new(43, 0, true);
+            let other = Decimal::new(42, 0, true);
+            let actual = decimal.gt(other).unwrap();
+            let expected = false;
+
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let decimal = Decimal::new(43, 0, false);
+            let other = Decimal::new(42, 0, true);
+            let actual = decimal.gt(other).unwrap();
+            let expected = true;
+
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let decimal = Decimal::new(43, 0, true);
+            let other = Decimal::new(42, 0, false);
+            let actual = decimal.gt(other).unwrap();
+            let expected = false;
+
+            assert_eq!(actual, expected);
+        }
     }
 
     #[test]
@@ -1555,6 +1668,33 @@ mod test {
         {
             let decimal = Decimal::new(10, 4, false);
             let other = Decimal::new(33, 4, false);
+            let actual = decimal.gte(other).unwrap();
+            let expected = false;
+
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let decimal = Decimal::new(42, 0, true);
+            let other = Decimal::new(42, 0, true);
+            let actual = decimal.gte(other).unwrap();
+            let expected = true;
+
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let decimal = Decimal::new(42, 0, false);
+            let other = Decimal::new(42, 0, true);
+            let actual = decimal.gte(other).unwrap();
+            let expected = true;
+
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let decimal = Decimal::new(42, 0, true);
+            let other = Decimal::new(42, 0, false);
             let actual = decimal.gte(other).unwrap();
             let expected = false;
 
