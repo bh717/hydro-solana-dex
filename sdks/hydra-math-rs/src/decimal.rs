@@ -72,6 +72,18 @@ impl Decimal {
         }
     }
 
+    /// Computes the absolute value of a [Decimal]
+    /// and round down (floor) the value.
+    pub fn abs(self) -> u64 {
+        self.to_scale(0).to_u64()
+    }
+
+    /// Computes the absolute value of a [Decimal]
+    /// and round up (ceiling) the value.
+    pub fn abs_up(self) -> u64 {
+        self.to_scale_up(0).to_u64()
+    }
+
     /// Create a [Decimal] from an unsigned amount with scale, assumed positive by default.
     pub fn from_scaled_amount(amount: u64, scale: u8) -> Self {
         Decimal {
