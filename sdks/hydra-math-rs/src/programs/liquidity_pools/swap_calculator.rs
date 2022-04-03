@@ -724,15 +724,15 @@ mod tests {
             let result = swap.compute_delta_y_hmm(&delta_x);
             // python: -9.207_401_794_786
 
-            let expected = Decimal::new(9_207_401, DEFAULT_SCALE_TEST, false);
+            let expected = Decimal::new(9_207_401, DEFAULT_SCALE_TEST, true);
 
             assert!(
                 result.eq(expected).unwrap(),
-                "compute_delta_y_hmm\n{}\n{}",
-                result.value,
-                expected.value
+                "compute_delta_y_hmm\n{:?}\n{:?}",
+                result,
+                expected
             );
-            assert_eq!(result.negative, true);
+            assert_eq!(result.negative, expected.negative);
         }
 
         // compute_delta_y_hmm when c == 0
@@ -751,15 +751,15 @@ mod tests {
             let delta_x = Decimal::from_u128(1).to_compute_scale();
             let result = swap.compute_delta_y_hmm(&delta_x).to_scale(8);
             // python: -1.000_000_000_000
-            let expected = Decimal::new(1_000_000_00, 8, false);
+            let expected = Decimal::new(1_000_000_00, 8, true);
 
             assert!(
                 result.eq(expected).unwrap(),
-                "compute_delta_y_hmm {}, {}",
-                result.value,
-                expected.value
+                "compute_delta_y_hmm\n{:?}\n{:?}",
+                result,
+                expected
             );
-            assert_eq!(result.negative, true);
+            assert_eq!(result.negative, expected.negative);
         }
 
         // compute_delta_x_hmm when c == 0
@@ -780,15 +780,15 @@ mod tests {
                 .compute_delta_x_hmm(&delta_y)
                 .to_scale(DEFAULT_SCALE_TEST);
             // python: -4.385_786_802_030
-            let expected = Decimal::new(4_385_786, DEFAULT_SCALE_TEST, false);
+            let expected = Decimal::new(4_385_786, DEFAULT_SCALE_TEST, true);
 
             assert!(
                 result.eq(expected).unwrap(),
-                "compute_delta_x_hmm {}, {}",
-                result.value,
-                expected.value
+                "compute_delta_x_hmm\n{:?}\n{:?}",
+                result,
+                expected
             );
-            assert_eq!(result.negative, true);
+            assert_eq!(result.negative, expected.negative);
         }
 
         // xi specific
