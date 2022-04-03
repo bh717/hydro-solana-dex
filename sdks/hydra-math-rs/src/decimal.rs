@@ -254,7 +254,7 @@ impl Sub<Decimal> for Decimal {
         if !(self.scale == rhs.scale) {
             return Err(ErrorCode::DifferentScale.into());
         } else {
-            if rhs.gt(self).unwrap() {
+            if rhs.value > self.value {
                 // result must be negative
                 Ok(Self {
                     value: rhs.value.checked_sub(self.value).expect("checked_sub"),
