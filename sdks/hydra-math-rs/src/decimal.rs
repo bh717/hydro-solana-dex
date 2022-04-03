@@ -343,13 +343,46 @@ impl DivScale<Decimal> for Decimal {
 /// Calculate the power of a [Decimal] with another [Decimal] as the exponent.
 impl Pow<Decimal> for Decimal {
     fn pow(self, exp: Decimal) -> Self {
-        if exp.negative {
-            let new_exp = Decimal::new(exp.value, exp.scale, false); // flip the sign of exp
+        let one = Decimal::from_u64(1).to_scale(self.scale);
+        let zero_point_two_five = Decimal::from_u64(1)
+            .to_scale(self.scale)
+            .div(Decimal::from_u64(4).to_scale(self.scale));
+        let zero_point_five = Decimal::from_u64(1)
+            .to_scale(self.scale)
+            .div(Decimal::from_u64(2).to_scale(self.scale));
+        let one_point_two_five = Decimal::from_u64(5)
+            .to_scale(self.scale)
+            .div(Decimal::from_u64(4).to_scale(self.scale));
+        let one_point_five = Decimal::from_u64(3)
+            .to_scale(self.scale)
+            .div(Decimal::from_u64(2).to_scale(self.scale));
 
-            // then return 1 / x^new_exp
-            return Decimal::from_u64(1)
-                .to_scale(self.scale)
-                .div(self.pow(new_exp));
+        let exp = Option::Some(exp);
+        match exp {
+            // e.g. x^0 = 1
+            Some(x) if x.is_zero() => one,
+            // e.g. x^0.25 = ⁴√x = √(√x) = sqrt(sqrt(x))
+            Some(x) if x.eq(zero_point_two_five).unwrap() => self.sqrt().unwrap().sqrt().unwrap(),
+            // e.g. x^0.5 = √x = sqrt(x)
+            Some(x) if x.eq(zero_point_five).unwrap() => self.sqrt().unwrap(),
+            // e.g. x^1 = x
+            Some(x) if x.eq(one).unwrap() => self.clone(),
+            // e.g. x^1.25 = x(√(√x)) = x(sqrt(sqrt(x)))
+            Some(x) if x.eq(one_point_two_five).unwrap() => {
+                self.mul(self.sqrt().unwrap().sqrt().unwrap())
+            }
+            // e.g. x^1.50 = x(√x) = x(sqrt(x))
+            Some(x) if x.eq(one_point_five).unwrap() => self.mul(self.sqrt().unwrap()),
+            // e.g. x^2
+            Some(x) if x.is_integer() && x.is_positive() => self.pow(x.abs() as u128),
+            // e.g. x^-2 == 1/x^2
+            Some(x) if x.is_integer() && x.is_negative() => one.div(self.pow(x.abs() as u128)),
+            // e.g. x^-0.5 = 1/x^0.5
+            Some(x) if x.is_negative() => one.div(self.pow(Decimal::new(x.value, x.scale, false))),
+            _ => panic!(
+                "pow not implemented for exponent: {}",
+                exp.unwrap().to_string()
+            ),
         }
 
         // 0.25 to scale
