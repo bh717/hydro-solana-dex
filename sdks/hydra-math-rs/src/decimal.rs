@@ -799,9 +799,12 @@ impl Ln<Decimal> for Decimal {
         let ln_2_decimal = Decimal::new(693_147_180_559u128, 12, false);
 
         let bit_length_decimal = self.bit_length().expect("bit_length");
-        let max_value: u128 =
-            (2f64.powi(bit_length_decimal.into()) * (scaled_out.denominator() as f64)) as u128;
-        let max = Decimal::new(max_value, 12, false);
+
+        // TODO: calculate with higher compute scale when big_mul is implemented otherwise overflow
+        let max = Decimal::from_u64(2)
+            .to_scale(6)
+            .pow(bit_length_decimal.to_scale(6))
+            .to_compute_scale();
 
         let (s_0, t_0, lx_0) = log_table_value(scaled_out, max, 0);
         let (s_1, t_1, lx_1) = log_table_value(s_0, t_0, 1);
