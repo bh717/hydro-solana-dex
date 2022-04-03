@@ -818,4 +818,26 @@ mod tests {
             assert_eq!(result.negative, false);
         }
     }
+
+    #[test]
+    fn test_range_failures() {
+        // to x0 = 3810239933766096875, y0 = 14021541371386729600, c = "0.0", i = 1000000, delta_x = 1000000, delta_y = 1000000
+        {
+            let x0 = 3810239933766096875;
+            let y0 = 14021541371386729600;
+            let c = Decimal::from_u64(0).to_scale(DEFAULT_SCALE_TEST);
+            let i = 1000000;
+            let delta_x = 1000000;
+            let delta_x = 1000000;
+            let model = Model::new(
+                Decimal::from_scaled_amount(x0, DEFAULT_SCALE_TEST).to_string(),
+                Decimal::from_scaled_amount(y0, DEFAULT_SCALE_TEST).to_string(),
+                0,
+                0,
+                Decimal::from_scaled_amount(i, DEFAULT_SCALE_TEST).to_string(),
+                DEFAULT_SCALE_TEST,
+            );
+            check_delta_y_hmm(&model, x0, y0, c, i, delta_x);
+        }
+    }
 }
