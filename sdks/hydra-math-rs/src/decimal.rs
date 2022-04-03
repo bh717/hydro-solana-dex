@@ -507,7 +507,7 @@ impl Compare<Decimal> for Decimal {
         if !(self.scale == other.scale) {
             return Err(ErrorCode::DifferentScale.into());
         } else {
-            Ok(self.value == other.value)
+            Ok(self.value == other.value && self.negative == other.negative)
         }
     }
 
@@ -1612,6 +1612,15 @@ mod test {
         {
             let decimal = Decimal::new(10, 4, false);
             let other = Decimal::new(33, 4, false);
+            let actual = decimal.eq(other).unwrap();
+            let expected = false;
+
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let decimal = Decimal::new(33, 4, false);
+            let other = Decimal::new(33, 4, true);
             let actual = decimal.eq(other).unwrap();
             let expected = false;
 
