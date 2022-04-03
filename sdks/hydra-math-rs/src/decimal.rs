@@ -164,6 +164,13 @@ impl Decimal {
     pub fn is_zero(self) -> bool {
         self.value == 0
     }
+
+    /// Returns true if and only if the [Decimal] is an exact integer.
+    pub fn is_integer(self) -> bool {
+        let integer = self.to_scale(0).to_scale(self.scale);
+
+        self.sub(integer).expect("zero").is_zero()
+    }
 }
 
 /// Multiply another [Decimal] value against itself, including signed multiplication.
