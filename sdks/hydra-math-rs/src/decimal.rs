@@ -384,53 +384,6 @@ impl Pow<Decimal> for Decimal {
                 exp.unwrap().to_string()
             ),
         }
-
-        // 0.25 to scale
-        let divisor = Decimal::from_u64(1)
-            .to_scale(self.scale)
-            .div(Decimal::from_u64(4).to_scale(self.scale));
-
-        let quotient = exp.div(divisor).to_scale(0).value as i32;
-
-        // index of exponent/0.25
-        match quotient {
-            0 => {
-                // x^0 = 1
-                Decimal::from_u64(1).to_scale(self.scale)
-            }
-            1 => {
-                // x^1/4 = x^0.25 = ⁴√x = √(√x) = sqrt(sqrt(x))
-                self.sqrt().unwrap().sqrt().unwrap()
-            }
-            2 => {
-                // x^1/2 = x^0.5 = √x = sqrt(x)
-                self.sqrt().unwrap()
-            }
-            4 => {
-                // x^1 = x
-                self.clone()
-            }
-            5 => {
-                // x^5/4 = x^1.25 = x(√(√x)) = x(sqrt(sqrt(x)))
-                self.mul(self.sqrt().unwrap().sqrt().unwrap())
-            }
-            6 => {
-                // x^3/2 = x^1.50 = x(√x) = x(sqrt(x))
-                self.mul(self.sqrt().unwrap())
-            }
-            8 => {
-                // x^2 = 2x
-                self.mul(self)
-            }
-            _ => {
-                assert!(
-                    false,
-                    "compute_pow not implemented for base: {} exponent: {}",
-                    self.value, exp.value
-                );
-                Decimal::new(0, 0, false)
-            }
-        }
     }
 }
 
@@ -1190,6 +1143,27 @@ mod test {
     }
 
     #[test]
+    fn test_abs() {
+        let decimal = Decimal::new(0, 0, false);
+        assert_eq!(decimal.abs(), 0);
+
+        let decimal = Decimal::new(42, 0, false);
+        assert_eq!(decimal.abs(), 42);
+
+        let decimal = Decimal::new(4269420, 5, false);
+        assert_eq!(decimal.abs(), 42);
+
+        let decimal = Decimal::new(4269420, 5, true);
+        assert_eq!(decimal.abs(), 42);
+
+        let decimal = Decimal::new(4269420, 5, false);
+        assert_eq!(decimal.abs_up(), 43);
+
+        let decimal = Decimal::new(4269420, 5, true);
+        assert_eq!(decimal.abs_up(), 43);
+    }
+
+    #[test]
     fn test_to_scale() {
         // increase precision
         {
@@ -1665,6 +1639,24 @@ mod test {
     }
 
     #[test]
+    fn test_is_integer() {
+        let decimal = Decimal::new(0, 0, false);
+        assert_eq!(decimal.is_integer(), true);
+
+        let decimal = Decimal::new(42, 0, false);
+        assert_eq!(decimal.is_integer(), true);
+
+        let decimal = Decimal::new(42, 0, true);
+        assert_eq!(decimal.is_integer(), true);
+
+        let decimal = Decimal::new(42420, 3, false);
+        assert_eq!(decimal.is_integer(), false);
+
+        let decimal = Decimal::new(42420, 3, true);
+        assert_eq!(decimal.is_integer(), false);
+    }
+
+    #[test]
     fn test_pow_with_integer_exp() {
         // 0**n = 0
         {
@@ -1948,6 +1940,23 @@ mod test {
 
     #[test]
     fn test_natural_log() {
+        {
+            // ln(.93859063) = -0.06337585862
+
+            let expected = Decimal {
+                value: 6337585,
+                scale: 8,
+                negative: true,
+            };
+
+            let n = Decimal::new(93859063, 8, false);
+            let actual = n.ln().unwrap();
+
+            assert_eq!(actual.value, expected.value);
+            assert_eq!(actual.negative, expected.negative);
+            assert_eq!(actual.scale, expected.scale);
+        }
+
         {
             // ln(0.9) = -0.105_360
 
