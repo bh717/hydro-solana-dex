@@ -747,6 +747,10 @@ impl BitLength<Decimal> for Decimal {
 // https://docs.google.com/spreadsheets/d/19mgYjGQlpsuaTk1zXujn-yCSdbAL25sP/edit?pli=1#gid=2070648638
 impl Ln<Decimal> for Decimal {
     fn ln(self) -> Result<Self, ErrorCode> {
+        if self.is_negative() {
+            return Err(ErrorCode::SignedDecimalsNotSupported.into());
+        }
+
         let scaled_out = self.to_compute_scale();
 
         let ln_2_decimal = Decimal::new(693_147_180_559u128, 12, false);
