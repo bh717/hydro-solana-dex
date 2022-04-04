@@ -23,10 +23,19 @@ export function useSwap() {
   const sdk = useHydraClient();
 
   // keep all token stuff together to pass to dependencies
-  const tokenForm = useTokenForm();
 
   // get form data and controls
-  const { tokenFrom, tokenTo, focus, tokenXMint, tokenYMint } = tokenForm;
+  const {
+    assetsTokenFrom,
+    assetsTokenTo,
+    focus,
+    setFocus,
+    toggleFields,
+    tokenFrom,
+    tokenTo,
+    tokenXMint,
+    tokenYMint,
+  } = useTokenForm();
 
   // get pool values
   const pool = usePool(sdk, tokenXMint, tokenYMint);
@@ -41,19 +50,26 @@ export function useSwap() {
 
   // get booleans for interface
   const poolExists = !!pool.poolState;
-  const poolPairSelected = tokenForm.tokenFrom.asset && tokenForm.tokenTo.asset;
+  const poolPairSelected = tokenFrom.asset && tokenTo.asset;
   const canSwap = poolExists && sdk.ctx.isSignedIn();
 
   // Send it all down
   return {
     ...pool,
-    ...tokenForm,
-    poolPairSelected,
-    poolExists,
+    assetsTokenFrom,
+    assetsTokenTo,
     canSwap,
-    setFocus: tokenForm.setFocus,
-    onSendSubmit,
+    focus,
     onSendCancel,
+    onSendSubmit,
+    poolExists,
+    poolPairSelected,
+    setFocus,
     state,
+    toggleFields,
+    tokenFrom,
+    tokenTo,
+    tokenXMint,
+    tokenYMint,
   };
 }
