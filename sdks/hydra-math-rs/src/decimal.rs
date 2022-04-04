@@ -223,30 +223,6 @@ impl MulUp<Decimal> for Decimal {
 
 /// Add another [Decimal] value to itself, including signed addition.
 impl Add<Decimal> for Decimal {
-    // fn add(self, rhs: Decimal) -> Result<Self, ErrorCode> {
-    //     if !(self.scale == rhs.scale) {
-    //         return Err(ErrorCode::DifferentScale.into());
-    //     } else {
-    //         if self.negative && rhs.negative {
-    //             Ok(Self {
-    //                 value: self.value.checked_add(rhs.value).expect("checked_add"),
-    //                 scale: self.scale,
-    //                 negative: true, // -a + -b = -(a + b)
-    //             })
-    //         } else if self.negative && !rhs.negative {
-    //             rhs.sub(self) // -a + b = b - a
-    //         } else if !self.negative && !rhs.negative {
-    //             Ok(Self {
-    //                 value: self.value.checked_add(rhs.value).expect("checked_add"),
-    //                 scale: self.scale,
-    //                 negative: false, // a + b = a + b
-    //             })
-    //         } else {
-    //             self.sub(rhs) // a + -b = a - b
-    //         }
-    //     }
-    // }
-
     fn add(self, rhs: Decimal) -> Result<Self, ErrorCode> {
         if !(self.scale == rhs.scale) {
             return Err(ErrorCode::DifferentScale.into());
@@ -260,7 +236,7 @@ impl Add<Decimal> for Decimal {
                     negative: self.negative,
                 })
             } else {
-                // if diffferent signs
+                // if different signs
                 // value is the difference of absolute values.
                 // (so need to know which has bigger absolute value)
                 // sign is the sign of the one with bigger absolute value
@@ -293,28 +269,6 @@ impl Add<Decimal> for Decimal {
 
 /// Subtract another [Decimal] value from itself, including signed subtraction.
 impl Sub<Decimal> for Decimal {
-    // fn sub(self, rhs: Decimal) -> Result<Self, ErrorCode> {
-    //     if !(self.scale == rhs.scale) {
-    //         return Err(ErrorCode::DifferentScale.into());
-    //     } else {
-    //         if rhs.value > self.value {
-    //             // result must be negative
-    //             Ok(Self {
-    //                 value: rhs.value.checked_sub(self.value).expect("checked_sub"),
-    //                 scale: self.scale,
-    //                 negative: true,
-    //             })
-    //         } else {
-    //             // result can be negative depending on self
-    //             Ok(Self {
-    //                 value: self.value.checked_sub(rhs.value).expect("checked_sub"),
-    //                 scale: self.scale,
-    //                 negative: self.negative,
-    //             })
-    //         }
-    //     }
-    // }
-
     fn sub(self, rhs: Decimal) -> Result<Self, ErrorCode> {
         // as a - b is always a + (-b) ; let add handle it
         // simplify: flip b's sign and let Add handle it
@@ -1364,10 +1318,11 @@ mod test {
             let actual = decimal.add(increase_by).unwrap();
             let expected = Decimal::new(1892, 6, false);
 
-            assert_eq!({ actual.value }, { expected.value });
+            assert_eq!(actual, expected);
         }
 
         {
+            // test: 2 + 2 = 4
             let a = Decimal::new(2, 0, false);
             let b = Decimal::new(2, 0, false);
 
@@ -1375,7 +1330,9 @@ mod test {
 
             assert_eq!(a.add(b).unwrap(), expected);
         }
+
         {
+            // test: -2 + (-2) = -4
             let a = Decimal::new(2, 0, true);
             let b = Decimal::new(2, 0, true);
 
@@ -1383,8 +1340,9 @@ mod test {
 
             assert_eq!(a.add(b).unwrap(), expected);
         }
+
         {
-            // test: 4 + (-3) = +1;
+            // test: 4 + (-3) = +1
             let a = Decimal::new(4, 0, false);
             let b = Decimal::new(3, 0, true);
 
@@ -1392,15 +1350,7 @@ mod test {
 
             assert_eq!(a.add(b).unwrap(), expected);
         }
-        {
-            // test -4 + 3 = -1;
-            let a = Decimal::new(4, 0, true);
-            let b = Decimal::new(3, 0, false);
 
-            let expected = Decimal::new(1, 0, true);
-
-            assert_eq!(a.add(b).unwrap(), expected);
-        }
         {
             // test: 2 + (-5) = -3;
             let a = Decimal::new(2, 0, false);
@@ -1410,8 +1360,19 @@ mod test {
 
             assert_eq!(a.add(b).unwrap(), expected);
         }
+
         {
-            // test: -2 + 5 = 3;
+            // test -4 + 3 = -1
+            let a = Decimal::new(4, 0, true);
+            let b = Decimal::new(3, 0, false);
+
+            let expected = Decimal::new(1, 0, true);
+
+            assert_eq!(a.add(b).unwrap(), expected);
+        }
+
+        {
+            // test: -2 + 5 = 3
             let a = Decimal::new(2, 0, true);
             let b = Decimal::new(5, 0, false);
 
@@ -1445,37 +1406,87 @@ mod test {
             let actual = decimal.sub(decrease_by).unwrap();
             let expected = Decimal::new(782, 6, false);
 
-            assert_eq!({ actual.value }, { expected.value });
+            assert_eq!(actual, expected);
         }
 
         {
-            let decimal = Decimal::new(10, 6, false);
-            let decrease_by = Decimal::new(15, 6, false);
-            let actual = decimal.sub(decrease_by).unwrap();
+            // test: 10 - 15 = -5
+            let a = Decimal::new(10, 6, false);
+            let b = Decimal::new(15, 6, false);
+
             let expected = Decimal::new(5, 6, true);
 
-            assert_eq!({ actual.negative }, { expected.negative });
+            assert_eq!(a.sub(b).unwrap(), expected);
         }
 
-        // ignoring the scale for a sec: -10 - (-15) = -10 + 15 = 5
-        // but this test was saying -10 - (-15) = -25 which is not correct
+        {
+            // test: 15 - 10 = 5
+            let a = Decimal::new(15, 6, false);
+            let b = Decimal::new(10, 6, false);
 
-        // {
-        //     let decimal = Decimal::new(10, 6, true);
-        //     let decrease_by = Decimal::new(15, 6, true);
-        //     let actual = decimal.sub(decrease_by).unwrap();
-        //     let expected = Decimal::new(25, 6, true);
+            let expected = Decimal::new(5, 6, false);
 
-        //     assert_eq!({ actual.negative }, { expected.negative });
-        // }
+            assert_eq!(a.sub(b).unwrap(), expected);
+        }
 
         {
+            // test: -10 - (-15) = 5
             let a = Decimal::new(10, 6, true);
             let b = Decimal::new(15, 6, true);
 
-            let expected_sub = Decimal::new(5, 6, false);
+            let expected = Decimal::new(5, 6, false);
 
-            assert_eq!(a.sub(b).unwrap(), expected_sub);
+            assert_eq!(a.sub(b).unwrap(), expected);
+        }
+
+        {
+            // test: -10 - (-5) = -5
+            let a = Decimal::new(10, 6, true);
+            let b = Decimal::new(5, 6, true);
+
+            let expected = Decimal::new(5, 6, true);
+
+            assert_eq!(a.sub(b).unwrap(), expected);
+        }
+
+        {
+            // test: -10 - 15 = -25
+            let a = Decimal::new(10, 6, true);
+            let b = Decimal::new(15, 6, false);
+
+            let expected = Decimal::new(25, 6, true);
+
+            assert_eq!(a.sub(b).unwrap(), expected);
+        }
+
+        {
+            // test: 10 - (-15) = 25
+            let a = Decimal::new(10, 6, false);
+            let b = Decimal::new(15, 6, true);
+
+            let expected = Decimal::new(25, 6, false);
+
+            assert_eq!(a.sub(b).unwrap(), expected);
+        }
+
+        {
+            // test: 0 - 15 = -15
+            let a = Decimal::new(0, 6, false);
+            let b = Decimal::new(15, 6, false);
+
+            let expected = Decimal::new(15, 6, true);
+
+            assert_eq!(a.sub(b).unwrap(), expected);
+        }
+
+        {
+            // test: 0 - (-15) = 15
+            let a = Decimal::new(0, 6, false);
+            let b = Decimal::new(15, 6, true);
+
+            let expected = Decimal::new(15, 6, false);
+
+            assert_eq!(a.sub(b).unwrap(), expected);
         }
     }
 
