@@ -5,7 +5,6 @@ export function useSwapCommands(
   sdk: HydraSDK,
   tokenFormProps: ReturnType<typeof useTokenForm>
 ) {
-  // console.log("useSwapCommands");
   async function executeSwap() {
     const { tokenXMint, tokenYMint, tokenFrom, tokenTo } = tokenFormProps;
 
