@@ -2,31 +2,36 @@
 import * as anchor from "@project-serum/anchor";
 import config from "config-ts/global-config.json";
 import * as staking from "types-ts/codegen/types/hydra_staking";
-import * as liquidityPools from "types-ts/codegen/types/hydra_liquidity_pools";
+// import * as liquidityPools from "types-ts/codegen/types/hydra_liquidity_pools";
 import { tokens as localnetTokens } from "config-ts/tokens/localnet.json";
 import { loadKey } from "hydra-ts/node"; // these should be moved out of test
 import { HydraSDK } from "hydra-ts";
 import { Keypair } from "@solana/web3.js";
 import NodeWallet from "@project-serum/anchor/dist/cjs/nodewallet";
 
-type Lookup<T> = Record<keyof T, Keypair>;
-async function loadTokens<T extends Record<any, string>>(tokens: T) {
-  let out: Partial<Lookup<T>> = {};
-  let entries = Object.entries(tokens) as Array<[keyof T, string]>;
-  for (let [symbol, address] of entries) {
+type Token = {
+  chainId: number;
+  address: string;
+  name: string;
+  decimals: number;
+  symbol: string;
+  logoURI: string;
+};
+// type Lookup<T> = Record<keyof T, Keypair>;
+async function loadTokens(tokens: typeof localnetTokens) {
+  let out: any = {};
+  let entries = Object.entries(tokens) as Array<[string, Token]>;
+  for (let [, { address, symbol }] of entries) {
     const keypair = await loadKey(`keys/localnet/tokens/${address}.json`);
-    out[symbol] = keypair;
+    out[symbol.toLowerCase()] = keypair;
   }
 
-  return out as Lookup<T>;
+  return out;
 }
 
-type LocalTokens = Record<keyof typeof localnetTokens, Keypair>;
+// type LocalTokens = Record<keyof typeof localnetTokens, Keypair>;
 
-async function setupStakingState(
-  provider: anchor.Provider,
-  tokens: LocalTokens
-) {
+async function setupStakingState(provider: anchor.Provider, tokens: any) {
   const hydraStaking = new anchor.web3.PublicKey(
     config.localnet.programIds.hydraStaking
   );
@@ -35,7 +40,6 @@ async function setupStakingState(
     staking.IDL,
     hydraStaking
   );
-
   const redeemableMint = tokens["xhyd"];
   const tokenMint = tokens["hyd"];
 
@@ -76,46 +80,50 @@ redeemableMint:\t\t${redeemableMint.publicKey}
   await sdk.staking.initialize(tokenVaultBump, poolStateBump);
 }
 
-async function setupLiquidityPoolState(
-  provider: anchor.Provider,
-  tokens: LocalTokens
+type Asset = typeof localnetTokens[0];
+
+async function createMintAssociatedVaultFromAsset(
+  sdk: HydraSDK,
+  asset: Asset | undefined,
+  amount: bigint
 ) {
+  if (!asset) throw new Error("Asset not provided!");
+  console.log("Creating " + asset.name);
+  const keypair = await loadKey(`keys/localnet/tokens/${asset.address}.json`);
+
+  const [, ata] = await sdk.common.createMintAndAssociatedVault(
+    keypair,
+    amount,
+    sdk.ctx.provider.wallet.publicKey,
+    asset.decimals
+  );
+  console.log(`${asset.name}ATA: ${ata}\n`);
+  return ata;
+}
+
+function getAsset(symbol: string) {
+  return localnetTokens.find(
+    (asset) => asset.symbol.toLowerCase() === symbol.toLowerCase()
+  );
+}
+
+async function setupLiquidityPoolState(provider: anchor.Provider, tokens: any) {
   // The idea here is we use the provider.wallet as "god" mint tokens to them
   // and then transfer those tokens to to a "trader" account
   const sdk = HydraSDK.createFromAnchorProvider(provider, "localnet");
 
   // 1. create and distribute tokens to the god wallet
+  const list = [
+    { asset: getAsset("usdc"), amount: 100_000_000_000000n }, // 100,000,000.000000
+    { asset: getAsset("wbtc"), amount: 100_000_000n * 100_000_000n },
+    { asset: getAsset("weth"), amount: 100_000_000_000000000n }, // 100,000,000.000000000
+    { asset: getAsset("sol"), amount: 100_000_000n * 1_000_000_000n },
+  ];
 
-  console.log("Creating usdc...");
-  const [, usdcATA] = await sdk.common.createMintAndAssociatedVault(
-    tokens.usdc,
-    1_000_000n * 1_000_000n
-  );
-  console.log(`usdcATA: ${usdcATA}\n`);
-  console.log("Creating btc...");
-  const [, btcATA] = await sdk.common.createMintAndAssociatedVault(
-    tokens.btc,
-    1_000_000n * 1_000_000n
-  );
-  console.log(`btcATA: ${btcATA}\n`);
-  console.log("Creating eth...");
-  const [, ethATA] = await sdk.common.createMintAndAssociatedVault(
-    tokens.eth,
-    1_000_000n * 1_000_000n
-  );
-  console.log(`ethATA: ${ethATA}\n`);
-  console.log("Creating xrp...");
-  const [, xrpATA] = await sdk.common.createMintAndAssociatedVault(
-    tokens.xrp,
-    1_000_000n * 1_000_000n
-  );
-  console.log(`xrpATA: ${xrpATA}\n`);
-  console.log("Creating luna...");
-  const [, lunaATA] = await sdk.common.createMintAndAssociatedVault(
-    tokens.luna,
-    1_000_000n * 1_000_000n
-  );
-  console.log(`lunaATA: ${lunaATA}\n`);
+  let atas = [];
+  for (let { asset, amount } of list) {
+    atas.push(await createMintAssociatedVaultFromAsset(sdk, asset, amount));
+  }
 
   const fees = {
     swapFeeNumerator: 1n,
@@ -130,60 +138,72 @@ async function setupLiquidityPoolState(
 
   // 2. Initialize a couple of pools
 
-  // Create the btc usdc pool
+  // Create the wbtc usdc pool
   await sdk.liquidityPools.initialize(
-    tokens.btc.publicKey,
+    tokens.wbtc.publicKey,
     tokens.usdc.publicKey,
     fees
   );
 
-  // Create the eth usdc pool
+  await sdk.liquidityPools.addLiquidity(
+    tokens.wbtc.publicKey,
+    tokens.usdc.publicKey,
+    1_000n * 1_000_000_000n,
+    45_166_800n * 1_000_000n,
+    0n
+  );
+
+  // Create the weth usdc pool
   await sdk.liquidityPools.initialize(
-    tokens.eth.publicKey,
+    tokens.weth.publicKey,
     tokens.usdc.publicKey,
     fees
   );
-
+  await sdk.liquidityPools.addLiquidity(
+    tokens.weth.publicKey,
+    tokens.usdc.publicKey,
+    1_000n * 1_000_000_000n,
+    3_281_000n * 1_000_000n,
+    0n
+  );
   // Load up a trader account
   const trader = await loadKey(
     `keys/localnet/users/usrQpqgkvUjPgAVnGm8Dk3HmX3qXr1w4gLJMazLNyiW.json`
   );
 
+  await provider.connection.confirmTransaction(
+    await provider.connection.requestAirdrop(trader.publicKey, 10000000000),
+    "confirmed"
+  );
+
   // 3. Transfer some funds to the trader account
   const traderUsdc = await sdk.common.createAssociatedAccount(
-    tokens["usdc"].publicKey,
+    tokens.usdc.publicKey,
     trader,
     (provider.wallet as NodeWallet).payer
   );
-  await sdk.common.transfer(usdcATA, traderUsdc, 100n * 1_000_000n);
+  await sdk.common.transfer(atas[0], traderUsdc, 100n * 1_000_000n);
 
   const traderBtc = await sdk.common.createAssociatedAccount(
-    tokens["btc"].publicKey,
+    tokens.wbtc.publicKey,
     trader,
     (provider.wallet as NodeWallet).payer
   );
-  await sdk.common.transfer(btcATA, traderBtc, 100n * 1_000_000n);
+  await sdk.common.transfer(atas[1], traderBtc, 100n * 1_000_000n);
 
   const traderEth = await sdk.common.createAssociatedAccount(
-    tokens["eth"].publicKey,
+    tokens.weth.publicKey,
     trader,
     (provider.wallet as NodeWallet).payer
   );
-  await sdk.common.transfer(ethATA, traderEth, 100n * 1_000_000n);
+  await sdk.common.transfer(atas[2], traderEth, 100n * 1_000_000n);
 
-  const traderLuna = await sdk.common.createAssociatedAccount(
-    tokens["luna"].publicKey,
+  const traderSol = await sdk.common.createAssociatedAccount(
+    tokens.sol.publicKey,
     trader,
     (provider.wallet as NodeWallet).payer
   );
-  await sdk.common.transfer(lunaATA, traderLuna, 100n * 1_000_000n);
-
-  const traderXrp = await sdk.common.createAssociatedAccount(
-    tokens["xrp"].publicKey,
-    trader,
-    (provider.wallet as NodeWallet).payer
-  );
-  await sdk.common.transfer(xrpATA, traderXrp, 100n * 1_000_000n);
+  await sdk.common.transfer(atas[3], traderSol, 100n * 1_000_000n);
 
   // Ok so now if you load up the private keys for both god and the
   // trader in your test wallet, you should be able to play around with the app on localhost:

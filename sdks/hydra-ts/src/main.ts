@@ -8,6 +8,7 @@ import common from "./common";
 import staking from "./staking";
 import user from "./user";
 import liquidityPools from "./liquidity-pools";
+import accountLoaders from "./accountLoaders";
 
 /**
  * Create an instance of the sdk API
@@ -16,6 +17,7 @@ import liquidityPools from "./liquidity-pools";
  */
 export function createApi(ctx: Ctx) {
   const namespaceFns = {
+    accountLoaders,
     staking,
     liquidityPools,
     common,

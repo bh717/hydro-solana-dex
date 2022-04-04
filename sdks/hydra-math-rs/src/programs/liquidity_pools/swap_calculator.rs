@@ -682,6 +682,25 @@ mod tests {
     fn test_scalar_inputs() {
         // x to y (given delta X what is delta Y?)
         {
+            let actual = swap_x_to_y_hmm(
+                1000000_000000000, // 1 million x tokens
+                9,
+                1000000_000000, // 1 million y tokens
+                6,
+                0,
+                0,
+                0,
+                1,
+                500,
+                9_979900400, // just under 10 X tokens
+            )
+            .unwrap();
+            let expected = 99_59841;
+            let result = SwapResult::from(actual);
+            assert_eq!(result.delta_y, expected);
+        }
+
+        {
             let actual: SwapResult = From::from(
                 swap_x_to_y_hmm(
                     37_000000, 6, 126_000000, 6, 100, 3_000000, 6, 0, 0, 3_000000,

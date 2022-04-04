@@ -12,6 +12,7 @@ export type PoolState = {
   tokenYVaultBump: number;
   lpTokenVaultBump: number;
   compensationParameter: number; // Range from (0 - 200) / 100 = c. With only 025 increments
+  fees: PoolFees;
 };
 
 export type PoolFees = {

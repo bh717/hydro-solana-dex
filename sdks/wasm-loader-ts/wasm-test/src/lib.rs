@@ -43,6 +43,15 @@ pub fn returning_struct(a: u64) -> Result<ReturnXY, String> {
 }
 
 #[wasm_bindgen]
+pub fn returning_vec(a: u64) -> Result<Vec<u64>, String> {
+    if a % 2 == 1 {
+        return Err(String::from("You passed in an odd number!"));
+    }
+    let v = vec![1, 2, 3];
+    Ok(v)
+}
+
+#[wasm_bindgen]
 pub fn yikes() {
     panic!("Holy taco!");
 }

@@ -41,7 +41,8 @@ export function toBigInt(amount: BN): BigInt {
 }
 
 export function toBN(amount: BigInt): BN {
-  return new BN(amount.toString());
+  const str = amount.toString();
+  return new BN(str);
 }
 
 export async function tryGet<T>(fn: Promise<T>): Promise<T | undefined> {

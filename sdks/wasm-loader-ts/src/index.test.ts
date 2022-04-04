@@ -61,4 +61,9 @@ describe("wasm-loader", () => {
     });
     expect(message).toBe("Error: You passed in an odd number!");
   });
+
+  test("returning vec", async () => {
+    const vec = await testWasm.returning_vec(100n);
+    expect(vec).toEqual([1n, 2n, 3n]);
+  });
 });
