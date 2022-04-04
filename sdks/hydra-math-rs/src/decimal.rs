@@ -752,7 +752,7 @@ fn log_table_value(
     (s_value, t_value, lx_value)
 }
 
-/// Function that determines the bit length of a postive decimal
+/// Function that determines the bit length of a positive [Decimal]
 /// based on the formula: int(log(value)/log(2))
 impl BitLength<Decimal> for Decimal {
     fn bit_length(self) -> Result<Self, ErrorCode> {
@@ -1959,15 +1959,14 @@ mod test {
             assert_eq!(result, expected);
         }
 
-        // TODO: panic checked_mul
-        // // // 3.41200000**8 = 18368.43602322
-        // {
-        //     let base = Decimal::from_amount(341200000);
-        //     let exp: u128 = 8;
-        //     let result = base.pow(exp);
-        //     let expected = Decimal::from_amount(18368_43602280);
-        //     assert_eq!(result, expected);
-        // }
+        // 3.41200000**8 = 18368.43602322
+        {
+            let base = Decimal::new(3_41200000, 8, false);
+            let exp: u128 = 8;
+            let result = base.pow(exp);
+            let expected = Decimal::new(18368_43602280, 8, false);
+            assert_eq!(result, expected);
+        }
     }
 
     #[test]
