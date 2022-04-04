@@ -5,7 +5,7 @@ import { AccountData } from "hydra-ts/src/utils/account-loader";
 import { TokenMint } from "hydra-ts/src/types/token-mint";
 import { useCommands } from "./useCommands";
 import { useCalculateSwapResult } from "./useCalculateSwapResult";
-import { useSwapModalState } from "./useSwapModalState";
+import { useSwapUIState } from "./useSwapUIState";
 
 export function getDirection(
   tokenXMint: AccountData<TokenMint>,
@@ -38,7 +38,7 @@ export function useSwap() {
   useCalculateSwapResult(sdk, pool, tokenFrom, tokenTo, focus);
 
   // get modal state and handlers
-  const { onSendSubmit, onSendCancel, state } = useSwapModalState(commands);
+  const { onSendSubmit, onSendCancel, state } = useSwapUIState(commands);
 
   // get booleans for interface
   const poolExists = !!pool.poolState;

@@ -9,7 +9,7 @@ import { SwapErrorModal } from "../components/SwapErrorModal";
 import { SwapSuccessModal } from "../components/SwapSuccessModal";
 import { Box } from "@mui/system";
 import { Balances } from "./Balances";
-import { States } from "../hooks/useSwapModalState";
+import { States } from "../hooks/useSwapUIState";
 
 export function Swap() {
   const {

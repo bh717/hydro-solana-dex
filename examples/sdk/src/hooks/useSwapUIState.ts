@@ -78,7 +78,7 @@ export const swapMachine = createMachine<XContext, XEvents, XTypestate>({
     },
   },
 });
-export function useSwapModalState(impl: { executeSwap: () => Promise<void> }) {
+export function useSwapUIState(impl: { executeSwap: () => Promise<void> }) {
   const [state, send] = useMachine(swapMachine, {
     actions: {
       async swap() {
