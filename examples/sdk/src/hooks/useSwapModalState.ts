@@ -78,12 +78,12 @@ export const swapMachine = createMachine<XContext, XEvents, XTypestate>({
     },
   },
 });
-export function useSwapModalState(executeSwap: () => Promise<void>) {
+export function useSwapModalState(impl: { executeSwap: () => Promise<void> }) {
   const [state, send] = useMachine(swapMachine, {
     actions: {
       async swap() {
         try {
-          await executeSwap();
+          await impl.executeSwap();
           send("SUCCESS");
         } catch (error) {
           send("FAIL", { error: `${error}` });

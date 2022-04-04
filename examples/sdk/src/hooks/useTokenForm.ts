@@ -1,10 +1,9 @@
 import { useToken } from "./useToken";
 import { useCallback, useMemo, useState } from "react";
 import localnetTokens from "config-ts/tokens/localnet.json";
-import { HydraSDK } from "hydra-ts";
 
 const assets = localnetTokens.tokens;
-export function useTokenForm(client: HydraSDK) {
+export function useTokenForm() {
   const tokenFrom = useToken();
   const tokenTo = useToken();
   const [focus, setFocus] = useState<"from" | "to">("from");

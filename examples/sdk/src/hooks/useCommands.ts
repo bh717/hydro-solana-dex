@@ -1,7 +1,7 @@
 import { useTokenForm } from "./useTokenForm";
 import { HydraSDK } from "hydra-ts";
 
-export function useSwapCommands(
+export function useCommands(
   sdk: HydraSDK,
   tokenFormProps: ReturnType<typeof useTokenForm>
 ) {
