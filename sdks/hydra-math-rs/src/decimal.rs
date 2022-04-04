@@ -72,6 +72,18 @@ impl Decimal {
         }
     }
 
+    /// Computes the absolute value of a [Decimal]
+    /// and round down (floor) the value.
+    pub fn abs(self) -> u64 {
+        self.to_scale(0).to_u64()
+    }
+
+    /// Computes the absolute value of a [Decimal]
+    /// and round up (ceiling) the value.
+    pub fn abs_up(self) -> u64 {
+        self.to_scale_up(0).to_u64()
+    }
+
     /// Create a [Decimal] from an unsigned amount with scale, assumed positive by default.
     pub fn from_scaled_amount(amount: u64, scale: u8) -> Self {
         Decimal {
@@ -136,6 +148,28 @@ impl Decimal {
     /// Show the scale of a [Decimal] expressed as a power of 10.
     pub fn denominator(self) -> u128 {
         10u128.pow(self.scale.into())
+    }
+
+    /// Returns true if [Decimal] is positive and false if the number is zero or negative.
+    pub fn is_positive(self) -> bool {
+        !self.negative && !self.is_zero()
+    }
+
+    /// Returns true if [Decimal] is negative and false if the number is zero or positive.
+    pub fn is_negative(self) -> bool {
+        self.negative && !self.is_zero()
+    }
+
+    /// Returns true if [Decimal] value is zero.
+    pub fn is_zero(self) -> bool {
+        self.value == 0
+    }
+
+    /// Returns true if and only if the [Decimal] is an exact integer.
+    pub fn is_integer(self) -> bool {
+        let integer = self.to_scale(0).to_scale(self.scale);
+
+        self.sub(integer).expect("zero").is_zero()
     }
 }
 
@@ -220,7 +254,7 @@ impl Sub<Decimal> for Decimal {
         if !(self.scale == rhs.scale) {
             return Err(ErrorCode::DifferentScale.into());
         } else {
-            if rhs.gt(self).unwrap() {
+            if rhs.value > self.value {
                 // result must be negative
                 Ok(Self {
                     value: rhs.value.checked_sub(self.value).expect("checked_sub"),
@@ -309,60 +343,46 @@ impl DivScale<Decimal> for Decimal {
 /// Calculate the power of a [Decimal] with another [Decimal] as the exponent.
 impl Pow<Decimal> for Decimal {
     fn pow(self, exp: Decimal) -> Self {
-        if exp.negative {
-            let new_exp = Decimal::new(exp.value, exp.scale, false); // flip the sign of exp
-
-            // then return 1 / x^new_exp
-            return Decimal::from_u64(1)
-                .to_scale(self.scale)
-                .div(self.pow(new_exp));
-        }
-
-        // 0.25 to scale
-        let divisor = Decimal::from_u64(1)
+        let one = Decimal::from_u64(1).to_scale(self.scale);
+        let zero_point_two_five = Decimal::from_u64(1)
             .to_scale(self.scale)
             .div(Decimal::from_u64(4).to_scale(self.scale));
+        let zero_point_five = Decimal::from_u64(1)
+            .to_scale(self.scale)
+            .div(Decimal::from_u64(2).to_scale(self.scale));
+        let one_point_two_five = Decimal::from_u64(5)
+            .to_scale(self.scale)
+            .div(Decimal::from_u64(4).to_scale(self.scale));
+        let one_point_five = Decimal::from_u64(3)
+            .to_scale(self.scale)
+            .div(Decimal::from_u64(2).to_scale(self.scale));
 
-        let quotient = exp.div(divisor).to_scale(0).value as i32;
-
-        // index of exponent/0.25
-        match quotient {
-            0 => {
-                // x^0 = 1
-                Decimal::from_u64(1).to_scale(self.scale)
-            }
-            1 => {
-                // x^1/4 = x^0.25 = ⁴√x = √(√x) = sqrt(sqrt(x))
-                self.sqrt().unwrap().sqrt().unwrap()
-            }
-            2 => {
-                // x^1/2 = x^0.5 = √x = sqrt(x)
-                self.sqrt().unwrap()
-            }
-            4 => {
-                // x^1 = x
-                self.clone()
-            }
-            5 => {
-                // x^5/4 = x^1.25 = x(√(√x)) = x(sqrt(sqrt(x)))
+        let exp = Option::Some(exp);
+        match exp {
+            // e.g. x^0 = 1
+            Some(x) if x.is_zero() => one,
+            // e.g. x^0.25 = ⁴√x = √(√x) = sqrt(sqrt(x))
+            Some(x) if x.eq(zero_point_two_five).unwrap() => self.sqrt().unwrap().sqrt().unwrap(),
+            // e.g. x^0.5 = √x = sqrt(x)
+            Some(x) if x.eq(zero_point_five).unwrap() => self.sqrt().unwrap(),
+            // e.g. x^1 = x
+            Some(x) if x.eq(one).unwrap() => self.clone(),
+            // e.g. x^1.25 = x(√(√x)) = x(sqrt(sqrt(x)))
+            Some(x) if x.eq(one_point_two_five).unwrap() => {
                 self.mul(self.sqrt().unwrap().sqrt().unwrap())
             }
-            6 => {
-                // x^3/2 = x^1.50 = x(√x) = x(sqrt(x))
-                self.mul(self.sqrt().unwrap())
-            }
-            8 => {
-                // x^2 = 2x
-                self.mul(self)
-            }
-            _ => {
-                assert!(
-                    false,
-                    "compute_pow not implemented for base: {} exponent: {}",
-                    self.value, exp.value
-                );
-                Decimal::new(0, 0, false)
-            }
+            // e.g. x^1.50 = x(√x) = x(sqrt(x))
+            Some(x) if x.eq(one_point_five).unwrap() => self.mul(self.sqrt().unwrap()),
+            // e.g. x^2
+            Some(x) if x.is_integer() && x.is_positive() => self.pow(x.abs() as u128),
+            // e.g. x^-2 == 1/x^2
+            Some(x) if x.is_integer() && x.is_negative() => one.div(self.pow(x.abs() as u128)),
+            // e.g. x^-0.5 = 1/x^0.5
+            Some(x) if x.is_negative() => one.div(self.pow(Decimal::new(x.value, x.scale, false))),
+            _ => panic!(
+                "pow not implemented for exponent: {}",
+                exp.unwrap().to_string()
+            ),
         }
     }
 }
@@ -440,7 +460,7 @@ impl Compare<Decimal> for Decimal {
         if !(self.scale == other.scale) {
             return Err(ErrorCode::DifferentScale.into());
         } else {
-            Ok(self.value == other.value)
+            Ok(self.value == other.value && self.negative == other.negative)
         }
     }
 
@@ -449,7 +469,15 @@ impl Compare<Decimal> for Decimal {
         if !(self.scale == other.scale) {
             return Err(ErrorCode::DifferentScale.into());
         } else {
-            Ok(self.value < other.value)
+            if self.negative && other.negative {
+                Ok(self.value > other.value)
+            } else if self.negative && !other.negative {
+                Ok(true)
+            } else if !self.negative && other.negative {
+                Ok(false)
+            } else {
+                Ok(self.value < other.value)
+            }
         }
     }
 
@@ -458,7 +486,15 @@ impl Compare<Decimal> for Decimal {
         if !(self.scale == other.scale) {
             return Err(ErrorCode::DifferentScale.into());
         } else {
-            Ok(self.value > other.value)
+            if self.negative && other.negative {
+                Ok(self.value < other.value)
+            } else if self.negative && !other.negative {
+                Ok(false)
+            } else if !self.negative && other.negative {
+                Ok(true)
+            } else {
+                Ok(self.value > other.value)
+            }
         }
     }
 
@@ -467,7 +503,15 @@ impl Compare<Decimal> for Decimal {
         if !(self.scale == other.scale) {
             return Err(ErrorCode::DifferentScale.into());
         } else {
-            Ok(self.value >= other.value)
+            if self.negative && other.negative {
+                Ok(self.value <= other.value)
+            } else if self.negative && !other.negative {
+                Ok(false)
+            } else if !self.negative && other.negative {
+                Ok(true)
+            } else {
+                Ok(self.value >= other.value)
+            }
         }
     }
 
@@ -476,7 +520,15 @@ impl Compare<Decimal> for Decimal {
         if !(self.scale == other.scale) {
             return Err(ErrorCode::DifferentScale.into());
         } else {
-            Ok(self.value <= other.value)
+            if self.negative && other.negative {
+                Ok(self.value >= other.value)
+            } else if self.negative && !other.negative {
+                Ok(true)
+            } else if !self.negative && other.negative {
+                Ok(false)
+            } else {
+                Ok(self.value <= other.value)
+            }
         }
     }
 }
@@ -665,12 +717,7 @@ fn log_table_value(
     t_value: Decimal,
     log_table_col: usize,
 ) -> (Decimal, Decimal, u128) {
-    // TODO: figure out where the t_value==0 is coming from on chain
-    let s_value = if t_value.value == 0 {
-        Decimal::from_u64(0).to_scale(s_value.scale)
-    } else {
-        s_value.div(t_value)
-    };
+    let s_value = s_value.div(t_value);
     let place_value = 10u128.checked_pow((log_table_col + 1) as u32).unwrap();
     let f_value = Decimal::new(place_value, s_value.scale, false);
     let t_value = s_value.mul(f_value).div(f_value);
@@ -702,10 +749,10 @@ fn log_table_value(
 /// based on the formula: int(log(value)/log(2))
 impl BitLength<Decimal> for Decimal {
     fn bit_length(self) -> Result<Self, ErrorCode> {
-        if self.negative {
+        if self.is_negative() {
             return Err(ErrorCode::SignedDecimalsNotSupported.into());
         } else {
-            if self.value == 0 {
+            if self.is_zero() {
                 Ok(Decimal::from_u64(0))
             } else {
                 let value: f64 = self.into();
@@ -732,14 +779,21 @@ impl BitLength<Decimal> for Decimal {
 // https://docs.google.com/spreadsheets/d/19mgYjGQlpsuaTk1zXujn-yCSdbAL25sP/edit?pli=1#gid=2070648638
 impl Ln<Decimal> for Decimal {
     fn ln(self) -> Result<Self, ErrorCode> {
+        if self.is_negative() {
+            return Err(ErrorCode::SignedDecimalsNotSupported.into());
+        }
+
         let scaled_out = self.to_compute_scale();
 
         let ln_2_decimal = Decimal::new(693_147_180_559u128, 12, false);
 
         let bit_length_decimal = self.bit_length().expect("bit_length");
-        let max_value: u128 =
-            (2f64.powi(bit_length_decimal.into()) * (scaled_out.denominator() as f64)) as u128;
-        let max = Decimal::new(max_value, 12, false);
+
+        // TODO: calculate with higher compute scale when big_mul is implemented otherwise overflow
+        let max = Decimal::from_u64(2)
+            .to_scale(6)
+            .pow(bit_length_decimal.to_scale(6))
+            .to_compute_scale();
 
         let (s_0, t_0, lx_0) = log_table_value(scaled_out, max, 0);
         let (s_1, t_1, lx_1) = log_table_value(s_0, t_0, 1);
@@ -1125,6 +1179,27 @@ mod test {
     }
 
     #[test]
+    fn test_abs() {
+        let decimal = Decimal::new(0, 0, false);
+        assert_eq!(decimal.abs(), 0);
+
+        let decimal = Decimal::new(42, 0, false);
+        assert_eq!(decimal.abs(), 42);
+
+        let decimal = Decimal::new(4269420, 5, false);
+        assert_eq!(decimal.abs(), 42);
+
+        let decimal = Decimal::new(4269420, 5, true);
+        assert_eq!(decimal.abs(), 42);
+
+        let decimal = Decimal::new(4269420, 5, false);
+        assert_eq!(decimal.abs_up(), 43);
+
+        let decimal = Decimal::new(4269420, 5, true);
+        assert_eq!(decimal.abs_up(), 43);
+    }
+
+    #[test]
     fn test_to_scale() {
         // increase precision
         {
@@ -1403,6 +1478,33 @@ mod test {
 
             assert_eq!(actual, expected);
         }
+
+        {
+            let decimal = Decimal::new(42, 0, true);
+            let other = Decimal::new(42, 0, true);
+            let actual = decimal.lte(other).unwrap();
+            let expected = true;
+
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let decimal = Decimal::new(42, 0, false);
+            let other = Decimal::new(42, 0, true);
+            let actual = decimal.lte(other).unwrap();
+            let expected = false;
+
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let decimal = Decimal::new(42, 0, true);
+            let other = Decimal::new(42, 0, false);
+            let actual = decimal.lte(other).unwrap();
+            let expected = true;
+
+            assert_eq!(actual, expected);
+        }
     }
 
     #[test]
@@ -1436,6 +1538,33 @@ mod test {
         {
             let decimal = Decimal::new(10, 4, false);
             let other = Decimal::new(33, 4, false);
+            let actual = decimal.lt(other).unwrap();
+            let expected = true;
+
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let decimal = Decimal::new(43, 0, true);
+            let other = Decimal::new(42, 0, true);
+            let actual = decimal.lt(other).unwrap();
+            let expected = true;
+
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let decimal = Decimal::new(43, 0, false);
+            let other = Decimal::new(42, 0, true);
+            let actual = decimal.lt(other).unwrap();
+            let expected = false;
+
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let decimal = Decimal::new(43, 0, true);
+            let other = Decimal::new(42, 0, false);
             let actual = decimal.lt(other).unwrap();
             let expected = true;
 
@@ -1479,6 +1608,33 @@ mod test {
 
             assert_eq!(actual, expected);
         }
+
+        {
+            let decimal = Decimal::new(43, 0, true);
+            let other = Decimal::new(42, 0, true);
+            let actual = decimal.gt(other).unwrap();
+            let expected = false;
+
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let decimal = Decimal::new(43, 0, false);
+            let other = Decimal::new(42, 0, true);
+            let actual = decimal.gt(other).unwrap();
+            let expected = true;
+
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let decimal = Decimal::new(43, 0, true);
+            let other = Decimal::new(42, 0, false);
+            let actual = decimal.gt(other).unwrap();
+            let expected = false;
+
+            assert_eq!(actual, expected);
+        }
     }
 
     #[test]
@@ -1512,6 +1668,33 @@ mod test {
         {
             let decimal = Decimal::new(10, 4, false);
             let other = Decimal::new(33, 4, false);
+            let actual = decimal.gte(other).unwrap();
+            let expected = false;
+
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let decimal = Decimal::new(42, 0, true);
+            let other = Decimal::new(42, 0, true);
+            let actual = decimal.gte(other).unwrap();
+            let expected = true;
+
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let decimal = Decimal::new(42, 0, false);
+            let other = Decimal::new(42, 0, true);
+            let actual = decimal.gte(other).unwrap();
+            let expected = true;
+
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let decimal = Decimal::new(42, 0, true);
+            let other = Decimal::new(42, 0, false);
             let actual = decimal.gte(other).unwrap();
             let expected = false;
 
@@ -1555,6 +1738,66 @@ mod test {
 
             assert_eq!(actual, expected);
         }
+
+        {
+            let decimal = Decimal::new(33, 4, false);
+            let other = Decimal::new(33, 4, true);
+            let actual = decimal.eq(other).unwrap();
+            let expected = false;
+
+            assert_eq!(actual, expected);
+        }
+    }
+
+    #[test]
+    fn test_sign() {
+        // is zero
+        {
+            let decimal = Decimal::new(0, 0, false);
+            assert_eq!(decimal.is_zero(), true);
+        }
+
+        // is positive
+        {
+            let decimal = Decimal::new(42, 4, false);
+            assert_eq!(decimal.is_positive(), true);
+
+            let decimal = Decimal::new(0, 0, false);
+            assert_eq!(decimal.is_positive(), false);
+
+            let decimal = Decimal::new(24, 4, true);
+            assert_eq!(decimal.is_positive(), false);
+        }
+
+        // is negative
+        {
+            let decimal = Decimal::new(42, 4, false);
+            assert_eq!(decimal.is_negative(), false);
+
+            let decimal = Decimal::new(0, 0, false);
+            assert_eq!(decimal.is_negative(), false);
+
+            let decimal = Decimal::new(24, 4, true);
+            assert_eq!(decimal.is_negative(), true);
+        }
+    }
+
+    #[test]
+    fn test_is_integer() {
+        let decimal = Decimal::new(0, 0, false);
+        assert_eq!(decimal.is_integer(), true);
+
+        let decimal = Decimal::new(42, 0, false);
+        assert_eq!(decimal.is_integer(), true);
+
+        let decimal = Decimal::new(42, 0, true);
+        assert_eq!(decimal.is_integer(), true);
+
+        let decimal = Decimal::new(42420, 3, false);
+        assert_eq!(decimal.is_integer(), false);
+
+        let decimal = Decimal::new(42420, 3, true);
+        assert_eq!(decimal.is_integer(), false);
     }
 
     #[test]
@@ -1841,6 +2084,23 @@ mod test {
 
     #[test]
     fn test_natural_log() {
+        {
+            // ln(.93859063) = -0.06337585862
+
+            let expected = Decimal {
+                value: 6337585,
+                scale: 8,
+                negative: true,
+            };
+
+            let n = Decimal::new(93859063, 8, false);
+            let actual = n.ln().unwrap();
+
+            assert_eq!(actual.value, expected.value);
+            assert_eq!(actual.negative, expected.negative);
+            assert_eq!(actual.scale, expected.scale);
+        }
+
         {
             // ln(0.9) = -0.105_360
 
