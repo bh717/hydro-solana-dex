@@ -1,91 +1,11 @@
 import { useTokenForm } from "./useTokenForm";
 import { usePool } from "./usePool";
-import { useLiquidityPoolAccounts } from "./useLiquidityPoolAccounts";
 import { useHydraClient } from "../components/HydraClientProvider";
-import { createMachine, assign } from "xstate";
-import { useMachine } from "@xstate/react";
-import { useCallback } from "react";
 import { AccountData } from "hydra-ts/src/utils/account-loader";
 import { TokenMint } from "hydra-ts/src/types/token-mint";
-import { useSwapCommands } from "./useSwapCommands";
+import { useCreateSwapCommand } from "./useCreateSwapCommand";
 import { useCalculateSwapResult } from "./useCalculateSwapResult";
-
-export enum States {
-  EDIT = "edit",
-  PREVIEW = "preview",
-  PROCESS = "process",
-  ERROR = "error",
-  DONE = "done",
-}
-
-type XContext = {
-  error?: string;
-};
-
-type XEvents =
-  | { type: "SUBMIT" }
-  | { type: "CANCEL" }
-  | { type: "SUCCESS" }
-  | { type: "FAIL"; error: string };
-
-type XTypestate =
-  | {
-      value: "edit";
-      context: XContext;
-    }
-  | {
-      value: "preview";
-      context: XContext;
-    }
-  | {
-      value: "process";
-      context: XContext;
-    }
-  | {
-      value: "error";
-      context: XContext & { error: string };
-    }
-  | {
-      value: "done";
-      context: XContext;
-    };
-
-const swapMachine = createMachine<XContext, XEvents, XTypestate>({
-  id: "swap_flow",
-  initial: "edit",
-  context: {},
-  states: {
-    edit: {
-      on: {
-        SUBMIT: "preview",
-      },
-    },
-    preview: {
-      on: {
-        SUBMIT: "process",
-        CANCEL: "edit",
-      },
-    },
-    process: {
-      entry: ["swap"],
-      on: {
-        SUCCESS: "done",
-        FAIL: "error",
-      },
-    },
-    error: {
-      entry: ["updateEvent"],
-      on: {
-        CANCEL: "edit",
-      },
-    },
-    done: {
-      on: {
-        CANCEL: "edit",
-      },
-    },
-  },
-});
+import { useSwapUIState } from "./useSwapUIState";
 
 export function getDirection(
   tokenXMint: AccountData<TokenMint>,
@@ -101,62 +21,55 @@ export function getDirection(
 
 export function useSwap() {
   const sdk = useHydraClient();
-  const tokenFormProps = useTokenForm(sdk);
-  const accounts = useLiquidityPoolAccounts(
-    sdk,
-    tokenFormProps.tokenXMint,
-    tokenFormProps.tokenYMint
-  );
-  const { tokenFrom, tokenTo, focus } = tokenFormProps;
-  const pool = usePool(accounts);
-  const { executeSwap } = useSwapCommands(sdk, tokenFormProps);
 
+  // keep all token stuff together to pass to dependencies
+
+  // get form data and controls
+  const {
+    assetsTokenFrom,
+    assetsTokenTo,
+    focus,
+    setFocus,
+    toggleFields,
+    tokenFrom,
+    tokenTo,
+    tokenXMint,
+    tokenYMint,
+  } = useTokenForm();
+
+  // get pool values
+  const pool = usePool(sdk, tokenXMint, tokenYMint);
+
+  // set reactive form fields based on input
   useCalculateSwapResult(sdk, pool, tokenFrom, tokenTo, focus);
 
-  const [state, send] = useMachine(swapMachine, {
-    actions: {
-      async swap() {
-        try {
-          await executeSwap();
-          send("SUCCESS");
-        } catch (error) {
-          send("FAIL", { error: `${error}` });
-        }
-      },
-      updateEvent: assign((_, event) =>
-        event.type === "FAIL"
-          ? {
-              error: event.error,
-            }
-          : {}
-      ),
-    },
-  });
+  // get modal state and handlers
+  const { onSendSubmit, onSendCancel, state } = useSwapUIState(
+    useCreateSwapCommand(sdk, tokenFrom, tokenTo, tokenXMint, tokenYMint)
+  );
 
-  const onSubmitRequested = useCallback(() => {
-    send("SUBMIT");
-  }, [send]);
-
-  const onCancelRequested = useCallback(() => {
-    send("CANCEL");
-  }, [send]);
-
-  // boolleans
+  // get booleans for interface
   const poolExists = !!pool.poolState;
-  const poolPairSelected =
-    tokenFormProps.tokenFrom.asset && tokenFormProps.tokenTo.asset;
-
+  const poolPairSelected = tokenFrom.asset && tokenTo.asset;
   const canSwap = poolExists && sdk.ctx.isSignedIn();
 
+  // Send it all down
   return {
     ...pool,
-    ...tokenFormProps,
-    poolPairSelected,
-    poolExists,
+    assetsTokenFrom,
+    assetsTokenTo,
     canSwap,
-    onSubmitRequested,
-    onCancelRequested,
-    setFocus: tokenFormProps.setFocus,
+    focus,
+    onSendCancel,
+    onSendSubmit,
+    poolExists,
+    poolPairSelected,
+    setFocus,
     state,
+    toggleFields,
+    tokenFrom,
+    tokenTo,
+    tokenXMint,
+    tokenYMint,
   };
 }

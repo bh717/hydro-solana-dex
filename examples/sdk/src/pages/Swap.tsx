@@ -1,76 +1,17 @@
-import {
-  Paper,
-  Stack,
-  Typography,
-  Button,
-  Alert,
-  Table,
-  TableRow,
-  TableCell,
-  TableBody,
-} from "@mui/material";
-import { toFormat } from "../utils/toFormat";
+import { Paper, Stack, Typography, Button, Alert } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
-// import { useHydraClient } from "../components/HydraClientProvider";
 import SwapVertIcon from "@mui/icons-material/SwapVert";
 import { TokenField } from "../components/TokenField";
-import { States, useSwap } from "../hooks/useSwap";
+import { useSwap } from "../hooks/useSwap";
 import { SwapPreviewModal } from "../components/SwapPreviewModal";
 import { SwapProcessModal } from "../components/SwapProcessModal";
 import { SwapErrorModal } from "../components/SwapErrorModal";
 import { SwapSuccessModal } from "../components/SwapSuccessModal";
 import { Box } from "@mui/system";
-import tokens from "config-ts/tokens/localnet.json";
-import { useHydraClient } from "../components/HydraClientProvider";
-import { PublicKey } from "@solana/web3.js";
-import { useMemo } from "react";
-import { useObservable } from "../hooks/useObservable";
-import { Asset } from "../types";
-import { combineLatest } from "rxjs";
-import { map } from "rxjs/operators";
-
-function useBalances(assetList: Asset[]) {
-  const client = useHydraClient();
-  return useMemo(() => {
-    const streamList$ = assetList.map((asset) => {
-      console.log("mapping...");
-      return client.accountLoaders
-        .associatedToken(new PublicKey(asset.address))
-        .stream()
-        .pipe(map((account) => account?.account?.data?.amount ?? 0n));
-    });
-    return combineLatest(streamList$);
-  }, [assetList, client]);
-}
-
-function useCombineAssetBalances(
-  assetList: Asset[],
-  balances: bigint[] | undefined
-) {
-  return useMemo(
-    () =>
-      assetList.map((asset, index) => ({
-        ...asset,
-        balance: balances ? balances[index] : 0n,
-      })),
-    [assetList, balances]
-  );
-}
-
-const assets = tokens.tokens;
-
-function useAssetBalances() {
-  const balances$ = useBalances(assets);
-  const balances = useObservable(balances$);
-
-  const combined = useCombineAssetBalances(assets, balances);
-  return combined;
-}
+import { Balances } from "./Balances";
+import { States } from "../hooks/useSwapUIState";
 
 export function Swap() {
-  const client = useHydraClient();
-
-  const swapProps = useSwap();
   const {
     tokenFrom,
     tokenTo,
@@ -81,13 +22,10 @@ export function Swap() {
     poolPairSelected,
     canSwap,
     setFocus,
-    onSubmitRequested,
+    onSendSubmit,
     state,
-    onCancelRequested,
-  } = swapProps;
-
-  // const balances = useAssetBalances();
-  const balances = useAssetBalances();
+    onSendCancel,
+  } = useSwap();
 
   return (
     <>
@@ -140,7 +78,7 @@ export function Swap() {
                 fullWidth
                 size="large"
                 variant="contained"
-                onClick={onSubmitRequested}
+                onClick={onSendSubmit}
               >
                 Swap
               </Button>
@@ -152,32 +90,8 @@ export function Swap() {
             </Box>
           </Paper>
         </Box>
-        <Box>
-          <Paper sx={{ padding: 6, minWidth: 400 }}>
-            <Box alignItems={"center"} gap={1} textAlign="center">
-              <Typography textAlign="center" variant="h6" component="h6">
-                Wallets
-              </Typography>
 
-              {!client.ctx.isSignedIn() ? (
-                <Box>No wallet connected. Please connect a wallet.</Box>
-              ) : (
-                <Table>
-                  <TableBody>
-                    {balances.map((balance) => (
-                      <TableRow key={balance.address}>
-                        <TableCell>{balance.symbol}</TableCell>
-                        <TableCell align="right">
-                          {toFormat(balance.balance, balance.decimals)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </Box>
-          </Paper>
-        </Box>
+        <Balances />
       </Box>
       {/* modals */}
       {tokenFrom.asset && tokenTo.asset && (
@@ -187,28 +101,20 @@ export function Swap() {
           fromAsset={tokenFrom.asset}
           toAmount={tokenTo.amount}
           toAsset={tokenTo.asset}
-          handleClose={onCancelRequested}
-          handleSubmit={onSubmitRequested}
+          handleClose={onSendCancel}
+          handleSubmit={onSendSubmit}
         />
       )}
       <SwapProcessModal open={state.matches(States.PROCESS)} />
       <SwapErrorModal
         error={state.matches(States.ERROR) ? state.context.error : ""}
         open={state.matches(States.ERROR)}
-        onClose={onCancelRequested}
+        onClose={onSendCancel}
       />
       <SwapSuccessModal
         open={state.matches(States.DONE)}
-        onClose={onCancelRequested}
+        onClose={onSendCancel}
       />
     </>
   );
-  //    <pre>
-  //    {JSON.stringify(
-  //      swapProps,
-  //      (key, value) =>
-  //        typeof value === "bigint" ? value.toString() + "n" : value,
-  //      2
-  //    )}
-  //  </pre>
 }

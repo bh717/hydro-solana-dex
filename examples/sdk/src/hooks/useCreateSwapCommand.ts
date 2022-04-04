@@ -1,14 +1,17 @@
-import { useTokenForm } from "./useTokenForm";
 import { HydraSDK } from "hydra-ts";
+import { TokenField } from "./useToken";
+import { PublicKey } from "@solana/web3.js";
 
-export function useSwapCommands(
+export function useCreateSwapCommand(
   sdk: HydraSDK,
-  tokenFormProps: ReturnType<typeof useTokenForm>
+  // Userspace input token fields
+  tokenFrom: TokenField,
+  tokenTo: TokenField,
+  // Pool Token X/Y
+  tokenXMint?: PublicKey,
+  tokenYMint?: PublicKey
 ) {
-  // console.log("useSwapCommands");
   async function executeSwap() {
-    const { tokenXMint, tokenYMint, tokenFrom, tokenTo } = tokenFormProps;
-
     if (!tokenXMint || !tokenYMint || !tokenFrom.mint || !tokenTo.mint) return;
 
     const tokenFromAccount = await sdk.accountLoaders

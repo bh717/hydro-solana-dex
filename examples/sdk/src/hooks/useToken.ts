@@ -2,7 +2,7 @@ import { PublicKey } from "@solana/web3.js";
 import { useCallback, useMemo, useState } from "react";
 import { Asset } from "../types";
 
-export type TokenData = ReturnType<typeof useToken>;
+export type TokenField = ReturnType<typeof useToken>;
 
 export function useToken() {
   const [amount, setAmount] = useState(0n);
