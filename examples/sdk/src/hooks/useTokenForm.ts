@@ -5,8 +5,6 @@ import { HydraSDK } from "hydra-ts";
 
 const assets = localnetTokens.tokens;
 export function useTokenForm(client: HydraSDK) {
-  // console.log("useTokenForm");
-
   const tokenFrom = useToken();
   const tokenTo = useToken();
   const [focus, setFocus] = useState<"from" | "to">("from");

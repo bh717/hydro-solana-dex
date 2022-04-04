@@ -1,6 +1,5 @@
 import { useTokenForm } from "./useTokenForm";
 import { usePool } from "./usePool";
-import { useLiquidityPoolAccounts } from "./useLiquidityPoolAccounts";
 import { useHydraClient } from "../components/HydraClientProvider";
 import { createMachine, assign } from "xstate";
 import { useMachine } from "@xstate/react";
@@ -102,13 +101,13 @@ export function getDirection(
 export function useSwap() {
   const sdk = useHydraClient();
   const tokenFormProps = useTokenForm(sdk);
-  const accounts = useLiquidityPoolAccounts(
+
+  const { tokenFrom, tokenTo, focus } = tokenFormProps;
+  const pool = usePool(
     sdk,
     tokenFormProps.tokenXMint,
     tokenFormProps.tokenYMint
   );
-  const { tokenFrom, tokenTo, focus } = tokenFormProps;
-  const pool = usePool(accounts);
   const { executeSwap } = useSwapCommands(sdk, tokenFormProps);
 
   useCalculateSwapResult(sdk, pool, tokenFrom, tokenTo, focus);

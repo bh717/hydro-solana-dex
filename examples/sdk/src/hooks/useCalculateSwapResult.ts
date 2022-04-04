@@ -12,8 +12,6 @@ export function useCalculateSwapResult(
   tokenTo: ReturnType<typeof useToken>,
   focus: "from" | "to"
 ) {
-  // const { amount, asset } = tokenFrom;
-  console.log({ focus });
   const { tokenXMint, tokenYMint, tokenXVault, tokenYVault, poolState } = pool;
 
   const calculateSwap = useCallback(
