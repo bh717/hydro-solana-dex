@@ -3,7 +3,7 @@ import { usePool } from "./usePool";
 import { useHydraClient } from "../components/HydraClientProvider";
 import { AccountData } from "hydra-ts/src/utils/account-loader";
 import { TokenMint } from "hydra-ts/src/types/token-mint";
-import { useCommands } from "./useCommands";
+import { useCreateSwapCommand } from "./useCreateSwapCommand";
 import { useCalculateSwapResult } from "./useCalculateSwapResult";
 import { useSwapUIState } from "./useSwapUIState";
 
@@ -28,9 +28,6 @@ export function useSwap() {
   // get form data and controls
   const { tokenFrom, tokenTo, focus, tokenXMint, tokenYMint } = tokenForm;
 
-  // get commands
-  const commands = useCommands(sdk, tokenForm);
-
   // get pool values
   const pool = usePool(sdk, tokenXMint, tokenYMint);
 
@@ -38,7 +35,9 @@ export function useSwap() {
   useCalculateSwapResult(sdk, pool, tokenFrom, tokenTo, focus);
 
   // get modal state and handlers
-  const { onSendSubmit, onSendCancel, state } = useSwapUIState(commands);
+  const { onSendSubmit, onSendCancel, state } = useSwapUIState(
+    useCreateSwapCommand(sdk, tokenFrom, tokenTo, tokenXMint, tokenYMint)
+  );
 
   // get booleans for interface
   const poolExists = !!pool.poolState;

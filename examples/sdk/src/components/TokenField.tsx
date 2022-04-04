@@ -1,5 +1,5 @@
 import { NumericField } from "./NumericField";
-import { TokenData } from "../hooks/useToken";
+import { TokenField } from "../hooks/useToken";
 import { Asset } from "../types";
 import { toFormat } from "../utils/toFormat";
 import { fromFormat } from "../utils/fromFormat";
@@ -15,7 +15,7 @@ export function TokenField({
   focusLabel: "from" | "to";
   onFocus: (focus: "from" | "to") => void;
   assets: Asset[];
-  token: TokenData;
+  token: TokenField;
 }) {
   const handleFocus = useCallback(() => {
     onFocus(focusLabel);
