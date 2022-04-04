@@ -620,8 +620,7 @@ mod tests {
             expected.to_string(),
             result
         );
-        // TODO: something wrong with sign on larger inputs
-        // assert_eq!(result.negative, expected.negative, "check_delta_x_hmm_sign");
+        assert_eq!(result.negative, expected.negative, "check_delta_x_hmm_sign");
     }
 
     proptest! {
