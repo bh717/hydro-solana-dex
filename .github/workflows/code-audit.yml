@@ -68,3 +68,23 @@ jobs:
       - id: run-soteria
         name: Run Soteria
         run: make run-soteria
+
+      - name: code-audit - Notify slask success
+        if: success()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: gitops
+          status: CODE-AUDIT-SUCCESS
+          color: good
+
+      - name: code-audit - Notify slack failure
+        if: failure()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: gitops
+          status: CODE-AUDIT-FAILED
+          color: danger
