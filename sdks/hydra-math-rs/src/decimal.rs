@@ -109,11 +109,11 @@ impl Decimal {
         Self {
             value: if self.scale > scale {
                 self.value
-                    .checked_div(10u128.pow((self.scale - scale).into()))
+                    .checked_div(10u128.pow((self.scale.checked_sub(scale).unwrap()).into()))
                     .expect("scaled_down")
             } else {
                 self.value
-                    .checked_mul(10u128.pow((scale - self.scale).into()))
+                    .checked_mul(10u128.pow((scale.checked_sub(self.scale).unwrap()).into()))
                     .expect("scaled_up")
             },
             scale,
@@ -127,13 +127,13 @@ impl Decimal {
         let decimal = Self::new(self.value, scale, self.negative);
         if self.scale >= scale {
             decimal.div_up(Self::new(
-                10u128.pow((self.scale - scale).try_into().unwrap()),
+                10u128.pow((self.scale.checked_sub(scale).unwrap()).try_into().unwrap()),
                 0,
                 self.negative,
             ))
         } else {
             decimal.mul_up(Self::new(
-                10u128.pow((scale - self.scale).try_into().unwrap()),
+                10u128.pow((scale.checked_sub(self.scale).unwrap()).try_into().unwrap()),
                 0,
                 self.negative,
             ))
@@ -813,7 +813,25 @@ impl Ln<Decimal> for Decimal {
         let (s_8, t_8, lx_8) = log_table_value(s_7, t_7, 8);
         let (_s_9, _t_9, lx_9) = log_table_value(s_8, t_8, 9);
 
-        let lx_sum = lx_0 + lx_1 + lx_2 + lx_3 + lx_4 + lx_5 + lx_6 + lx_7 + lx_8 + lx_9;
+        let lx_sum = lx_0
+            .checked_add(lx_1)
+            .unwrap()
+            .checked_add(lx_2)
+            .unwrap()
+            .checked_add(lx_3)
+            .unwrap()
+            .checked_add(lx_4)
+            .unwrap()
+            .checked_add(lx_5)
+            .unwrap()
+            .checked_add(lx_6)
+            .unwrap()
+            .checked_add(lx_7)
+            .unwrap()
+            .checked_add(lx_8)
+            .unwrap()
+            .checked_add(lx_9)
+            .unwrap();
 
         let lx_sum_decimal = Decimal::new(lx_sum, 12, scaled_out.negative);
 
