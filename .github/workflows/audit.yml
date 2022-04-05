@@ -9,9 +9,8 @@ on:
       - "*"
 
 env:
+  cache-id: code-audit-20220405
   CARGO_TERM_COLOR: always
-  SOLANA_VERSION: "stable"
-  PROGRAM_PATH: "programs/hydra-liquidity-pools/" # Target clearing_house
 
 jobs:
   build:
