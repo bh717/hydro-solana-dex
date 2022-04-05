@@ -31,9 +31,11 @@ pub fn swap_x_to_y_hmm(
         .scale(x_scale, y_scale)
         .build()?;
 
-    let delta_x = Decimal::from_scaled_amount(amount, 6).to_compute_scale();
+    let delta_x = Decimal::from_scaled_amount(amount, x_scale).to_compute_scale();
 
-    let result = calculator.swap_x_to_y_hmm(&delta_x);
+    let result = calculator
+        .swap_x_to_y_hmm(&delta_x)
+        .expect("failed to swap x to y");
 
     Ok(result.into())
 }
@@ -60,9 +62,11 @@ pub fn swap_y_to_x_hmm(
         .scale(x_scale, y_scale)
         .build()?;
 
-    let delta_y = Decimal::from_scaled_amount(amount, 6).to_compute_scale();
+    let delta_y = Decimal::from_scaled_amount(amount, y_scale).to_compute_scale();
 
-    let result = calculator.swap_y_to_x_hmm(&delta_y);
+    let result = calculator
+        .swap_y_to_x_hmm(&delta_y)
+        .expect("failed to swap y to x");
 
     Ok(result.into())
 }
@@ -223,6 +227,8 @@ impl SwapCalculatorBuilder {
 pub enum SwapCalculatorError {
     #[error("Failed to build struct due to input provided")]
     BuilderIncomplete,
+    #[error("Delta input provided was not positive or greater than zero")]
+    DeltaNotPositive,
 }
 
 impl SwapCalculator {
@@ -250,8 +256,11 @@ impl SwapCalculator {
     }
 
     /// Compute swap result from x to y using a constant product curve given delta x
-    pub fn swap_x_to_y_hmm(&self, delta_x: &Decimal) -> SwapResult {
-        // fees deducted first
+    pub fn swap_x_to_y_hmm(&self, delta_x: &Decimal) -> Result<SwapResult, SwapCalculatorError> {
+        if delta_x.is_negative() || delta_x.is_zero() {
+            return Err(SwapCalculatorError::DeltaNotPositive.into());
+        }
+
         let (fees, amount_ex_fees) = self.fee.compute_fees(delta_x);
 
         let x_new = self.compute_x_new(&amount_ex_fees);
@@ -264,18 +273,21 @@ impl SwapCalculator {
 
         let x_new = x_new.add(fees).unwrap();
 
-        SwapResult {
+        Ok(SwapResult {
             x_new: x_new.to_scaled_amount_up(self.scale.x),
             y_new: y_new.to_scaled_amount_up(self.scale.y),
             delta_x: delta_x.to_scaled_amount(self.scale.x),
             delta_y: delta_y.to_scaled_amount(self.scale.y),
             fees: fees.to_scaled_amount(self.scale.x),
-        }
+        })
     }
 
     /// Compute swap result from y to x using a constant product curve given delta y
-    pub fn swap_y_to_x_hmm(&self, delta_y: &Decimal) -> SwapResult {
-        // fees deducted first
+    pub fn swap_y_to_x_hmm(&self, delta_y: &Decimal) -> Result<SwapResult, SwapCalculatorError> {
+        if delta_y.is_negative() || delta_y.is_zero() {
+            return Err(SwapCalculatorError::DeltaNotPositive.into());
+        }
+
         let (fees, amount_ex_fees) = self.fee.compute_fees(delta_y);
 
         let y_new = self.compute_y_new(&amount_ex_fees);
@@ -288,13 +300,13 @@ impl SwapCalculator {
 
         let y_new = y_new.add(fees).unwrap();
 
-        SwapResult {
+        Ok(SwapResult {
             x_new: x_new.to_scaled_amount_up(self.scale.x),
             y_new: y_new.to_scaled_amount_up(self.scale.y),
             delta_x: delta_x.to_scaled_amount(self.scale.x),
             delta_y: delta_y.to_scaled_amount(self.scale.y),
             fees: fees.to_scaled_amount(self.scale.y),
-        }
+        })
     }
 
     /// Compute delta y using a constant product curve given delta x
@@ -320,21 +332,27 @@ impl SwapCalculator {
     /// Compute delta y using a baseline curve given delta y
     fn compute_delta_y_hmm(&self, delta_x: &Decimal) -> Decimal {
         let x_new = self.compute_x_new(delta_x);
-        let xi = self.compute_xi();
         let k = self.compute_k();
 
+        if self.i.is_zero() {
+            // Condition 0 - use AMM
+            // Oracle price is zero, return early.
+            return self.compute_delta_y_amm(delta_x);
+        }
+
+        let xi = self.compute_xi();
         if x_new.gt(self.x0).unwrap() && self.x0.gte(xi).unwrap() {
-            // Condition 1
+            // Condition 1 - use AMM
             // (Δx > 0 AND X₀ >= Xᵢ) [OR (Δx < 0 AND X₀ <= Xᵢ)] <= redundant because delta x always > 0
-            // Oracle price is better than the constant product price.
+            // Oracle price is better than the constant product price
             self.compute_delta_y_amm(delta_x)
         } else if x_new.gt(self.x0).unwrap() && x_new.lte(xi).unwrap() {
-            // Condition 2
+            // Condition 2 - use HMM
             // (Δx > 0 AND X_new <= Xᵢ) [OR (Δx < 0 AND X_new >= Xᵢ)]
             // Constant product price is better than the oracle price even after the full trade.
             self.compute_integral(&k, &self.x0, &x_new, &xi, &self.c)
         } else {
-            // Condition 3
+            // Condition 3 - use HMM
             // Constant product price is better than the oracle price at the start of the trade.
             // delta_y = compute_integral(k, x0, xi, xi, c) + (k/x_new - k/xi)
             let integral = self.compute_integral(&k, &self.x0, &xi, &xi, &self.c);
@@ -351,21 +369,27 @@ impl SwapCalculator {
     /// Compute delta x using a baseline curve given delta y
     fn compute_delta_x_hmm(&self, delta_y: &Decimal) -> Decimal {
         let y_new = self.compute_y_new(delta_y);
-        let yi = self.compute_yi();
         let k = self.compute_k();
 
+        if self.i.is_zero() {
+            // Condition 0 - use AMM
+            // Oracle price is zero, return early.
+            return self.compute_delta_x_amm(delta_y);
+        }
+
+        let yi = self.compute_yi();
         if y_new.gt(self.y0).unwrap() && self.y0.gte(yi).unwrap() {
-            // Condition 1
+            // Condition 1 - use AMM
             // (Δy > 0 AND Y₀ >= Yᵢ) [OR (Δy < 0 AND Y₀ <= Yᵢ)] <= redundant because delta y always > 0
             // Oracle price is better than the constant product price.
             self.compute_delta_x_amm(delta_y)
         } else if y_new.gt(self.y0).unwrap() && y_new.lte(yi).unwrap() {
-            // Condition 2
+            // Condition 2 - use HMM
             // (Δy > 0 AND Y_new <= Yᵢ) [OR (Δy < 0 AND Y_new >= Yᵢ)] <= redundant because delta y always > 0
             // Constant product price is better than the oracle price even after the full trade.
             self.compute_integral(&k, &self.y0, &y_new, &yi, &self.c)
         } else {
-            // Condition 3
+            // Condition 3 - use HMM
             // Constant product price is better than the oracle price at the start of the trade.
             // delta_x = compute_integral(k, y0, yi, yi, c) + (k/x_new - k/xi)
             let integral = self.compute_integral(&k, &self.y0, &yi, &yi, &self.c);
@@ -408,36 +432,23 @@ impl SwapCalculator {
             // qi**c
             let qi_pow_c = qi.pow(*c);
 
-            if c_sub_one.negative {
-                // a = k/q0**(c-1)
-                let a = k.div(q0.pow(c_sub_one));
-                // b = k/q_new**(c-1)
-                let b = k.div(q_new.pow(c_sub_one));
+            // a = k*q0**(c-1)
+            // b = k*q_new**(c-1)
+            // lhs = k/((qi**c)*(c-1))
+            // (qi**c)*(c-1)
+            let lhs_den = qi_pow_c.mul(c_sub_one);
+            let lhs = k.div(lhs_den);
 
-                let a_sub_b = a.sub(b).unwrap();
+            // q0**(c-1)
+            let q0_pow_c_sub_one = q0.pow(c_sub_one);
+            // q_new**(c-1)
+            let q_new_pow_c_sub_one = q_new.pow(c_sub_one);
 
-                // (a - b) / (qi**c) / (c-1)
-                let result = a_sub_b.div(qi_pow_c).div(c_sub_one);
-                result
-            } else {
-                // a = k*q0**(c-1)
-                // b = k*q_new**(c-1)
-                // lhs = k/((qi**c)*(c-1))
-                // (qi**c)*(c-1)
-                let lhs_den = qi_pow_c.mul(c_sub_one);
-                let lhs = k.div(lhs_den);
+            // rhs = q0**(c-1) - q_new**(c-1)
+            let rhs = q0_pow_c_sub_one.sub(q_new_pow_c_sub_one).unwrap();
 
-                // q0**(c-1)
-                let q0_pow_c_sub_one = q0.pow(c_sub_one);
-                // q_new**(c-1)
-                let q_new_pow_c_sub_one = q_new.pow(c_sub_one);
-
-                // rhs = q0**(c-1) - q_new**(c-1)
-                let rhs = q0_pow_c_sub_one.sub(q_new_pow_c_sub_one).unwrap();
-
-                // lhs * rhs
-                lhs.mul(rhs)
-            }
+            // lhs * rhs
+            lhs.mul(rhs)
         }
     }
 
@@ -453,15 +464,7 @@ impl SwapCalculator {
     fn compute_xi(&self) -> Decimal {
         // Xᵢ = √K/i
         let k = self.compute_k();
-
-        // TODO: figure out where the i==0 is coming from on chain
-        let k_div_i = if self.i.value == 0 {
-            Decimal::from_u64(0).to_scale(k.scale)
-        } else {
-            k.div(self.i)
-        };
-
-        k_div_i.sqrt().expect("xi")
+        k.div(self.i).sqrt().expect("xi")
     }
 
     /// Compute the token balance of y assuming the constant product price
@@ -470,9 +473,7 @@ impl SwapCalculator {
     fn compute_yi(&self) -> Decimal {
         // Yᵢ = √(K/1/i) = √(K * i)
         let k = self.compute_k();
-        // TODO: consider using u256 type to avoid overflow.
-        let k_mul_i = k.mul(self.i);
-        k_mul_i.sqrt().expect("yi")
+        k.mul(self.i).sqrt().expect("yi")
     }
 
     /// Compute new amount for x
@@ -619,8 +620,7 @@ mod tests {
             expected.to_string(),
             result
         );
-        // TODO: something wrong with sign on larger inputs
-        // assert_eq!(result.negative, expected.negative, "check_delta_x_hmm_sign");
+        assert_eq!(result.negative, expected.negative, "check_delta_x_hmm_sign");
     }
 
     proptest! {
@@ -655,6 +655,7 @@ mod tests {
             // ((2**37) - 1) = 137,438,953,471 max
             // log2(10^6) = 20 bits for 6 decimal places, 44 bits for integer
             // ((2**44) - 1) = 17,592,186,044,415 max
+            // TODO: why do we lose so much accuracy after 10^15 ?
             x0 in 10u64.pow(3)..10u64.pow(15),
             y0 in 10u64.pow(3)..10u64.pow(15),
             c in (0..=3usize).prop_map(|v| ["0.0", "1.0", "1.25", "1.5"][v]),
@@ -678,7 +679,26 @@ mod tests {
 
     #[test]
     fn test_scalar_inputs() {
-        // x to y
+        // x to y (given delta X what is delta Y?)
+        {
+            let actual = swap_x_to_y_hmm(
+                1000000_000000000, // 1 million x tokens
+                9,
+                1000000_000000, // 1 million y tokens
+                6,
+                0,
+                0,
+                0,
+                1,
+                500,
+                9_979900400, // just under 10 X tokens
+            )
+            .unwrap();
+            let expected = 99_59841;
+            let result = SwapResult::from(actual);
+            assert_eq!(result.delta_y, expected);
+        }
+
         {
             let actual: SwapResult = From::from(
                 swap_x_to_y_hmm(
@@ -690,7 +710,7 @@ mod tests {
             assert_eq!(actual.delta_y, expected);
         }
 
-        // y to x
+        // y to x (given delta Y what is delta X?)
         {
             let actual: SwapResult = From::from(
                 swap_y_to_x_hmm(
@@ -722,15 +742,15 @@ mod tests {
             let result = swap.compute_delta_y_hmm(&delta_x);
             // python: -9.207_401_794_786
 
-            let expected = Decimal::new(9_207_401, DEFAULT_SCALE_TEST, false);
+            let expected = Decimal::new(9_207_401, DEFAULT_SCALE_TEST, true);
 
             assert!(
                 result.eq(expected).unwrap(),
-                "compute_delta_y_hmm\n{}\n{}",
-                result.value,
-                expected.value
+                "compute_delta_y_hmm\n{:?}\n{:?}",
+                result,
+                expected
             );
-            assert_eq!(result.negative, true);
+            assert_eq!(result.negative, expected.negative);
         }
 
         // compute_delta_y_hmm when c == 0
@@ -749,15 +769,15 @@ mod tests {
             let delta_x = Decimal::from_u128(1).to_compute_scale();
             let result = swap.compute_delta_y_hmm(&delta_x).to_scale(8);
             // python: -1.000_000_000_000
-            let expected = Decimal::new(1_000_000_00, 8, false);
+            let expected = Decimal::new(1_000_000_00, 8, true);
 
             assert!(
                 result.eq(expected).unwrap(),
-                "compute_delta_y_hmm {}, {}",
-                result.value,
-                expected.value
+                "compute_delta_y_hmm\n{:?}\n{:?}",
+                result,
+                expected
             );
-            assert_eq!(result.negative, true);
+            assert_eq!(result.negative, expected.negative);
         }
 
         // compute_delta_x_hmm when c == 0
@@ -774,17 +794,19 @@ mod tests {
                 },
             };
             let delta_y = Decimal::from_u128(4).to_compute_scale();
-            let result = swap.compute_delta_x_hmm(&delta_y).to_scale(8);
+            let result = swap
+                .compute_delta_x_hmm(&delta_y)
+                .to_scale(DEFAULT_SCALE_TEST);
             // python: -4.385_786_802_030
-            let expected = Decimal::new(4_385_786_80, 8, false);
+            let expected = Decimal::new(4_385_786, DEFAULT_SCALE_TEST, true);
 
             assert!(
                 result.eq(expected).unwrap(),
-                "compute_delta_x_hmm {}, {}",
-                result.value,
-                expected.value
+                "compute_delta_x_hmm\n{:?}\n{:?}",
+                result,
+                expected
             );
-            assert_eq!(result.negative, true);
+            assert_eq!(result.negative, expected.negative);
         }
 
         // xi specific
@@ -812,6 +834,28 @@ mod tests {
                 expected.value
             );
             assert_eq!(result.negative, false);
+        }
+    }
+
+    #[test]
+    fn test_range_failures() {
+        // to x0 = 3810239933766096875, y0 = 14021541371386729600, c = "0.0", i = 1000000, delta_x = 1000000, delta_y = 1000000
+        {
+            let x0 = 3810239933766096875;
+            let y0 = 14021541371386729600;
+            let c = Decimal::from_u64(0).to_scale(DEFAULT_SCALE_TEST);
+            let i = 1000000;
+            let delta_x = 1000000;
+            let delta_x = 1000000;
+            let model = Model::new(
+                Decimal::from_scaled_amount(x0, DEFAULT_SCALE_TEST).to_string(),
+                Decimal::from_scaled_amount(y0, DEFAULT_SCALE_TEST).to_string(),
+                0,
+                0,
+                Decimal::from_scaled_amount(i, DEFAULT_SCALE_TEST).to_string(),
+                DEFAULT_SCALE_TEST,
+            );
+            check_delta_y_hmm(&model, x0, y0, c, i, delta_x);
         }
     }
 }
