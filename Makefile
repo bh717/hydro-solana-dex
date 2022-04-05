@@ -45,7 +45,7 @@ install_yarn:
 install_soteria:
 	mkdir -p ~/.soteria
 	cd ~/.soteria && curl -k https://supercompiler.xyz/install | sh
-	echo Please update PATH to the following:
+	echo Please update your PATH to the following:
 	echo export PATH=~/.soteria/soteria-linux-develop/bin/:$PATH
 
 install_project_deps:
