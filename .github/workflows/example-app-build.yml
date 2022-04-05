@@ -114,10 +114,6 @@ jobs:
           path: "**/.turbo"
           key: ${{ runner.os }}-turbo-files
 
-      #      - id: install-playwright
-      #        name: install-playwright
-      #        run: yarn install --frozen-lockfile && cd app && yarn playwright install
-
       - id: install-ipfs-deploy
         name: install-ipfs-deploy
         run: npm install -g ipfs-deploy
