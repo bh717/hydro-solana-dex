@@ -1,4 +1,4 @@
-name: Soteria
+name: code-audit
 
 on:
   push:
@@ -18,42 +18,68 @@ jobs:
     name: Soteria Scan
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout changes
+      - id: checkout
+        name: checkout
         uses: actions/checkout@v2
-
-      - name: Cache Solana Version
-        uses: actions/cache@v2
-        id: solana-cache
         with:
+          fetch-depth: 0
+
+      - id: cache-cli-deps
+        name: cache-cli-deps
+        uses: actions/cache@v2
+        with:
+          key: $${{ env.cache-id }}
           path: |
+            ~/.local/share/solana
+            ~/.cargo
             ~/.rustup
             ~/.cache/solana
-            ~/.local/share/solana
-          key: solana-v${{ env.SOLANA_VERSION }}
+            ~/.cargo/bin/anchor
+            ~/.cargo/bin/wasm-pack
 
-      - name: Cache Soteria Build
-        uses: Swatinem/rust-cache@v1
-        with:
-          target-dir: ${{ env.PROGRAM_PATH }}.coderrect/build # Cache build files for performance
+      #      - id: cache-soteria
+      #        name: Cache Soteria Build
+      #        uses: Swatinem/rust-cache@v1
+      #        with:
+      #          target-dir: ${{ env.PROGRAM_PATH }}.coderrect/build # Cache build files for performance
 
-      - name: Download Solana
-        if: steps.solana-cache.outputs.cache-hit != 'true' # Skip this step if matched cached version is available
-        run: |
-          echo Downloading Solana v${{ env.SOLANA_VERSION }}... 🧬
-          sh -c "$(curl -sSfL https://release.solana.com/v${{ env.SOLANA_VERSION }}/install)"
-          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
-          export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
-          echo Configuring bpf toolchain...
-          (cd /home/runner/.local/share/solana/install/active_release/bin/sdk/bpf/scripts; ./install.sh)
-        shell: bash
+      - id: install-os-deps
+        name: install-os-deps
+        if: steps.cache-cli-deps.outputs.cache-hit != 'true'
+        run: sudo apt-get update && sudo apt-get install -y pkg-config build-essential libudev-dev tree make
 
-      - name: Download Soteria # Always grab the latest version
-        run: |
-          echo Downloading Soteria... 🔬
-          sh -c "$(curl -k https://supercompiler.xyz/install)"
-          export PATH=$PWD/soteria-linux-develop/bin/:$PATH
-          echo "$PWD/soteria-linux-develop/bin" >> $GITHUB_PATH
-        shell: bash
+      - run: echo "PATH=$HOME/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_ENV
+
+      - id: install-solana-tools
+        name: install-solana-tools
+        if: steps.cache-cli-deps.outputs.cache-hit != 'true'
+        run: make install_solana
+
+      #      - name: Download Solana
+      #        if: steps.solana-cache.outputs.cache-hit != 'true' # Skip this step if matched cached version is available
+      #        run: |
+      #          echo Downloading Solana v${{ env.SOLANA_VERSION }}... 🧬
+      #          sh -c "$(curl -sSfL https://release.solana.com/v${{ env.SOLANA_VERSION }}/install)"
+      #          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+      #          export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
+      #          echo Configuring bpf toolchain...
+      #          (cd /home/runner/.local/share/solana/install/active_release/bin/sdk/bpf/scripts; ./install.sh)
+      #        shell: bash
+
+      - run: echo "~/.soteria/soteria-linux-develop/bin" >> $GITHUB_PATH
+
+      - id: install-soteria
+        name: install-soteria
+        if: steps.cache-cli-deps.outputs.cashe-hit != 'true'
+        run: make install_soteria
+
+      #      - name: Download Soteria # Always grab the latest version
+      #        run: |
+      #          echo Downloading Soteria... 🔬
+      #          sh -c "$(curl -k https://supercompiler.xyz/install)"
+      #          export PATH=$PWD/soteria-linux-develop/bin/:$PATH
+      #          echo "$PWD/soteria-linux-develop/bin" >> $GITHUB_PATH
+      #        shell: bash
 
       - name: Run Soteria
         run: |
