@@ -54,7 +54,6 @@ install_project_deps:
 
 # build
 build:
-	yarn lint
 	./scripts/build.sh
 	yarn turbo run build
 
@@ -107,7 +106,7 @@ anchor-ci:
 	@anchor -V
 	solana-keygen new --no-bip39-passphrase || true
 	yarn --frozen-lockfile
-#	yarn turbo run build --concurrency=1
+	yarn lint
 	make test
 
 # used for react/frontend ci
