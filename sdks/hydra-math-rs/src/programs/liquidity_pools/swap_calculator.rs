@@ -1,6 +1,6 @@
 //! Swap calculator
 use crate::decimal::{Add, Compare, Decimal, Div, Ln, Mul, Pow, Sqrt, Sub};
-use crate::programs::fees::fee_calculator::FeeCalculator;
+use crate::programs::fees::percentage_fee::PercentageFee;
 use crate::programs::liquidity_pools::swap_result::SwapResult;
 use thiserror::Error;
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -82,7 +82,7 @@ pub struct SwapCalculator {
     /// Oracle price relative to x
     i: Decimal,
     /// Fees as a percentage
-    fee: FeeCalculator,
+    fee: PercentageFee,
     /// Scale of the various input amounts/fees/prices
     scale: SwapCalculatorScale,
 }
@@ -94,7 +94,7 @@ impl Default for SwapCalculator {
             y0: Default::default(),
             c: Default::default(),
             i: Default::default(),
-            fee: FeeCalculator::default(),
+            fee: PercentageFee::default(),
             scale: Default::default(),
         }
     }
@@ -122,7 +122,7 @@ pub struct SwapCalculatorBuilder {
     pub y0: Option<Decimal>,
     pub c: Option<Decimal>,
     pub i: Option<Decimal>,
-    pub fee: Option<FeeCalculator>,
+    pub fee: Option<PercentageFee>,
     pub scale: Option<SwapCalculatorScale>,
 }
 
@@ -167,9 +167,9 @@ impl SwapCalculatorBuilder {
     pub fn fee(self, numerator: u64, denominator: u64) -> Self {
         Self {
             fee: Some(if numerator == 0 || denominator == 0 {
-                FeeCalculator::new(Decimal::from_u64(0).to_compute_scale())
+                PercentageFee::new(Decimal::from_u64(0).to_compute_scale())
             } else {
-                FeeCalculator::new(
+                PercentageFee::new(
                     Decimal::from_u64(numerator)
                         .to_compute_scale()
                         .div(Decimal::from_u64(denominator).to_compute_scale()),
@@ -238,7 +238,7 @@ impl SwapCalculator {
         y0: Decimal,
         c: Decimal,
         i: Decimal,
-        fee: FeeCalculator,
+        fee: PercentageFee,
         scale: SwapCalculatorScale,
     ) -> Self {
         Self {
@@ -261,7 +261,7 @@ impl SwapCalculator {
             return Err(SwapCalculatorError::DeltaNotPositive.into());
         }
 
-        let (fees, amount_ex_fees) = self.fee.compute_fees(delta_x);
+        let (fees, amount_ex_fees) = self.fee.compute(delta_x).expect("fees");
 
         let x_new = self.compute_x_new(&amount_ex_fees);
 
@@ -288,7 +288,7 @@ impl SwapCalculator {
             return Err(SwapCalculatorError::DeltaNotPositive.into());
         }
 
-        let (fees, amount_ex_fees) = self.fee.compute_fees(delta_y);
+        let (fees, amount_ex_fees) = self.fee.compute(delta_y).expect("fees");
 
         let y_new = self.compute_y_new(&amount_ex_fees);
 
@@ -535,7 +535,7 @@ mod tests {
             y0: Decimal::from_scaled_amount(y0, DEFAULT_SCALE_TEST),
             c: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
             i: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
-            fee: FeeCalculator::new(Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST)),
+            fee: PercentageFee::new(Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST)),
             scale: SwapCalculatorScale {
                 x: DEFAULT_SCALE_TEST,
                 y: DEFAULT_SCALE_TEST,
@@ -553,7 +553,7 @@ mod tests {
             y0: Decimal::from_scaled_amount(y0, DEFAULT_SCALE_TEST),
             c: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
             i: Decimal::from_scaled_amount(i, DEFAULT_SCALE_TEST),
-            fee: FeeCalculator::new(Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST)),
+            fee: PercentageFee::new(Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST)),
             scale: SwapCalculatorScale {
                 x: DEFAULT_SCALE_TEST,
                 y: DEFAULT_SCALE_TEST,
@@ -571,7 +571,7 @@ mod tests {
             y0: Decimal::from_scaled_amount(y0, DEFAULT_SCALE_TEST),
             c,
             i: Decimal::from_scaled_amount(i, DEFAULT_SCALE_TEST),
-            fee: FeeCalculator::new(Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST)),
+            fee: PercentageFee::new(Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST)),
             scale: SwapCalculatorScale {
                 x: DEFAULT_SCALE_TEST,
                 y: DEFAULT_SCALE_TEST,
@@ -600,7 +600,7 @@ mod tests {
             y0: Decimal::from_scaled_amount(y0, DEFAULT_SCALE_TEST),
             c,
             i: Decimal::from_scaled_amount(i, DEFAULT_SCALE_TEST),
-            fee: FeeCalculator::new(Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST)),
+            fee: PercentageFee::new(Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST)),
             scale: SwapCalculatorScale {
                 x: DEFAULT_SCALE_TEST,
                 y: DEFAULT_SCALE_TEST,
@@ -732,7 +732,7 @@ mod tests {
                 y0: Decimal::from_scaled_amount(126_000000, DEFAULT_SCALE_TEST),
                 c: Decimal::from_scaled_amount(1_000000, DEFAULT_SCALE_TEST),
                 i: Decimal::from_scaled_amount(3_000000, DEFAULT_SCALE_TEST),
-                fee: FeeCalculator::new(Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST)),
+                fee: PercentageFee::new(Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST)),
                 scale: SwapCalculatorScale {
                     x: DEFAULT_SCALE_TEST,
                     y: DEFAULT_SCALE_TEST,
@@ -760,7 +760,7 @@ mod tests {
                 y0: Decimal::from_u128(33).to_compute_scale(),
                 c: Decimal::from_u128(0).to_compute_scale(),
                 i: Decimal::from_u128(1).to_compute_scale(),
-                fee: FeeCalculator::new(Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST)),
+                fee: PercentageFee::new(Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST)),
                 scale: SwapCalculatorScale {
                     x: DEFAULT_SCALE_TEST,
                     y: DEFAULT_SCALE_TEST,
@@ -787,7 +787,7 @@ mod tests {
                 y0: Decimal::from_u128(193).to_compute_scale(),
                 c: Decimal::from_u128(0).to_compute_scale(),
                 i: Decimal::from_u128(1).to_compute_scale(),
-                fee: FeeCalculator::new(Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST)),
+                fee: PercentageFee::new(Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST)),
                 scale: SwapCalculatorScale {
                     x: DEFAULT_SCALE_TEST,
                     y: DEFAULT_SCALE_TEST,
@@ -816,7 +816,7 @@ mod tests {
                 y0: Decimal::from_u128(1000).to_compute_scale(),
                 c: Decimal::from_u128(0).to_compute_scale(),
                 i: Decimal::from_u128(200).to_compute_scale(),
-                fee: FeeCalculator::new(Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST)),
+                fee: PercentageFee::new(Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST)),
                 scale: SwapCalculatorScale {
                     x: DEFAULT_SCALE_TEST,
                     y: DEFAULT_SCALE_TEST,
