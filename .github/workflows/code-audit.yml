@@ -67,7 +67,7 @@ jobs:
 
       - id: config-bpf
         name: config-bpf
-        run: cd /home/runner/.local/share/solana/install/active_release/bin/sdk/bpf/scripts; ./install.sh
+        run: $HOME/.local/share/solana/install/active_release/bin/sdk/bpf/scripts/install.sh
 
       - run: echo "~/.soteria/soteria-linux-develop/bin" >> $GITHUB_PATH
 
