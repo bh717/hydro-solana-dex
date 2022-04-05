@@ -54,24 +54,9 @@ jobs:
         if: steps.cache-cli-deps.outputs.cache-hit != 'true'
         run: make install_solana
 
-      #      - name: Download Solana
-      #        if: steps.solana-cache.outputs.cache-hit != 'true' # Skip this step if matched cached version is available
-      #        run: |
-      #          echo Downloading Solana v${{ env.SOLANA_VERSION }}... 🧬
-      #          sh -c "$(curl -sSfL https://release.solana.com/v${{ env.SOLANA_VERSION }}/install)"
-      #          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
-      #          export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
-      #          echo Configuring bpf toolchain...
-      #          (cd /home/runner/.local/share/solana/install/active_release/bin/sdk/bpf/scripts; ./install.sh)
-      #        shell: bash
-
-      - run: pwd
-
       - id: config-bpf
         name: config-bpf
         run: $HOME/.local/share/solana/install/active_release/bin/sdk/bpf/scripts/install.sh
-
-      - run: pwd
 
       - run: echo "~/.soteria/soteria-linux-develop/bin" >> $GITHUB_PATH
 
@@ -80,9 +65,6 @@ jobs:
         if: steps.cache-cli-deps.outputs.cashe-hit != 'true'
         run: make install_soteria
 
-      - name: Run Soteria
-        run: |
-          echo Running Soteria... 👾
-          cd ${{ env.PROGRAM_PATH }}
-          soteria -analyzeAll .
-        shell: bash
+      - id: run-soteria
+        name: Run Soteria
+        run: make run-soteria

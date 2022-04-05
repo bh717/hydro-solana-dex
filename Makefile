@@ -100,6 +100,9 @@ watch-test:
 watch:
 	cargo watch -- anchor build -- --features "localnet"
 
+run-soteria:
+	./scripts/run-soteria.sh
+
 # used for anchor ci
 anchor-ci:
 	@solana -V
