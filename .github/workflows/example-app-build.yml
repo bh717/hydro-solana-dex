@@ -132,7 +132,7 @@ jobs:
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
           channel: gitops
-          status: REACT-CI-SUCCESS
+          status: EXAMPLE-APP-BUILD-SUCCESS
           color: good
 
       - name: example-app-build - Notify slack failure
@@ -142,7 +142,7 @@ jobs:
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
           channel: gitops
-          status: REACT-CI-FAILED
+          status: EXAMPLE-APP-BUILD-FAILED
           color: danger
 
       - id: ipfs-deploy
@@ -161,7 +161,7 @@ jobs:
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
           channel: gitops
-          status: REACT-CD-SUCCESS https://ipfs.infura.io/ipfs/${{steps.ipfs-deploy.outputs.cid}}
+          status: EXAMPLE-APP-CD-SUCCESS https://ipfs.infura.io/ipfs/${{steps.ipfs-deploy.outputs.cid}}
           color: good
 
       - name: example-app-deploy - Notify slack failure
@@ -171,5 +171,5 @@ jobs:
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
           channel: gitops
-          status: REACT-CD-FAILED
+          status: EXAMPLE-APP-CD-FAILED
           color: danger
