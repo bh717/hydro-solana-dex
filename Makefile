@@ -42,6 +42,12 @@ install_node:
 install_yarn:
 	yarn --version || echo Direction can be found here: https://yarnpkg.com/getting-started/install
 
+install_soteria:
+	mkdir -p ~/.soteria
+	cd ~/.soteria && curl -k https://supercompiler.xyz/install | sh
+	echo Please update PATH to the following:
+	echo export PATH=~/.soteria/soteria-linux-develop/bin/:$PATH
+
 install_project_deps:
 	yarn
 	make build
