@@ -42,13 +42,18 @@ install_node:
 install_yarn:
 	yarn --version || echo Direction can be found here: https://yarnpkg.com/getting-started/install
 
+install_soteria:
+	mkdir -p ~/.soteria
+	cd ~/.soteria && curl -k https://supercompiler.xyz/install | sh
+	echo Please update your PATH to the following:
+	echo export PATH=~/.soteria/soteria-linux-develop/bin/:$PATH
+
 install_project_deps:
 	yarn
 	make build
 
 # build
 build:
-	yarn lint
 	./scripts/build.sh
 	yarn turbo run build
 
@@ -95,13 +100,16 @@ watch-test:
 watch:
 	cargo watch -- anchor build -- --features "localnet"
 
+run-soteria:
+	./scripts/run-soteria.sh
+
 # used for anchor ci
 anchor-ci:
 	@solana -V
 	@anchor -V
 	solana-keygen new --no-bip39-passphrase || true
 	yarn --frozen-lockfile
-#	yarn turbo run build --concurrency=1
+	yarn lint
 	make test
 
 # used for react/frontend ci

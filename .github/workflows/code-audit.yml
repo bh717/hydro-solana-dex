@@ -1,0 +1,90 @@
+name: code-audit
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - "*"
+
+env:
+  cache-id: code-audit-20220405
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Soteria Scan
+    runs-on: ubuntu-latest
+    steps:
+      - id: checkout
+        name: checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - id: cache-cli-deps
+        name: cache-cli-deps
+        uses: actions/cache@v2
+        with:
+          key: $${{ env.cache-id }}
+          path: |
+            ~/.local/share/solana
+            ~/.cargo
+            ~/.rustup
+            ~/.cache/solana
+            ~/.cargo/bin/anchor
+            ~/.cargo/bin/wasm-pack
+
+      #      - id: cache-soteria
+      #        name: Cache Soteria Build
+      #        uses: Swatinem/rust-cache@v1
+      #        with:
+      #          target-dir: ${{ env.PROGRAM_PATH }}.coderrect/build # Cache build files for performance
+
+      - id: install-os-deps
+        name: install-os-deps
+        if: steps.cache-cli-deps.outputs.cache-hit != 'true'
+        run: sudo apt-get update && sudo apt-get install -y pkg-config build-essential libudev-dev tree make
+
+      - run: echo "PATH=$HOME/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_ENV
+
+      - id: install-solana-tools
+        name: install-solana-tools
+        if: steps.cache-cli-deps.outputs.cache-hit != 'true'
+        run: make install_solana
+
+      - id: config-bpf
+        name: config-bpf
+        run: $HOME/.local/share/solana/install/active_release/bin/sdk/bpf/scripts/install.sh
+
+      - run: echo "~/.soteria/soteria-linux-develop/bin" >> $GITHUB_PATH
+
+      - id: install-soteria
+        name: install-soteria
+        if: steps.cache-cli-deps.outputs.cashe-hit != 'true'
+        run: make install_soteria
+
+      - id: run-soteria
+        name: Run Soteria
+        run: make run-soteria
+
+      - name: code-audit - Notify slask success
+        if: success()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: gitops
+          status: CODE-AUDIT-SUCCESS
+          color: good
+
+      - name: code-audit - Notify slack failure
+        if: failure()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: gitops
+          status: CODE-AUDIT-FAILED
+          color: danger
