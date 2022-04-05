@@ -9,3 +9,4 @@ target/
 codegen/
 *.d.ts
 /test-ledger
+**/.coderrect
