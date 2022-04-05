@@ -131,3 +131,10 @@ start:
 	anchor deploy
 	yarn build
 	make migrate
+
+example-app-build:
+	yarn
+	./scripts/build.sh
+	yarn build
+	cd examples/sdk
+	yarn build
