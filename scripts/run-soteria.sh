@@ -5,7 +5,7 @@
 for d in ./programs/*/ ; do
   echo Scanning: $d
   cd $d
-  soteria -analyzeAll . || break
+  soteria -analyzeAll . || exit 99
 done
 
 
