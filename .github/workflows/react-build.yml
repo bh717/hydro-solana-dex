@@ -146,6 +146,7 @@ jobs:
         name: ipfs-deploy
         uses: aquiladev/ipfs-action@v0.2.1
         with:
+          service: infura
           path: ./app/build
 
       - run: echo ${{steps.ipfs-deploy.outputs.cid}}
