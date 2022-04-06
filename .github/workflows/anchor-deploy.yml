@@ -1,6 +1,7 @@
 name: anchor-deploy
 env:
   cache-id: anchor-deploy-20220406
+  SOLANA_VERSION: 1.8.16
 on:
   push:
     branches:
@@ -9,6 +10,12 @@ jobs:
   build-anchor-deps:
     runs-on: ubuntu-latest
     steps:
+      - id: checkout
+        name: checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
       - id: cache-cli-deps
         name: cache-cli-deps
         uses: actions/cache@v2
@@ -20,12 +27,6 @@ jobs:
             ~/.rustup
             ~/.cargo/bin/anchor
             ~/.cargo/bin/wasm-pack
-
-      - id: checkout
-        name: checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
 
       - id: install-os-deps
         name: install-os-deps
@@ -123,5 +124,3 @@ jobs:
           channel: gitops
           status: ANCHOR-CI-FAILED
           color: danger
-
-  deploy-to-devnet:
