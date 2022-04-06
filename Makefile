@@ -4,6 +4,7 @@ _ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 ANCHOR_VERSION=0.23.0
 SOLANA_VERSION=stable
+DEPLOY_CLUSTER=devnet
 
 list:
 	@awk -F: '/^[A-z]/ {print $$1}' Makefile | sort
@@ -138,3 +139,7 @@ example-app-build:
 	yarn build
 	cd examples/sdk
 	yarn build
+
+
+deploy: build
+	./scripts/deploy.sh ${DEPLOY_CLUSTER}
