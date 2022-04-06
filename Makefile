@@ -2,9 +2,9 @@
 SHELL := /bin/bash
 _ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
-ANCHOR_VERSION=0.23.0
-SOLANA_VERSION=stable
-DEPLOY_CLUSTER=devnet
+ANCHOR_VERSION?=0.23.0
+SOLANA_VERSION?=stable
+DEPLOY_CLUSTER?=devnet
 
 list:
 	@awk -F: '/^[A-z]/ {print $$1}' Makefile | sort
