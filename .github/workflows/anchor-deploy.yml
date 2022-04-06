@@ -66,7 +66,7 @@ jobs:
         name: install-yarn
         run: npm install -g yarn
 
-  build-anchor-stack:
+  build-and-test-anchor:
     runs-on: ubuntu-latest
     needs: [build-anchor-deps]
     steps:
@@ -128,3 +128,11 @@ jobs:
           channel: gitops
           status: ANCHOR-CI-FAILED
           color: danger
+
+  deploy-anchor:
+    runs-on: ubuntu-latest
+    needs: [build-and-test-anchor]
+    steps:
+      - id: deploy
+        name: deploy to devnet
+        run: make deploy
