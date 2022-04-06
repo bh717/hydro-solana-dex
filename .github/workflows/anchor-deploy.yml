@@ -3,6 +3,9 @@ env:
   cache-id: anchor-deploy-20220406
   SOLANA_VERSION: 1.8.16
 on:
+  pull_request:
+    branches:
+      - "*"
   push:
     branches:
       - main
