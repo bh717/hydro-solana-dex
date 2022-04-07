@@ -56,6 +56,10 @@ jobs:
         if: steps.cache-cli-deps.outputs.cache-hit != 'true'
         run: make install_solana
 
+      - id: config-bpf
+        name: config-bpf
+        run: $HOME/.local/share/solana/install/active_release/bin/sdk/bpf/scripts/install.sh
+
       - id: install-anchor-cli
         name: install-anchor-cli
         if: steps.cache-cli-deps.outputs.cache-hit != 'true'
