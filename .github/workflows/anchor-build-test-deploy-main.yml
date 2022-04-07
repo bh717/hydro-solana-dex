@@ -1,7 +1,6 @@
 name: anchor-deploy
 env:
   cache-id: anchor-deploy-20220406
-  SOLANA_VERSION: v1.8.16
   CARGO_TERM_COLOR: always
 on:
   pull_request:
