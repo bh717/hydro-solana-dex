@@ -6,7 +6,7 @@ CLUSTER=$1
 KEY=$2
 
 echo $SOLANA_DEPLOY_KEY
-env
+set
 
 
 declare -a SKIPLIST=("hydra-staking hydra-benchmarks hydra-farming")
