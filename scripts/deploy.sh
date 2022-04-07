@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # execute from repo root:
 # ~/hydra-protocol/ $ ./scripts/deploy.sh devnet $SOLANA_KEY
-set -x
 CLUSTER=$1
 KEY=$2
 
