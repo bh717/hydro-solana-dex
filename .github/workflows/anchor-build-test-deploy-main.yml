@@ -135,7 +135,7 @@ jobs:
 
   deploy-anchor:
     runs-on: ubuntu-latest
-    needs: [build-deps]
+    needs: [build-and-test-anchor, build-deps]
     steps:
       - id: checkout
         name: checkout
