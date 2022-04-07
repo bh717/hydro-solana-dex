@@ -154,6 +154,8 @@ jobs:
             ~/.cargo/bin/anchor
             ~/.cargo/bin/wasm-pack
 
+      - run: echo "PATH=$HOME/.local/share/solana/install/active_release/bin:$HOME/.cargo/bin:$PATH" >> $GITHUB_ENV
+
       - id: deploy
         name: deploy to devnet
         run: make deploy
