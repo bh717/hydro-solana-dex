@@ -5,6 +5,7 @@ _ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 ANCHOR_VERSION?=0.23.0
 SOLANA_VERSION?=stable
 DEPLOY_CLUSTER?=devnet
+SOLANA_DEPLOY_KEY?=$(shell cat ~/.config/solana/id.json)
 
 list:
 	@awk -F: '/^[A-z]/ {print $$1}' Makefile | sort
@@ -53,12 +54,16 @@ install_project_deps:
 	yarn
 	make build
 
-# build
+# build contracts
 build:
+	anchor build -- --features ${DEPLOY_CLUSTER}
+
+# build_all ie types, sdk, anchor
+build_all:
 	./scripts/build.sh
 	yarn turbo run build
 
-test: build
+test: build_all
 	yarn test
 	cargo fmt -- --check
 	cargo check
@@ -92,7 +97,7 @@ validator-logs:
 migrate:
 	yarn ts-node scripts/migrate.ts
 
-watch-anchor-test: build
+watch-anchor-test: build_all
 	cargo watch -c -- anchor test -- --features "localnet"
 
 watch-test:
@@ -140,6 +145,6 @@ example-app-build:
 	cd examples/sdk
 	yarn build
 
-
+# deploy contracts via ci or locally.
 deploy: build
-	./scripts/deploy.sh ${DEPLOY_CLUSTER}
+	@./scripts/deploy.sh ${DEPLOY_CLUSTER} ${SOLANA_DEPLOY_KEY}
