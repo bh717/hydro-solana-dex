@@ -132,6 +132,24 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build-and-test-anchor]
     steps:
+      - id: checkout
+        name: checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - id: cache-cli-deps
+        name: cache-cli-deps
+        uses: actions/cache@v2
+        with:
+          key: $${{ env.cache-id }}
+          path: |
+            ~/.local/share/solana
+            ~/.cargo
+            ~/.rustup
+            ~/.cargo/bin/anchor
+            ~/.cargo/bin/wasm-pack
+
       - id: deploy
         name: deploy to devnet
         run: make deploy
