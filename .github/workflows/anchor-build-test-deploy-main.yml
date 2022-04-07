@@ -159,3 +159,23 @@ jobs:
       - id: deploy
         name: deploy to devnet
         run: make deploy
+
+      - name: Notify slask success
+        if: success()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: gitops
+          status: ANCHOR-DEPLOY-SUCCESS
+          color: good
+
+      - name: Notify slack failure
+        if: failure()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: gitops
+          status: ANCHOR-DEPLOY-FAILED
+          color: danger
