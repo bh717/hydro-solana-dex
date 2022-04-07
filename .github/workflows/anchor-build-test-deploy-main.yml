@@ -2,6 +2,7 @@ name: anchor-deploy
 env:
   cache-id: anchor-deploy-20220407
   CARGO_TERM_COLOR: always
+  SOLANA_DEPLOY_KEY: ${{ secrets.SOLANA_DEPLOY_KEY }}
 on:
   pull_request:
     branches:
