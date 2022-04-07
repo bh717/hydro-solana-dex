@@ -15,6 +15,9 @@ solana-install-init 1.8.16
 solana -V
 solana airdrop 2 -k /tmp/key.json || true
 
+# build contracts
+anchor build -- --features $CLUSTER
+
 echo "Deploying to: $CLUSTER"
 for D in ./programs/*/; do
   read PROGRAM <<<$(echo ${D} | awk '{ split($0,x,"/"); print x[3] }')
@@ -38,7 +41,7 @@ for D in ./programs/*/; do
   fi
 
   echo "Deploying: $PROGRAM"
-  anchor deploy --provider.cluster $CLUSTER --program-name $PROGRAM --provider.wallet /tmp/key.json -- --features $CLUSTER || exit 99
+  anchor deploy --provider.cluster $CLUSTER --program-name $PROGRAM --provider.wallet /tmp/key.json || exit 99
 done
 
 rm /tmp/key.json
