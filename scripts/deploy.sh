@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # execute from repo root:
 # ~/hydra-protocol/ $ ./scripts/deploy.sh devnet $SOLANA_KEY
+set -x
 CLUSTER=$1
 KEY=$2
 
@@ -8,7 +9,6 @@ declare -a SKIPLIST=("hydra-staking hydra-benchmarks hydra-farming")
 declare -a MAINNET_SKIPLIST=("hydra-faucet")
 
 echo $KEY > /tmp/key.json
-cat /tmp/key.json
 
 INITIAL_SOLANA_VERSION=$(solana -V | awk '{print $2}')
 # This version is needed due to a deploy issue with newer versions of the solana cli
