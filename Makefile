@@ -146,5 +146,5 @@ example-app-build:
 	yarn build
 
 # deploy contracts via ci or locally.
-deploy: build
+deploy:
 	@./scripts/deploy.sh ${DEPLOY_CLUSTER} ${SOLANA_DEPLOY_KEY}

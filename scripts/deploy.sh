@@ -14,6 +14,8 @@ INITIAL_SOLANA_VERSION=$(solana -V | awk '{print $2}')
 solana-install-init 1.8.16
 solana -V
 
+anchor build -- --features $CLUSTER
+
 echo "Deploying to: $CLUSTER"
 for D in ./programs/*/; do
   read PROGRAM <<<$(echo ${D} | awk '{ split($0,x,"/"); print x[3] }')
