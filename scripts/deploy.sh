@@ -1,10 +1,18 @@
 #!/usr/bin/env bash
 # execute from repo root:
-# ~/hydra-protocol/ $ ./scripts/deploy.sh devnet
+# ~/hydra-protocol/ $ ./scripts/deploy.sh devnet $SOLANA_KEY
 CLUSTER=$1
+KEY=$2
 
 declare -a SKIPLIST=("hydra-staking hydra-benchmarks hydra-farming")
 declare -a MAINNET_SKIPLIST=("hydra-faucet")
+
+echo $KEY > /tmp/key.json
+
+INITIAL_SOLANA_VERSION=$(solana -V | awk '{print $2}')
+# This version is needed due to a deploy issue with newer versions of the solana cli
+solana-install-init 1.8.16
+solana -V
 
 echo "Deploying to: $CLUSTER"
 for D in ./programs/*/; do
@@ -29,5 +37,8 @@ for D in ./programs/*/; do
   fi
 
   echo "Deploying: $PROGRAM"
-  anchor deploy --provider.cluster $CLUSTER --program-name $PROGRAM || exit 99
+  anchor deploy --provider.cluster $CLUSTER --program-name $PROGRAM --provider.wallet /tmp/key.json || exit 99
 done
+
+rm /tmp/key.json
+solana-install-init $INITIAL_SOLANA_VERSION
