@@ -10,7 +10,7 @@ on:
     branches:
       - main
 jobs:
-  build-anchor-deps:
+  build-deps:
     runs-on: ubuntu-latest
     steps:
       - id: checkout
@@ -67,7 +67,7 @@ jobs:
 
   build-and-test-anchor:
     runs-on: ubuntu-latest
-    needs: [build-anchor-deps]
+    needs: [build-deps]
     steps:
       - id: cache-cli-deps
         name: cache-cli-deps
