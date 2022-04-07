@@ -10,7 +10,7 @@ import SwapSettingModal from "./modals/swapSetting";
 import AssetListModal from "./modals/assetList";
 import ConfirmSwapModal from "./modals/confirmSwap";
 import SwapStatus from "./modals/swapStatus";
-import useSwap from "./useSwap";
+import { useSwap } from "./hooks/useSwap";
 
 const useStyles = makeStyles({
   swapContent: {
@@ -99,7 +99,20 @@ interface SwapProps {
 
 const Swap: FC<SwapProps> = ({ openWalletConnect }) => {
   const classes = useStyles();
-  const { assets } = useSwap();
+  const {
+    tokenFrom,
+    tokenTo,
+    assetsTokenFrom,
+    assetsTokenTo,
+    toggleFields,
+    poolExists,
+    poolPairSelected,
+    canSwap,
+    setFocus,
+    onSendSubmit,
+    state,
+    onSendCancel,
+  } = useSwap();
 
   const [fromAsset, setFromAsset] = useState<Asset>(initialAsset);
   const [fromAmount, setFromAmount] = useState(0);
@@ -112,12 +125,6 @@ const Swap: FC<SwapProps> = ({ openWalletConnect }) => {
   const [openAssetListModal, setOpenAssetListModal] = useState(false);
   const [openConfirmSwapModal, setOpenConfirmSwapModal] = useState(false);
   const [openSwapStatusModal, setOpenSwapStatusModal] = useState(false);
-
-  useEffect(() => {
-    if (assets.length) setFromAsset(assets[0]);
-
-    setSwapRate(1);
-  }, [setFromAsset, assets]);
 
   const handleSettingModal = () => {
     if (parseFloat(slippage) > 0) setOpenSettingModal(false);
