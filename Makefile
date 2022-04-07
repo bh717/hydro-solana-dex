@@ -3,7 +3,7 @@ SHELL := /bin/bash
 _ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 ANCHOR_VERSION?=0.23.0
-SOLANA_VERSION?=stable
+SOLANA_VERSION?=1.9.14
 DEPLOY_CLUSTER?=devnet
 SOLANA_DEPLOY_KEY?=$(shell cat ~/.config/solana/id.json)
 
