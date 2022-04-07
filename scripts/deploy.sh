@@ -5,10 +5,6 @@ set -x
 CLUSTER=$1
 KEY=$2
 
-echo $SOLANA_DEPLOY_KEY
-set
-
-
 declare -a SKIPLIST=("hydra-staking hydra-benchmarks hydra-farming")
 declare -a MAINNET_SKIPLIST=("hydra-faucet")
 
@@ -49,4 +45,7 @@ for D in ./programs/*/; do
 done
 
 rm /tmp/key.json
-solana-install-init $INITIAL_SOLANA_VERSION
+
+if [[ $CI != "true" ]]; then
+  solana-install-init $INITIAL_SOLANA_VERSION
+fi
