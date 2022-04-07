@@ -54,16 +54,12 @@ install_project_deps:
 	yarn
 	make build
 
-# build contracts
+# build ie types, sdk, anchor
 build:
-	anchor build -- --features ${DEPLOY_CLUSTER}
-
-# build_all ie types, sdk, anchor
-build_all:
 	./scripts/build.sh
 	yarn turbo run build
 
-test: build_all
+test: build
 	yarn test
 	cargo fmt -- --check
 	cargo check
@@ -97,7 +93,7 @@ validator-logs:
 migrate:
 	yarn ts-node scripts/migrate.ts
 
-watch-anchor-test: build_all
+watch-anchor-test: build
 	cargo watch -c -- anchor test -- --features "localnet"
 
 watch-test:
