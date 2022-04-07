@@ -1,6 +1,6 @@
 name: anchor-deploy
 env:
-  cache-id: anchor-deploy-20220406
+  cache-id: anchor-deploy-20220407
   CARGO_TERM_COLOR: always
 on:
   pull_request:
