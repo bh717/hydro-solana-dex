@@ -6,8 +6,9 @@ import cn from "classnames";
 
 import { Exchange, Compare } from "../../../components/icons";
 import SelectAsset from "../selectAsset";
-import { Asset } from "../../../interfaces";
-import { normalizeBalance } from "../../../helpers/normalize";
+import { TokenField } from "../hooks/useToken";
+import { toFormat } from "../../../utils/toFormat";
+import { fromFormat } from "../../../utils/fromFormat";
 
 const useStyles = makeStyles({
   swapContainer: {
@@ -150,27 +151,17 @@ const useStyles = makeStyles({
 });
 
 interface SwapAssetProps {
-  fromAsset: Asset;
-  fromAmount: number;
-  toAsset: Asset;
-  toAmount: number;
+  fromAsset: TokenField;
+  toAsset: TokenField;
   changeAsset(type: string): void;
-  changeAmount(type: string, amount: number): void;
-  swapRate: number;
-  exchange(): void;
   confirmSwap(): void;
   walletConnect(): void;
 }
 
 const SwapAsset: FC<SwapAssetProps> = ({
   fromAsset,
-  fromAmount,
   toAsset,
-  toAmount,
   changeAsset,
-  changeAmount,
-  swapRate,
-  exchange,
   confirmSwap,
   walletConnect,
 }) => {
@@ -179,35 +170,13 @@ const SwapAsset: FC<SwapAssetProps> = ({
   const { connected } = useWallet();
   const [showPriceDetail, setShowPriceDetail] = useState(true);
 
-  useEffect(() => {
-    if (fromAmount && toAmount) setShowPriceDetail(true);
-    else setShowPriceDetail(false);
-  }, [fromAmount, toAmount]);
-
-  const handleFromAmountChange = (value: string) => {
-    if (fromAsset.symbol) changeAmount("From", Number(value));
-
-    if (toAsset.symbol) {
-      const tempToAmount = Number(value) * swapRate;
-      changeAmount("To", tempToAmount);
-    } else {
-      changeAmount("To", 0);
-    }
-  };
-
-  const handleToAmountChange = (value: string) => {
-    if (toAsset.symbol) changeAmount("To", Number(value));
-
-    if (fromAsset.symbol) {
-      const tempFromAmount = Number(value) / swapRate;
-      changeAmount("From", tempFromAmount);
-    } else {
-      changeAmount("From", 0);
-    }
-  };
+  // useEffect(() => {
+  //   if (fromAmount && toAmount) setShowPriceDetail(true);
+  //   else setShowPriceDetail(false);
+  // }, [fromAmount, toAmount]);
 
   const SwapButtonContent = () => {
-    if (!fromAsset.symbol || !toAsset.symbol) return "Select a token";
+    if (!fromAsset.asset || !toAsset.asset) return "Select a token";
     return "Approve";
   };
 
@@ -218,17 +187,21 @@ const SwapAsset: FC<SwapAssetProps> = ({
           <Box>
             <Box className={classes.assetDetail}>
               <Typography>From</Typography>
-              <Typography>
-                Balance: {normalizeBalance(fromAsset.balance)}
-              </Typography>
+              <Typography>Balance:</Typography>
             </Box>
             <Box className={classes.assetInput}>
               <InputBase
                 className={classes.baseInput}
-                value={fromAmount}
+                type="number"
+                value={toFormat(fromAsset.amount, fromAsset.asset?.decimals)}
                 placeholder="0"
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  handleFromAmountChange(event.target.value)
+                  fromAsset.setAmount(
+                    fromFormat(
+                      Number(event.target.value),
+                      fromAsset.asset?.decimals
+                    )
+                  )
                 }
               />
               <span className={classes.maxButton}>Max</span>
@@ -238,23 +211,27 @@ const SwapAsset: FC<SwapAssetProps> = ({
               />
             </Box>
           </Box>
-          <IconButton className={classes.exchangeButton} onClick={exchange}>
+          <IconButton className={classes.exchangeButton}>
             <Exchange />
           </IconButton>
           <Box>
             <Box className={classes.assetDetail}>
               <Typography>To</Typography>
-              <Typography>
-                Balance: {normalizeBalance(toAsset.balance)}
-              </Typography>
+              <Typography>Balance:</Typography>
             </Box>
             <Box className={classes.assetInput}>
               <InputBase
                 className={classes.baseInput}
-                value={toAmount}
+                type="number"
+                value={toFormat(toAsset.amount, toAsset.asset?.decimals)}
                 placeholder="0"
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  handleToAmountChange(event.target.value)
+                  toAsset.setAmount(
+                    fromFormat(
+                      Number(event.target.value),
+                      toAsset.asset?.decimals
+                    )
+                  )
                 }
               />
               <SelectAsset
@@ -264,7 +241,7 @@ const SwapAsset: FC<SwapAssetProps> = ({
             </Box>
           </Box>
         </Box>
-        {showPriceDetail && (
+        {/* {showPriceDetail && (
           <Box className={classes.priceDetail}>
             <Box className={classes.priceStatus}>
               <Typography className={cn(classes.statusType, classes.goodPrice)}>
@@ -292,15 +269,15 @@ const SwapAsset: FC<SwapAssetProps> = ({
               </Typography>
             </Box>
           </Box>
-        )}
+        )} */}
         {connected ? (
           <Button
             className={classes.swapButton}
             disabled={
-              !fromAsset.symbol ||
-              !toAsset.symbol ||
-              fromAmount <= 0 ||
-              toAmount <= 0
+              !fromAsset.asset ||
+              !toAsset.asset ||
+              fromAsset.amount <= 0 ||
+              toAsset.amount <= 0
             }
             onClick={confirmSwap}
           >

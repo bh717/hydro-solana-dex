@@ -3,8 +3,7 @@ import { makeStyles } from "@mui/styles";
 import { Box, IconButton, Typography } from "@mui/material";
 
 import { Gear } from "../../components/icons";
-import USDT from "../../assets/images/symbols/usdt.png";
-import { Asset } from "../../interfaces";
+import { Asset } from "../../types";
 import SwapAsset from "./swapAsset";
 import SwapSettingModal from "./modals/swapSetting";
 import AssetListModal from "./modals/assetList";
@@ -114,12 +113,9 @@ const Swap: FC<SwapProps> = ({ openWalletConnect }) => {
     onSendCancel,
   } = useSwap();
 
-  const [fromAsset, setFromAsset] = useState<Asset>(initialAsset);
-  const [fromAmount, setFromAmount] = useState(0);
-  const [toAsset, setToAsset] = useState<Asset>(initialAsset);
-  const [toAmount, setToAmount] = useState(0);
   const [swapRate, setSwapRate] = useState(0);
   const [activeAsset, setActiveAsset] = useState("");
+  const [assetList, setAssetList] = useState<Asset[]>([]);
   const [slippage, setSlippage] = useState("1.0");
   const [openSettingModal, setOpenSettingModal] = useState(false);
   const [openAssetListModal, setOpenAssetListModal] = useState(false);
@@ -130,33 +126,15 @@ const Swap: FC<SwapProps> = ({ openWalletConnect }) => {
     if (parseFloat(slippage) > 0) setOpenSettingModal(false);
   };
 
-  const exchangeAssets = () => {
-    const tempAsset = JSON.parse(JSON.stringify(fromAsset));
-    setFromAsset(toAsset);
-    setToAsset(tempAsset);
-  };
-
   const handleChangeAsset = (type: string) => {
     setActiveAsset(type);
+    setAssetList(type === "From" ? assetsTokenFrom : assetsTokenTo);
     setOpenAssetListModal(true);
   };
 
-  const handleChangeAmount = (type: string, amount: number) => {
-    if (type === "From") setFromAmount(amount);
-
-    if (type === "To") setToAmount(amount);
-  };
-
   const changeAsset = (asset: Asset) => {
-    const tempAsset = JSON.parse(JSON.stringify(asset));
-
-    if (activeAsset === "From") {
-      if (toAsset.symbol === tempAsset.symbol) setToAsset(initialAsset);
-      setFromAsset(tempAsset);
-    } else {
-      if (fromAsset.symbol === tempAsset.symbol) setFromAsset(initialAsset);
-      setToAsset(tempAsset);
-    }
+    if (activeAsset === "From") tokenFrom.setAsset(asset);
+    else tokenTo.setAsset(asset);
 
     setActiveAsset("");
     setOpenAssetListModal(false);
@@ -180,19 +158,14 @@ const Swap: FC<SwapProps> = ({ openWalletConnect }) => {
         </Box>
         <Box className={classes.swapAssets}>
           <SwapAsset
-            fromAsset={fromAsset}
-            fromAmount={fromAmount}
-            toAsset={toAsset}
-            toAmount={toAmount}
+            fromAsset={tokenFrom}
+            toAsset={tokenTo}
             changeAsset={handleChangeAsset}
-            changeAmount={handleChangeAmount}
-            swapRate={swapRate}
-            exchange={exchangeAssets}
             confirmSwap={() => setOpenConfirmSwapModal(true)}
             walletConnect={openWalletConnect}
           />
         </Box>
-        {fromAsset.symbol !== "" && toAsset.symbol !== "" && (
+        {/* {fromAsset.symbol !== "" && toAsset.symbol !== "" && (
           <Box className={classes.routeContainer}>
             <Typography className={classes.routeTitle}>Route</Typography>
             <Box className={classes.routeDetail}>
@@ -210,7 +183,7 @@ const Swap: FC<SwapProps> = ({ openWalletConnect }) => {
               </Box>
             </Box>
           </Box>
-        )}
+        )} */}
       </Box>
       <SwapSettingModal
         open={openSettingModal}
@@ -221,10 +194,10 @@ const Swap: FC<SwapProps> = ({ openWalletConnect }) => {
       <AssetListModal
         open={openAssetListModal}
         onClose={() => setOpenAssetListModal(false)}
-        assetList={assets}
+        assetList={assetList}
         setAsset={changeAsset}
       />
-      <ConfirmSwapModal
+      {/* <ConfirmSwapModal
         open={openConfirmSwapModal}
         onClose={() => setOpenConfirmSwapModal(false)}
         fromAsset={fromAsset}
@@ -234,7 +207,7 @@ const Swap: FC<SwapProps> = ({ openWalletConnect }) => {
         swapRate={swapRate}
         slippage={slippage}
         onApprove={handleSwapApprove}
-      />
+      /> */}
       <SwapStatus
         open={openSwapStatusModal}
         onClose={() => setOpenSwapStatusModal(false)}
