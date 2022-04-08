@@ -233,10 +233,10 @@ const Stake: FC<StakeProps> = ({ openWalletConnect }) => {
       <Box className={classes.stakeContent}>
         <StakeUnstake
           walletConnect={openWalletConnect}
-          balance={
+          balance={userFrom ? `${userFrom.account.data.amount}` : "0"}
+          xBalance={
             userRedeemable ? `${userRedeemable.account.data.amount}` : "0"
           }
-          xBalance={userFrom ? `${userFrom.account.data.amount}` : "0"}
           onStake={stake}
           onUnstake={unstake}
           staking={staking}
