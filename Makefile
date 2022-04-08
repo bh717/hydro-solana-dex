@@ -2,8 +2,10 @@
 SHELL := /bin/bash
 _ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
-ANCHOR_VERSION=0.23.0
-SOLANA_VERSION=stable
+ANCHOR_VERSION?=0.23.0
+SOLANA_VERSION?=1.9.14
+DEPLOY_CLUSTER?=devnet
+SOLANA_DEPLOY_KEY?=$(shell cat ~/.config/solana/id.json)
 
 list:
 	@awk -F: '/^[A-z]/ {print $$1}' Makefile | sort
@@ -30,7 +32,7 @@ install_anchor:
 
 # used in ci
 install_solana:
-	solana-install update || sh -c "$$(curl -sSfL https://release.solana.com/${SOLANA_VERSION}/install)"
+	solana-install update || sh -c "$$(curl -sSfL https://release.solana.com/v${SOLANA_VERSION}/install)"
 	solana -V
 
 install_wasm_pack:
@@ -52,7 +54,7 @@ install_project_deps:
 	yarn
 	make build
 
-# build
+# build ie types, sdk, anchor
 build:
 	./scripts/build.sh
 	yarn turbo run build
@@ -138,3 +140,7 @@ example-app-build:
 	yarn build
 	cd examples/sdk
 	yarn build
+
+# deploy contracts via ci or locally.
+deploy:
+	@./scripts/deploy.sh ${DEPLOY_CLUSTER} ${SOLANA_DEPLOY_KEY}
