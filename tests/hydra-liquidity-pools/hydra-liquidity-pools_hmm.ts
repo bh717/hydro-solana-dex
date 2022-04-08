@@ -166,12 +166,11 @@ describe("hydra-liquidity-pool-hmm", () => {
   });
 
   it("should add-liquidity to pool for the first time", async () => {
-    await sdk.liquidityPools.addLiquidity(
+    await sdk.liquidityPools.addFirstLiquidity(
       soldMint,
       usddMint,
       4_000_000_000n, // 4000 sol
-      440_000_000_000n, // $440,000 (@$110/sol)
-      0n
+      440_000_000_000n // $440,000 (@$110/sol)
     );
 
     const accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
