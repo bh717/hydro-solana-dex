@@ -110,7 +110,7 @@ jobs:
 
       - run: make anchor-ci
 
-      - name: Notify slask success
+      - name: Notify slack success
         if: success()
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
