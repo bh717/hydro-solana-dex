@@ -179,6 +179,11 @@ impl Decimal {
         self.sub(integer).expect("zero").is_zero()
     }
 
+    /// Converts a string slice in a given base to a [Decimal].
+    /// The string is expected to be an optional - sign followed by digits.
+    /// Leading and trailing whitespace represent an error.
+    /// Digits are a subset of these characters, depending on radix.
+    /// This function panics if radix is not in the range base 10.
     fn from_str_radix(s: &str, radix: u32) -> Result<Decimal, ErrorCode> {
         if radix != 10 {
             return Err(ErrorCode::ParseErrorBase10.into());
