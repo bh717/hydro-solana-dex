@@ -203,10 +203,18 @@ impl Decimal {
             return Err(ErrorCode::ParseErrorEmpty.into());
         }
 
+        // look for signed (negative) decimals
         let (base, negative): (String, _) = match base.find('-') {
             // no sign found, pass to Decimal
             None => (base.to_string(), false),
-            Some(loc) => (String::from(&base[1..]), true),
+            Some(loc) => {
+                if loc == 0 {
+                    (String::from(&base[1..]), true)
+                } else {
+                    // negative sign not in the first position
+                    return Err(ErrorCode::ParseError.into());
+                }
+            }
         };
 
         // split decimal into a digit string and decimal-point offset
