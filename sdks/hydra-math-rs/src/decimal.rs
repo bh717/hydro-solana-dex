@@ -229,19 +229,24 @@ impl Decimal {
             }
         };
 
-        let scale = decimal_offset - exp;
+        let scale = (decimal_offset - exp).abs() as u8;
 
-        let value = if exp.gt(&0i64) {
-            // value needs to be multiplied by 10^exp
-            u128::from_str_radix(&digits, radix)
-                .unwrap()
-                .checked_mul(10u128.pow(exp.abs() as u32))
-                .unwrap()
+        if exp.is_positive() {
+            Ok(Decimal::new(
+                Decimal::from_str(base.as_str())
+                    .expect("decimal of base")
+                    .to_scale(exp.abs() as u8)
+                    .value,
+                exp.abs() as u8,
+                negative,
+            ))
         } else {
-            u128::from_str_radix(&digits, radix).unwrap()
-        };
-
-        Ok(Decimal::new(value, scale.abs() as u8, negative))
+            Ok(Decimal::new(
+                u128::from_str_radix(&digits, radix).unwrap(),
+                scale,
+                negative,
+            ))
+        }
     }
 }
 
@@ -1670,12 +1675,17 @@ mod test {
             assert_eq!(actual, expected);
         }
 
-        // TODO: handle decimals with exponents
-        // {
-        //     let actual = Decimal::from_str("1.5e6").unwrap();
-        //     let expected = Decimal::new(1_500_000, 6, false);
-        //     assert_eq!(actual, expected);
-        // }
+        {
+            let actual = Decimal::from_str("1.5e6").unwrap();
+            let expected = Decimal::new(1_500_000, 6, false);
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let actual = Decimal::from_str("-1.5e6").unwrap();
+            let expected = Decimal::new(1_500_000, 6, true);
+            assert_eq!(actual, expected);
+        }
 
         {
             let actual = Decimal::from_str("42").unwrap();
