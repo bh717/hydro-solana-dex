@@ -2137,6 +2137,27 @@ mod test {
     }
 
     #[test]
+    fn test_neg() {
+        // when zero
+        {
+            let decimal = Decimal::new(0, 0, false);
+            assert_eq!(decimal.neg().is_negative(), false);
+        }
+
+        // when positive
+        {
+            let decimal = Decimal::new(42, 4, false);
+            assert_eq!(decimal.neg().is_negative(), true);
+        }
+
+        // when negative
+        {
+            let decimal = Decimal::new(42, 4, true);
+            assert_eq!(decimal.neg().is_negative(), false);
+        }
+    }
+
+    #[test]
     fn test_sign() {
         // is zero
         {
