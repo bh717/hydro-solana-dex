@@ -57,6 +57,14 @@ impl Decimal {
         }
     }
 
+    pub fn one() -> Decimal {
+        Decimal::from_u64(1).to_compute_scale()
+    }
+
+    pub fn two() -> Decimal {
+        Decimal::from_u64(2).to_compute_scale()
+    }
+
     /// Create a [Decimal] from an unsigned integer, assumed positive by default.
     pub fn from_u64(integer: u64) -> Self {
         Decimal {
