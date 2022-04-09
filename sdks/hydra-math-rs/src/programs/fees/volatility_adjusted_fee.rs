@@ -1,52 +1,180 @@
-use crate::decimal::{Add, Compare, Decimal, Div, Mul, Pow, Sub};
+use crate::decimal::{Add, Compare, Decimal, Div, Mul, Pow, Sub, COMPUTE_SCALE};
 use crate::programs::fees::error::FeeCalculatorError;
 use std::ops::Neg;
 use std::str::FromStr;
 use std::time::{SystemTime, UNIX_EPOCH};
+use wasm_bindgen::prelude::wasm_bindgen;
 
-/// Fee calculator input parameters for [VolatilityAdjustedFee]
+/// Interface to be used by programs and front end
+/// these functions shadow functions of the implemented fee calculator
+#[wasm_bindgen]
+pub fn compute_volatility_adjusted_fee(
+    this_price: u64,
+    last_price: u64,
+    price_scale: u8,
+    last_update: u64,
+    last_ewma: u64,
+    amount: u64,
+    amount_scale: u8,
+) -> Result<Vec<u64>, String> {
+    let calculator = FeeCalculator::builder()
+        .this_price(this_price, price_scale)
+        .last_price(last_price, price_scale)
+        .last_update(last_update)
+        .last_ewma(last_ewma)
+        .build()?;
+
+    let fees = calculator
+        .compute_fees(&Decimal::from_scaled_amount(amount, amount_scale).to_compute_scale())
+        .unwrap();
+
+    Ok(fees.into())
+}
+
+/// Input parameters for [FeeCalculator]
 #[derive(Debug)]
-pub struct VolatilityAdjustedFee {
-    last_time: u64,
-    this_time: u64,
+pub struct FeeCalculator {
+    /// Last update time in seconds since epoch, provided by client
+    last_update: u64,
+    /// Update time in seconds since epoch, calculated internally
+    this_update: u64,
+    /// Last price from oracle, provided by client
     last_price: Decimal,
+    /// Current price from oracle, provided by client
     this_price: Decimal,
+    /// EWMA window in seconds, default 3600
     ewma_window: u64,
+    /// Last EWMA calculated, provided by client
     last_ewma: Decimal,
+    /// EWMA smoothing lambda, default 0.545
     lambda: Decimal,
+    /// EWMA velocity period, default 10% of 24 hours
     velocity: Decimal,
+    /// Minimum fee percentage, default 0.0005
     min_fee: Decimal,
+    /// Maximum fee percentage, default 0.0005
     max_fee: Decimal,
 }
 
+#[derive(Debug, Default)]
+pub struct FeeCalculatorBuilder {
+    pub this_price: Option<Decimal>,
+    pub last_price: Option<Decimal>,
+    pub last_update: Option<u64>,
+    pub last_ewma: Option<Decimal>,
+}
+
+impl FeeCalculatorBuilder {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn last_update(self, seconds: u64) -> Self {
+        Self {
+            last_update: Some(seconds),
+            ..self
+        }
+    }
+
+    pub fn this_price(self, amount: u64, scale: u8) -> Self {
+        Self {
+            this_price: Some(Decimal::from_scaled_amount(amount, scale).to_compute_scale()),
+            ..self
+        }
+    }
+
+    pub fn last_price(self, amount: u64, scale: u8) -> Self {
+        Self {
+            last_price: Some(Decimal::from_scaled_amount(amount, scale).to_compute_scale()),
+            ..self
+        }
+    }
+
+    pub fn last_ewma(self, amount: u64) -> Self {
+        Self {
+            last_ewma: Some(if amount == 0 {
+                Decimal::from_str("1.25")
+                    .unwrap()
+                    .to_compute_scale()
+                    .pow(Decimal::two())
+                    .div(Decimal::from_u64(24).to_compute_scale())
+                    .div(Decimal::from_u64(365).to_compute_scale())
+            } else {
+                Decimal::from_scaled_amount(amount, COMPUTE_SCALE)
+            }),
+            ..self
+        }
+    }
+
+    pub fn build(self) -> Result<FeeCalculator, String> {
+        let this_price = self
+            .this_price
+            .ok_or(FeeCalculatorError::BuilderIncomplete)
+            .unwrap();
+
+        let last_price = self
+            .last_price
+            .ok_or(FeeCalculatorError::BuilderIncomplete)
+            .unwrap();
+
+        let last_update = self
+            .last_update
+            .ok_or(FeeCalculatorError::BuilderIncomplete)
+            .unwrap();
+
+        let last_ewma = self
+            .last_ewma
+            .ok_or(FeeCalculatorError::BuilderIncomplete)
+            .unwrap();
+
+        Ok(FeeCalculator {
+            this_price,
+            last_price,
+            last_update,
+            last_ewma,
+            ..Default::default()
+        })
+    }
+}
+
 #[derive(Default, Debug)]
-pub struct FeeResult {
-    pub last_time: u64,
+pub struct Fees {
+    pub fees: u64,
+    pub amount_ex_fees: u64,
+    pub last_update: u64,
     pub last_price: u64,
     pub last_ewma: u64,
 }
 
-impl Into<Vec<u64>> for FeeResult {
+impl Into<Vec<u64>> for Fees {
     fn into(self) -> Vec<u64> {
-        vec![self.last_time, self.last_price, self.last_ewma]
+        vec![
+            self.fees,
+            self.amount_ex_fees,
+            self.last_update,
+            self.last_price,
+            self.last_ewma,
+        ]
     }
 }
 
-impl From<Vec<u64>> for FeeResult {
+impl From<Vec<u64>> for Fees {
     fn from(vector: Vec<u64>) -> Self {
-        FeeResult {
-            last_time: vector[0],
-            last_price: vector[1],
-            last_ewma: vector[2],
+        Fees {
+            fees: vector[0],
+            amount_ex_fees: vector[1],
+            last_update: vector[2],
+            last_price: vector[3],
+            last_ewma: vector[4],
         }
     }
 }
 
-impl Default for VolatilityAdjustedFee {
+impl Default for FeeCalculator {
     fn default() -> Self {
         Self {
-            last_time: 0,
-            this_time: SystemTime::now()
+            last_update: 0,
+            this_update: SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .expect("seconds")
                 .as_secs(),
@@ -76,19 +204,20 @@ impl Default for VolatilityAdjustedFee {
     }
 }
 
-impl VolatilityAdjustedFee {
+impl FeeCalculator {
+    pub fn builder() -> FeeCalculatorBuilder {
+        FeeCalculatorBuilder::new()
+    }
+
     fn should_update(&self) -> bool {
-        self.last_time > 0
-            && self.this_time.checked_sub(self.last_time).unwrap() >= self.ewma_window
+        self.last_update > 0
+            && self.this_update.checked_sub(self.last_update).unwrap() >= self.ewma_window
     }
 
     fn compute_ewma(&self) -> Decimal {
         if self.should_update() {
-            // update
-            println!("DEBUG: Updating ewma");
-
             // this_ewma = lambda * last_ewma + (1-lambda) * (this_price / last_price - 1)**2
-            // * ewma_window / (this_time - last_time)
+            // * ewma_window / (this_update - last_update)
 
             // a = (1-lambda)
             let a = Decimal::one().sub(self.lambda).unwrap();
@@ -101,10 +230,10 @@ impl VolatilityAdjustedFee {
                 .unwrap()
                 .pow(Decimal::two());
 
-            // c = ewma_window / (this_time - last_time)
+            // c = ewma_window / (this_update - last_update)
             let c = Decimal::from_u64(
                 self.ewma_window
-                    .checked_div(self.this_time.checked_sub(self.last_time).unwrap())
+                    .checked_div(self.this_update.checked_sub(self.last_update).unwrap())
                     .unwrap(),
             )
             .to_compute_scale();
@@ -118,22 +247,21 @@ impl VolatilityAdjustedFee {
         }
     }
 
-    pub fn compute(
-        &self,
-        input_amount: &Decimal,
-    ) -> Result<(Decimal, Decimal, Decimal), FeeCalculatorError> {
+    pub fn compute_fees(&self, input_amount: &Decimal) -> Result<Fees, FeeCalculatorError> {
         if self.min_fee.is_zero() || self.max_fee.is_zero() {
-            return Ok((
-                Decimal::from_scaled_amount(0, input_amount.scale),
-                *input_amount,
-                self.last_ewma,
-            ));
+            return Ok(Fees {
+                fees: 0,
+                amount_ex_fees: input_amount.to_scaled_amount(input_amount.scale),
+                last_update: self.this_update,
+                last_price: self.this_price.to_scaled_amount(self.this_price.scale),
+                last_ewma: self.last_ewma.to_scaled_amount(COMPUTE_SCALE),
+            });
         }
 
-        let ewma = self.compute_ewma();
+        let this_ewma = self.compute_ewma();
 
         // x = -ewma / 8
-        let x = ewma.neg().div(Decimal::from_u64(8).to_compute_scale());
+        let x = this_ewma.neg().div(Decimal::from_u64(8).to_compute_scale());
 
         // exp(x) = 1+x+x^2/2
         let exp_x = Decimal::one()
@@ -156,7 +284,13 @@ impl VolatilityAdjustedFee {
 
         let amount_ex_fees = input_amount.sub(fees).expect("amount_ex_fees");
 
-        Ok((fees, amount_ex_fees, ewma))
+        Ok(Fees {
+            fees: fees.to_scaled_amount(input_amount.scale),
+            amount_ex_fees: amount_ex_fees.to_scaled_amount(input_amount.scale),
+            last_update: self.this_update,
+            last_price: self.this_price.to_scaled_amount(self.this_price.scale),
+            last_ewma: this_ewma.to_scaled_amount(COMPUTE_SCALE),
+        })
     }
 }
 
@@ -169,18 +303,45 @@ mod tests {
 
     #[test]
     fn test_compute_fees() {
-        let fee = VolatilityAdjustedFee {
+        let fee = FeeCalculator {
             this_price: Decimal::from_scaled_amount(3400, 0).to_compute_scale(),
             ..Default::default()
         };
 
-        let (fees, amount_ex_fees, ewma) = fee
-            .compute(&Decimal::from_scaled_amount(1000, 0).to_compute_scale())
+        let fees = fee
+            .compute_fees(&Decimal::from_scaled_amount(1000, 0).to_compute_scale())
             .unwrap();
 
-        println!("Fee: {:?}", fee);
-        println!("Fees: {:?}", fees.to_string());
-        println!("Amount ex fees: {:?}", amount_ex_fees.to_string());
-        println!("ewma: {:?}", ewma.to_string());
+        println!("Fees: {:?}", fees);
+    }
+
+    #[test]
+    fn test_scalar_inputs() {
+        // first time called
+        {
+            let actual =
+                compute_volatility_adjusted_fee(3400_000000, 0, 6, 0, 0, 1000_000000, 6).unwrap();
+            let fees = Fees::from(actual);
+            println!("Fees {:?}", fees)
+            // assert_eq!(result, expected);
+        }
+
+        // TODO: figure out a better way to freeze time in tests
+        // second time called
+        {
+            let actual = compute_volatility_adjusted_fee(
+                3425_000000,
+                3400_000000,
+                6,
+                1649505350,
+                178367579,
+                1000_000000,
+                6,
+            )
+            .unwrap();
+            let fees = Fees::from(actual);
+            println!("Fees {:?}", fees)
+            // assert_eq!(result, expected);
+        }
     }
 }
