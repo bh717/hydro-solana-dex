@@ -848,7 +848,7 @@ mod tests {
             let c = Decimal::from_u64(0).to_scale(DEFAULT_SCALE_TEST);
             let i = 1000000;
             let delta_x = 65516038658;
-            let delta_y = 1000000;
+            // let delta_y = 1000000;
             let model = Model::new(
                 Decimal::from_scaled_amount(x0, DEFAULT_SCALE_TEST).to_string(),
                 Decimal::from_scaled_amount(y0, DEFAULT_SCALE_TEST).to_string(),
