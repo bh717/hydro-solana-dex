@@ -637,6 +637,22 @@ impl Compare<Decimal> for Decimal {
             }
         }
     }
+
+    fn min(self, other: Decimal) -> Decimal {
+        if self.lte(other).unwrap() {
+            self
+        } else {
+            other
+        }
+    }
+
+    fn max(self, other: Decimal) -> Decimal {
+        if self.gte(other).unwrap() {
+            self
+        } else {
+            other
+        }
+    }
 }
 
 impl Neg for Decimal {
@@ -1080,6 +1096,8 @@ pub trait Compare<T>: Sized {
     fn gt(self, rhs: T) -> Result<bool, ErrorCode>;
     fn gte(self, rhs: T) -> Result<bool, ErrorCode>;
     fn lte(self, rhs: T) -> Result<bool, ErrorCode>;
+    fn min(self, rhs: T) -> Self;
+    fn max(self, rhs: T) -> Self;
 }
 
 #[cfg(test)]
