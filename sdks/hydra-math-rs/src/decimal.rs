@@ -2102,6 +2102,41 @@ mod test {
     }
 
     #[test]
+    fn test_min_max() {
+        {
+            let decimal = Decimal::new(10, 2, false);
+            let other = Decimal::new(11, 2, false);
+            let result = decimal.min(other);
+
+            assert_eq!(decimal, result);
+        }
+
+        {
+            let decimal = Decimal::new(10, 2, false);
+            let other = Decimal::new(11, 2, false);
+            let result = decimal.max(other);
+
+            assert_eq!(other, result);
+        }
+
+        {
+            let decimal = Decimal::new(10, 2, false);
+            let other = Decimal::new(11, 2, true);
+            let result = decimal.min(other);
+
+            assert_eq!(other, result);
+        }
+
+        {
+            let decimal = Decimal::new(10, 2, false);
+            let other = Decimal::new(11, 2, true);
+            let result = decimal.max(other);
+
+            assert_eq!(decimal, result);
+        }
+    }
+
+    #[test]
     fn test_sign() {
         // is zero
         {
