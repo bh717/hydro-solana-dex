@@ -1,11 +1,5 @@
 use crate::decimal::{Compare, Decimal, Mul, Sub};
-use thiserror::Error;
-
-#[derive(Error, Debug)]
-pub enum FeeCalculatorError {
-    #[error("Fees are greater than input amount")]
-    FeesGreaterThanAmount,
-}
+use crate::programs::fees::error::FeeCalculatorError;
 
 /// Fee calculator input parameters for [PercentageFee]
 #[derive(Debug)]
