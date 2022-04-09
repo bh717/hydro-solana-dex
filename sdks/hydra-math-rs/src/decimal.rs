@@ -2,6 +2,7 @@ use ndarray::{arr2, Array2};
 use std::convert::TryInto;
 use std::fmt;
 use std::iter::repeat;
+use std::ops::Neg;
 use std::str::FromStr;
 use thiserror::Error;
 
@@ -634,6 +635,28 @@ impl Compare<Decimal> for Decimal {
             } else {
                 Ok(self.value <= other.value)
             }
+        }
+    }
+}
+
+impl Neg for Decimal {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        if self.is_negative() {
+            Self {
+                value: self.value,
+                scale: self.scale,
+                negative: false,
+            }
+        } else if self.is_positive() {
+            Self {
+                value: self.value,
+                scale: self.scale,
+                negative: true,
+            }
+        } else {
+            self
         }
     }
 }
