@@ -298,7 +298,6 @@ impl FeeCalculator {
 #[allow(clippy::unwrap_used)]
 mod tests {
     use crate::decimal::Decimal;
-    use mock_instant::Instant;
 
     use super::*;
 
@@ -331,7 +330,10 @@ mod tests {
                 last_ewma: 178367579,
             };
 
-            assert_eq!(result, expected);
+            assert_eq!(result.fees, expected.fees);
+            assert_eq!(result.amount_ex_fees, expected.amount_ex_fees);
+            assert_eq!(result.last_price, expected.last_price);
+            assert_eq!(result.last_ewma, expected.last_ewma);
         }
 
         // second time called, passing in previous values last_price, last_update and last_ewma
@@ -355,7 +357,10 @@ mod tests {
                 last_price: 3425000000000000,
                 last_ewma: 97210330,
             };
-            assert_eq!(result, expected);
+            assert_eq!(result.fees, expected.fees);
+            assert_eq!(result.amount_ex_fees, expected.amount_ex_fees);
+            assert_eq!(result.last_price, expected.last_price);
+            assert_eq!(result.last_ewma, expected.last_ewma);
         }
     }
 }
