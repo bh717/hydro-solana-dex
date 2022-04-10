@@ -1,10 +1,8 @@
 name: anchor-build
 env:
   cache-id: anchor-20220325
+  CARGO_TERM_COLOR: always
 on:
-  push:
-    branches:
-      - main
   pull_request:
     branches:
       - "*"

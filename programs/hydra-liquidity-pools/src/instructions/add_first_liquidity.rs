@@ -1,7 +1,6 @@
 use crate::constants::*;
 use crate::errors::ErrorCode;
 use crate::events::liquidity_added::LiquidityAdded;
-use crate::events::slippage_exceeded::SlippageExceeded;
 use crate::state::pool_state::PoolState;
 use anchor_lang::prelude::*;
 use anchor_spl::associated_token::AssociatedToken;
@@ -10,7 +9,7 @@ use anchor_spl::token::{Mint, MintTo, Token, TokenAccount, Transfer};
 use hydra_math_rs::programs::liquidity_pools::hydra_lp_tokens::*;
 
 #[derive(Accounts)]
-pub struct AddLiquidity<'info> {
+pub struct AddFirstLiquidity<'info> {
     /// the authority allowed to transfer token_a and token_b from the users wallet.
     #[account(mut)]
     pub user: Signer<'info>,
@@ -83,7 +82,38 @@ pub struct AddLiquidity<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-impl<'info> AddLiquidity<'info> {
+impl<'info> AddFirstLiquidity<'info> {
+    /// AddLiquidity instruction. See python model here: https://colab.research.google.com/drive/1p0HToo1mxm2Z1e8dpzIvScGrMCrgN6qr?authuser=2#scrollTo=Awc9KZdYEpPn
+    pub fn calculate_first_deposit_lp_tokens_to_mint(
+        &self,
+        token_x_amount: u64,
+        token_y_amount: u64,
+    ) -> Result<u64> {
+        calculate_k(token_x_amount, token_y_amount).ok_or(ErrorCode::CalculateLpTokensFailed.into())
+    }
+
+    pub fn mint_and_lock_lp_tokens_to_pool_state_account(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
+        let cpi_accounts = MintTo {
+            mint: self.lp_token_mint.to_account_info(),
+            to: self.lp_token_vault.to_account_info(),
+            authority: self.pool_state.to_account_info(),
+        };
+        let cpi_program = self.token_program.to_account_info();
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+
+    pub fn mint_lp_tokens_to_user_account(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
+        let cpi_accounts = MintTo {
+            mint: self.lp_token_mint.to_account_info(),
+            to: self.lp_token_to.to_account_info(),
+            authority: self.pool_state.to_account_info(),
+        };
+        let cpi_program = self.token_program.to_account_info();
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+
     pub fn transfer_user_base_token_to_vault(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
@@ -119,46 +149,20 @@ impl<'info> AddLiquidity<'info> {
         let cpi_program = self.token_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
     }
-
-    pub fn mint_lp_tokens_to_user_account(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
-        let cpi_accounts = MintTo {
-            mint: self.lp_token_mint.to_account_info(),
-            to: self.lp_token_to.to_account_info(),
-            authority: self.pool_state.to_account_info(),
-        };
-        let cpi_program = self.token_program.to_account_info();
-        CpiContext::new(cpi_program, cpi_accounts)
-    }
-
-    /// calculate a and b tokens (x/y) from expected_lp_tokens (k)
-    pub fn calculate_a_and_b_tokens_to_debit_from_expected_lp_tokens(
-        &self,
-        expected_lp_tokens_minted: u64,
-    ) -> (u64, u64) {
-        calculate_x_y(
-            expected_lp_tokens_minted,
-            self.token_x_vault.amount,
-            self.token_y_vault.amount,
-            self.lp_token_mint.supply,
-        )
-    }
 }
 
 pub fn handle(
-    ctx: Context<AddLiquidity>,
-    token_x_max_amount: u64, // slippage handling: token_a_amount * (1 + TOLERATED_SLIPPAGE) --> calculated in UI
-    token_y_max_amount: u64, // slippage handling: token_b_amount * (1 + TOLERATED_SLIPPAGE) --> calculated in UI
-    expected_lp_tokens: u64, //
+    ctx: Context<AddFirstLiquidity>,
+    token_x_to_debit: u64,
+    token_y_to_debit: u64,
 ) -> Result<()> {
-    // Pool needs to be funded for the first time via instruction addFirstLiquidity
-    if ctx.accounts.lp_token_mint.supply == 0 {
-        return Err(ErrorCode::PoolNotFunded.into());
+    if ctx.accounts.lp_token_mint.supply != 0 {
+        return Err(ErrorCode::PoolAlreadyFunded.into());
     }
 
     if ctx.accounts.pool_state.debug {
-        msg!("expected_lp_tokens: {}", expected_lp_tokens);
-        msg!("token_x_max_amount: {}", token_x_max_amount);
-        msg!("token_y_max_amount: {}", token_y_max_amount);
+        msg!("token_x_to_debit: {}", token_x_to_debit);
+        msg!("token_y_to_debit: {}", token_y_to_debit);
     }
 
     let seeds = &[
@@ -168,29 +172,20 @@ pub fn handle(
     ];
     let signer = [&seeds[..]];
 
-    let debited = ctx
+    let lp_tokens_to_mint = ctx
         .accounts
-        .calculate_a_and_b_tokens_to_debit_from_expected_lp_tokens(expected_lp_tokens);
+        .calculate_first_deposit_lp_tokens_to_mint(token_x_to_debit, token_y_to_debit)?;
 
-    let token_x_to_debit = debited.0;
-    let token_y_to_debit = debited.1;
-    let lp_tokens_to_mint = expected_lp_tokens;
+    // mint and lock lp tokens on first deposit
+    token::mint_to(
+        ctx.accounts
+            .mint_and_lock_lp_tokens_to_pool_state_account()
+            .with_signer(&signer),
+        MIN_LIQUIDITY,
+    )?;
 
-    if (token_x_to_debit > token_x_max_amount) || (token_y_to_debit > token_y_max_amount) {
-        if ctx.accounts.pool_state.debug {
-            msg!("Error: SlippageExceeded");
-            msg!("token_x_to_debit: {}", token_x_to_debit);
-            msg!("token_x_max_amount: {}", token_x_max_amount);
-            msg!("token_y_to_debit: {}", token_y_to_debit);
-            msg!("token_y_max_amount: {}", token_y_max_amount);
-        }
-        emit!(SlippageExceeded {
-            token_x_to_debit,
-            token_y_to_debit,
-            token_x_max_amount,
-            token_y_max_amount,
-        });
-        return Err(ErrorCode::SlippageExceeded.into());
+    if ctx.accounts.pool_state.debug {
+        msg!("lp_tokens_locked: {}", MIN_LIQUIDITY);
     }
 
     // mint lp tokens to users account
