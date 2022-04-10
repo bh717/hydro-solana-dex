@@ -209,11 +209,14 @@ impl FeeCalculator {
         FeeCalculatorBuilder::new()
     }
 
+    //
     fn should_update(&self) -> bool {
         self.last_update > 0
             && self.this_update.checked_sub(self.last_update).unwrap() >= self.ewma_window
     }
 
+    /// Compute hourly Exponentially Weighted Moving Average (ewma) variance.
+    // algo based on https://docs.google.com/document/d/1ZLJocadDjbfdlVTzXofIvCfYT0xdDw24ciCuNCqCBIU/edit
     fn compute_ewma(&self) -> Decimal {
         if self.should_update() {
             // this_ewma = lambda * last_ewma + (1-lambda) * (this_price / last_price - 1)**2
@@ -247,6 +250,8 @@ impl FeeCalculator {
         }
     }
 
+    /// This function is responsible for updating the exponentially weighted moving average (ewma)
+    /// variance and the fee.
     pub fn compute_fees(&self, input_amount: &Decimal) -> Result<FeeResult, FeeCalculatorError> {
         if self.min_fee.is_zero() || self.max_fee.is_zero() {
             return Ok(FeeResult {
@@ -264,6 +269,7 @@ impl FeeCalculator {
         let x = this_ewma.neg().div(Decimal::from_u64(8).to_compute_scale());
 
         // exp(x) = 1+x+x^2/2
+        // algo based on: https://docs.google.com/spreadsheets/d/1H5Kf5NIaV57KE3HOLbXTjcGDO-I_whhU/edit#gid=1189489672
         let exp_x = Decimal::one()
             .add(x)
             .unwrap()
