@@ -4,7 +4,7 @@ _ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 ANCHOR_VERSION?=0.23.0
 SOLANA_VERSION?=1.9.14
-DEPLOY_CLUSTER?=devnet
+DEPLOY_CLUSTER?=localnet
 SOLANA_DEPLOY_KEY?=$(shell cat ~/.config/solana/id.json)
 
 list:
@@ -91,7 +91,13 @@ validator-logs:
 	solana logs
 
 migrate:
-	yarn ts-node scripts/migrate.ts
+	yarn ts-node scripts/migrate.ts --features ${DEPLOY_CLUSTER}
+
+migrate-devnet:
+	yarn ts-node scripts/migrate.ts --features devnet
+
+migrate-testnet:
+	yarn ts-node scripts/migrate.ts --features testnet
 
 watch-anchor-test: build
 	cargo watch -c -- anchor test -- --features "localnet"
@@ -144,3 +150,9 @@ example-app-build:
 # deploy contracts via ci or locally.
 deploy:
 	@./scripts/deploy.sh ${DEPLOY_CLUSTER} ${SOLANA_DEPLOY_KEY}
+
+deploy-devnet:
+	@./scripts/deploy.sh devnet ${SOLANA_DEPLOY_KEY}
+
+deploy-testnet:
+	@./scripts/deploy.sh testnet ${SOLANA_DEPLOY_KEY}
