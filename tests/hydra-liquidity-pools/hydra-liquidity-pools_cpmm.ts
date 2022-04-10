@@ -162,7 +162,8 @@ describe("hydra-liquidity-pool-cpmm", () => {
 
     assert.strictEqual(
       await accounts.lpTokenAssociatedAccount.balance(),
-      1238326078n
+      // (6.000000*255575.287200)**0.5 - 100 = 1138.3261780323
+      1138_326178n
     );
 
     assert.strictEqual(
