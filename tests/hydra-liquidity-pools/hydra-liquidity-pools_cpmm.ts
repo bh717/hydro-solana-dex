@@ -131,13 +131,28 @@ describe("hydra-liquidity-pool-cpmm", () => {
     assert.equal(poolStateAccount.tokenYVaultBump, tokenYVaultBump);
   });
 
-  it("should add-liquidity to pool for the first time", async () => {
-    await sdk.liquidityPools.addLiquidity(
+  it("should not add-liquidity to pool with the wrong instruction for the first time", async () => {
+    try {
+      await sdk.liquidityPools.addLiquidity(
+        btcdMint,
+        usddMint,
+        6_000_000n,
+        255_575_287_200n,
+        0n
+      );
+      assert.ok(false);
+    } catch (err: any) {
+      const errMsg = "PoolNotFunded";
+      assert(err.toString().includes(errMsg));
+    }
+  });
+
+  it("should add-first-liquidity to the initialized empty pool", async () => {
+    await sdk.liquidityPools.addFirstLiquidity(
       btcdMint,
       usddMint,
       6_000_000n,
-      255_575_287_200n,
-      0n
+      255_575_287_200n
     );
 
     const accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
@@ -164,39 +179,19 @@ describe("hydra-liquidity-pool-cpmm", () => {
     assert.strictEqual(await accounts.tokenYVault.balance(), 255575287200n);
   });
 
-  it("should not add-liquidity on a second deposit with the 0 expected_lp_tokens", async () => {
-    await sdk.liquidityPools.addLiquidity(
-      btcdMint,
-      usddMint,
-      6_000_000n,
-      255_575_287_200n,
-      0n
-    );
-
-    const accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
-      btcdMint,
-      usddMint
-    );
-
-    // no changes from last test case.
-    assert.strictEqual(
-      await accounts.lpTokenAssociatedAccount.balance(),
-      1238326078n
-    );
-
-    assert.strictEqual(
-      await accounts.userTokenX.balance(),
-      BTCD_MINT_AMOUNT - 6_000_000n
-    );
-
-    assert.strictEqual(
-      await accounts.userTokenY.balance(),
-      USDD_MINT_AMOUNT - 255_575_287_200n
-    );
-
-    assert.strictEqual(await accounts.lpTokenVault.balance(), 100n);
-    assert.strictEqual(await accounts.tokenXVault.balance(), 6000000n);
-    assert.strictEqual(await accounts.tokenYVault.balance(), 255575287200n);
+  it("should not add-first-liquidity to a funded pool", async () => {
+    try {
+      await sdk.liquidityPools.addFirstLiquidity(
+        btcdMint,
+        usddMint,
+        6_000_000n,
+        255_575_287_200n
+      );
+      assert.ok(false);
+    } catch (err: any) {
+      const errMsg = "PoolAlreadyFunded";
+      assert(err.toString().includes(errMsg));
+    }
   });
 
   it("should add-liquidity to pool for the second time", async () => {

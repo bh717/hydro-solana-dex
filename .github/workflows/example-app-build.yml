@@ -1,6 +1,6 @@
-name: react-build
+name: example-app-build
 env:
-  cache-id: react-20220305a
+  cache-id: example-app-20220405
   CARGO_TERM_COLOR: always
 on:
   push:
@@ -9,8 +9,9 @@ on:
   pull_request:
     branches:
       - "*"
+
 jobs:
-  build-js-deps:
+  build-example-app-deps:
     runs-on: ubuntu-latest
     steps:
       - id: cache-cli-deps
@@ -43,6 +44,8 @@ jobs:
         with:
           toolchain: stable
 
+      - run: echo "PATH=$HOME/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_ENV
+
       - id: install-solana-tools
         name: install-solana-tools
         if: steps.cache-cli-deps.outputs.cache-hit != 'true'
@@ -69,9 +72,9 @@ jobs:
         name: install-serve
         run: npm install -g serve
 
-  build-js-stack:
+  build-example-app:
     runs-on: ubuntu-latest
-    needs: [build-js-deps]
+    needs: [build-example-app-deps]
     steps:
       - id: cache-cli-deps
         name: cache-cli-deps
@@ -112,35 +115,31 @@ jobs:
           path: "**/.turbo"
           key: ${{ runner.os }}-turbo-files
 
-      - id: install-playwright
-        name: install-playwright
-        run: yarn install --frozen-lockfile && cd app && yarn playwright install
-
       - id: install-ipfs-deploy
         name: install-ipfs-deploy
         run: npm install -g ipfs-deploy
 
-      - run: make react-ci
-        name: react-ci
+      - run: make example-app-build
+        name: example-app-build
 
-      - name: react-ci Notify slask success
+      - name: example-app-build - Notify slask success
         if: success()
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
           channel: gitops
-          status: REACT-CI-SUCCESS
+          status: EXAMPLE-APP-BUILD-SUCCESS
           color: good
 
-      - name: react-ci - Notify slack failure
+      - name: example-app-build - Notify slack failure
         if: failure()
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
           channel: gitops
-          status: REACT-CI-FAILED
+          status: EXAMPLE-APP-BUILD-FAILED
           color: danger
 
       - id: ipfs-deploy
@@ -148,26 +147,26 @@ jobs:
         uses: aquiladev/ipfs-action@v0.2.1
         with:
           service: infura
-          path: ./app/build
+          path: ./examples/sdk/build
 
       - run: echo ${{steps.ipfs-deploy.outputs.cid}}
 
-      - name: react-cd - Notify slask success
+      - name: example-app-deploy - Notify slask success
         if: success()
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
           channel: gitops
-          status: REACT-CD-SUCCESS https://ipfs.infura.io/ipfs/${{steps.ipfs-deploy.outputs.cid}}
+          status: EXAMPLE-APP-CD-SUCCESS https://ipfs.infura.io/ipfs/${{steps.ipfs-deploy.outputs.cid}}
           color: good
 
-      - name: react-cd - Notify slack failure
+      - name: example-app-deploy - Notify slack failure
         if: failure()
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
           channel: gitops
-          status: REACT-CD-FAILED
+          status: EXAMPLE-APP-CD-FAILED
           color: danger

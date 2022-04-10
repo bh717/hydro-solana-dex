@@ -4,6 +4,7 @@ mod instructions;
 pub mod state;
 mod utils;
 
+use instructions::add_first_liquidity::*;
 use instructions::add_liquidity::*;
 use instructions::initialize::*;
 use instructions::remove_liquidity::*;
@@ -58,6 +59,16 @@ pub mod hydra_liquidity_pools {
         )
     }
 
+    /// add first liquidity deposit to new/empty pool
+    pub fn add_first_liquidity(
+        ctx: Context<AddFirstLiquidity>,
+        token_x_to_debit: u64,
+        token_y_to_debit: u64,
+    ) -> Result<()> {
+        instructions::add_first_liquidity::handle(ctx, token_x_to_debit, token_y_to_debit)
+    }
+
+    /// add subsequent liquidity deposit to an existing pool that has already been funded.
     pub fn add_liquidity(
         ctx: Context<AddLiquidity>,
         tokens_x_max_amount: u64, // slippage handling: token_a_amount * (1 + TOLERATED_SLIPPAGE) --> calculated client side

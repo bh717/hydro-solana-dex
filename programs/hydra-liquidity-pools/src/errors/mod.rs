@@ -2,6 +2,15 @@ use anchor_lang::prelude::*;
 
 #[error_code]
 pub enum ErrorCode {
+    #[msg(Calulation of lp tokens failed)]
+    CalculateLpTokensFailed,
+
+    #[msg(Pool has not been funded for the first time. Please use addFirstLiquidity instruction)]
+    PoolNotFunded,
+
+    #[msg(Pool already funded for the first time. Please use addLiquidity instruction)]
+    PoolAlreadyFunded,
+
     #[msg("Slippage Amount Exceeded")]
     SlippageExceeded,
 
