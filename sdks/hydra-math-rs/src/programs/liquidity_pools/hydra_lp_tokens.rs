@@ -1,6 +1,7 @@
 use crate::decimal::{Decimal, DivUp, Mul, Sqrt, Sub};
 
 pub const MIN_LIQUIDITY: u64 = 100;
+pub const LIQUIDITY_POOL_SCALE: u8 = 6;
 
 pub fn calculate_k(token_a_amount: u64, token_b_amount: u64) -> Option<u64> {
     let x = token_a_amount;
