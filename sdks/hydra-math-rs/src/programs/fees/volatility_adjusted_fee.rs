@@ -339,11 +339,18 @@ mod tests {
         // second time called, passing in previous values last_price, last_update and last_ewma
         // which need to be stored on chain
         {
+            let last_update = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .expect("seconds")
+                .as_secs()
+                .checked_sub(3600)
+                .unwrap();
+
             let actual = compute_volatility_adjusted_fee(
                 3425_000000,
                 3400_000000,
                 6,
-                1649505350,
+                last_update,
                 178367579,
                 1000_000000,
                 6,
@@ -351,11 +358,11 @@ mod tests {
             .unwrap();
             let result = FeeResult::from(actual);
             let expected = FeeResult {
-                fees: 2916327360000,
-                amount_ex_fees: 997083672640000,
+                fees: 3654334800000,
+                amount_ex_fees: 996345665200000,
                 last_update: 1649549126,
                 last_price: 3425000000000000,
-                last_ewma: 97210330,
+                last_ewma: 121810243,
             };
             assert_eq!(result.fees, expected.fees);
             assert_eq!(result.amount_ex_fees, expected.amount_ex_fees);
