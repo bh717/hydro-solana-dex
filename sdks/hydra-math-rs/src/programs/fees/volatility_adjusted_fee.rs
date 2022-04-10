@@ -137,8 +137,8 @@ impl FeeCalculatorBuilder {
     }
 }
 
-#[derive(Default, Debug)]
-pub struct Fees {
+#[derive(Default, Debug, PartialEq)]
+pub struct FeeResult {
     pub fees: u64,
     pub amount_ex_fees: u64,
     pub last_update: u64,
@@ -146,7 +146,7 @@ pub struct Fees {
     pub last_ewma: u64,
 }
 
-impl Into<Vec<u64>> for Fees {
+impl Into<Vec<u64>> for FeeResult {
     fn into(self) -> Vec<u64> {
         vec![
             self.fees,
@@ -158,9 +158,9 @@ impl Into<Vec<u64>> for Fees {
     }
 }
 
-impl From<Vec<u64>> for Fees {
+impl From<Vec<u64>> for FeeResult {
     fn from(vector: Vec<u64>) -> Self {
-        Fees {
+        FeeResult {
             fees: vector[0],
             amount_ex_fees: vector[1],
             last_update: vector[2],
@@ -247,9 +247,9 @@ impl FeeCalculator {
         }
     }
 
-    pub fn compute_fees(&self, input_amount: &Decimal) -> Result<Fees, FeeCalculatorError> {
+    pub fn compute_fees(&self, input_amount: &Decimal) -> Result<FeeResult, FeeCalculatorError> {
         if self.min_fee.is_zero() || self.max_fee.is_zero() {
-            return Ok(Fees {
+            return Ok(FeeResult {
                 fees: 0,
                 amount_ex_fees: input_amount.to_scaled_amount(input_amount.scale),
                 last_update: self.this_update,
@@ -284,7 +284,7 @@ impl FeeCalculator {
 
         let amount_ex_fees = input_amount.sub(fees).expect("amount_ex_fees");
 
-        Ok(Fees {
+        Ok(FeeResult {
             fees: fees.to_scaled_amount(input_amount.scale),
             amount_ex_fees: amount_ex_fees.to_scaled_amount(input_amount.scale),
             last_update: self.this_update,
@@ -298,6 +298,7 @@ impl FeeCalculator {
 #[allow(clippy::unwrap_used)]
 mod tests {
     use crate::decimal::Decimal;
+    use mock_instant::Instant;
 
     use super::*;
 
@@ -317,17 +318,24 @@ mod tests {
 
     #[test]
     fn test_scalar_inputs() {
-        // first time called
+        // first time called with 'zero' input for last_price, last_update and last_ewma
         {
             let actual =
                 compute_volatility_adjusted_fee(3400_000000, 0, 6, 0, 0, 1000_000000, 6).unwrap();
-            let fees = Fees::from(actual);
-            println!("Fees {:?}", fees)
-            // assert_eq!(result, expected);
+            let result = FeeResult::from(actual);
+            let expected = FeeResult {
+                fees: 5351086800000,
+                amount_ex_fees: 994648913200000,
+                last_update: 1649549126,
+                last_price: 3400000000000000,
+                last_ewma: 178367579,
+            };
+
+            assert_eq!(result, expected);
         }
 
-        // TODO: figure out a better way to freeze time in tests
-        // second time called
+        // second time called, passing in previous values last_price, last_update and last_ewma
+        // which need to be stored on chain
         {
             let actual = compute_volatility_adjusted_fee(
                 3425_000000,
@@ -339,9 +347,15 @@ mod tests {
                 6,
             )
             .unwrap();
-            let fees = Fees::from(actual);
-            println!("Fees {:?}", fees)
-            // assert_eq!(result, expected);
+            let result = FeeResult::from(actual);
+            let expected = FeeResult {
+                fees: 2916327360000,
+                amount_ex_fees: 997083672640000,
+                last_update: 1649549126,
+                last_price: 3425000000000000,
+                last_ewma: 97210330,
+            };
+            assert_eq!(result, expected);
         }
     }
 }
