@@ -3,13 +3,10 @@ use crate::decimal::{Decimal, DivUp, Mul, Sqrt, Sub};
 pub const MIN_LIQUIDITY: u64 = 100;
 pub const LIQUIDITY_POOL_SCALE: u8 = 6;
 
-pub fn calculate_k(token_a_amount: u64, token_b_amount: u64) -> Option<u64> {
-    let x = token_a_amount;
-    let y = token_b_amount;
-
-    let x = Decimal::from_u64(x);
-    let y = Decimal::from_u64(y);
-    let min_liquidity = Decimal::from_u64(MIN_LIQUIDITY);
+pub fn calculate_k(x: u64, x_scale: u8, y: u64, y_scale: u8) -> Option<u64> {
+    let x = Decimal::from_scaled_amount(x, x_scale).to_compute_scale();
+    let y = Decimal::from_scaled_amount(y, y_scale).to_compute_scale();
+    let min_liquidity = Decimal::from_u64(MIN_LIQUIDITY).to_compute_scale();
 
     // sqrt(x * y) - min_liquidity
     Some(
@@ -18,7 +15,7 @@ pub fn calculate_k(token_a_amount: u64, token_b_amount: u64) -> Option<u64> {
             .unwrap()
             .sub(min_liquidity)
             .unwrap()
-            .to_u64(),
+            .to_scaled_amount(LIQUIDITY_POOL_SCALE),
     )
 }
 
@@ -46,8 +43,28 @@ mod test {
     use super::*;
     #[test]
     fn test_calculate_k() {
-        let expected: u64 = 1238326078;
-        let result = calculate_k(6000000, 255575287200).unwrap();
-        assert_eq!(expected, result);
+        {
+            // Same scale
+            // (600.000000 * 20.000000)**0.5 - 100 = 9.544511
+            let expected: u64 = 9_544511;
+            let result = calculate_k(600_000000, 6, 20_000000, 6).unwrap();
+            assert_eq!(expected, result);
+        }
+
+        {
+            // Different scale
+            // (600.000000 * 20.000000000)**0.5 - 100 = 9.544511
+            let expected: u64 = 9_544511;
+            let result = calculate_k(600_000000, 6, 20_000000000, 9).unwrap();
+            assert_eq!(expected, result);
+        }
+
+        {
+            // Different scale
+            // (600.000000000 * 20.000000)**0.5 - 100 = 9.544511501
+            let expected: u64 = 9_544511;
+            let result = calculate_k(600_000000, 9, 20_000000000, 6).unwrap();
+            assert_eq!(expected, result);
+        }
     }
 }
