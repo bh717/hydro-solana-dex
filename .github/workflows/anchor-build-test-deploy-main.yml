@@ -156,7 +156,7 @@ jobs:
 
       - id: deploy
         name: deploy to devnet
-        run: make deploy
+        run: make deploy-devnet
 
       - name: Notify slask success
         if: success()
