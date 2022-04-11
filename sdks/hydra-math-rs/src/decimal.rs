@@ -259,9 +259,10 @@ impl Decimal {
                     .expect("decimal of base")
                     .to_scale(exp.abs() as u8)
                     .value,
-                exp.abs() as u8,
+                0,
                 negative,
-            ))
+            )
+            .to_scale(exp.abs() as u8))
         } else {
             Ok(Decimal::new(
                 u128::from_str_radix(&digits, radix).unwrap(),
@@ -1733,19 +1734,25 @@ mod test {
     fn test_from_string() {
         {
             let actual = Decimal::from_str("1e6").unwrap();
-            let expected = Decimal::new(1_000_000, 6, false);
+            let expected = Decimal::new(1_000_000_000_000, 6, false);
             assert_eq!(actual, expected);
         }
 
         {
             let actual = Decimal::from_str("1.5e6").unwrap();
-            let expected = Decimal::new(1_500_000, 6, false);
+            let expected = Decimal::new(1_500_000_000_000, 6, false);
             assert_eq!(actual, expected);
         }
 
         {
             let actual = Decimal::from_str("-1.5e6").unwrap();
-            let expected = Decimal::new(1_500_000, 6, true);
+            let expected = Decimal::new(1_500_000_000_000, 6, true);
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let actual = Decimal::from_str("1.5e9").unwrap();
+            let expected = Decimal::new(1_500_000_000_000_000_000, 9, false);
             assert_eq!(actual, expected);
         }
 
