@@ -52,7 +52,7 @@ pub struct FeeCalculator {
     velocity: Decimal,
     /// Minimum fee percentage, default 0.0005
     min_fee: Decimal,
-    /// Maximum fee percentage, default 0.0005
+    /// Maximum fee percentage, default 0.02
     max_fee: Decimal,
 }
 
