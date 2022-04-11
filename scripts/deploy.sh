@@ -13,6 +13,7 @@ INITIAL_SOLANA_VERSION=$(solana -V | awk '{print $2}')
 # This version is needed due to a deploy issue with newer versions of the solana cli
 solana-install-init 1.8.16
 solana -V
+solana config set --url $CLUSTER
 solana airdrop 2 -k /tmp/key.json || true
 
 # build contracts
