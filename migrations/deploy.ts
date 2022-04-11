@@ -145,12 +145,11 @@ async function setupLiquidityPoolState(provider: anchor.Provider, tokens: any) {
     fees
   );
 
-  await sdk.liquidityPools.addLiquidity(
+  await sdk.liquidityPools.addFirstLiquidity(
     tokens.wbtc.publicKey,
     tokens.usdc.publicKey,
     1_000n * 1_000_000_000n,
-    45_166_800n * 1_000_000n,
-    0n
+    45_166_800n * 1_000_000n
   );
 
   // Create the weth usdc pool
@@ -159,12 +158,11 @@ async function setupLiquidityPoolState(provider: anchor.Provider, tokens: any) {
     tokens.usdc.publicKey,
     fees
   );
-  await sdk.liquidityPools.addLiquidity(
+  await sdk.liquidityPools.addFirstLiquidity(
     tokens.weth.publicKey,
     tokens.usdc.publicKey,
     1_000n * 1_000_000_000n,
-    3_281_000n * 1_000_000n,
-    0n
+    3_281_000n * 1_000_000n
   );
   // Load up a trader account
   const trader = await loadKey(
