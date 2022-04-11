@@ -234,12 +234,10 @@ impl FeeCalculator {
                 .pow(Decimal::two());
 
             // c = ewma_window / (this_update - last_update)
-            let c = Decimal::from_u64(
-                self.ewma_window
-                    .checked_div(self.this_update.checked_sub(self.last_update).unwrap())
-                    .unwrap(),
-            )
-            .to_compute_scale();
+            let c = Decimal::from_u64(self.ewma_window).to_compute_scale().div(
+                Decimal::from_u64(self.this_update.checked_sub(self.last_update).unwrap())
+                    .to_compute_scale(),
+            );
 
             self.lambda
                 .mul(self.last_ewma)
