@@ -1,18 +1,11 @@
-import { createContext, useContext } from "react";
-import { HydraSDK } from "hydra-ts";
 import { useTokenForm } from "./useTokenForm";
 import { usePool } from "./usePool";
+import { useHydraClient } from "../../../components/hydraClientProvider";
 import { AccountData } from "hydra-ts/src/utils/account-loader";
 import { TokenMint } from "hydra-ts/src/types/token-mint";
 import { useCreateSwapCommand } from "./useCreateSwapCommand";
 import { useCalculateSwapResult } from "./useCalculateSwapResult";
 import { useSwapUIState } from "./useSwapUIState";
-
-const HydraClientContext = createContext({} as HydraSDK);
-
-export function useHydraClient() {
-  return useContext(HydraClientContext);
-}
 
 export function getDirection(
   tokenXMint: AccountData<TokenMint>,

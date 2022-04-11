@@ -2,7 +2,7 @@ import React, { FC, useEffect, useState } from "react";
 import { makeStyles } from "@mui/styles";
 import { Box, Typography, InputBase, IconButton } from "@mui/material";
 
-import { Asset } from "../../../../types";
+import { Asset, AssetBalance } from "../../../../types";
 import HYSD from "../../../../assets/images/symbols/hysd.png";
 // import { normalizeBalance } from "../../../../helpers/normalize";
 
@@ -92,9 +92,10 @@ const useStyles = makeStyles({
 interface ContentProps {
   assetList: Array<Asset>;
   setAsset(asset: Asset): void;
+  balances: AssetBalance;
 }
 
-const Content: FC<ContentProps> = ({ assetList, setAsset }) => {
+const Content: FC<ContentProps> = ({ assetList, setAsset, balances }) => {
   const classes = useStyles();
   const [search, setSearch] = useState("");
   const [filteredAssets, setFilteredAssets] = useState<Asset[]>([]);
@@ -135,9 +136,9 @@ const Content: FC<ContentProps> = ({ assetList, setAsset }) => {
                 />
               </span>
               <span className={classes.assetSymbol}>{asset.symbol}</span>
-              {/* <span className={classes.assetBalance}>
-                {normalizeBalance(asset.balance)}
-              </span> */}
+              <span className={classes.assetBalance}>
+                {balances[asset.address]}
+              </span>
             </IconButton>
           ))}
       </Box>

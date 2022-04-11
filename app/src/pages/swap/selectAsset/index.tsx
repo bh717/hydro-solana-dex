@@ -4,6 +4,7 @@ import { Box, Button } from "@mui/material";
 import { useWallet } from "@solana/wallet-adapter-react";
 import cn from "classnames";
 
+import HYSD from "../../../assets/images/symbols/hysd.png";
 import { CaretDown } from "../../../components/icons";
 import { TokenField } from "../hooks/useToken";
 
@@ -106,7 +107,14 @@ const SelectAsset: FC<SelectAssetProps> = ({ type, asset, changeAsset }) => {
         {asset.asset ? (
           <>
             <span className={classes.buttonImgWrapper}>
-              <img src={asset.asset.logoURI} alt="Asset" />
+              <img
+                src={
+                  asset.asset.symbol.includes("HYD")
+                    ? HYSD
+                    : asset.asset.logoURI
+                }
+                alt="Asset"
+              />
             </span>
             <span>{asset.asset.symbol}</span>
           </>

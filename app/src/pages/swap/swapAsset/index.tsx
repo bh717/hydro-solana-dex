@@ -1,12 +1,13 @@
-import React, { FC, useState, useEffect } from "react";
+import React, { FC } from "react";
 import { makeStyles } from "@mui/styles";
 import { Box, Button, IconButton, InputBase, Typography } from "@mui/material";
 import { useWallet } from "@solana/wallet-adapter-react";
-import cn from "classnames";
+// import cn from "classnames";
 
-import { Exchange, Compare } from "../../../components/icons";
+import { Exchange } from "../../../components/icons";
 import SelectAsset from "../selectAsset";
 import { TokenField } from "../hooks/useToken";
+import { AssetBalance } from "../../../types";
 import { toFormat } from "../../../utils/toFormat";
 import { fromFormat } from "../../../utils/fromFormat";
 
@@ -154,6 +155,7 @@ interface SwapAssetProps {
   fromAsset: TokenField;
   toAsset: TokenField;
   changeAsset(type: string): void;
+  balances: AssetBalance;
   confirmSwap(): void;
   walletConnect(): void;
 }
@@ -162,13 +164,14 @@ const SwapAsset: FC<SwapAssetProps> = ({
   fromAsset,
   toAsset,
   changeAsset,
+  balances,
   confirmSwap,
   walletConnect,
 }) => {
   const classes = useStyles();
 
   const { connected } = useWallet();
-  const [showPriceDetail, setShowPriceDetail] = useState(true);
+  // const [showPriceDetail, setShowPriceDetail] = useState(true);
 
   // useEffect(() => {
   //   if (fromAmount && toAmount) setShowPriceDetail(true);
@@ -187,7 +190,10 @@ const SwapAsset: FC<SwapAssetProps> = ({
           <Box>
             <Box className={classes.assetDetail}>
               <Typography>From</Typography>
-              <Typography>Balance:</Typography>
+              <Typography>
+                Balance:{" "}
+                {fromAsset.asset ? balances[fromAsset.asset.address] : ""}
+              </Typography>
             </Box>
             <Box className={classes.assetInput}>
               <InputBase
@@ -217,7 +223,9 @@ const SwapAsset: FC<SwapAssetProps> = ({
           <Box>
             <Box className={classes.assetDetail}>
               <Typography>To</Typography>
-              <Typography>Balance:</Typography>
+              <Typography>
+                Balance: {toAsset.asset ? balances[toAsset.asset.address] : ""}
+              </Typography>
             </Box>
             <Box className={classes.assetInput}>
               <InputBase
