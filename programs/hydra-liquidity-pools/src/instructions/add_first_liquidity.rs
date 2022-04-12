@@ -15,6 +15,16 @@ pub struct AddFirstLiquidity<'info> {
     pub user: Signer<'info>,
 
     #[account(
+        constraint = token_x_mint.key() == pool_state.token_x_mint
+    )]
+    pub token_x_mint: Box<Account<'info, Mint>>,
+
+    #[account(
+        constraint = token_y_mint.key() == pool_state.token_y_mint
+    )]
+    pub token_y_mint: Box<Account<'info, Mint>>,
+
+    #[account(
         mut,
         seeds = [ POOL_STATE_SEED, pool_state.lp_token_mint.as_ref() ],
         bump = pool_state.pool_state_bump,
@@ -87,9 +97,17 @@ impl<'info> AddFirstLiquidity<'info> {
     pub fn calculate_first_deposit_lp_tokens_to_mint(
         &self,
         token_x_amount: u64,
+        token_x_mint_decimals: u8,
         token_y_amount: u64,
+        token_y_mint_decimals: u8,
     ) -> Result<u64> {
-        calculate_k(token_x_amount, token_y_amount).ok_or(ErrorCode::CalculateLpTokensFailed.into())
+        calculate_k(
+            token_x_amount,
+            token_x_mint_decimals,
+            token_y_amount,
+            token_y_mint_decimals,
+        )
+        .ok_or(ErrorCode::CalculateLpTokensFailed.into())
     }
 
     pub fn mint_and_lock_lp_tokens_to_pool_state_account(
@@ -172,9 +190,12 @@ pub fn handle(
     ];
     let signer = [&seeds[..]];
 
-    let lp_tokens_to_mint = ctx
-        .accounts
-        .calculate_first_deposit_lp_tokens_to_mint(token_x_to_debit, token_y_to_debit)?;
+    let lp_tokens_to_mint = ctx.accounts.calculate_first_deposit_lp_tokens_to_mint(
+        token_x_to_debit,
+        ctx.accounts.token_x_mint.decimals,
+        token_y_to_debit,
+        ctx.accounts.token_y_mint.decimals,
+    )?;
 
     // mint and lock lp tokens on first deposit
     token::mint_to(
