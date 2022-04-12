@@ -156,6 +156,9 @@ interface SwapAssetProps {
   toAsset: TokenField;
   changeAsset(type: string): void;
   balances: AssetBalance;
+  assetFocus(focus: "from" | "to"): void;
+  exchangeAsset(): void;
+  canSwap: boolean;
   confirmSwap(): void;
   walletConnect(): void;
 }
@@ -165,6 +168,9 @@ const SwapAsset: FC<SwapAssetProps> = ({
   toAsset,
   changeAsset,
   balances,
+  assetFocus,
+  exchangeAsset,
+  canSwap,
   confirmSwap,
   walletConnect,
 }) => {
@@ -209,6 +215,7 @@ const SwapAsset: FC<SwapAssetProps> = ({
                     )
                   )
                 }
+                onFocus={() => assetFocus("from")}
               />
               <span className={classes.maxButton}>Max</span>
               <SelectAsset
@@ -217,7 +224,10 @@ const SwapAsset: FC<SwapAssetProps> = ({
               />
             </Box>
           </Box>
-          <IconButton className={classes.exchangeButton}>
+          <IconButton
+            className={classes.exchangeButton}
+            onClick={exchangeAsset}
+          >
             <Exchange />
           </IconButton>
           <Box>
@@ -241,6 +251,7 @@ const SwapAsset: FC<SwapAssetProps> = ({
                     )
                   )
                 }
+                onFocus={() => assetFocus("to")}
               />
               <SelectAsset
                 asset={toAsset}
@@ -285,7 +296,8 @@ const SwapAsset: FC<SwapAssetProps> = ({
               !fromAsset.asset ||
               !toAsset.asset ||
               fromAsset.amount <= 0 ||
-              toAsset.amount <= 0
+              toAsset.amount <= 0 ||
+              !canSwap
             }
             onClick={confirmSwap}
           >

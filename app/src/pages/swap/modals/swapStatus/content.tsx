@@ -1,9 +1,12 @@
-import React, { FC, useState, useEffect } from "react";
+import { FC } from "react";
 import { makeStyles } from "@mui/styles";
 import { Box, Typography, Button } from "@mui/material";
+import { StateValue } from "xstate";
 import cn from "classnames";
 
 import { Submitted, Warning } from "../../../../components/icons";
+import { Asset } from "../../../../types";
+import { toFormat } from "../../../../utils/toFormat";
 
 const useStyles = makeStyles({
   statusWrapper: {
@@ -126,20 +129,26 @@ const useStyles = makeStyles({
 
 interface ContentProps {
   onClose(): void;
+  fromAsset: Asset;
+  fromAmount: bigint;
+  toAsset: Asset;
+  toAmount: bigint;
+  state: StateValue;
 }
 
-const Content: FC<ContentProps> = ({ onClose }) => {
+const Content: FC<ContentProps> = ({
+  onClose,
+  fromAsset,
+  fromAmount,
+  toAsset,
+  toAmount,
+  state,
+}) => {
   const classes = useStyles();
-
-  const [status, setStatus] = useState("");
-
-  useEffect(() => {
-    setStatus("pending");
-  }, []);
 
   return (
     <Box className={classes.statusWrapper}>
-      {status === "pending" && (
+      {state === "process" && (
         <Box className={classes.pendingStatus}>
           <Box className={cn(classes.svgIcon, classes.svgPending)}>
             <Box className={classes.pendingLoader} />
@@ -147,28 +156,30 @@ const Content: FC<ContentProps> = ({ onClose }) => {
           </Box>
           <Typography>Waiting For Confirmation</Typography>
           <Typography component="span">
-            Swapping 100 USDC for 100 HYSD
+            Swapping {toFormat(fromAmount, fromAsset.decimals)}{" "}
+            {fromAsset.symbol} for {toFormat(toAmount, toAsset.decimals)}{" "}
+            {toAsset.symbol}
           </Typography>
           <Typography component="span">
             Confirm this transaction in your wallet
           </Typography>
         </Box>
       )}
-      {status === "submitted" && (
+      {state === "done" && (
         <Box className={classes.submittedStatus}>
           <Submitted className={cn(classes.svgIcon, classes.svgSubmitted)} />
           <Typography>Transaction Submitted</Typography>
           <Typography component="span">View on Solana Mainnet</Typography>
-          <Button className={classes.button} onClick={onClose}>
+          <Button className={classes.button} onClick={onClose} disableRipple>
             Close
           </Button>
         </Box>
       )}
-      {status === "rejected" && (
+      {state === "error" && (
         <Box>
           <Warning className={cn(classes.svgIcon, classes.svgRejected)} />
           <Typography>Transaction Rejected</Typography>
-          <Button className={classes.button} onClick={onClose}>
+          <Button className={classes.button} onClick={onClose} disableRipple>
             Dismiss
           </Button>
         </Box>

@@ -7,7 +7,7 @@ import { Asset, AssetBalance } from "../../types";
 import SwapAsset from "./swapAsset";
 import SwapSettingModal from "./modals/swapSetting";
 import AssetListModal from "./modals/assetList";
-// import ConfirmSwapModal from "./modals/confirmSwap";
+import ConfirmSwapModal from "./modals/confirmSwap";
 import SwapStatus from "./modals/swapStatus";
 import { useSwap } from "./hooks/useSwap";
 import { useAssetBalances } from "./hooks/useAssetBalances";
@@ -100,14 +100,14 @@ const Swap: FC<SwapProps> = ({ openWalletConnect }) => {
     tokenTo,
     assetsTokenFrom,
     assetsTokenTo,
-    // toggleFields,
+    toggleFields,
     // poolExists,
     // poolPairSelected,
-    // canSwap,
-    // setFocus,
-    // onSendSubmit,
-    // state,
-    // onSendCancel,
+    canSwap,
+    setFocus,
+    onSendSubmit,
+    state,
+    onSendCancel,
   } = useSwap();
   const balances = useAssetBalances();
 
@@ -118,7 +118,7 @@ const Swap: FC<SwapProps> = ({ openWalletConnect }) => {
   const [slippage, setSlippage] = useState("1.0");
   const [openSettingModal, setOpenSettingModal] = useState(false);
   const [openAssetListModal, setOpenAssetListModal] = useState(false);
-  // const [openConfirmSwapModal, setOpenConfirmSwapModal] = useState(false);
+  const [openConfirmSwapModal, setOpenConfirmSwapModal] = useState(false);
   const [openSwapStatusModal, setOpenSwapStatusModal] = useState(false);
 
   useEffect(() => {
@@ -153,10 +153,26 @@ const Swap: FC<SwapProps> = ({ openWalletConnect }) => {
     setOpenAssetListModal(false);
   };
 
-  // const handleSwapApprove = () => {
-  //   setOpenConfirmSwapModal(false);
-  //   setOpenSwapStatusModal(true);
-  // };
+  const handleOpenConfirmSwap = () => {
+    onSendSubmit();
+    setOpenConfirmSwapModal(true);
+  };
+
+  const handleCloseConfirmSwap = () => {
+    onSendCancel();
+    setOpenConfirmSwapModal(false);
+  };
+
+  const handleSwapApprove = () => {
+    onSendSubmit();
+    setOpenConfirmSwapModal(false);
+    setOpenSwapStatusModal(true);
+  };
+
+  const handleSwapStatusClose = () => {
+    onSendCancel();
+    setOpenSwapStatusModal(false);
+  };
 
   return (
     <>
@@ -175,7 +191,10 @@ const Swap: FC<SwapProps> = ({ openWalletConnect }) => {
             toAsset={tokenTo}
             changeAsset={handleChangeAsset}
             balances={assetsBalance}
-            confirmSwap={() => console.log("Open Confirm Swap")}
+            assetFocus={setFocus}
+            exchangeAsset={toggleFields}
+            canSwap={canSwap}
+            confirmSwap={handleOpenConfirmSwap}
             walletConnect={openWalletConnect}
           />
         </Box>
@@ -212,21 +231,28 @@ const Swap: FC<SwapProps> = ({ openWalletConnect }) => {
         setAsset={changeAsset}
         balances={assetsBalance}
       />
-      {/* <ConfirmSwapModal
-        open={openConfirmSwapModal}
-        onClose={() => setOpenConfirmSwapModal(false)}
-        fromAsset={fromAsset}
-        fromAmount={fromAmount}
-        toAsset={toAsset}
-        toAmount={toAmount}
-        swapRate={swapRate}
-        slippage={slippage}
-        onApprove={handleSwapApprove}
-      /> */}
-      <SwapStatus
-        open={openSwapStatusModal}
-        onClose={() => setOpenSwapStatusModal(false)}
-      />
+      {tokenFrom.asset && tokenTo.asset && (
+        <>
+          <ConfirmSwapModal
+            open={openConfirmSwapModal}
+            onClose={handleCloseConfirmSwap}
+            fromAsset={tokenFrom.asset}
+            fromAmount={tokenFrom.amount}
+            toAsset={tokenTo.asset}
+            toAmount={tokenTo.amount}
+            onApprove={handleSwapApprove}
+          />
+          <SwapStatus
+            open={openSwapStatusModal}
+            onClose={handleSwapStatusClose}
+            fromAsset={tokenFrom.asset}
+            fromAmount={tokenFrom.amount}
+            toAsset={tokenTo.asset}
+            toAmount={tokenTo.amount}
+            state={state.value}
+          />
+        </>
+      )}
     </>
   );
 };
