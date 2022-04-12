@@ -4,10 +4,10 @@ import { Box, Button, IconButton, InputBase, Typography } from "@mui/material";
 import { useWallet } from "@solana/wallet-adapter-react";
 // import cn from "classnames";
 
-import { Exchange } from "../../../components/icons";
+import { Exchange, Warning } from "../../../components/icons";
 import SelectAsset from "../selectAsset";
 import { TokenField } from "../hooks/useToken";
-import { AssetBalance } from "../../../types";
+import { Asset, AssetBalance } from "../../../types";
 import { toFormat } from "../../../utils/toFormat";
 import { fromFormat } from "../../../utils/fromFormat";
 
@@ -133,6 +133,21 @@ const useStyles = makeStyles({
   badPrice: {
     color: "#EFBF13",
   },
+  poolStatus: {
+    display: "flex",
+    alignItems: "center",
+    marginTop: "24px",
+    width: "100%",
+    "& > p": {
+      flexGrow: 1,
+      fontSize: "14px !important",
+      lineHeight: "17px !important",
+      padding: "0 6px !important",
+    },
+  },
+  noPool: {
+    color: "#F64949",
+  },
   swapButton: {
     background:
       "linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%) !important",
@@ -159,6 +174,8 @@ interface SwapAssetProps {
   assetFocus(focus: "from" | "to"): void;
   exchangeAsset(): void;
   canSwap: boolean;
+  poolExits: boolean;
+  poolPairSelected?: Asset;
   confirmSwap(): void;
   walletConnect(): void;
 }
@@ -171,6 +188,8 @@ const SwapAsset: FC<SwapAssetProps> = ({
   assetFocus,
   exchangeAsset,
   canSwap,
+  poolExits,
+  poolPairSelected,
   confirmSwap,
   walletConnect,
 }) => {
@@ -260,6 +279,14 @@ const SwapAsset: FC<SwapAssetProps> = ({
             </Box>
           </Box>
         </Box>
+        {!poolExits && poolPairSelected && (
+          <Box className={classes.poolStatus}>
+            <Warning className={classes.noPool} />
+            <Typography className={classes.noPool}>
+              There is no pool available for this pair
+            </Typography>
+          </Box>
+        )}
         {/* {showPriceDetail && (
           <Box className={classes.priceDetail}>
             <Box className={classes.priceStatus}>

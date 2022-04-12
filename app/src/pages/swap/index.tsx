@@ -101,8 +101,8 @@ const Swap: FC<SwapProps> = ({ openWalletConnect }) => {
     assetsTokenFrom,
     assetsTokenTo,
     toggleFields,
-    // poolExists,
-    // poolPairSelected,
+    poolExists,
+    poolPairSelected,
     canSwap,
     setFocus,
     onSendSubmit,
@@ -194,6 +194,8 @@ const Swap: FC<SwapProps> = ({ openWalletConnect }) => {
             assetFocus={setFocus}
             exchangeAsset={toggleFields}
             canSwap={canSwap}
+            poolExits={poolExists}
+            poolPairSelected={poolPairSelected}
             confirmSwap={handleOpenConfirmSwap}
             walletConnect={openWalletConnect}
           />
