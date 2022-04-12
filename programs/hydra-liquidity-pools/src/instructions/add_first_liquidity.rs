@@ -15,12 +15,12 @@ pub struct AddFirstLiquidity<'info> {
     pub user: Signer<'info>,
 
     #[account(
-    constraint = token_x_mint.key() == pool_state.token_x_mint
+        constraint = token_x_mint.key() == pool_state.token_x_mint
     )]
     pub token_x_mint: Box<Account<'info, Mint>>,
 
     #[account(
-    constraint = token_y_mint.key() == pool_state.token_y_mint
+        constraint = token_y_mint.key() == pool_state.token_y_mint
     )]
     pub token_y_mint: Box<Account<'info, Mint>>,
 
