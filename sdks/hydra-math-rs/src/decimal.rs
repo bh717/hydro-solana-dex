@@ -2,6 +2,8 @@ use ndarray::{arr2, Array2};
 use std::convert::TryInto;
 use std::fmt;
 use std::iter::repeat;
+use std::ops::Neg;
+use std::str::FromStr;
 use thiserror::Error;
 
 /// Internal scale used for high precision compute operations
@@ -10,6 +12,12 @@ pub const COMPUTE_SCALE: u8 = 12;
 /// Error codes related to [Decimal].
 #[derive(Error, Debug)]
 pub enum ErrorCode {
+    #[error("Unable to parse input")]
+    ParseError,
+    #[error("Unable to parse empty input")]
+    ParseErrorEmpty,
+    #[error("Unable to parse non base 10 input")]
+    ParseErrorBase10,
     #[error("Scale is different")]
     DifferentScale,
     #[error("Exceeds allowable range for value")]
@@ -48,6 +56,14 @@ impl Decimal {
             scale,
             negative,
         }
+    }
+
+    pub fn one() -> Decimal {
+        Decimal::from_u64(1).to_compute_scale()
+    }
+
+    pub fn two() -> Decimal {
+        Decimal::from_u64(2).to_compute_scale()
     }
 
     /// Create a [Decimal] from an unsigned integer, assumed positive by default.
@@ -170,6 +186,90 @@ impl Decimal {
         let integer = self.to_scale(0).to_scale(self.scale);
 
         self.sub(integer).expect("zero").is_zero()
+    }
+
+    /// Converts a string slice in a given base to a [Decimal].
+    /// The string is expected to be an optional - sign followed by digits.
+    /// Leading and trailing whitespace represent an error.
+    /// Digits are a subset of these characters, depending on radix.
+    /// This function panics if radix is not in the range base 10.
+    fn from_str_radix(s: &str, radix: u32) -> Result<Decimal, ErrorCode> {
+        if radix != 10 {
+            return Err(ErrorCode::ParseErrorBase10.into());
+        }
+
+        let exp_separator: &[_] = &['e', 'E'];
+
+        // split slice into base and exponent parts
+        let (base, exp) = match s.find(exp_separator) {
+            // exponent defaults to 0 if (e|E) not found
+            None => (s, 0),
+
+            // split and parse exponent field
+            Some(loc) => {
+                // slice up to `loc` and 1 after to skip the 'e' char
+                let (base, exp) = (&s[..loc], &s[loc + 1..]);
+                (base, i64::from_str(exp).unwrap())
+            }
+        };
+
+        if base == "" {
+            return Err(ErrorCode::ParseErrorEmpty.into());
+        }
+
+        // look for signed (negative) decimals
+        let (base, negative): (String, _) = match base.find('-') {
+            // no sign found, pass to Decimal
+            None => (base.to_string(), false),
+            Some(loc) => {
+                if loc == 0 {
+                    (String::from(&base[1..]), true)
+                } else {
+                    // negative sign not in the first position
+                    return Err(ErrorCode::ParseError.into());
+                }
+            }
+        };
+
+        // split decimal into a digit string and decimal-point offset
+        let (digits, decimal_offset): (String, _) = match base.find('.') {
+            // no decimal point found, pass directly to Decimal
+            None => (base.to_string(), 0),
+
+            // decimal point found - copy into new string buffer
+            Some(loc) => {
+                // split into leading and trailing digits
+                let (lead, trail) = (&base[..loc], &base[loc + 1..]);
+
+                // copy all leading characters into 'digits' string
+                let mut digits = String::from(lead);
+
+                // copy all trailing characters after '.' into the digits string
+                digits.push_str(trail);
+
+                (digits, trail.len() as i64)
+            }
+        };
+
+        let scale = (decimal_offset - exp).abs() as u8;
+
+        if exp.is_positive() {
+            Ok(Decimal::new(
+                Decimal::from_str(base.as_str())
+                    .expect("decimal of base")
+                    .to_scale(exp.abs() as u8)
+                    .value,
+                0,
+                negative,
+            )
+            .to_scale(exp.abs() as u8))
+        } else {
+            Ok(Decimal::new(
+                u128::from_str_radix(&digits, radix).unwrap(),
+                scale,
+                negative,
+            ))
+        }
     }
 }
 
@@ -537,6 +637,53 @@ impl Compare<Decimal> for Decimal {
                 Ok(self.value <= other.value)
             }
         }
+    }
+
+    fn min(self, other: Decimal) -> Decimal {
+        if self.lte(other).unwrap() {
+            self
+        } else {
+            other
+        }
+    }
+
+    fn max(self, other: Decimal) -> Decimal {
+        if self.gte(other).unwrap() {
+            self
+        } else {
+            other
+        }
+    }
+}
+
+impl Neg for Decimal {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        if self.is_negative() {
+            Self {
+                value: self.value,
+                scale: self.scale,
+                negative: false,
+            }
+        } else if self.is_positive() {
+            Self {
+                value: self.value,
+                scale: self.scale,
+                negative: true,
+            }
+        } else {
+            self
+        }
+    }
+}
+
+impl FromStr for Decimal {
+    type Err = ErrorCode;
+
+    #[inline]
+    fn from_str(s: &str) -> Result<Decimal, ErrorCode> {
+        Decimal::from_str_radix(s, 10)
     }
 }
 
@@ -950,6 +1097,8 @@ pub trait Compare<T>: Sized {
     fn gt(self, rhs: T) -> Result<bool, ErrorCode>;
     fn gte(self, rhs: T) -> Result<bool, ErrorCode>;
     fn lte(self, rhs: T) -> Result<bool, ErrorCode>;
+    fn min(self, rhs: T) -> Self;
+    fn max(self, rhs: T) -> Self;
 }
 
 #[cfg(test)]
@@ -1582,6 +1731,69 @@ mod test {
     }
 
     #[test]
+    fn test_from_string() {
+        {
+            let actual = Decimal::from_str("1e6").unwrap();
+            let expected = Decimal::new(1_000_000_000_000, 6, false);
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let actual = Decimal::from_str("1.5e6").unwrap();
+            let expected = Decimal::new(1_500_000_000_000, 6, false);
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let actual = Decimal::from_str("-1.5e6").unwrap();
+            let expected = Decimal::new(1_500_000_000_000, 6, true);
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let actual = Decimal::from_str("1.5e9").unwrap();
+            let expected = Decimal::new(1_500_000_000_000_000_000, 9, false);
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let actual = Decimal::from_str("42").unwrap();
+            let expected = Decimal::new(42, 0, false);
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let actual = Decimal::from_str("-42").unwrap();
+            let expected = Decimal::new(42, 0, true);
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let actual = Decimal::from_str("1.5").unwrap();
+            let expected = Decimal::new(15, 1, false);
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let actual = Decimal::from_str("-1.5").unwrap();
+            let expected = Decimal::new(15, 1, true);
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let actual = Decimal::from_str("42.500000").unwrap();
+            let expected = Decimal::new(42_500_000, 6, false);
+            assert_eq!(actual, expected);
+        }
+
+        {
+            let actual = Decimal::from_str("42.500420").unwrap();
+            let expected = Decimal::new(42_500_420, 6, false);
+            assert_eq!(actual, expected);
+        }
+    }
+
+    #[test]
     #[should_panic]
     #[allow(unused_variables)]
     fn test_into_u64_panic() {
@@ -1893,6 +2105,62 @@ mod test {
             let expected = false;
 
             assert_eq!(actual, expected);
+        }
+    }
+
+    #[test]
+    fn test_min_max() {
+        {
+            let decimal = Decimal::new(10, 2, false);
+            let other = Decimal::new(11, 2, false);
+            let result = decimal.min(other);
+
+            assert_eq!(decimal, result);
+        }
+
+        {
+            let decimal = Decimal::new(10, 2, false);
+            let other = Decimal::new(11, 2, false);
+            let result = decimal.max(other);
+
+            assert_eq!(other, result);
+        }
+
+        {
+            let decimal = Decimal::new(10, 2, false);
+            let other = Decimal::new(11, 2, true);
+            let result = decimal.min(other);
+
+            assert_eq!(other, result);
+        }
+
+        {
+            let decimal = Decimal::new(10, 2, false);
+            let other = Decimal::new(11, 2, true);
+            let result = decimal.max(other);
+
+            assert_eq!(decimal, result);
+        }
+    }
+
+    #[test]
+    fn test_neg() {
+        // when zero
+        {
+            let decimal = Decimal::new(0, 0, false);
+            assert_eq!(decimal.neg().is_negative(), false);
+        }
+
+        // when positive
+        {
+            let decimal = Decimal::new(42, 4, false);
+            assert_eq!(decimal.neg().is_negative(), true);
+        }
+
+        // when negative
+        {
+            let decimal = Decimal::new(42, 4, true);
+            assert_eq!(decimal.neg().is_negative(), false);
         }
     }
 
