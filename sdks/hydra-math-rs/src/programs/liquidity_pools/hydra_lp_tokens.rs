@@ -6,7 +6,7 @@ pub const LIQUIDITY_POOL_SCALE: u8 = 6;
 pub fn calculate_k(x: u64, x_scale: u8, y: u64, y_scale: u8) -> Option<u64> {
     let x = Decimal::from_scaled_amount(x, x_scale).to_compute_scale();
     let y = Decimal::from_scaled_amount(y, y_scale).to_compute_scale();
-    let min_liquidity = Decimal::from_u64(MIN_LIQUIDITY).to_compute_scale();
+    let min_liquidity = Decimal::from_scaled_amount(MIN_LIQUIDITY, LIQUIDITY_POOL_SCALE).to_compute_scale();
 
     // sqrt(x * y) - min_liquidity
     Some(
