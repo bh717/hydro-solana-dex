@@ -162,7 +162,8 @@ describe("hydra-liquidity-pool-cpmm", () => {
 
     assert.strictEqual(
       await accounts.lpTokenAssociatedAccount.balance(),
-      1238326078n
+      // (6.000000*255575.287200)**0.5 - 100/10^9 = 1238.32617793226626288722
+      1238_326_177_932n
     );
 
     assert.strictEqual(
@@ -199,8 +200,8 @@ describe("hydra-liquidity-pool-cpmm", () => {
       btcdMint,
       usddMint,
       16_000_000n, // 16 bitcoins
-      681_534_099_132n, // $681,534.099132 usdc
-      3_302_203_141n
+      681_534_099146n, // $681,534.099146 usdc
+      3302_203141154n
     );
 
     const accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
@@ -210,7 +211,7 @@ describe("hydra-liquidity-pool-cpmm", () => {
 
     assert.strictEqual(
       await accounts.lpTokenAssociatedAccount.balance(),
-      1238326078n + 3302203141n
+      1238_326_177_932n + 3302_203141154n
     );
 
     assert.strictEqual(
@@ -220,16 +221,16 @@ describe("hydra-liquidity-pool-cpmm", () => {
 
     assert.strictEqual(
       await accounts.userTokenY.balance(),
-      USDD_MINT_AMOUNT - 255_575_287_200n - 681_534_099_132n // first add - second add
+      USDD_MINT_AMOUNT - 255_575_287_200n - 681_534_099146n // first add - second add
     );
     assert.strictEqual(await accounts.lpTokenVault.balance(), 100n); // no change
     assert.strictEqual(
       await accounts.tokenXVault.balance(),
-      6000000n + 16000000n
+      6000000n + 16_000_000n
     );
     assert.strictEqual(
       await accounts.tokenYVault.balance(),
-      255575287200n + 681534099132n
+      255575287200n + 681_534_099146n
     );
   });
 
@@ -239,44 +240,14 @@ describe("hydra-liquidity-pool-cpmm", () => {
         btcdMint,
         usddMint,
         16_000_000n, // 16 bitcoins
-        681_534_099_131n, // $681,534.099132 usdc -0.000001
-        3_302_203_141n
+        681_534_099146n, // $681,534.099146 usdc
+        4000_000000000n
       );
       assert.ok(false);
     } catch (err: any) {
       const errMsg = "Slippage Amount Exceeded";
       assert(err.toString().includes(errMsg));
     }
-
-    const accounts = await sdk.liquidityPools.accounts.getAccountLoaders(
-      btcdMint,
-      usddMint
-    );
-
-    // no change from last test
-    assert.strictEqual(
-      await accounts.lpTokenAssociatedAccount.balance(),
-      1238326078n + 3302203141n
-    );
-    assert.strictEqual(
-      await accounts.userTokenX.balance(),
-      BTCD_MINT_AMOUNT - 6_000_000n - 16_000_000n // first add - second add
-    );
-    assert.strictEqual(
-      await accounts.userTokenY.balance(),
-      USDD_MINT_AMOUNT - 255_575_287_200n - 681_534_099_132n // first add - second add
-    );
-    assert.strictEqual(await accounts.lpTokenVault.balance(), 100n);
-
-    // no change
-    assert.strictEqual(
-      await accounts.tokenXVault.balance(),
-      6000000n + 16000000n
-    );
-    assert.strictEqual(
-      await accounts.tokenYVault.balance(),
-      255575287200n + 681534099132n
-    );
   });
 
   it("should remove-liquidity first time", async () => {
@@ -288,12 +259,12 @@ describe("hydra-liquidity-pool-cpmm", () => {
     await sdk.liquidityPools.removeLiquidity(
       btcdMint,
       usddMint,
-      3_302_203_141n
+      3302_203141154n
     );
 
     assert.strictEqual(
       await accounts.lpTokenAssociatedAccount.balance(),
-      1238326078n
+      1238_326_177_932n
     );
 
     assert.strictEqual(await accounts.tokenXVault.balance(), 6_000_000n);
@@ -469,7 +440,11 @@ describe("hydra-liquidity-pool-cpmm", () => {
       usddMint
     );
 
-    await sdk.liquidityPools.removeLiquidity(btcdMint, usddMint, 1238326078n);
+    await sdk.liquidityPools.removeLiquidity(
+      btcdMint,
+      usddMint,
+      1238_326_177_932n
+    );
 
     assert.strictEqual(await accounts.lpTokenAssociatedAccount.balance(), 0n);
 
@@ -477,6 +452,6 @@ describe("hydra-liquidity-pool-cpmm", () => {
 
     assert.strictEqual(await accounts.tokenXVault.balance(), 0n);
 
-    assert.strictEqual(await accounts.tokenYVault.balance(), 19_059n);
+    assert.strictEqual(await accounts.tokenYVault.balance(), 19n);
   });
 });

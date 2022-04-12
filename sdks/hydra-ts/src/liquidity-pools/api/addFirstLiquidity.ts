@@ -37,6 +37,8 @@ export function addFirstLiquidity(ctx: Ctx) {
           userTokenX: await userTokenX.key(),
           userTokenY: await userTokenY.key(),
           user: ctx.provider.wallet.publicKey,
+          tokenXMint,
+          tokenYMint,
           tokenXVault: await tokenXVault.key(),
           tokenYVault: await tokenYVault.key(),
           lpTokenVault: await lpTokenVault.key(),

@@ -5,6 +5,7 @@ use crate::state::pool_state::*;
 use crate::{pyth_accounts_security_check, DEBUG_MODE};
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
+use hydra_math_rs::programs::liquidity_pools::hydra_lp_tokens::LIQUIDITY_POOL_SCALE;
 use std::mem;
 
 #[derive(Accounts)]
@@ -37,7 +38,7 @@ pub struct Initialize<'info> {
     #[account(
         init,
         payer = payer,
-        mint::decimals = 6,
+        mint::decimals = LIQUIDITY_POOL_SCALE,
         mint::authority = pool_state,
         seeds = [ LP_TOKEN_MINT_SEED, token_x_mint.key().as_ref(), token_y_mint.key().as_ref() ],
         bump,
