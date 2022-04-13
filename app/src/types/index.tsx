@@ -12,5 +12,5 @@ export type Asset = {
 };
 
 export type AssetBalance = {
-  [key: string]: Number;
+  [key: string]: number;
 };

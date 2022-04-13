@@ -10,7 +10,7 @@ import AssetListModal from "./modals/assetList";
 import ConfirmSwapModal from "./modals/confirmSwap";
 import SwapStatus from "./modals/swapStatus";
 import { useSwap } from "./hooks/useSwap";
-import { useAssetBalances } from "./hooks/useAssetBalances";
+import { useAssetBalances } from "../../hooks/useAssetBalances";
 import { toFormat } from "../../utils/toFormat";
 
 const useStyles = makeStyles({
@@ -124,7 +124,7 @@ const Swap: FC<SwapProps> = ({ openWalletConnect }) => {
   useEffect(() => {
     let tempBalances: AssetBalance = {};
 
-    balances.forEach((balance) => {
+    balances.forEach((balance: Asset) => {
       let tempBalance = balance.balance || 0n;
       tempBalances[balance["address"]] = toFormat(
         tempBalance,

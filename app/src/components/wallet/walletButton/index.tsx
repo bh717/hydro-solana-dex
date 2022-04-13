@@ -5,10 +5,11 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import cn from "classnames";
 
 import { CaretDown, Wallet as WalletSVG, User } from "../../icons";
-import USDC from "../../../assets/images/symbols/usdc.png";
 import HYSD from "../../../assets/images/symbols/hysd.png";
-import BNB from "../../../assets/images/symbols/bnb.png";
+import { useAssetBalances } from "../../../hooks/useAssetBalances";
+import { toFormat } from "../../../utils/toFormat";
 import { normalizeAddress } from "../../../helpers/normalize";
+import { Asset } from "../../../types";
 
 const useStyles = makeStyles({
   connectButton: {
@@ -192,6 +193,18 @@ const useStyles = makeStyles({
       borderBottom: "none",
     },
   },
+  tokenImgWrapper: {
+    display: "flex",
+    alignItmes: "center",
+    justifyContent: "center",
+    width: "32px",
+    height: "32px",
+    marginRight: "10px",
+    "& > img": {
+      maxWidth: "100%",
+      maxHeight: "100%",
+    },
+  },
 });
 
 interface WalletButtonProps {
@@ -204,6 +217,8 @@ const WalletButton: FC<WalletButtonProps> = ({
   updateAddress,
 }) => {
   const classes = useStyles();
+
+  const balances = useAssetBalances();
 
   const { connected, publicKey } = useWallet();
   const [address, setAddress] = useState("");
@@ -286,48 +301,27 @@ const WalletButton: FC<WalletButtonProps> = ({
             <Box className={classes.tokensContent}>
               <Typography>Your Tokens</Typography>
               <Box className={classes.tokensList}>
-                <Box className={classes.tokenItem}>
-                  <img src={USDC} alt="Token" />
-                  <Box>
-                    <Typography>120,712,560.61242 USDC</Typography>
-                    <Typography>$120,712,560.61242</Typography>
+                {balances.map((balance: Asset) => (
+                  <Box className={classes.tokenItem}>
+                    <span className={classes.tokenImgWrapper}>
+                      <img
+                        src={
+                          balance.symbol.includes("HYD")
+                            ? HYSD
+                            : balance.logoURI
+                        }
+                        alt="Token"
+                      />
+                    </span>
+                    <Box>
+                      <Typography>
+                        {toFormat(balance.balance || 0n, balance.decimals)}{" "}
+                        {balance.symbol}
+                      </Typography>
+                      <Typography>$</Typography>
+                    </Box>
                   </Box>
-                </Box>
-                <Box className={classes.tokenItem}>
-                  <img src={HYSD} alt="Token" />
-                  <Box>
-                    <Typography>2.9120 HYSD</Typography>
-                    <Typography>$298,145,560.98</Typography>
-                  </Box>
-                </Box>
-                <Box className={classes.tokenItem}>
-                  <img src={BNB} alt="Token" />
-                  <Box>
-                    <Typography>1 BNB</Typography>
-                    <Typography>$601.5098</Typography>
-                  </Box>
-                </Box>
-                <Box className={classes.tokenItem}>
-                  <img src={USDC} alt="Token" />
-                  <Box>
-                    <Typography>120,712,560.61242 USDC</Typography>
-                    <Typography>$120,712,560.61242</Typography>
-                  </Box>
-                </Box>
-                <Box className={classes.tokenItem}>
-                  <img src={HYSD} alt="Token" />
-                  <Box>
-                    <Typography>2.9120 HYSD</Typography>
-                    <Typography>$298,145,560.98</Typography>
-                  </Box>
-                </Box>
-                <Box className={classes.tokenItem}>
-                  <img src={BNB} alt="Token" />
-                  <Box>
-                    <Typography>1 BNB</Typography>
-                    <Typography>$601.5098</Typography>
-                  </Box>
-                </Box>
+                ))}
               </Box>
             </Box>
           </Menu>

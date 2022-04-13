@@ -1,6 +1,6 @@
 import { IAccountLoader } from "hydra-ts/src/utils/account-loader";
 import { useEffect, useMemo, useState } from "react";
-import { useObservable } from "./useObservable";
+import { useObservable } from "../../../hooks/useObservable";
 import { maybeStream } from "../../../utils/maybeStream";
 import { HydraSDK } from "hydra-ts";
 import { PublicKey } from "@solana/web3.js";
