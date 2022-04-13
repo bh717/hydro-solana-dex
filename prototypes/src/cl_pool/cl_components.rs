@@ -376,12 +376,19 @@ impl SwapOutput {
         avg_price: Decimal,
         end_price: Decimal,
     ) -> Self {
-        if recv_amount.is_negative() || recv_amount.is_zero() {
-            panic!("in-qty cannot be negative or nil");
+        if recv_amount.is_negative() {
+            panic!("in-qty cannot be negative");
         }
-        if send_amount.is_positive() || send_amount.is_zero() {
+        if send_amount.is_positive() {
+            panic!("out-qty cannot be positive");
+        }
+        if recv_amount.is_positive() && send_amount.is_zero() {
             // do not allow zero output for positive input
-            panic!("out-qty cannot be positive or nil for positive in-qty");
+            panic!("out-qty cannot be nil for positive in-qty");
+        }
+        if recv_amount.is_zero() && !send_amount.is_zero() {
+            // do not allow non-zero output for zero input
+            panic!("out-qty cannot be non-nil for nil in-qty");
         }
         if send_hmm_adj.is_negative() || recv_fee.is_negative() {
             panic!("fees cannot be negative");
