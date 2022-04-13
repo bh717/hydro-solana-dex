@@ -73,8 +73,8 @@ pub trait PoolMath {
         let ts = Decimal::from_u128(spacing);
         let tk = Decimal::from_u128(tick);
         let result = match left_to_right {
-            false => tk.div(ts),
-            true => tk.div_up(ts),
+            false => tk.div(ts).mul(ts),
+            true => tk.div_up(ts).mul(ts),
         };
         result.into()
     }
