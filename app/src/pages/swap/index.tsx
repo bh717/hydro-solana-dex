@@ -135,6 +135,14 @@ const Swap: FC<SwapProps> = ({ openWalletConnect }) => {
     setAssetsBalance(tempBalances);
   }, [balances]);
 
+  useEffect(() => {
+    if (state.value === "done") {
+      tokenFrom.setAmount(0n);
+      tokenTo.setAmount(0n);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
+
   const handleSettingModal = () => {
     if (parseFloat(slippage) > 0) setOpenSettingModal(false);
   };
