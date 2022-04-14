@@ -4,11 +4,8 @@ import {
   DialogTitle,
   DialogActions,
   useMediaQuery,
-  // DialogContent,
-  // DialogContentText,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { toFormat } from "../../utils/toFormat";
 import { Asset } from "../../types";
 import { Box } from "@mui/system";
 
