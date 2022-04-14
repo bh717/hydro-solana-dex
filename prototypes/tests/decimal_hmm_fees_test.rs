@@ -10,7 +10,6 @@ mod tests {
     #[test]
     fn test_hmm_no_fees() {
         let zero = Pool::zero();
-        let zero = Pool::zero();
         let rp = Decimal::from_u64(2000).to_compute_scale().sqrt().unwrap();
         let rpa = Decimal::from_u64(1333).to_compute_scale().sqrt().unwrap();
         let rpb = Decimal::from_u64(3000).to_compute_scale().sqrt().unwrap();
@@ -135,198 +134,265 @@ mod tests {
         ); // float 1724.4121583231515_f64 PN 1724_412156604956
     }
 
-    // #[test]
-    // fn test_fees() {
-    //     let zero = Pool::zero();
-    //     let rp = sqrt_precise(&Pool::pn(2000)).unwrap();
-    //     let rpa = sqrt_precise(&Pool::pn(1333)).unwrap();
-    //     let rpb = sqrt_precise(&Pool::pn(3000)).unwrap();
-    //     let hmm_c = Pool::pn(3).checked_div(&Pool::pn(2)).unwrap(); // 1.5
+    #[test]
+    fn test_fees() {
+        let zero = Pool::zero();
+        let rp = Decimal::from_u64(2000).to_compute_scale().sqrt().unwrap();
+        let rpa = Decimal::from_u64(1333).to_compute_scale().sqrt().unwrap();
+        let rpb = Decimal::from_u64(3000).to_compute_scale().sqrt().unwrap();
 
-    //     let x_to_swap = Swp::new(Pool::pn(3), false); //* use either 3 or 1
-    //     let fee_rate = Pool::pn(3).checked_div(&Pool::pn(1000)).unwrap(); // 0.003_f64;
+        let hmm_c = Decimal::new(150, 2, false).to_compute_scale(); // 1.50
 
-    //     let mut hmm_nofee = Pool::new("ETH", 18, "USDC", 6, &rp, 1, hmm_c.clone(), zero.clone());
-    //     hmm_nofee.deposit("abc", &Pool::pn(2), &Pool::pn(4000), &rpa, &rpb);
-    //     let x_in_pool_n = hmm_nofee.x_info().0.clone();
+        let fee_rate = Decimal::new(30, 4, false).to_compute_scale(); // 0.003_f64 30bps
 
-    //     let mut hmm_feed = Pool::new(
-    //         "ETH",
-    //         18,
-    //         "USDC",
-    //         6,
-    //         &rp,
-    //         1,
-    //         hmm_c.clone(),
-    //         fee_rate.clone(),
-    //     );
-    //     hmm_feed.deposit("abc", &Pool::pn(2), &Pool::pn(4000), &rpa, &rpb);
-    //     let x_in_pool_f = hmm_feed.x_info().0.clone();
-    //     let pool_liq = hmm_feed.glbl_liq().clone();
+        for amt in [3u64, 1u64] {
+            //* use either 3 or 1 as swapping quantity
+            let x_to_swap = Decimal::from_u64(amt).to_compute_scale();
 
-    //     assert_eq!(x_in_pool_f, x_in_pool_n);
+            let mut hmm_nofee = Pool::new("ETH", 18, "USDC", 6, rp, 1, hmm_c, zero);
+            hmm_nofee.deposit(
+                "abc",
+                Decimal::from_u64(2).to_compute_scale(),
+                Decimal::from_u64(4000).to_compute_scale(),
+                rpa,
+                rpb,
+            );
+            let x_in_pool_n = hmm_nofee.x_info().0;
 
-    //     let rp_oracle = sqrt_precise(&Pool::pn(1500)).unwrap();
+            let mut hmm_feed = Pool::new("ETH", 18, "USDC", 6, rp, 1, hmm_c, fee_rate);
+            hmm_feed.deposit(
+                "abc",
+                Decimal::from_u64(2).to_compute_scale(),
+                Decimal::from_u64(4000).to_compute_scale(),
+                rpa,
+                rpb,
+            );
+            let x_in_pool_f = hmm_feed.x_info().0;
+            let pool_liq = hmm_feed.glbl_liq();
 
-    //     let rez_n = hmm_nofee.execute_swap_from_x(x_to_swap.clone(), &rp_oracle);
-    //     let rez_f = hmm_feed.execute_swap_from_x(x_to_swap.clone(), &rp_oracle);
+            assert_eq!(x_in_pool_f, x_in_pool_n);
 
-    //     if x_to_swap.amt.greater_than(&x_in_pool_n) {
-    //         // large swap, not enough Y reserves to a
-    //         // fee impact: more X received for same amount of Y given out
-    //         assert!(
-    //             rez_f
-    //                 .recv_amount()
-    //                 .amt
-    //                 .greater_than(&rez_n.recv_amount().amt)
-    //                 && rez_f.send_amount().amt.eq(&rez_n.send_amount().amt)
-    //         );
-    //         // same amount of Y given out ==> price impact is same
-    //         assert!(rez_f.end_price() == rez_n.end_price());
-    //         // x_fee accounts for the difference between (x post_swap)  and (amt sent in + x pre_swap)
-    //         assert_eq!(
-    //             x_in_pool_f.checked_add(&rez_f.recv_amount().amt).unwrap(),
-    //             hmm_feed.x_info().0.checked_add(&rez_f.recv_fee()).unwrap()
-    //         );
-    //         assert_eq!(
-    //             x_in_pool_n.checked_add(&rez_n.recv_amount().amt).unwrap(),
-    //             hmm_nofee.x_info().0.checked_add(&rez_n.recv_fee()).unwrap()
-    //         );
-    //     } else {
-    //         // small swap, enough Y reserves available to fill whole qty
-    //         // fee impact: same X received for less amount of Y given out
-    //         assert!(
-    //             rez_f.recv_amount() == rez_n.recv_amount()
-    //                 && rez_f.send_amount().amt.less_than(&rez_n.send_amount().amt)
-    //         );
-    //         // less amount of Y given out ==> price impact is smaller (falls less)
-    //         assert!(rez_f.end_price().greater_than(&rez_n.end_price()));
-    //         // x_fee accounts for the difference between (x post_swap)  and (amt sent in + x pre_swap)
-    //         assert_eq!(
-    //             x_in_pool_f.checked_add(&rez_f.recv_amount().amt).unwrap(),
-    //             hmm_feed.x_info().0.checked_add(&rez_f.recv_fee()).unwrap()
-    //         );
-    //         assert_eq!(
-    //             x_in_pool_n.checked_add(&rez_n.recv_amount().amt).unwrap(),
-    //             hmm_nofee.x_info().0.checked_add(&rez_n.recv_fee()).unwrap()
-    //         );
-    //     }
-    //     // EITHER WAY, pool buying X so with fees, pool buys at cheaper avg price
-    //     assert!(rez_f.avg_price().less_than(&rez_n.avg_price()));
+            let rp_oracle = Decimal::from_u64(1500).to_compute_scale().sqrt().unwrap();
 
-    //     // the fee charged is in fee pot
-    //     assert_eq!(hmm_feed.x_info().2, &rez_f.recv_fee());
-    //     assert_eq!(hmm_nofee.x_info().2, &rez_n.recv_fee());
-    //     // and it is not zero
-    //     assert!(hmm_feed.x_info().2.greater_than(&zero));
-    //     assert!(hmm_nofee.x_info().2.eq(&zero));
+            let rez_n = hmm_nofee.execute_swap_from_x(x_to_swap, rp_oracle);
+            let rez_f = hmm_feed.execute_swap_from_x(x_to_swap, rp_oracle);
 
-    //     assert_eq!(
-    //         rez_f.recv_fee(),
-    //         rez_f.recv_amount().amt.checked_mul(&fee_rate).unwrap(),
-    //     );
+            if x_to_swap.gt(x_in_pool_n).unwrap() {
+                // large swap, not enough Y reserves to a
+                // fee impact: more X received for same amount of Y given out
+                assert!(
+                    rez_f.recv_amount().gt(rez_n.recv_amount()).unwrap()
+                        && rez_f.send_amount() == (rez_n.send_amount())
+                );
+                // same amount of Y given out ==> price impact is same
+                assert!(rez_f.end_price() == rez_n.end_price());
+                // x_fee accounts for the difference between (x post_swap)  and (amt sent in + x pre_swap)
+                assert_eq!(
+                    x_in_pool_f.add(rez_f.recv_amount()).unwrap(),
+                    hmm_feed.x_info().0.add(rez_f.recv_fee()).unwrap()
+                );
+                assert_eq!(
+                    x_in_pool_n.add(rez_n.recv_amount()).unwrap(),
+                    hmm_nofee.x_info().0.add(rez_n.recv_fee()).unwrap()
+                );
+            } else {
+                // small swap, enough Y reserves available to fill whole qty
+                // fee impact: same X received for less amount of Y given out
+                assert!(
+                    rez_f.recv_amount() == rez_n.recv_amount()
+                        && rez_f.send_amount().value < rez_n.send_amount().value
+                );
+                // less amount of Y given out ==> price impact is smaller (falls less)
+                assert!(rez_f.end_price().gt(rez_n.end_price()).unwrap());
+                // x_fee accounts for the difference between (x post_swap)  and (amt sent in + x pre_swap)
+                assert_eq!(
+                    x_in_pool_f.add(rez_f.recv_amount()).unwrap(),
+                    hmm_feed.x_info().0.add(rez_f.recv_fee()).unwrap()
+                );
+                assert_eq!(
+                    x_in_pool_n.add(rez_n.recv_amount()).unwrap(),
+                    hmm_nofee.x_info().0.add(rez_n.recv_fee()).unwrap()
+                );
+            }
+            // EITHER WAY, pool buying X so with fees, pool buys at cheaper avg price
+            assert!(rez_f.avg_price().lt(rez_n.avg_price()).unwrap());
 
-    //     // before withdrawal x_fee and y_adj are in the fee pots
-    //     assert!(hmm_feed
-    //         .x_info()
-    //         .2
-    //         .checked_add(&hmm_feed.y_info().1)
-    //         .unwrap()
-    //         .greater_than(&zero));
+            // the fee charged is in fee pot
+            assert_eq!(hmm_feed.x_info().2, rez_f.recv_fee());
+            assert_eq!(hmm_nofee.x_info().2, rez_n.recv_fee());
+            // and it is not zero
+            assert!(hmm_feed.x_info().2.is_positive());
+            assert!(hmm_nofee.x_info().2.is_zero());
 
-    //     if Pool::adj_withdrawal().greater_than(&zero) {
-    //         hmm_feed.withdraw("abc", &pool_liq.amt, &rpa, &rpb);
+            assert_eq!(rez_f.recv_fee(), rez_f.recv_amount().mul(fee_rate),);
 
-    //         // after withdrawal, fee pots are empty (transferred to LP along with assets) ===> close to zero due to adj_withdrawal
-    //         assert!(hmm_feed
-    //             .x_info()
-    //             .2
-    //             .checked_add(&hmm_feed.y_info().1)
-    //             .unwrap()
-    //             .less_than(&Pool::pn_from_innner_value(1000)));
-    //         assert_eq!(hmm_feed.position_count(), 0);
-    //     }
-    // }
+            // before withdrawal x_fee and y_adj are in the fee pots
+            assert!(hmm_feed
+                .x_info()
+                .2
+                .add(hmm_feed.y_info().1)
+                .unwrap()
+                .is_positive());
 
-    // #[test]
-    // fn test_no_infinite_loop() {
-    //     let zero = Pool::zero();
-    //     let rp = sqrt_precise(&Pool::pn(2000)).unwrap();
-    //     let rpa = sqrt_precise(&Pool::pn(1333)).unwrap();
-    //     let rpb = sqrt_precise(&Pool::pn(3000)).unwrap();
-    //     let fee_rate = Pool::pn(3).checked_div(&Pool::pn(1000)).unwrap(); // 0.003_f64;
+            if Pool::adj_withdrawal().is_positive() {
+                hmm_feed.withdraw("abc", pool_liq, rpa, rpb);
 
-    //     let mut single = Pool::new("ETH", 18, "USDC", 6, &rp, 1, zero.clone(), fee_rate.clone());
-    //     single.deposit("alice", &Pool::pn(2), &Pool::pn(4000), &rpa, &rpb);
+                // after withdrawal, fee pots are empty (transferred to LP along with assets) ===> close to zero due to adj_withdrawal
+                assert!(hmm_feed
+                    .x_info()
+                    .2
+                    .add(hmm_feed.y_info().1)
+                    .unwrap()
+                    .lt(Decimal::new(1000, COMPUTE_SCALE, false))
+                    .unwrap());
+                assert_eq!(hmm_feed.position_count(), 0);
+            } else {
+                // TODO explore if can make it work w.o. adjustment
+                // hmm_feed.withdraw("abc", pool_liq, rpa, rpb);
+                // // after withdrawal, fee pots are empty (transferred to LP along with assets)
+                // assert!(hmm_feed
+                //     .x_info()
+                //     .2
+                //     .add(hmm_feed.y_info().1)
+                //     .unwrap()
+                //     .is_zero());
+            }
+        }
+    }
 
-    //     let rp_oracle = sqrt_precise(&Pool::pn(1500)).unwrap();
-    //     let rez_single = single.execute_swap_from_x(Swp::new(Pool::pn(3), false), &rp_oracle);
+    #[test]
+    fn test_no_infinite_loop() {
+        let zero = Pool::zero();
 
-    //     let mut split = Pool::new("ETH", 18, "USDC", 6, &rp, 1, zero.clone(), fee_rate.clone());
-    //     split.deposit("bob", &zero, &Pool::pn(4000), &rpa, &rp);
-    //     split.deposit("carl", &Pool::pn(2), &zero, &rp, &rpb);
+        let rp = Decimal::from_u64(2000).to_compute_scale().sqrt().unwrap();
+        let rpa = Decimal::from_u64(1333).to_compute_scale().sqrt().unwrap();
+        let rpb = Decimal::from_u64(3000).to_compute_scale().sqrt().unwrap();
 
-    //     let rez_split = split.execute_swap_from_x(Swp::new(Pool::pn(3), false), &rp_oracle);
+        let fee_rate = Decimal::new(30, 4, false).to_compute_scale(); // 0.003_f64 30bps
 
-    //     // whether liquidity is provided in one interval or 2 adjacents intervals makes no diff to swap_from_x
-    //     // here deposited amount in x in sligthly different due to:
-    //     //  _ in 'single', liq_x_only and liq_y_only are compared and the min is taken (in this case liq_y_only is taken)
-    //     //  _ in 'split' no comparaison is done so input x & y taken in as given
-    //     // in this case X reserves are slightly different
-    //     // but this doesnt affect the result on a swap_from_x
-    //     assert_eq!(rez_single, rez_split);
-    // }
+        let mut single = Pool::new("ETH", 18, "USDC", 6, rp, 1, zero, fee_rate);
 
-    // #[test]
-    // fn test_small_trades_x() {
-    //     let zero = Pool::zero();
-    //     let rp = sqrt_precise(&Pool::pn(10000)).unwrap();
-    //     let rpa = sqrt_precise(&Pool::pn(8000)).unwrap();
-    //     let rpb = sqrt_precise(&Pool::pn(12500)).unwrap();
+        single.deposit(
+            "alice",
+            Decimal::from_u64(2).to_compute_scale(),
+            Decimal::from_u64(4000).to_compute_scale(),
+            rpa,
+            rpb,
+        );
+        let rp_oracle = Decimal::from_u64(1500).to_compute_scale().sqrt().unwrap();
 
-    //     //+ this passes as long as fee rate above 4 basis points
-    //     let fee_rate = Pool::pn(3).checked_div(&Pool::pn(1000)).unwrap(); // 0.003_f64;
-    //     let mut pool = Pool::new("HYS", 12, "USDC", 6, &rp, 1, zero.clone(), fee_rate.clone());
-    //     pool.deposit("aly", &Pool::pn(1000), &Pool::pn(10000000), &rpa, &rpb);
+        let rez_single =
+            single.execute_swap_from_x(Decimal::from_u64(3).to_compute_scale(), rp_oracle);
 
-    //     let orig_tick = pool.glbl_tick();
-    //     let orig_p = pool.glbl_rp().checked_pow(2).unwrap();
-    //     let rez =
-    //         pool.execute_swap_from_x(Swp::new(Pool::pn_from_innner_value(10800), false), &zero);
-    //     let new_tick = pool.glbl_tick();
-    //     let new_p = pool.glbl_rp().checked_pow(2).unwrap();
+        let mut split = Pool::new("ETH", 18, "USDC", 6, rp, 1, zero, fee_rate);
+        split.deposit(
+            "bob",
+            zero,
+            Decimal::from_u64(4000).to_compute_scale(),
+            rpa,
+            rp,
+        );
+        split.deposit(
+            "carl",
+            Decimal::from_u64(2).to_compute_scale(),
+            zero,
+            rp,
+            rpb,
+        );
 
-    //     // even tiniest of trades moves the needle (price) and is executed
-    //     assert!(rez.recv_amount().amt.greater_than(&zero) && !rez.recv_amount().neg);
-    //     assert!(rez.send_amount().amt.greater_than(&zero) && rez.send_amount().neg);
-    //     assert!(orig_tick >= new_tick);
-    //     assert!(orig_p.greater_than(&new_p));
-    //     assert!(orig_p.greater_than_or_equal(&rez.avg_price())); // we buy X below orig_price
-    // }
-    // #[test]
-    // fn test_small_trades_y() {
-    //     let zero = Pool::zero();
-    //     let rp = sqrt_precise(&Pool::pn(10000)).unwrap();
-    //     let rpa = sqrt_precise(&Pool::pn(8000)).unwrap();
-    //     let rpb = sqrt_precise(&Pool::pn(12500)).unwrap();
+        let rez_split =
+            split.execute_swap_from_x(Decimal::from_u64(3).to_compute_scale(), rp_oracle);
 
-    //     //+ this passes as long as fee rate above 1 basis point
-    //     let fee_rate = Pool::pn(3).checked_div(&Pool::pn(1000)).unwrap(); // 0.003_f64;
-    //     let mut pool = Pool::new("HYS", 12, "USDC", 6, &rp, 1, zero.clone(), fee_rate.clone());
-    //     pool.deposit("aly", &Pool::pn(1000), &Pool::pn(10000000), &rpa, &rpb);
+        // whether liquidity is provided in one interval or 2 adjacents intervals makes no diff to swap_from_x
+        // here deposited amount in x in sligthly different due to:
+        //  _ in 'single', liq_x_only and liq_y_only are compared and the min is taken (in this case liq_y_only is taken)
+        //  _ in 'split' no comparaison is done so input x & y taken in as given
+        // in this case X reserves are slightly different
+        // but this doesnt affect the result on a swap_from_x
+        assert_eq!(rez_single, rez_split);
+    }
 
-    //     let orig_tick = pool.glbl_tick();
-    //     let orig_p = pool.glbl_rp().checked_pow(2).unwrap();
-    //     let rez =
-    //         pool.execute_swap_from_y(Swp::new(Pool::pn_from_innner_value(950000), false), &zero);
-    //     let new_tick = pool.glbl_tick();
-    //     let new_p = pool.glbl_rp().checked_pow(2).unwrap();
+    #[test]
+    fn test_small_trades_x() {
+        let zero = Pool::zero();
+        let rp = Decimal::from_u64(10000).to_compute_scale().sqrt().unwrap();
+        let rpa = Decimal::from_u64(8000).to_compute_scale().sqrt().unwrap();
+        let rpb = Decimal::from_u64(12500).to_compute_scale().sqrt().unwrap();
 
-    //     // even tiniest of trades moves the needle (price) and is executed
-    //     assert!(rez.recv_amount().amt.greater_than(&zero) && !rez.recv_amount().neg);
-    //     assert!(rez.send_amount().amt.greater_than(&zero) && rez.send_amount().neg);
-    //     assert!(orig_tick <= new_tick);
-    //     assert!(orig_p.less_than(&new_p));
-    //     assert!(orig_p.less_than_or_equal(&rez.avg_price())); // we sell X above orig_price
-    // }
+        //+ this passes as long as fee rate 3 bps or above (vs above 4 basis points with PreciseNumber)
+        let fee_rate = Decimal::new(30, 4, false).to_compute_scale(); // 0.003_f64 30bps
+
+        let mut pool = Pool::new("HYS", 12, "USDC", 6, rp, 1, zero, fee_rate);
+
+        pool.deposit(
+            "aly",
+            Decimal::from_u64(1000).to_compute_scale(),
+            Decimal::from_u64(10000000).to_compute_scale(),
+            rpa,
+            rpb,
+        );
+
+        //+ passes as long as swap quantity is 10800 * 10^-12 or above
+        let orig_tick = pool.glbl_tick();
+        let orig_price = pool.glbl_rp().pow(2);
+        let rez = pool.execute_swap_from_x(Decimal::new(10800, 12, false), zero);
+        let new_tick = pool.glbl_tick();
+        let new_price = pool.glbl_rp().pow(2);
+
+        // even a tiny trade moves the needle (price) and is executed
+        assert!(rez.recv_amount().is_positive());
+        assert!(rez.send_amount().is_negative());
+        assert!(orig_tick >= new_tick);
+        assert!(orig_price.gt(new_price).unwrap()); // price goes down as pool receives X
+        assert!(orig_price.gte(rez.avg_price()).unwrap()); // pool buys X below orig_price on average
+    }
+
+    #[test]
+    fn test_small_trades_y() {
+        let zero = Pool::zero();
+        let x = Decimal {
+            value: 999577539060928,
+            scale: COMPUTE_SCALE,
+            negative: false,
+        };
+        let y = Decimal {
+            value: 9999999999999999992,
+            scale: COMPUTE_SCALE,
+            negative: false,
+        };
+        let rp = y.div(x).sqrt().unwrap();
+
+        // let rp = Decimal::from_u64(10000).to_compute_scale().sqrt().unwrap();
+        let rpa = Decimal::from_u64(8000).to_compute_scale().sqrt().unwrap();
+        let rpb = Decimal::from_u64(12500).to_compute_scale().sqrt().unwrap();
+
+        let fee_rate = Decimal::new(30, 4, false).to_compute_scale(); // 0.003_f64 30bps
+
+        let mut pool = Pool::new("HYS", 12, "USDC", 6, rp, 1, zero, fee_rate);
+
+        pool.deposit(
+            "aly",
+            Decimal::from_u64(1000).to_compute_scale(),
+            Decimal::from_u64(10000000).to_compute_scale(),
+            rpa,
+            rpb,
+        );
+
+        let orig_tick = pool.glbl_tick();
+        let orig_p = pool.glbl_rp().pow(2);
+
+        //+ this passes as long as swap quantity is gte 950000*10^-12
+        //+ else send_amount() becomes nil --> panic
+
+        let rez = pool.execute_swap_from_y(Decimal::new(950000, 12, false), zero);
+        let new_tick = pool.glbl_tick();
+        let new_p = pool.glbl_rp().pow(2);
+
+        // even a tiny trade moves the needle (price) and is executed
+        assert!(rez.recv_amount().is_positive());
+        assert!(rez.send_amount().is_negative());
+        assert!(orig_tick <= new_tick);
+        assert!(orig_p.lt(new_p).unwrap());
+        assert!(orig_p.lte(rez.avg_price()).unwrap()); // we sell X above orig_price
+    }
 }
