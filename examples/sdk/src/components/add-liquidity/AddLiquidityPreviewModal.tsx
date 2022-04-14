@@ -4,24 +4,27 @@ import {
   DialogTitle,
   DialogActions,
   useMediaQuery,
+  // DialogContent,
+  // DialogContentText,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { toFormat } from "../utils/toFormat";
-import { Asset } from "../types";
+import { toFormat } from "../../utils/toFormat";
+import { Asset } from "../../types";
+import { Box } from "@mui/system";
 
-export function SwapPreviewModal({
+export function AddLiquidityPreviewModal({
   open,
   handleClose,
-  fromAsset,
-  fromAmount,
-  toAmount,
-  toAsset,
+  tokenAAsset,
+  tokenAAmount,
+  tokenBAmount,
+  tokenBAsset,
   handleSubmit,
 }: {
-  fromAsset: Asset;
-  fromAmount: bigint;
-  toAsset: Asset;
-  toAmount: bigint;
+  tokenAAsset: Asset;
+  tokenAAmount: bigint;
+  tokenBAsset: Asset;
+  tokenBAmount: bigint;
   open: boolean;
   handleClose: () => void;
   handleSubmit: () => void;
@@ -37,8 +40,15 @@ export function SwapPreviewModal({
       aria-labelledby="responsive-dialog-title"
     >
       <DialogTitle id="responsive-dialog-title">
-        Swap {toFormat(fromAmount, fromAsset.decimals)} {fromAsset.name} to{" "}
-        {toFormat(toAmount, toAsset.decimals)} {toAsset.name}
+        <Box>Add liquidity</Box>
+        <Box>
+          TokenA:
+          {toFormat(tokenAAmount, tokenAAsset.decimals)} {tokenAAsset.symbol}
+        </Box>
+        <Box>
+          TokenB:
+          {toFormat(tokenBAmount, tokenBAsset.decimals)} {tokenBAsset.symbol}
+        </Box>
       </DialogTitle>
 
       <DialogActions>
@@ -46,7 +56,7 @@ export function SwapPreviewModal({
           Cancel
         </Button>
         <Button onClick={handleSubmit} autoFocus>
-          Swap
+          Add Liquidity
         </Button>
       </DialogActions>
     </Dialog>

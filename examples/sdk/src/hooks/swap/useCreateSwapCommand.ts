@@ -1,18 +1,18 @@
 import { HydraSDK } from "hydra-ts";
-import { TokenField } from "./useToken";
-import { PublicKey } from "@solana/web3.js";
+import { TokenField } from "../useToken";
+import { sortMints } from "../../utils/sortMints";
 
+// take token form state and create swap commands
 export function useCreateSwapCommand(
   sdk: HydraSDK,
-  // Userspace input token fields
   tokenFrom: TokenField,
   tokenTo: TokenField,
-  // Pool Token X/Y
-  tokenXMint?: PublicKey,
-  tokenYMint?: PublicKey
+  minimumAmountOut: bigint
 ) {
   async function executeSwap() {
-    if (!tokenXMint || !tokenYMint || !tokenFrom.mint || !tokenTo.mint) return;
+    if (!tokenFrom.mint || !tokenTo.mint) return;
+    // TODO: Move this stuff to sdk
+    const [tokenXMint, tokenYMint] = sortMints(tokenFrom.mint, tokenTo.mint);
 
     const tokenFromAccount = await sdk.accountLoaders
       .associatedToken(tokenFrom.mint)
@@ -24,15 +24,13 @@ export function useCreateSwapCommand(
 
     const { amount } = tokenFrom;
 
-    // do a swap calculation and multiply the output by slippage
-    // calculateSwap = sdk.liquidityPools.swapXToYAmm : sdk.liquidityPools.swapYToXAmm
     await sdk.liquidityPools.swap(
       tokenXMint,
       tokenYMint,
       tokenFromAccount,
       tokenToAccount,
       amount,
-      0n // TODO: calculate based on slippage
+      minimumAmountOut
     );
   }
   return { executeSwap };

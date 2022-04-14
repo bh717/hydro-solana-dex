@@ -145,7 +145,7 @@ async function setupLiquidityPoolState(provider: anchor.Provider, tokens: any) {
     fees
   );
 
-  await sdk.liquidityPools.addFirstLiquidity(
+  await sdk.liquidityPools.addLiquidity(
     tokens.wbtc.publicKey,
     tokens.usdc.publicKey,
     1_000n * 1_000_000_000n,
@@ -158,7 +158,7 @@ async function setupLiquidityPoolState(provider: anchor.Provider, tokens: any) {
     tokens.usdc.publicKey,
     fees
   );
-  await sdk.liquidityPools.addFirstLiquidity(
+  await sdk.liquidityPools.addLiquidity(
     tokens.weth.publicKey,
     tokens.usdc.publicKey,
     1_000n * 1_000_000_000n,

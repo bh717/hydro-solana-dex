@@ -1,8 +1,10 @@
 use crate::decimal::{Decimal, DivUp, Mul, Sqrt, Sub};
+use wasm_bindgen::prelude::wasm_bindgen;
 
 pub const MIN_LIQUIDITY: u64 = 100;
 pub const LIQUIDITY_POOL_SCALE: u8 = 9;
 
+#[wasm_bindgen]
 pub fn calculate_k(x: u64, x_scale: u8, y: u64, y_scale: u8) -> Option<u64> {
     let x = Decimal::from_scaled_amount(x, x_scale).to_compute_scale();
     let y = Decimal::from_scaled_amount(y, y_scale).to_compute_scale();
