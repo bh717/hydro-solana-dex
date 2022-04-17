@@ -1,134 +1,53 @@
 //! Swap calculator
 use crate::decimal::{Add, Compare, Decimal, Div, Ln, Mul, Pow, Sqrt, Sub};
 use crate::programs::fees::fee_calculator::FeeCalculatorBuilder;
+use crate::programs::liquidity_pools::error::SwapCalculatorError;
+use crate::programs::liquidity_pools::swap_calculator_scale::{
+    SwapCalculatorScale, SwapCalculatorScaleBuilder,
+};
 use crate::programs::liquidity_pools::swap_result::SwapResult;
-use thiserror::Error;
-use wasm_bindgen::prelude::wasm_bindgen;
 
 pub const MIN_LIQUIDITY: u64 = 100;
-
-/// Interface to be used by programs and front end
-/// these functions shadow functions of the implemented swap calculator
-#[wasm_bindgen]
-pub fn swap_x_to_y_hmm(
-    x0: u64,
-    x_scale: u8,
-    y0: u64,
-    y_scale: u8,
-    c: u8,
-    i: u64,
-    i_scale: u8,
-    fee_numer: u64,
-    fee_denom: u64,
-    amount: u64,
-) -> Result<Vec<u64>, String> {
-    let calculator = SwapCalculatorBuilder::default()
-        .x0(x0, x_scale)
-        .y0(y0, y_scale)
-        .c(c)
-        .i(i, i_scale)
-        .percentage_fee_numerator(fee_numer)
-        .percentage_fee_denominator(fee_denom)
-        .scale(x_scale, y_scale)
-        .build()
-        .unwrap();
-
-    let delta_x = Decimal::from_scaled_amount(amount, x_scale).to_compute_scale();
-
-    let result = calculator
-        .swap_x_to_y_hmm(&delta_x)
-        .expect("failed to swap x to y");
-
-    Ok(result.into())
-}
-
-#[wasm_bindgen]
-pub fn swap_y_to_x_hmm(
-    x0: u64,
-    x_scale: u8,
-    y0: u64,
-    y_scale: u8,
-    c: u8,
-    i: u64,
-    i_scale: u8,
-    fee_numer: u64,
-    fee_denom: u64,
-    amount: u64,
-) -> Result<Vec<u64>, String> {
-    let calculator = SwapCalculatorBuilder::default()
-        .x0(x0, x_scale)
-        .y0(y0, y_scale)
-        .c(c)
-        .i(i, i_scale)
-        .percentage_fee_numerator(fee_numer)
-        .percentage_fee_denominator(fee_denom)
-        .scale(x_scale, y_scale)
-        .build()
-        .unwrap();
-
-    let delta_y = Decimal::from_scaled_amount(amount, y_scale).to_compute_scale();
-
-    let result = calculator
-        .swap_y_to_x_hmm(&delta_y)
-        .expect("failed to swap y to x");
-
-    Ok(result.into())
-}
 
 #[derive(Default, Builder, Debug)]
 #[builder(setter(into))]
 pub struct SwapCalculator {
     /// Number of tokens x currently in liquidity pool
     #[builder(setter(custom = true))]
-    x0: Decimal,
+    pub x0: Decimal,
     /// Number of tokens y currently in liquidity pool
     #[builder(setter(custom = true))]
-    y0: Decimal,
+    pub y0: Decimal,
     /// Compensation parameter c
     /// Range c = [0, 100, 125, 150] / 100
     #[builder(setter(custom = true))]
-    c: Decimal,
+    pub c: Decimal,
     /// Oracle price relative to x
     #[builder(setter(custom = true))]
-    i: Decimal,
+    pub i: Decimal,
     /// Fees as a percentage
     #[builder(setter(custom = true))]
-    percentage_fee_numerator: Decimal,
+    pub percentage_fee_numerator: Decimal,
     #[builder(setter(custom = true))]
-    percentage_fee_denominator: Decimal,
+    pub percentage_fee_denominator: Decimal,
     /// Scale of the various input amounts/fees/prices
     #[builder(setter(custom = true))]
-    scale: SwapCalculatorScale,
+    pub scale: SwapCalculatorScale,
 }
 
-/// Swap calculator scale of the various input amounts/fees/prices
-#[derive(Debug, Clone)]
-pub struct SwapCalculatorScale {
-    x: u8,
-    y: u8,
-}
-
-impl Default for SwapCalculatorScale {
-    fn default() -> Self {
-        Self {
-            x: Default::default(),
-            y: Default::default(),
-        }
-    }
-}
-
+/// [SwapCalculator] custom setters
 impl SwapCalculatorBuilder {
-    fn x0(&mut self, value: u64, scale: u8) -> &mut Self {
+    pub fn x0(&mut self, value: u64, scale: u8) -> &mut Self {
         self.x0 = Some(Decimal::from_scaled_amount(value, scale).to_compute_scale());
         self
     }
 
-    fn y0(&mut self, value: u64, scale: u8) -> &mut Self {
+    pub fn y0(&mut self, value: u64, scale: u8) -> &mut Self {
         self.y0 = Some(Decimal::from_scaled_amount(value, scale).to_compute_scale());
         self
     }
 
-    fn c(&mut self, value: u8) -> &mut Self {
+    pub fn c(&mut self, value: u8) -> &mut Self {
         self.c = Some(
             Decimal::from_u64(value as u64)
                 .to_compute_scale()
@@ -137,33 +56,31 @@ impl SwapCalculatorBuilder {
         self
     }
 
-    fn i(&mut self, value: u64, scale: u8) -> &mut Self {
+    pub fn i(&mut self, value: u64, scale: u8) -> &mut Self {
         self.i = Some(Decimal::from_scaled_amount(value, scale).to_compute_scale());
         self
     }
 
-    fn percentage_fee_numerator(&mut self, value: u64) -> &mut Self {
+    pub fn percentage_fee_numerator(&mut self, value: u64) -> &mut Self {
         self.percentage_fee_numerator = Some(Decimal::from_u64(value).to_compute_scale());
         self
     }
 
-    fn percentage_fee_denominator(&mut self, value: u64) -> &mut Self {
+    pub fn percentage_fee_denominator(&mut self, value: u64) -> &mut Self {
         self.percentage_fee_denominator = Some(Decimal::from_u64(value).to_compute_scale());
         self
     }
 
-    fn scale(&mut self, x: u8, y: u8) -> &mut Self {
-        self.scale = Some(SwapCalculatorScale { x, y });
+    pub fn scale(&mut self, x: u8, y: u8) -> &mut Self {
+        self.scale = Some(
+            SwapCalculatorScaleBuilder::default()
+                .x(x)
+                .y(y)
+                .build()
+                .unwrap(),
+        );
         self
     }
-}
-
-#[derive(Error, Debug)]
-pub enum SwapCalculatorError {
-    #[error("Failed to build struct due to input provided")]
-    BuilderIncomplete,
-    #[error("Delta input provided was not positive or greater than zero")]
-    DeltaNotPositive,
 }
 
 impl SwapCalculator {
@@ -501,36 +418,6 @@ mod tests {
         assert_eq!(result, expected, "check_xi");
     }
 
-    fn check_delta_y_hmm(model: &Model, x0: u64, y0: u64, c: Decimal, i: u64, delta_x: u64) {
-        let swap = SwapCalculator {
-            x0: Decimal::from_scaled_amount(x0, DEFAULT_SCALE_TEST),
-            y0: Decimal::from_scaled_amount(y0, DEFAULT_SCALE_TEST),
-            c,
-            i: Decimal::from_scaled_amount(i, DEFAULT_SCALE_TEST),
-            percentage_fee_numerator: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
-            percentage_fee_denominator: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
-            scale: SwapCalculatorScale {
-                x: DEFAULT_SCALE_TEST,
-                y: DEFAULT_SCALE_TEST,
-            },
-        };
-        let result =
-            swap.compute_delta_y_hmm(&Decimal::from_scaled_amount(delta_x, DEFAULT_SCALE_TEST));
-        let (value, negative) = model.sim_delta_y_hmm(delta_x);
-        let expected = Decimal::new(value, DEFAULT_SCALE_TEST, negative);
-
-        // TODO: larger range is causing precision issues, come back to this
-        let precision = 50_000_000u128;
-        assert!(
-            result.value.saturating_sub(expected.value).lt(&precision),
-            "check_delta_y_hmm\n{}\n{}\n{:?}",
-            result.to_string(),
-            expected.to_string(),
-            result
-        );
-        assert_eq!(result.negative, expected.negative, "check_delta_y_hmm_sign");
-    }
-
     fn check_delta_x_hmm(model: &Model, x0: u64, y0: u64, c: Decimal, i: u64, delta_y: u64) {
         let swap = SwapCalculator {
             x0: Decimal::from_scaled_amount(x0, DEFAULT_SCALE_TEST),
@@ -559,6 +446,36 @@ mod tests {
             result
         );
         assert_eq!(result.negative, expected.negative, "check_delta_x_hmm_sign");
+    }
+
+    fn check_delta_y_hmm(model: &Model, x0: u64, y0: u64, c: Decimal, i: u64, delta_x: u64) {
+        let swap = SwapCalculator {
+            x0: Decimal::from_scaled_amount(x0, DEFAULT_SCALE_TEST),
+            y0: Decimal::from_scaled_amount(y0, DEFAULT_SCALE_TEST),
+            c,
+            i: Decimal::from_scaled_amount(i, DEFAULT_SCALE_TEST),
+            percentage_fee_numerator: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
+            percentage_fee_denominator: Decimal::from_scaled_amount(0, DEFAULT_SCALE_TEST),
+            scale: SwapCalculatorScale {
+                x: DEFAULT_SCALE_TEST,
+                y: DEFAULT_SCALE_TEST,
+            },
+        };
+        let result =
+            swap.compute_delta_y_hmm(&Decimal::from_scaled_amount(delta_x, DEFAULT_SCALE_TEST));
+        let (value, negative) = model.sim_delta_y_hmm(delta_x);
+        let expected = Decimal::new(value, DEFAULT_SCALE_TEST, negative);
+
+        // TODO: larger range is causing precision issues, come back to this
+        let precision = 50_000_000u128;
+        assert!(
+            result.value.saturating_sub(expected.value).lt(&precision),
+            "check_delta_y_hmm\n{}\n{}\n{:?}",
+            result.to_string(),
+            expected.to_string(),
+            result
+        );
+        assert_eq!(result.negative, expected.negative, "check_delta_y_hmm_sign");
     }
 
     proptest! {
@@ -612,52 +529,6 @@ mod tests {
                 check_delta_y_hmm(&model, x0, y0, c.clone(), i, delta_x);
                 check_delta_x_hmm(&model, x0, y0, c.clone(), i, delta_y);
             }
-        }
-    }
-
-    #[test]
-    fn test_scalar_inputs() {
-        // x to y (given delta X what is delta Y?)
-        {
-            let actual = swap_x_to_y_hmm(
-                1000000_000000000, // 1 million x tokens
-                9,
-                1000000_000000, // 1 million y tokens
-                6,
-                0,
-                0,
-                0,
-                1,
-                500,
-                9_979900400, // just under 10 X tokens
-            )
-            .unwrap();
-            let expected = 99_59841;
-            let result = SwapResult::from(actual);
-            assert_eq!(result.delta_y, expected);
-        }
-
-        {
-            let actual: SwapResult = From::from(
-                swap_x_to_y_hmm(
-                    37_000000, 6, 126_000000, 6, 100, 3_000000, 6, 0, 0, 3_000000,
-                )
-                .unwrap(),
-            );
-            let expected = 9_207_401u64;
-            assert_eq!(actual.delta_y, expected);
-        }
-
-        // y to x (given delta Y what is delta X?)
-        {
-            let actual: SwapResult = From::from(
-                swap_y_to_x_hmm(
-                    37_000000, 6, 126_000000, 6, 100, 3_000000, 6, 0, 0, 3_000000,
-                )
-                .unwrap(),
-            );
-            let expected = 860_465u64;
-            assert_eq!(actual.delta_x, expected);
         }
     }
 
