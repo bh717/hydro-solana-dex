@@ -107,17 +107,17 @@ impl FeeCalculator {
     /// Compute a percentage based fee for the [FeeCalculator]
     pub fn compute_percent_fee(&self, amount: &Decimal) -> Result<FeeResult, FeeCalculatorError> {
         if self.percentage_fee_numerator.is_zero() || self.percentage_fee_denominator.is_zero() {
-            return Ok(FeeResultBuilder::default().amount_ex_fee(*amount).build()?);
+            return Ok(FeeResultBuilder::default()
+                .fee_amount(Decimal::zero().to_scale(amount.scale))
+                .fee_percentage(Decimal::zero().to_scale(amount.scale))
+                .amount_ex_fee(*amount)
+                .build()?);
         }
 
         let fee_percentage = self
             .percentage_fee_numerator
             .to_compute_scale()
             .div(self.percentage_fee_denominator.to_compute_scale());
-
-        if fee_percentage.is_zero() {
-            return Ok(FeeResultBuilder::default().amount_ex_fee(*amount).build()?);
-        }
 
         let amount_scaled = amount.to_compute_scale();
         let fee_amount = fee_percentage.mul(amount_scaled);
@@ -225,12 +225,12 @@ mod tests {
     }
 
     #[rstest]
-    #[case("0", "2000", "0", "3.735928559", "0", "3.735928559")]
-    #[case("1", "2000", "0.0005", "3.735928559", "0.00186796428", "3.734060594")]
-    #[case("10", "2000", "0.005", "3.735928559", "0.0186796428", "3.717248916")]
-    #[case("20", "2000", "0.01", "3.735928559", "0.03735928559", "3.698569273")]
-    #[case("30", "2000", "0.015", "3.735928559", "0.05603892838", "3.679889630")]
-    #[case("40", "2000", "0.02", "3.735928559", "0.07471857118", "3.661209987")]
+    #[case("0", "2000", "0", "3.735928559", "0.000000000", "3.735928559")]
+    #[case("1", "2000", "0.0005", "3.735928559", "0.001867964", "3.734060594")]
+    #[case("10", "2000", "0.005", "3.735928559", "0.018679642", "3.717248916")]
+    #[case("20", "2000", "0.01", "3.735928559", "0.037359285", "3.698569273")]
+    #[case("30", "2000", "0.015", "3.735928559", "0.056038928", "3.679889630")]
+    #[case("40", "2000", "0.02", "3.735928559", "0.074718571", "3.661209987")]
     fn test_compute_percent_fee_table(
         #[case] percentage_fee_numerator: Decimal,
         #[case] percentage_fee_denominator: Decimal,
@@ -240,24 +240,20 @@ mod tests {
         #[case] amount_ex_fee: Decimal,
     ) {
         let fee_calculator = FeeCalculatorBuilder::default()
-            .percentage_fee_numerator(percentage_fee_numerator.to_compute_scale())
-            .percentage_fee_denominator(percentage_fee_denominator.to_compute_scale())
+            .percentage_fee_numerator(percentage_fee_numerator)
+            .percentage_fee_denominator(percentage_fee_denominator)
             .build()
             .unwrap();
 
-        let fee_result = fee_calculator
-            .compute_percent_fee(&amount.to_compute_scale())
-            .unwrap();
+        let fee_result = fee_calculator.compute_percent_fee(&amount).unwrap();
 
         assert_eq!(
-            fee_result.fee_percentage.to_scale(9),
-            fee_percentage.to_scale(9)
+            fee_result.fee_percentage,
+            fee_percentage.to_scale(9),
+            "fee_percentage"
         );
-        assert_eq!(fee_result.fee_amount.to_scale(9), fee_amount.to_scale(9));
-        assert_eq!(
-            fee_result.amount_ex_fee.to_scale(9),
-            amount_ex_fee.to_scale(9)
-        );
+        assert_eq!(fee_result.fee_amount, fee_amount);
+        assert_eq!(fee_result.amount_ex_fee, amount_ex_fee);
     }
 
     #[test]
