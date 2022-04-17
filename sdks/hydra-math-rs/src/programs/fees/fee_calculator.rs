@@ -187,8 +187,8 @@ mod tests {
     #[test]
     fn test_compute_percent_fee() {
         let fee_calculator = FeeCalculatorBuilder::default()
-            .percentage_fee_numerator(Decimal::from_u64(1).to_compute_scale())
-            .percentage_fee_denominator(Decimal::from_u64(50).to_compute_scale())
+            .percentage_fee_numerator(Decimal::from_u64(1))
+            .percentage_fee_denominator(Decimal::from_u64(50))
             .build()
             .unwrap();
 
