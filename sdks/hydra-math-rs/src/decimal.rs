@@ -501,11 +501,7 @@ impl Pow<Decimal> for Decimal {
 /// Calculate the power of a [Decimal] with an unsigned integer as the exponent.
 impl Pow<u128> for Decimal {
     fn pow(self, exp: u128) -> Self {
-        let one = Decimal {
-            value: self.denominator(),
-            scale: self.scale,
-            negative: self.negative,
-        };
+        let one = Decimal::one().to_scale(self.scale);
 
         if exp == 0 {
             return one;
