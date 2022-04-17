@@ -90,6 +90,17 @@ impl SwapCalculator {
             return Err(SwapCalculatorError::DeltaNotPositive.into());
         }
 
+        // TODO: start using vol adj fee calculator, example in comments below
+        // let fee_calculator = FeeCalculatorBuilder::default()
+        //     .vol_adj_fee_last_update(Decimal::from_u64(1649113200).to_compute_scale())
+        //     .vol_adj_fee_last_price(Decimal::from_scaled_amount(3425_000000, 6))
+        //     .vol_adj_fee_this_price(Decimal::from_scaled_amount(3400_000000, 6))
+        //     .vol_adj_fee_last_ewma(Decimal::from_scaled_amount(3400_000000, 6))
+        //     .build()
+        //     .unwrap();
+        //
+        // let fee_result = fee_calculator.compute_vol_adj_fee(&delta_x).unwrap();
+
         let fee_calculator = FeeCalculatorBuilder::default()
             .percentage_fee_numerator(self.percentage_fee_numerator.to_compute_scale())
             .percentage_fee_denominator(self.percentage_fee_denominator.to_compute_scale())
@@ -127,6 +138,17 @@ impl SwapCalculator {
         if delta_y.is_negative() || delta_y.is_zero() {
             return Err(SwapCalculatorError::DeltaNotPositive.into());
         }
+
+        // TODO: start using vol adj fee calculator, example in comments below
+        // let fee_calculator = FeeCalculatorBuilder::default()
+        //     .vol_adj_fee_last_update(Decimal::from_u64(1649113200).to_compute_scale())
+        //     .vol_adj_fee_last_price(Decimal::from_scaled_amount(3425_000000, 6))
+        //     .vol_adj_fee_this_price(Decimal::from_scaled_amount(3400_000000, 6))
+        //     .vol_adj_fee_last_ewma(Decimal::from_scaled_amount(3400_000000, 6))
+        //     .build()
+        //     .unwrap();
+        //
+        // let fee_result = fee_calculator.compute_vol_adj_fee(&delta_x).unwrap();
 
         let fee_calculator = FeeCalculatorBuilder::default()
             .percentage_fee_numerator(self.percentage_fee_numerator.to_compute_scale())
