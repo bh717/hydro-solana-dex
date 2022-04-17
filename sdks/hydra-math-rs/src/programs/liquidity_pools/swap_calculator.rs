@@ -94,7 +94,7 @@ impl SwapCalculator {
             .percentage_fee_numerator(self.percentage_fee_numerator.to_compute_scale())
             .percentage_fee_denominator(self.percentage_fee_denominator.to_compute_scale())
             .build()
-            .unwrap();
+            .expect("failed to build FeeCalculator");
 
         let fee_result = fee_calculator
             .compute_percent_fee(&delta_x.to_compute_scale())

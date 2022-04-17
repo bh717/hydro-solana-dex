@@ -1,36 +1,9 @@
-use crate::decimal::{Add, Compare, Decimal, DecimalError, Div, Mul, Pow, Sub};
+use crate::decimal::{Add, Compare, Decimal, DecimalError, Div, Mul, Pow, Sub, COMPUTE_SCALE};
 use crate::programs::fees::error::FeeCalculatorError;
 use crate::programs::fees::fee_result::{FeeResult, FeeResultBuilder};
 use std::ops::Neg;
 use std::str::FromStr;
 use std::time::{SystemTime, UNIX_EPOCH};
-
-// /// Interface to be used by programs and front end
-// /// these functions shadow functions of the implemented fee calculator
-// #[wasm_bindgen]
-// pub fn compute_volatility_adjusted_fee(
-//     this_price: u64,
-//     last_price: u64,
-//     price_scale: u8,
-//     last_update: u64,
-//     last_ewma: u64,
-//     amount: u64,
-//     amount_scale: u8,
-// ) -> Result<Vec<u64>, String> {
-//     let calculator = FeeCalculatorBuilder::default()
-//         .vol_adj_fee_this_price(this_price)
-//         .this_price(this_price, price_scale)
-//         .last_price(last_price, price_scale)
-//         .last_update(last_update)
-//         .last_ewma(last_ewma)
-//         .build()?;
-//
-//     let fees = calculator
-//         .compute_fees(&Decimal::from_scaled_amount(amount, amount_scale).to_compute_scale())
-//         .unwrap();
-//
-//     Ok(fees.into())
-// }
 
 #[derive(Default, Builder, Debug)]
 #[builder(setter(into))]
@@ -122,12 +95,12 @@ impl FeeCalculator {
         let amount_ex_fee = amount.sub(fee_amount)?;
 
         Ok(FeeResultBuilder::default()
-            .fee_amount(fee_amount)
-            .fee_percentage(fee_percentage)
-            .amount_ex_fee(amount_ex_fee)
-            .vol_adj_fee_last_update(self.vol_adj_fee_this_update)
-            .vol_adj_fee_last_price(self.vol_adj_fee_this_price)
-            .vol_adj_fee_last_ewma(this_ewma)
+            .fee_amount(fee_amount.to_scale(amount.scale))
+            .fee_percentage(fee_percentage.to_scale(amount.scale))
+            .amount_ex_fee(amount_ex_fee.to_scale(amount.scale))
+            .vol_adj_fee_last_update(self.vol_adj_fee_this_update.to_scale(0))
+            .vol_adj_fee_last_price(self.vol_adj_fee_this_price.to_scale(amount.scale))
+            .vol_adj_fee_last_ewma(this_ewma.to_scale(COMPUTE_SCALE))
             .build()?)
     }
 
@@ -155,9 +128,9 @@ impl FeeCalculator {
         let amount_ex_fee = amount.sub(fee_amount)?;
 
         Ok(FeeResultBuilder::default()
-            .fee_amount(fee_amount)
-            .fee_percentage(fee_percentage)
-            .amount_ex_fee(amount_ex_fee)
+            .fee_amount(fee_amount.to_scale(amount.scale))
+            .fee_percentage(fee_percentage.to_scale(amount.scale))
+            .amount_ex_fee(amount_ex_fee.to_scale(amount.scale))
             .build()?)
     }
 
