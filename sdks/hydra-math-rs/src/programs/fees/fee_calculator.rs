@@ -112,7 +112,8 @@ impl FeeCalculator {
 
         let fee_percentage = self
             .percentage_fee_numerator
-            .div(self.percentage_fee_denominator);
+            .to_compute_scale()
+            .div(self.percentage_fee_denominator.to_compute_scale());
 
         if fee_percentage.is_zero() {
             return Ok(FeeResultBuilder::default().amount_ex_fee(*amount).build()?);
