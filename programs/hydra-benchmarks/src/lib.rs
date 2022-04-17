@@ -7,7 +7,7 @@ pub mod hydra_benchmarks {
     use super::*;
     use anchor_lang::solana_program::log::sol_log_compute_units;
     use hydra_math_rs::decimal::{Decimal, Ln, Sqrt};
-    use hydra_math_rs::programs::liquidity_pools::swap_calculator::swap_x_to_y_hmm;
+    use hydra_math_rs::programs::liquidity_pools::swap_calculator_wasm::swap_x_to_y_hmm;
 
     pub fn initialize(_ctx: Context<Initialize>) -> Result<()> {
         sol_log_compute_units();
