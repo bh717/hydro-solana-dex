@@ -125,7 +125,7 @@ impl FeeCalculator {
             return Err(FeeCalculatorError::FeesGreaterThanAmount.into());
         }
 
-        let amount_ex_fee = amount.sub(fee_amount)?;
+        let amount_ex_fee = amount_scaled.sub(fee_amount)?;
 
         Ok(FeeResultBuilder::default()
             .fee_amount(fee_amount.to_scale(amount.scale))
@@ -192,14 +192,14 @@ mod tests {
             .unwrap();
 
         let fee_result = fee_calculator
-            .compute_percent_fee(&Decimal::from_scaled_amount(1000, 0).to_compute_scale())
+            .compute_percent_fee(&Decimal::from_scaled_amount(1000_000000, 6))
             .unwrap();
 
         assert_eq!(
             fee_result.fee_amount,
             Decimal {
-                value: 20000000000000,
-                scale: 12,
+                value: 20000000,
+                scale: 6,
                 negative: false,
             }
         );
@@ -207,8 +207,8 @@ mod tests {
         assert_eq!(
             fee_result.fee_percentage,
             Decimal {
-                value: 20000000000,
-                scale: 12,
+                value: 20000,
+                scale: 6,
                 negative: false,
             }
         );
@@ -216,8 +216,8 @@ mod tests {
         assert_eq!(
             fee_result.amount_ex_fee,
             Decimal {
-                value: 980000000000000,
-                scale: 12,
+                value: 980000000,
+                scale: 6,
                 negative: false,
             }
         );
