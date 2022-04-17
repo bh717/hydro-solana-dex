@@ -92,7 +92,7 @@ impl FeeCalculator {
                 .build()?);
         }
 
-        let amount_ex_fee = amount.sub(fee_amount)?;
+        let amount_ex_fee = amount_scaled.sub(fee_amount)?;
 
         Ok(FeeResultBuilder::default()
             .fee_amount(fee_amount.to_scale(amount.scale))
@@ -137,10 +137,13 @@ impl FeeCalculator {
 
     /// Determine if variance should be computed based on window period for a volatility adjusted [FeeCalculator]
     fn should_update(&self) -> Result<bool, DecimalError> {
-        Ok(self.vol_adj_fee_last_update.gt(Decimal::zero())?
+        Ok(self
+            .vol_adj_fee_last_update
+            .to_compute_scale()
+            .gt(Decimal::zero())?
             && self
                 .vol_adj_fee_this_update
-                .sub(self.vol_adj_fee_last_update)?
+                .sub(self.vol_adj_fee_last_update.to_compute_scale())?
                 >= self.vol_adj_fee_ewma_window)
     }
 
@@ -151,26 +154,28 @@ impl FeeCalculator {
             // this_ewma = lambda * last_ewma + (1-lambda) * (this_price / last_price - 1)**2
             // * ewma_window / (this_update - last_update)
 
+            // ensure all scale is uniform
+            let lambda = self.vol_adj_fee_lambda.to_compute_scale();
+            let this_price = self.vol_adj_fee_this_price.to_compute_scale();
+            let last_price = self.vol_adj_fee_last_price.to_compute_scale();
+            let this_update = self.vol_adj_fee_this_update.to_compute_scale();
+            let last_update = self.vol_adj_fee_last_update.to_compute_scale();
+            let last_ewma = self.vol_adj_fee_last_ewma.to_compute_scale();
+            let ewma_window = self.vol_adj_fee_ewma_window.to_compute_scale();
+
             // a = (1-lambda)
-            let a = Decimal::one().sub(self.vol_adj_fee_lambda)?;
+            let a = Decimal::one().sub(lambda)?;
 
             // b = (this_price / last_price - 1)**2
-            let b = self
-                .vol_adj_fee_this_price
-                .div(self.vol_adj_fee_last_price)
+            let b = this_price
+                .div(last_price)
                 .sub(Decimal::one())?
                 .pow(Decimal::two());
 
             // c = ewma_window / (this_update - last_update)
-            let c = self.vol_adj_fee_ewma_window.div(
-                self.vol_adj_fee_this_update
-                    .sub(self.vol_adj_fee_last_update)?,
-            );
+            let c = ewma_window.div(this_update.sub(last_update)?);
 
-            Ok(self
-                .vol_adj_fee_lambda
-                .mul(self.vol_adj_fee_last_ewma)
-                .add(a.mul(b).mul(c))?)
+            Ok(lambda.mul(last_ewma).add(a.mul(b).mul(c))?)
         } else {
             Ok(self.vol_adj_fee_last_ewma)
         }
@@ -259,19 +264,19 @@ mod tests {
     #[test]
     fn test_compute_vol_adj_fee() {
         let fee_calculator = FeeCalculatorBuilder::default()
-            .vol_adj_fee_this_price(Decimal::from_scaled_amount(3400, 0).to_compute_scale())
+            .vol_adj_fee_this_price(Decimal::from_scaled_amount(3400_000000, 6))
             .build()
             .unwrap();
 
         let fee_result = fee_calculator
-            .compute_vol_adj_fee(&Decimal::from_scaled_amount(1000, 0).to_compute_scale())
+            .compute_vol_adj_fee(&Decimal::from_scaled_amount(1000_000000, 6))
             .unwrap();
 
         assert_eq!(
             fee_result.fee_amount,
             Decimal {
-                value: 5351086800000,
-                scale: 12,
+                value: 5351086,
+                scale: 6,
                 negative: false,
             }
         );
@@ -279,8 +284,8 @@ mod tests {
         assert_eq!(
             fee_result.fee_percentage,
             Decimal {
-                value: 5351086800,
-                scale: 12,
+                value: 5351,
+                scale: 6,
                 negative: false,
             }
         );
@@ -288,66 +293,10 @@ mod tests {
         assert_eq!(
             fee_result.amount_ex_fee,
             Decimal {
-                value: 994648913200000,
-                scale: 12,
+                value: 994648913,
+                scale: 6,
                 negative: false,
             }
         );
     }
-
-    // #[test]
-    // fn test_compute_vol_adj_fee_wasm() {
-    //     // first time called with 'zero' input for last_price, last_update and last_ewma
-    //     {
-    //         let actual =
-    //             compute_volatility_adjusted_fee(3400_000000, 0, 6, 0, 0, 1000_000000, 6).unwrap();
-    //         let result = FeeResult::from(actual);
-    //         let expected = FeeResult {
-    //             fees: 5351086800000,
-    //             amount_ex_fees: 994648913200000,
-    //             last_update: 1649549126,
-    //             last_price: 3400000000000000,
-    //             last_ewma: 178367579,
-    //         };
-    //
-    //         assert_eq!(result.fees, expected.fees);
-    //         assert_eq!(result.amount_ex_fees, expected.amount_ex_fees);
-    //         assert_eq!(result.last_price, expected.last_price);
-    //         assert_eq!(result.last_ewma, expected.last_ewma);
-    //     }
-    //
-    //     // second time called, passing in previous values last_price, last_update and last_ewma
-    //     // which need to be stored on chain
-    //     {
-    //         let last_update = SystemTime::now()
-    //             .duration_since(UNIX_EPOCH)
-    //             .expect("seconds")
-    //             .as_secs()
-    //             .checked_sub(3600)
-    //             .unwrap();
-    //
-    //         let actual = compute_volatility_adjusted_fee(
-    //             3425_000000,
-    //             3400_000000,
-    //             6,
-    //             last_update,
-    //             178367579,
-    //             1000_000000,
-    //             6,
-    //         )
-    //         .unwrap();
-    //         let result = FeeResult::from(actual);
-    //         let expected = FeeResult {
-    //             fees: 3654334800000,
-    //             amount_ex_fees: 996345665200000,
-    //             last_update: 1649549126,
-    //             last_price: 3425000000000000,
-    //             last_ewma: 121810243,
-    //         };
-    //         assert_eq!(result.fees, expected.fees);
-    //         assert_eq!(result.amount_ex_fees, expected.amount_ex_fees);
-    //         assert_eq!(result.last_price, expected.last_price);
-    //         assert_eq!(result.last_ewma, expected.last_ewma);
-    //     }
-    // }
 }
