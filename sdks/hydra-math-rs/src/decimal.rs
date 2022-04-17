@@ -571,6 +571,11 @@ impl Compare<Decimal> for Decimal {
         }
     }
 
+    fn almost_eq(self, other: Decimal, precision: u128) -> Result<bool, DecimalError> {
+        let difference = self.value.saturating_sub(other.value);
+        Ok(difference.lt(&precision))
+    }
+
     /// Show if one [Decimal] value is less than another.
     fn lt(self, other: Decimal) -> Result<bool, DecimalError> {
         if !(self.scale == other.scale) {
@@ -1093,6 +1098,7 @@ pub trait BitLength<T>: Sized {
 
 pub trait Compare<T>: Sized {
     fn eq(self, rhs: T) -> Result<bool, DecimalError>;
+    fn almost_eq(self, rhs: T, precision: u128) -> Result<bool, DecimalError>;
     fn lt(self, rhs: T) -> Result<bool, DecimalError>;
     fn gt(self, rhs: T) -> Result<bool, DecimalError>;
     fn gte(self, rhs: T) -> Result<bool, DecimalError>;
@@ -2242,6 +2248,27 @@ mod test {
             let exp: u128 = 18;
             let result = base.pow(exp);
             let expected = Decimal::from_u64(262_144).to_scale(scale);
+            assert_eq!(result, expected);
+        }
+
+        // (-0.001459854015)**2 = 0.000002131174
+        {
+            let base = Decimal::from_str("-0.001459854015").unwrap();
+            let exp: u128 = 2;
+            let result = base.pow(exp);
+            let expected = Decimal::from_str("0.000002131173").unwrap();
+            assert_eq!(result, expected);
+        }
+
+        // (3420/3425-1)**2 = 0.000002131174
+        {
+            let mut base = Decimal::from_u64(3420)
+                .to_compute_scale()
+                .div(Decimal::from_u64(3425).to_compute_scale());
+            base = base.sub(Decimal::one()).unwrap();
+            let exp: u128 = 2;
+            let result = base.pow(exp);
+            let expected = Decimal::from_str("0.000002131173").unwrap();
             assert_eq!(result, expected);
         }
 
