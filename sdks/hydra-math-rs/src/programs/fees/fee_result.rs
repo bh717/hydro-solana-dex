@@ -31,12 +31,24 @@ impl Into<Vec<u64>> for FeeResult {
         ]
     }
 }
-//
-// impl From<Vec<u64>> for FeeResult {
-//     fn from(vector: Vec<u64>) -> Self {
-//         FeeResult {
-//             fees: vector[0],
-//             amount_ex_fees: vector[1],
-//         }
-//     }
-// }
+
+impl Into<Vec<String>> for FeeResult {
+    fn into(self) -> Vec<String> {
+        vec![
+            self.fee_amount.to_scale(self.fee_amount.scale).to_string(),
+            self.fee_percentage
+                .to_scale(self.fee_amount.scale)
+                .to_string(),
+            self.amount_ex_fee
+                .to_scale(self.fee_amount.scale)
+                .to_string(),
+            self.vol_adj_fee_last_update.to_scale(0).to_string(),
+            self.vol_adj_fee_last_price
+                .to_scale(self.vol_adj_fee_last_price.scale)
+                .to_string(),
+            self.vol_adj_fee_last_ewma
+                .to_scale(self.vol_adj_fee_last_ewma.scale)
+                .to_string(),
+        ]
+    }
+}
