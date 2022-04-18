@@ -3,7 +3,6 @@ use crate::programs::fees::error::FeeCalculatorError;
 use crate::programs::fees::fee_result::{FeeResult, FeeResultBuilder};
 use std::ops::Neg;
 use std::str::FromStr;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 #[derive(Default, Builder, Debug)]
 #[builder(setter(into))]
@@ -14,12 +13,7 @@ pub struct FeeCalculator {
     percentage_fee_denominator: Decimal,
     #[builder(default = "Decimal::zero()")]
     vol_adj_fee_last_update: Decimal,
-    #[builder(default = r#"
-            Decimal::from_u64(SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .expect("seconds")
-                .as_secs()).to_compute_scale()
-        "#)]
+    #[builder(default = "Decimal::zero()")]
     vol_adj_fee_this_update: Decimal,
     #[builder(default = "Decimal::zero()")]
     vol_adj_fee_last_price: Decimal,
@@ -359,8 +353,6 @@ mod tests {
 
         for record in reader.records() {
             let record = record.unwrap();
-            let percentage_fee_numerator = Decimal::zero();
-            let percentage_fee_denominator = Decimal::zero();
             let vol_adj_fee_last_update = Decimal::from_str(&record[0]).unwrap().to_compute_scale();
             let vol_adj_fee_this_update = Decimal::from_str(&record[1]).unwrap().to_compute_scale();
             let vol_adj_fee_last_price = Decimal::from_str(&record[2]).unwrap();

@@ -92,7 +92,10 @@ impl SwapCalculator {
 
         // TODO: start using vol adj fee calculator, example in comments below
         // let fee_calculator = FeeCalculatorBuilder::default()
+        // Note: time on chan can be obtained as follows
+        // sysvar::clock::Clock::get().unwrap().unix_timestamp as u64
         //     .vol_adj_fee_last_update(Decimal::from_u64(1649113200).to_compute_scale())
+        //     .vol_adj_fee_this_update(Decimal::from_u64(1649113200).to_compute_scale())//     .vol_adj_fee_last_update(Decimal::from_u64(1649113200).to_compute_scale())
         //     .vol_adj_fee_last_price(Decimal::from_scaled_amount(3425_000000, 6))
         //     .vol_adj_fee_this_price(Decimal::from_scaled_amount(3400_000000, 6))
         //     .vol_adj_fee_last_ewma(Decimal::from_scaled_amount(3400_000000, 6))
@@ -141,7 +144,10 @@ impl SwapCalculator {
 
         // TODO: start using vol adj fee calculator, example in comments below
         // let fee_calculator = FeeCalculatorBuilder::default()
+        // Note: time on chan can be obtained as follows
+        // sysvar::clock::Clock::get().unwrap().unix_timestamp as u64
         //     .vol_adj_fee_last_update(Decimal::from_u64(1649113200).to_compute_scale())
+        //     .vol_adj_fee_this_update(Decimal::from_u64(1649113200).to_compute_scale())
         //     .vol_adj_fee_last_price(Decimal::from_scaled_amount(3425_000000, 6))
         //     .vol_adj_fee_this_price(Decimal::from_scaled_amount(3400_000000, 6))
         //     .vol_adj_fee_last_ewma(Decimal::from_scaled_amount(3400_000000, 6))
