@@ -129,7 +129,7 @@ function App() {
 
   return (
     <ConnectionProvider endpoint={"http://127.0.0.1:8899"}>
-      <WalletProvider wallets={wallets}>
+      <WalletProvider wallets={wallets} autoConnect>
         <HydraClientProvider>
           <div className="layout">
             <SvgGradient />

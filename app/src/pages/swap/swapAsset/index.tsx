@@ -1,10 +1,11 @@
 import React, { FC } from "react";
 import { makeStyles } from "@mui/styles";
-import { Box, Button, IconButton, InputBase, Typography } from "@mui/material";
+import { Box, Button, IconButton, Typography } from "@mui/material";
 import { useWallet } from "@solana/wallet-adapter-react";
 // import cn from "classnames";
 
 import { Exchange, Warning } from "../../../components/icons";
+import NumericField from "../../../components/numericField";
 import SelectAsset from "../selectAsset";
 import { TokenField } from "../hooks/useToken";
 import { Asset, AssetBalance } from "../../../types";
@@ -41,16 +42,6 @@ const useStyles = makeStyles({
     display: "flex",
     alignItems: "center",
     padding: "8px",
-  },
-  baseInput: {
-    flexGrow: 1,
-    padding: "0 8px",
-    "& input": {
-      color: "#FFF",
-      padding: 0,
-      fontSize: "16px",
-      fontWeight: "500",
-    },
   },
   maxButton: {
     color: "#FFFFFFA6",
@@ -221,19 +212,13 @@ const SwapAsset: FC<SwapAssetProps> = ({
               </Typography>
             </Box>
             <Box className={classes.assetInput}>
-              <InputBase
-                className={classes.baseInput}
-                type="number"
+              <NumericField
                 value={toFormat(fromAsset.amount, fromAsset.asset?.decimals)}
-                placeholder="0"
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                onChange={(value: number) => {
                   fromAsset.setAmount(
-                    fromFormat(
-                      Number(event.target.value),
-                      fromAsset.asset?.decimals
-                    )
-                  )
-                }
+                    fromFormat(value, fromAsset.asset?.decimals)
+                  );
+                }}
                 onFocus={() => assetFocus("from")}
               />
               <span className={classes.maxButton}>Max</span>
@@ -257,19 +242,11 @@ const SwapAsset: FC<SwapAssetProps> = ({
               </Typography>
             </Box>
             <Box className={classes.assetInput}>
-              <InputBase
-                className={classes.baseInput}
-                type="number"
+              <NumericField
                 value={toFormat(toAsset.amount, toAsset.asset?.decimals)}
-                placeholder="0"
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  toAsset.setAmount(
-                    fromFormat(
-                      Number(event.target.value),
-                      toAsset.asset?.decimals
-                    )
-                  )
-                }
+                onChange={(value: number) => {
+                  toAsset.setAmount(fromFormat(value, toAsset.asset?.decimals));
+                }}
                 onFocus={() => assetFocus("to")}
               />
               <SelectAsset
