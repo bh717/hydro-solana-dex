@@ -78,6 +78,8 @@ export const swapMachine = createMachine<XContext, XEvents, XTypestate>({
     },
   },
 });
+
+// take commands and return controls for a statemachine that represents the flow of the UI
 export function useSwapUIState(impl: { executeSwap: () => Promise<void> }) {
   const [state, send] = useMachine(swapMachine, {
     actions: {

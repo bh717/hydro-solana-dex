@@ -26,6 +26,9 @@ export function initialize(ctx: Ctx) {
   return async (
     tokenXMint: PublicKey,
     tokenYMint: PublicKey,
+    // The following should probably not
+    // be inputs and be set within the program from
+    // CPI calls
     poolFees: PoolFees,
     compensationParameter: number = 0,
     pythProduct?: PublicKey,

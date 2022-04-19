@@ -1,37 +1,39 @@
 import { Paper, Stack, Typography, Button, Alert } from "@mui/material";
-import IconButton from "@mui/material/IconButton";
-import SwapVertIcon from "@mui/icons-material/SwapVert";
+import PlusIcon from "@mui/icons-material/Add";
 import { TokenField } from "../components/TokenField";
-import { useSwap } from "../hooks/swap/useSwap";
-import { SwapPreviewModal } from "../components/swap-modal/SwapPreviewModal";
-import { SwapProcessModal } from "../components/swap-modal/SwapProcessModal";
-import { SwapErrorModal } from "../components/swap-modal/SwapErrorModal";
-import { SwapSuccessModal } from "../components/swap-modal/SwapSuccessModal";
+import { useAddLiquidity } from "../hooks/add-liquidity/useAddLiquidity";
+import { AddLiquidityPreviewModal } from "../components/add-liquidity/AddLiquidityPreviewModal";
+import { AddLiquidityProcessModal } from "../components/add-liquidity/AddLiquidityProcessModal";
+import { AddLiquidityErrorModal } from "../components/add-liquidity/AddLiquidityErrorModal";
+import { AddLiquiditySuccessModal } from "../components/add-liquidity/AddLiquiditySuccessModal";
 import { Box } from "@mui/system";
 import { Balances } from "./Balances";
-import { States } from "../hooks/swap/useSwapUIState";
+import { States } from "../hooks/add-liquidity/useAddLiquidityUIState";
 import { useSlippage } from "../hooks/useTokenForm";
 import { SlippageSelector } from "../components/SlippageSelector";
 
-export function Swap() {
+type AddLiquidityProps = {
+  tokenAInit?: string;
+  tokenBInit?: string;
+};
+
+export function AddLiquidity({ tokenAInit, tokenBInit }: AddLiquidityProps) {
   // TODO: Extract slippage to global config
   const { slippage, setSlippage } = useSlippage();
 
   const {
-    assetsTokenFrom,
-    assetsTokenTo,
-    isSubmitDisabled,
-    minimumAmountOut,
+    assetsTokenA,
+    assetsTokenB,
     onSendCancel,
     onSendSubmit,
-    poolExists,
-    poolPairSelected,
     setFocus,
+    tokenA,
+    tokenB,
     state,
-    toggleFields,
-    tokenFrom,
-    tokenTo,
-  } = useSwap(slippage);
+    isSubmitDisabled,
+    isInitialized,
+    isValid,
+  } = useAddLiquidity(slippage, tokenAInit, tokenBInit);
 
   return (
     <>
@@ -52,31 +54,25 @@ export function Swap() {
                 display="flex"
               >
                 <Typography textAlign="center" variant="h6" component="h6">
-                  Swap
+                  Add Liquidity
                 </Typography>
                 <Stack direction={"row"}>
                   <TokenField
-                    token={tokenFrom}
+                    token={tokenA}
                     onFocus={setFocus}
                     focusLabel="from"
-                    assets={assetsTokenFrom}
+                    assets={assetsTokenA}
                   />
                 </Stack>
                 <Box>
-                  <IconButton
-                    onClick={toggleFields}
-                    color="primary"
-                    component="span"
-                  >
-                    <SwapVertIcon />
-                  </IconButton>
+                  <PlusIcon />
                 </Box>
                 <Stack direction={"row"}>
                   <TokenField
                     focusLabel="to"
                     onFocus={setFocus}
-                    token={tokenTo}
-                    assets={assetsTokenTo}
+                    token={tokenB}
+                    assets={assetsTokenB}
                   />
                 </Stack>
 
@@ -87,12 +83,11 @@ export function Swap() {
                   variant="contained"
                   onClick={onSendSubmit}
                 >
-                  Swap
+                  Add Liquidity
                 </Button>
-                {!poolExists && poolPairSelected && (
-                  <Alert severity="error">
-                    There is no pool available for this pair
-                  </Alert>
+
+                {isValid && !isInitialized && (
+                  <Alert severity="info">Pool is not initialized!</Alert>
                 )}
               </Box>
             </Paper>
@@ -104,25 +99,24 @@ export function Swap() {
       </Box>
 
       {/* modals */}
-      {tokenFrom.asset && tokenTo.asset && (
-        <SwapPreviewModal
-          open={state.value === States.PREVIEW}
-          fromAmount={tokenFrom.amount}
-          fromAsset={tokenFrom.asset}
-          toAmount={tokenTo.amount}
-          toAsset={tokenTo.asset}
+      {tokenA.asset && tokenB.asset && (
+        <AddLiquidityPreviewModal
+          open={state.matches(States.PREVIEW)}
+          tokenAAmount={tokenA.amount}
+          tokenAAsset={tokenA.asset}
+          tokenBAmount={tokenB.amount}
+          tokenBAsset={tokenB.asset}
           handleClose={onSendCancel}
           handleSubmit={onSendSubmit}
-          minimumAmountOut={minimumAmountOut}
         />
       )}
-      <SwapProcessModal open={state.matches(States.PROCESS)} />
-      <SwapErrorModal
+      <AddLiquidityProcessModal open={state.matches(States.PROCESS)} />
+      <AddLiquidityErrorModal
         error={state.matches(States.ERROR) ? state.context.error : ""}
         open={state.matches(States.ERROR)}
         onClose={onSendCancel}
       />
-      <SwapSuccessModal
+      <AddLiquiditySuccessModal
         open={state.matches(States.DONE)}
         onClose={onSendCancel}
       />
