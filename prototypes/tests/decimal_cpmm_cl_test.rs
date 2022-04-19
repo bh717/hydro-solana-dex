@@ -466,7 +466,7 @@ mod tests {
         let deposited = pool.glbl_liq();
 
         // no adjustements whatsoever during whole process (deposit, swap and withdrawal)
-        if Pool::adj_withdrawal().is_zero() {
+        if Pool::ADJ_WITHDRAWAL.is_zero() {
             pool.execute_swap_from_x(Decimal::from_u64(20).to_compute_scale(), zero);
 
             pool.withdraw("dude", deposited, rpa, rpb);
@@ -481,7 +481,7 @@ mod tests {
         }
 
         // conservative adjustements at  withdrawal)
-        if Pool::adj_withdrawal()
+        if Pool::ADJ_WITHDRAWAL
             .eq(Decimal::new(1, COMPUTE_SCALE, false).to_compute_scale())
             .unwrap()
         {

@@ -234,7 +234,7 @@ mod tests {
                 .unwrap()
                 .is_positive());
 
-            if Pool::adj_withdrawal().is_positive() {
+            if Pool::ADJ_WITHDRAWAL.is_positive() {
                 hmm_feed.withdraw("abc", pool_liq, rpa, rpb);
 
                 // after withdrawal, fee pots are empty (transferred to LP along with assets) ===> close to zero due to adj_withdrawal

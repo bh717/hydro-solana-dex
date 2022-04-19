@@ -614,7 +614,7 @@ impl<'a> Pool<'a> {
         let mut y_out = Pool::y_from_l_rp_rng(liq, rp_used, rpa_used, rpb_used);
 
         // round down amount withdrawn if necessary, as precation
-        let adj_factor = Self::one().sub(Self::adj_withdrawal()).unwrap();
+        let adj_factor = Self::one().sub(Self::ADJ_WITHDRAWAL).unwrap();
         x_out = x_out.mul(adj_factor);
         y_out = y_out.mul(adj_factor);
 

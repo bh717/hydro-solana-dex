@@ -8,10 +8,11 @@ pub trait PoolMath {
 
     const FLOOR_LIQ: bool = false; //* no longer needed in PreciseNumber setting
 
-    fn adj_withdrawal() -> Decimal {
-        //* still NEEDED for rounding down withdrawals, avoid out_qty > reserve by tiny amt
-        Decimal::new(1, 12, false).to_compute_scale()
-    }
+    const ADJ_WITHDRAWAL: Decimal = Decimal {
+        value: 1,
+        scale: COMPUTE_SCALE,
+        negative: false,
+    }; //* still NEEDED for rounding down withdrawals, avoid out_qty > reserve by tiny amt
 
     fn zero() -> Decimal {
         Decimal::default().to_compute_scale()
