@@ -36,8 +36,7 @@ pub trait PoolMath {
     }
 
     fn tick_to_rp(tick: u128) -> Decimal {
-        // Self::tick_base().pow(tick as u128).sqrt().unwrap()
-        Self::tick_base_root().pow(tick as u128)
+        Self::tick_base_root().pow(tick)
     }
 
     fn rp_to_tick(rp: Decimal, left_to_right: bool) -> u128 {
@@ -57,11 +56,11 @@ pub trait PoolMath {
             rez = rez.mul(m);
             if rez.gte(rp).unwrap() {
                 match left_to_right {
-                    true => break x + 1,
+                    true => break x.checked_add(1).unwrap(),
                     false => break x,
                 }
             }
-            x = x + 1;
+            x = x.checked_add(1).unwrap();
         };
         result
     }
@@ -92,8 +91,8 @@ pub trait PoolMath {
         // x * rpa * rpb / (rpb - rpa) //* should always be positive
 
         let rpb_minus_rpa = rpb.sub(rpa).unwrap();
-        if rpb_minus_rpa.negative {
-            panic!("liq_x_only:rpb_minus_rpa should always be positive");
+        if rpb_minus_rpa.is_negative() || rpb_minus_rpa.is_zero() {
+            panic!("liq_x_only:rpb should be greater than rpa");
         }
         x.mul(rpa).mul(rpb).div(rpb_minus_rpa)
     }
@@ -104,6 +103,9 @@ pub trait PoolMath {
         //    y : token y real reserves;  rPa,rPb : range lower (upper) bound in root price
         // y / (rpb - rpa)
         let rpb_minus_rpa = rpb.sub(rpa).unwrap();
+        if rpb_minus_rpa.is_negative() || rpb_minus_rpa.is_zero() {
+            panic!("liq_x_only:rpb should be greater than rpa");
+        }
         y.div(rpb_minus_rpa)
     }
 
@@ -144,7 +146,9 @@ pub trait PoolMath {
     fn x_from_l_rp_rng(l: Decimal, rp: Decimal, rpa: Decimal, rpb: Decimal) -> Decimal {
         // calculate X amount from L, price and bounds
         // if the price is outside the range, use range endpoints instead [11]
-
+        if rp.is_zero() || rpb.is_zero() || rpa.is_zero() {
+            panic!("root price should not be nil");
+        }
         let rp = rp.min(rpb).max(rpa);
 
         let rpb_minus_rp = rpb.sub(rp).unwrap();
@@ -169,8 +173,8 @@ pub trait PoolMath {
 
         // l * (rp - rpa) //* should always be positive
         let rp_minus_rpa = rp.sub(rpa).unwrap();
-        if rp_minus_rpa.negative {
-            panic!("liq_x_only:rpb_minus_rpa should always be positive");
+        if rp_minus_rpa.is_negative() {
+            panic!("y_from_l_rp_rng: rp should be greater than or equal to rpa");
         }
         l.mul(rp_minus_rpa)
     }
@@ -186,9 +190,12 @@ pub trait PoolMath {
     fn rpa_from_l_rp_y(l: Decimal, rp: Decimal, y: Decimal) -> Decimal {
         // lower bound from L, price and y amount [13]
         // rp - (y / l)
+        if l.is_zero() {
+            panic!("rpa_from_l_rp_y : liquidity should not be nil")
+        }
         let y_div_l = y.div(l);
         let rez = rp.sub(y_div_l).unwrap();
-        if rez.negative {
+        if rez.is_negative() {
             panic!("rpa_from_l_rp_y : rp - (y/l) should always be positive");
         }
         rez
@@ -199,9 +206,12 @@ pub trait PoolMath {
         // l * rp / (l - rp * x)
         let rp_mul_x = rp.mul(x);
         let denom = l.sub(rp_mul_x).unwrap();
+        if denom.is_zero() {
+            panic!("rpb_from_l_rp_x : l - (rp * x) should not be nil");
+        }
 
         let rez = l.mul(rp).div(denom);
-        if rez.negative {
+        if rez.is_negative() {
             panic!("rpb_from_l_rp_x : (l - rp * x) should always be positive");
         }
         rez
@@ -211,12 +221,15 @@ pub trait PoolMath {
         // lower bound from x, y amounts, price and upper bound [15]
         // y / (rpb * x) + rp - y / (rp * x)
         let rpb_mul_x = rpb.mul(x);
+        if rpb_mul_x.is_zero() {
+            panic!("rpa_from_x_y_rp_rpb : (rp * x) should not be nil");
+        }
         let first_term = y.div(rpb_mul_x);
         let rp_mul_x = rp.mul(x);
         let last_term = y.div(rp_mul_x);
 
         let rez = first_term.add(rp).unwrap().sub(last_term).unwrap();
-        if rez.negative {
+        if rez.is_negative() {
             panic!(
                 "rpa_from_x_y_rp_rpb : y / (rpb * x) + rp - y / (rp * x) should always be positive"
             );
@@ -229,14 +242,14 @@ pub trait PoolMath {
         // (rp * y) / ((rpa - rp) * rp * x + y)
         let numer = rp.mul(y);
         let rp_minus_rpa = rp.sub(rpa).unwrap();
-        if rp_minus_rpa.negative {
+        if rp_minus_rpa.is_negative() {
             panic!("rpb_from_x_y_rp_rpa: rpb_minus_rpa should always be positive");
         }
         let d1 = rp_minus_rpa.mul(rp).mul(x); // d1 shoud be positive
 
         let denom = y.sub(d1).unwrap();
-        if rp_minus_rpa.negative {
-            panic!("rpb_from_x_y_rp_rpa: denom should always be positive");
+        if denom.is_negative() || denom.is_zero() {
+            panic!("rpb_from_x_y_rp_rpa: denom (rpa - rp) * rp * x + y) should always be positive");
         }
         numer.div(denom)
     }
@@ -246,6 +259,9 @@ pub trait PoolMath {
         // l * (1.0 / rp_new - 1.0 / rp_old) = l * (rp_old - rp_new) / (rp_old * rp_new)
         //? this way of calculating needs to be consistent with x_from_l_rp_rng
         //? so use latter (single division) not former with inverses
+        if rp_old.is_zero() || rp_new.is_zero() {
+            panic!("root price should not be nil");
+        }
         let diff = rp_old.sub(rp_new).unwrap();
         let old_mul_new = rp_old.mul(rp_new);
 
@@ -279,6 +295,9 @@ pub trait PoolMath {
             let ln_rp_new = rp_new.ln().unwrap();
             let log_of_ratio = ln_rp_old.sub(ln_rp_new).unwrap();
 
+            if rp_oracle.is_zero() {
+                panic!("dx_from_l_drp_hmm called with zero oracle price");
+            }
             return l.div(rp_oracle).mul(log_of_ratio);
         } else {
             // let omc = 1.0 - c; // one minus c
@@ -310,6 +329,9 @@ pub trait PoolMath {
         }
         if rp_old.eq(rp_new).unwrap() {
             return Self::zero();
+        }
+        if rp_old.is_zero() || rp_new.is_zero() {
+            panic!("root-prices should not be nil");
         }
         if c.to_compute_scale().eq(one).unwrap() {
             // l * rp_oracle * (rp_old / rp_new).ln()
@@ -344,10 +366,13 @@ pub trait PoolMath {
 
         let numerator = l.mul(rp_old);
         let denom = dx.mul(rp_old).add(l).unwrap();
+        if denom.is_zero() {
+            panic!("rp_new_from_l_dx : (dx*rp_old + l) should not be nil");
+        }
 
         let rez = numerator.div(denom);
-        if rez.negative {
-            panic!("rp_new_from_l_dx : should always be positive");
+        if rez.is_negative() {
+            panic!("rp_new_from_l_dx : result rp should always be positive");
         }
         rez
     }
@@ -355,8 +380,11 @@ pub trait PoolMath {
     fn rp_new_from_l_dy(l: Decimal, rp_old: Decimal, dy: Decimal) -> Decimal {
         // new price based of change of reserve y //*always positive
         // dy / l + rp_old
+        if l.is_zero() {
+            panic!("rp_new_from_l_dy: liquidity should not be nil")
+        }
         let rez = dy.div(l).add(rp_old).unwrap();
-        if rez.negative {
+        if rez.is_negative() {
             panic!("rp_new_from_l_dy : should always be positive");
         }
         rez
