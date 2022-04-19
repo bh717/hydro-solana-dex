@@ -13,7 +13,7 @@ type KeyOrGetter = Getter<PublicKey> | PublicKey;
 
 export function AccountLoader<T>(
   ctx: Ctx,
-  getter: KeyOrGetter,
+  getter: KeyOrGetter, // TODO: do we ever use the getter version of account loader? if not this should be a key
   accountParser: Parser<T>
 ): IAccountLoader<T> {
   const getKey =
@@ -21,7 +21,6 @@ export function AccountLoader<T>(
 
   async function info(commitment?: Commitment) {
     const key = await getKey();
-
     let info = await ctx.connection.getAccountInfo(key, commitment);
     if (info === null) {
       throw new Error("info couldnt be fetched for " + key.toString());
@@ -35,8 +34,12 @@ export function AccountLoader<T>(
   }
 
   async function isInitialized() {
-    const inf = await info();
-    return !!inf;
+    try {
+      const inf = await info();
+      return !!inf;
+    } catch (err) {
+      return false;
+    }
   }
 
   return {
@@ -91,8 +94,6 @@ export function AccountLoader<T>(
           id = ctx.connection.onAccountChange(
             pubkey,
             async (rawAccount: AccountInfo<Buffer> | null) => {
-              console.log("Stream received data..." + rawAccount);
-
               if (rawAccount) {
                 const account = {
                   ...rawAccount,

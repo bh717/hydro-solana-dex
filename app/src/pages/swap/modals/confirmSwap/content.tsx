@@ -1,11 +1,11 @@
-import React, { FC, useState, useEffect } from "react";
+import { FC } from "react";
 import { makeStyles } from "@mui/styles";
 import { Box, Typography, Button } from "@mui/material";
-import cn from "classnames";
 
-import { ArrowDown, Compare, Warning } from "../../../../components/icons";
-import { Asset } from "../../../../interfaces";
-import { normalizeBalance } from "../../../../helpers/normalize";
+import HYSD from "../../../../assets/images/symbols/hysd.png";
+import { ArrowDown } from "../../../../components/icons";
+import { Asset } from "../../../../types";
+import { toFormat } from "../../../../utils/toFormat";
 
 const useStyles = makeStyles({
   title: {
@@ -30,6 +30,17 @@ const useStyles = makeStyles({
         flexGrow: 1,
         padding: "0 10px",
       },
+    },
+  },
+  assetImgWrapper: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "36px",
+    height: "36px",
+    "& img": {
+      maxWidth: "100%",
+      maxHeight: "100%",
     },
   },
   svgArrowDown: {
@@ -147,11 +158,9 @@ const useStyles = makeStyles({
 
 interface ContentProps {
   fromAsset: Asset;
-  fromAmount: number;
+  fromAmount: bigint;
   toAsset: Asset;
-  toAmount: number;
-  swapRate: number;
-  slippage: string;
+  toAmount: bigint;
   onApprove(): void;
 }
 
@@ -160,45 +169,53 @@ const Content: FC<ContentProps> = ({
   fromAmount,
   toAsset,
   toAmount,
-  swapRate,
-  slippage,
   onApprove,
 }) => {
   const classes = useStyles();
 
-  const [rateUpdated, setRateUpdated] = useState(false);
+  // const [rateUpdated, setRateUpdated] = useState(false);
 
-  useEffect(() => {
-    checkRate();
-  });
+  // useEffect(() => {
+  //   checkRate();
+  // });
 
-  const checkRate = () => {
-    setTimeout(() => {
-      setRateUpdated(true);
-    }, 10000);
-  };
+  // const checkRate = () => {
+  //   setTimeout(() => {
+  //     setRateUpdated(true);
+  //   }, 10000);
+  // };
 
-  const acceptPrice = () => {
-    setRateUpdated(false);
-    checkRate();
-  };
+  // const acceptPrice = () => {
+  //   setRateUpdated(false);
+  //   checkRate();
+  // };
 
   return (
     <>
       <Typography className={classes.title}>Confirm Swap</Typography>
       <Box className={classes.assetsWrapper}>
         <Box className={classes.assetRow}>
-          <img src={fromAsset.icon} alt="Asset" />
-          <Typography>{normalizeBalance(fromAmount)}</Typography>
+          <span className={classes.assetImgWrapper}>
+            <img
+              src={fromAsset.name.includes("HYD") ? HYSD : fromAsset.logoURI}
+              alt="Asset"
+            />
+          </span>
+          <Typography>{toFormat(fromAmount, fromAsset.decimals)}</Typography>
           <Typography>{fromAsset.symbol}</Typography>
         </Box>
         <ArrowDown className={classes.svgArrowDown} />
         <Box className={classes.assetRow}>
-          <img src={toAsset.icon} alt="Asset" />
-          <Typography>{normalizeBalance(toAmount)}</Typography>
+          <span className={classes.assetImgWrapper}>
+            <img
+              src={toAsset.name.includes("HYD") ? HYSD : toAsset.logoURI}
+              alt="Asset"
+            />
+          </span>
+          <Typography>{toFormat(toAmount, toAsset.decimals)}</Typography>
           <Typography>{toAsset.symbol}</Typography>
         </Box>
-        {rateUpdated && (
+        {/* {rateUpdated && (
           <Box className={classes.priceUpdate}>
             <Warning className={classes.badPrice} />
             <Typography className={classes.badPrice}>Price Updated</Typography>
@@ -206,9 +223,9 @@ const Content: FC<ContentProps> = ({
               Accept
             </Button>
           </Box>
-        )}
+        )} */}
       </Box>
-      <Box className={classes.priceDetail}>
+      {/* <Box className={classes.priceDetail}>
         <Typography className={cn(classes.detailTitle, classes.goodPrice)}>
           Fair Price
         </Typography>
@@ -249,12 +266,8 @@ const Content: FC<ContentProps> = ({
             <span>Slippage: {slippage}%</span>
           </Typography>
         </Box>
-      </Box>
-      <Button
-        className={classes.confirmButton}
-        disabled={rateUpdated}
-        onClick={onApprove}
-      >
+      </Box> */}
+      <Button className={classes.confirmButton} onClick={onApprove}>
         Confirm Swap
       </Button>
     </>

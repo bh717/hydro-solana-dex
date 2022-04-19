@@ -1,15 +1,19 @@
 import { TextField } from "@mui/material";
 import React, { useCallback, useState } from "react";
 
+type NumericFieldProps = {
+  onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
+  value: number;
+  onChange?: (value: number) => void;
+  fullWidth?: boolean;
+};
+
 export function NumericField({
   value,
   onFocus,
   onChange,
-}: {
-  onFocus: (e: React.FocusEvent<HTMLInputElement>) => void;
-  value: number;
-  onChange: (value: number) => void;
-}) {
+  fullWidth = true,
+}: NumericFieldProps) {
   const [draftMode, setDraftMode] = useState(false);
   const [localState, setLocalState] = useState("0");
   const [error, setError] = useState("");
@@ -23,7 +27,7 @@ export function NumericField({
       setLocalState(allowedString);
       const num = Number(allowedString);
       if (!isNaN(num)) {
-        onChange(num);
+        onChange && onChange(num);
       }
     },
     [onChange]
@@ -36,7 +40,7 @@ export function NumericField({
         setError("Number is not valid");
         return;
       }
-      onChange(num);
+      onChange && onChange(num);
       setDraftMode(false);
       setLocalState(value.toString());
     },
@@ -47,14 +51,14 @@ export function NumericField({
     (e: React.FocusEvent<HTMLInputElement>) => {
       setDraftMode(true);
       if (!error) setLocalState(`${value}`);
-      onFocus(e);
+      onFocus && onFocus(e);
     },
     [value, onFocus, error]
   );
 
   return (
     <TextField
-      fullWidth
+      fullWidth={fullWidth}
       error={!!error}
       value={draftMode ? localState : value.toString()}
       onChange={handleChange}

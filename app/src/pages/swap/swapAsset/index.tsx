@@ -1,13 +1,16 @@
-import React, { FC, useState, useEffect } from "react";
+import React, { FC } from "react";
 import { makeStyles } from "@mui/styles";
-import { Box, Button, IconButton, InputBase, Typography } from "@mui/material";
+import { Box, Button, IconButton, Typography } from "@mui/material";
 import { useWallet } from "@solana/wallet-adapter-react";
-import cn from "classnames";
+// import cn from "classnames";
 
-import { Exchange, Compare } from "../../../components/icons";
+import { Exchange, Warning } from "../../../components/icons";
+import NumericField from "../../../components/numericField";
 import SelectAsset from "../selectAsset";
-import { Asset } from "../../../interfaces";
-import { normalizeBalance } from "../../../helpers/normalize";
+import { TokenField } from "../hooks/useToken";
+import { Asset, AssetBalance } from "../../../types";
+import { toFormat } from "../../../utils/toFormat";
+import { fromFormat } from "../../../utils/fromFormat";
 
 const useStyles = makeStyles({
   swapContainer: {
@@ -39,16 +42,6 @@ const useStyles = makeStyles({
     display: "flex",
     alignItems: "center",
     padding: "8px",
-  },
-  baseInput: {
-    flexGrow: 1,
-    padding: "0 8px",
-    "& input": {
-      color: "#FFF",
-      padding: 0,
-      fontSize: "16px",
-      fontWeight: "500",
-    },
   },
   maxButton: {
     color: "#FFFFFFA6",
@@ -131,6 +124,21 @@ const useStyles = makeStyles({
   badPrice: {
     color: "#EFBF13",
   },
+  poolStatus: {
+    display: "flex",
+    alignItems: "center",
+    marginTop: "24px",
+    width: "100%",
+    "& > p": {
+      flexGrow: 1,
+      fontSize: "14px !important",
+      lineHeight: "17px !important",
+      padding: "0 6px !important",
+    },
+  },
+  noPool: {
+    color: "#F64949",
+  },
   swapButton: {
     background:
       "linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%) !important",
@@ -150,64 +158,44 @@ const useStyles = makeStyles({
 });
 
 interface SwapAssetProps {
-  fromAsset: Asset;
-  fromAmount: number;
-  toAsset: Asset;
-  toAmount: number;
+  fromAsset: TokenField;
+  toAsset: TokenField;
   changeAsset(type: string): void;
-  changeAmount(type: string, amount: number): void;
-  swapRate: number;
-  exchange(): void;
+  balances: AssetBalance;
+  assetFocus(focus: "from" | "to"): void;
+  exchangeAsset(): void;
+  canSwap: boolean;
+  poolExits: boolean;
+  poolPairSelected?: Asset;
   confirmSwap(): void;
   walletConnect(): void;
 }
 
 const SwapAsset: FC<SwapAssetProps> = ({
   fromAsset,
-  fromAmount,
   toAsset,
-  toAmount,
   changeAsset,
-  changeAmount,
-  swapRate,
-  exchange,
+  balances,
+  assetFocus,
+  exchangeAsset,
+  canSwap,
+  poolExits,
+  poolPairSelected,
   confirmSwap,
   walletConnect,
 }) => {
   const classes = useStyles();
 
   const { connected } = useWallet();
-  const [showPriceDetail, setShowPriceDetail] = useState(true);
+  // const [showPriceDetail, setShowPriceDetail] = useState(true);
 
-  useEffect(() => {
-    if (fromAmount && toAmount) setShowPriceDetail(true);
-    else setShowPriceDetail(false);
-  }, [fromAmount, toAmount]);
-
-  const handleFromAmountChange = (value: string) => {
-    if (fromAsset.symbol) changeAmount("From", Number(value));
-
-    if (toAsset.symbol) {
-      const tempToAmount = Number(value) * swapRate;
-      changeAmount("To", tempToAmount);
-    } else {
-      changeAmount("To", 0);
-    }
-  };
-
-  const handleToAmountChange = (value: string) => {
-    if (toAsset.symbol) changeAmount("To", Number(value));
-
-    if (fromAsset.symbol) {
-      const tempFromAmount = Number(value) / swapRate;
-      changeAmount("From", tempFromAmount);
-    } else {
-      changeAmount("From", 0);
-    }
-  };
+  // useEffect(() => {
+  //   if (fromAmount && toAmount) setShowPriceDetail(true);
+  //   else setShowPriceDetail(false);
+  // }, [fromAmount, toAmount]);
 
   const SwapButtonContent = () => {
-    if (!fromAsset.symbol || !toAsset.symbol) return "Select a token";
+    if (!fromAsset.asset || !toAsset.asset) return "Select a token";
     return "Approve";
   };
 
@@ -219,17 +207,19 @@ const SwapAsset: FC<SwapAssetProps> = ({
             <Box className={classes.assetDetail}>
               <Typography>From</Typography>
               <Typography>
-                Balance: {normalizeBalance(fromAsset.balance)}
+                Balance:{" "}
+                {fromAsset.asset ? balances[fromAsset.asset.address] : ""}
               </Typography>
             </Box>
             <Box className={classes.assetInput}>
-              <InputBase
-                className={classes.baseInput}
-                value={fromAmount}
-                placeholder="0"
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  handleFromAmountChange(event.target.value)
-                }
+              <NumericField
+                value={toFormat(fromAsset.amount, fromAsset.asset?.decimals)}
+                onChange={(value: number) => {
+                  fromAsset.setAmount(
+                    fromFormat(value, fromAsset.asset?.decimals)
+                  );
+                }}
+                onFocus={() => assetFocus("from")}
               />
               <span className={classes.maxButton}>Max</span>
               <SelectAsset
@@ -238,24 +228,26 @@ const SwapAsset: FC<SwapAssetProps> = ({
               />
             </Box>
           </Box>
-          <IconButton className={classes.exchangeButton} onClick={exchange}>
+          <IconButton
+            className={classes.exchangeButton}
+            onClick={exchangeAsset}
+          >
             <Exchange />
           </IconButton>
           <Box>
             <Box className={classes.assetDetail}>
               <Typography>To</Typography>
               <Typography>
-                Balance: {normalizeBalance(toAsset.balance)}
+                Balance: {toAsset.asset ? balances[toAsset.asset.address] : ""}
               </Typography>
             </Box>
             <Box className={classes.assetInput}>
-              <InputBase
-                className={classes.baseInput}
-                value={toAmount}
-                placeholder="0"
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  handleToAmountChange(event.target.value)
-                }
+              <NumericField
+                value={toFormat(toAsset.amount, toAsset.asset?.decimals)}
+                onChange={(value: number) => {
+                  toAsset.setAmount(fromFormat(value, toAsset.asset?.decimals));
+                }}
+                onFocus={() => assetFocus("to")}
               />
               <SelectAsset
                 asset={toAsset}
@@ -264,7 +256,15 @@ const SwapAsset: FC<SwapAssetProps> = ({
             </Box>
           </Box>
         </Box>
-        {showPriceDetail && (
+        {!poolExits && poolPairSelected && (
+          <Box className={classes.poolStatus}>
+            <Warning className={classes.noPool} />
+            <Typography className={classes.noPool}>
+              There is no pool available for this pair
+            </Typography>
+          </Box>
+        )}
+        {/* {showPriceDetail && (
           <Box className={classes.priceDetail}>
             <Box className={classes.priceStatus}>
               <Typography className={cn(classes.statusType, classes.goodPrice)}>
@@ -292,15 +292,16 @@ const SwapAsset: FC<SwapAssetProps> = ({
               </Typography>
             </Box>
           </Box>
-        )}
+        )} */}
         {connected ? (
           <Button
             className={classes.swapButton}
             disabled={
-              !fromAsset.symbol ||
-              !toAsset.symbol ||
-              fromAmount <= 0 ||
-              toAmount <= 0
+              !fromAsset.asset ||
+              !toAsset.asset ||
+              fromAsset.amount <= 0 ||
+              toAsset.amount <= 0 ||
+              !canSwap
             }
             onClick={confirmSwap}
           >
