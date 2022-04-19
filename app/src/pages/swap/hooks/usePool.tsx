@@ -1,14 +1,15 @@
 import { IAccountLoader } from "hydra-ts/src/utils/account-loader";
 import { useEffect, useMemo, useState } from "react";
-import { useObservable } from "./useObservable";
-import { maybeStream } from "../utils/maybeStream";
+import { useObservable } from "../../../hooks/useObservable";
+import { maybeStream } from "../../../utils/maybeStream";
 import { HydraSDK } from "hydra-ts";
 import { PublicKey } from "@solana/web3.js";
 import { TokenMint } from "hydra-ts/src/types/token-mint";
-import { PromiseVal } from "../types";
+import { PromiseVal } from "../../../types";
 
 function useAccountStream<T>(loader?: IAccountLoader<T>) {
   const memoizedStream = useMemo(() => {
+    // @ts-ignore:next-line
     return maybeStream(loader?.stream());
   }, [loader]);
 

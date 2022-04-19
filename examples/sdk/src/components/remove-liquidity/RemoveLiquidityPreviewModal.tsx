@@ -6,22 +6,20 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { toFormat } from "../utils/toFormat";
-import { Asset } from "../types";
+import { Asset } from "../../types";
+import { Box } from "@mui/system";
 
-export function SwapPreviewModal({
+export function RemoveLiquidityPreviewModal({
   open,
   handleClose,
-  fromAsset,
-  fromAmount,
-  toAmount,
-  toAsset,
+  tokenAAsset,
+  percent,
+  tokenBAsset,
   handleSubmit,
 }: {
-  fromAsset: Asset;
-  fromAmount: bigint;
-  toAsset: Asset;
-  toAmount: bigint;
+  tokenAAsset: Asset;
+  tokenBAsset: Asset;
+  percent: bigint;
   open: boolean;
   handleClose: () => void;
   handleSubmit: () => void;
@@ -37,8 +35,11 @@ export function SwapPreviewModal({
       aria-labelledby="responsive-dialog-title"
     >
       <DialogTitle id="responsive-dialog-title">
-        Swap {toFormat(fromAmount, fromAsset.decimals)} {fromAsset.name} to{" "}
-        {toFormat(toAmount, toAsset.decimals)} {toAsset.name}
+        <Box>Remove liquidity</Box>
+        <Box>
+          Percent:
+          {percent} {tokenAAsset.symbol} / {tokenBAsset.symbol}
+        </Box>
       </DialogTitle>
 
       <DialogActions>
@@ -46,7 +47,7 @@ export function SwapPreviewModal({
           Cancel
         </Button>
         <Button onClick={handleSubmit} autoFocus>
-          Swap
+          Add Liquidity
         </Button>
       </DialogActions>
     </Dialog>

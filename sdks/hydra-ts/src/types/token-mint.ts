@@ -2,7 +2,6 @@ import { MintLayout } from "@solana/spl-token";
 import { AccountInfo, PublicKey } from "@solana/web3.js";
 
 export function Parser(info: AccountInfo<Buffer>): TokenMint {
-  console.log("TokenMintParser", info);
   return MintLayout.decode(info.data);
 }
 

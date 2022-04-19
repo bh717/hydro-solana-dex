@@ -1,3 +1,7 @@
+import { HydraSDK } from "hydra-ts";
+import { TokenMint } from "hydra-ts/src/types/token-mint";
+import { IAccountLoader } from "hydra-ts/src/utils/account-loader";
+
 export type PromiseVal<T> = T extends Promise<infer J> ? J : never;
 // From token-list
 export type Asset = {
@@ -7,4 +11,10 @@ export type Asset = {
   decimals: number;
   symbol: string;
   logoURI: string;
+};
+export type LiquidityPoolAccounts = PromiseVal<
+  ReturnType<HydraSDK["liquidityPools"]["accounts"]["getAccountLoaders"]>
+> & {
+  tokenXMint: IAccountLoader<TokenMint>;
+  tokenYMint: IAccountLoader<TokenMint>;
 };

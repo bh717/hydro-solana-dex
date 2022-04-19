@@ -2,97 +2,107 @@ import { Paper, Stack, Typography, Button, Alert } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
 import SwapVertIcon from "@mui/icons-material/SwapVert";
 import { TokenField } from "../components/TokenField";
-import { useSwap } from "../hooks/useSwap";
-import { SwapPreviewModal } from "../components/SwapPreviewModal";
-import { SwapProcessModal } from "../components/SwapProcessModal";
-import { SwapErrorModal } from "../components/SwapErrorModal";
-import { SwapSuccessModal } from "../components/SwapSuccessModal";
+import { useSwap } from "../hooks/swap/useSwap";
+import { SwapPreviewModal } from "../components/swap-modal/SwapPreviewModal";
+import { SwapProcessModal } from "../components/swap-modal/SwapProcessModal";
+import { SwapErrorModal } from "../components/swap-modal/SwapErrorModal";
+import { SwapSuccessModal } from "../components/swap-modal/SwapSuccessModal";
 import { Box } from "@mui/system";
 import { Balances } from "./Balances";
-import { States } from "../hooks/useSwapUIState";
+import { States } from "../hooks/swap/useSwapUIState";
+import { useSlippage } from "../hooks/useTokenForm";
+import { SlippageSelector } from "../components/SlippageSelector";
 
 export function Swap() {
+  // TODO: Extract slippage to global config
+  const { slippage, setSlippage } = useSlippage();
+
   const {
-    tokenFrom,
-    tokenTo,
     assetsTokenFrom,
     assetsTokenTo,
-    toggleFields,
+    isSubmitDisabled,
+    minimumAmountOut,
+    onSendCancel,
+    onSendSubmit,
     poolExists,
     poolPairSelected,
-    canSwap,
     setFocus,
-    onSendSubmit,
     state,
-    onSendCancel,
-  } = useSwap();
+    toggleFields,
+    tokenFrom,
+    tokenTo,
+  } = useSwap(slippage);
 
   return (
     <>
-      <Box
-        paddingTop={2}
-        gap={2}
-        display="flex"
-        flexDirection="row"
-        justifyContent={"space-between"}
-      >
-        <Box alignItems={"center"}>
-          <Paper sx={{ padding: 6, minWidth: 400 }}>
-            <Box
-              gap={2}
-              flexDirection="column"
-              textAlign={"center"}
-              display="flex"
-            >
-              <Typography textAlign="center" variant="h6" component="h6">
-                Swap
-              </Typography>
-              <Stack direction={"row"}>
-                <TokenField
-                  token={tokenFrom}
-                  onFocus={setFocus}
-                  focusLabel="from"
-                  assets={assetsTokenFrom}
-                />
-              </Stack>
-              <Box>
-                <IconButton
-                  onClick={toggleFields}
-                  color="primary"
-                  component="span"
-                >
-                  <SwapVertIcon />
-                </IconButton>
-              </Box>
-              <Stack direction={"row"}>
-                <TokenField
-                  focusLabel="to"
-                  onFocus={setFocus}
-                  token={tokenTo}
-                  assets={assetsTokenTo}
-                />
-              </Stack>
-
-              <Button
-                disabled={!canSwap}
-                fullWidth
-                size="large"
-                variant="contained"
-                onClick={onSendSubmit}
+      <Box flexDirection={"column"} display="flex" gap={2}>
+        <Box
+          paddingTop={2}
+          gap={2}
+          display="flex"
+          flexDirection="row"
+          justifyContent={"space-between"}
+        >
+          <Box alignItems={"center"}>
+            <Paper sx={{ padding: 6, minWidth: 400 }}>
+              <Box
+                gap={2}
+                flexDirection="column"
+                textAlign={"center"}
+                display="flex"
               >
-                Swap
-              </Button>
-              {!poolExists && poolPairSelected && (
-                <Alert severity="error">
-                  There is no pool available for this pair
-                </Alert>
-              )}
-            </Box>
-          </Paper>
-        </Box>
+                <Typography textAlign="center" variant="h6" component="h6">
+                  Swap
+                </Typography>
+                <Stack direction={"row"}>
+                  <TokenField
+                    token={tokenFrom}
+                    onFocus={setFocus}
+                    focusLabel="from"
+                    assets={assetsTokenFrom}
+                  />
+                </Stack>
+                <Box>
+                  <IconButton
+                    onClick={toggleFields}
+                    color="primary"
+                    component="span"
+                  >
+                    <SwapVertIcon />
+                  </IconButton>
+                </Box>
+                <Stack direction={"row"}>
+                  <TokenField
+                    focusLabel="to"
+                    onFocus={setFocus}
+                    token={tokenTo}
+                    assets={assetsTokenTo}
+                  />
+                </Stack>
 
-        <Balances />
+                <Button
+                  disabled={isSubmitDisabled}
+                  fullWidth
+                  size="large"
+                  variant="contained"
+                  onClick={onSendSubmit}
+                >
+                  Swap
+                </Button>
+                {!poolExists && poolPairSelected && (
+                  <Alert severity="error">
+                    There is no pool available for this pair
+                  </Alert>
+                )}
+              </Box>
+            </Paper>
+          </Box>
+
+          <Balances />
+        </Box>
+        <SlippageSelector slippage={slippage} onSelected={setSlippage} />
       </Box>
+
       {/* modals */}
       {tokenFrom.asset && tokenTo.asset && (
         <SwapPreviewModal
@@ -103,6 +113,7 @@ export function Swap() {
           toAsset={tokenTo.asset}
           handleClose={onSendCancel}
           handleSubmit={onSendSubmit}
+          minimumAmountOut={minimumAmountOut}
         />
       )}
       <SwapProcessModal open={state.matches(States.PROCESS)} />
