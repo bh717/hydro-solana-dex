@@ -121,6 +121,7 @@ input[type="number"] {
     -webkit-appearance: none;
     margin: 0;
   }
+  -moz-appearance: textfield;
 }
 
 @media screen and (min-width: 601px) {

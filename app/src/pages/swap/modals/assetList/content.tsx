@@ -2,8 +2,9 @@ import React, { FC, useEffect, useState } from "react";
 import { makeStyles } from "@mui/styles";
 import { Box, Typography, InputBase, IconButton } from "@mui/material";
 
-import { Asset } from "../../../../interfaces";
-import { normalizeBalance } from "../../../../helpers/normalize";
+import { Asset, AssetBalance } from "../../../../types";
+import HYSD from "../../../../assets/images/symbols/hysd.png";
+// import { normalizeBalance } from "../../../../helpers/normalize";
 
 const useStyles = makeStyles({
   title: {
@@ -48,10 +49,17 @@ const useStyles = makeStyles({
     justifyContent: "flex-start !important",
     textAlign: "left !important" as any,
     width: "100%",
+  },
+  buttonImgWrapper: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "30px",
+    height: "30px",
+    marginRight: "8px",
     "& img": {
-      width: "30px",
-      height: "30px",
-      marginRight: "8px",
+      maxWidth: "100%",
+      maxHeight: "100%",
     },
   },
   assetSymbol: {
@@ -84,9 +92,10 @@ const useStyles = makeStyles({
 interface ContentProps {
   assetList: Array<Asset>;
   setAsset(asset: Asset): void;
+  balances: AssetBalance;
 }
 
-const Content: FC<ContentProps> = ({ assetList, setAsset }) => {
+const Content: FC<ContentProps> = ({ assetList, setAsset, balances }) => {
   const classes = useStyles();
   const [search, setSearch] = useState("");
   const [filteredAssets, setFilteredAssets] = useState<Asset[]>([]);
@@ -120,10 +129,15 @@ const Content: FC<ContentProps> = ({ assetList, setAsset }) => {
               onClick={() => setAsset(asset)}
               disableRipple
             >
-              <img src={asset.icon} alt="Asset" />
+              <span className={classes.buttonImgWrapper}>
+                <img
+                  src={asset.symbol.includes("HYD") ? HYSD : asset.logoURI}
+                  alt="asset.symbol"
+                />
+              </span>
               <span className={classes.assetSymbol}>{asset.symbol}</span>
               <span className={classes.assetBalance}>
-                {normalizeBalance(asset.balance)}
+                {balances[asset.address]}
               </span>
             </IconButton>
           ))}
