@@ -660,7 +660,7 @@ impl<'a> Pool<'a> {
         // portion of swap execution occurring within 2 consecutive active ticks
         // + no writing to state to occurs here, just compute and return to caller
         let (done_dx, end_t, end_rp, cross, hmm_adj_y, fee_x);
-        let mut done_dy;
+        let done_dy;
 
         if dx.is_negative() {
             panic!("can only handle X being supplied to pool, dX>0");
@@ -711,7 +711,7 @@ impl<'a> Pool<'a> {
             }
         }
         // now figure out how much done_dY ( done Y quantity) and hmm_adj_Y (hmm related fee)
-        let mut done_dy_cpmm = Pool::dy_from_l_drp(liq, start_rp, end_rp);
+        let done_dy_cpmm = Pool::dy_from_l_drp(liq, start_rp, end_rp);
         if self.c.is_zero() || rp_oracle.is_zero() || rp_oracle.gte(start_rp).unwrap() {
             // also when rP_oracle is None (zero)
             // in cases where no oracle or no hmm c=0, we cannot adjust so we fall back to amm
@@ -738,11 +738,6 @@ impl<'a> Pool<'a> {
             // we don't expect to hit this. raise error if we do hit
             panic!("HMM adjstment: possibilities should have been exhausted by now");
         }
-
-        // adjust conservatively to avoid rounding issues.
-        let adj_factor = Self::one().sub(Self::adj_whole_fill()).unwrap();
-        done_dy = done_dy.mul(adj_factor);
-        done_dy_cpmm = done_dy_cpmm.mul(adj_factor);
 
         hmm_adj_y = done_dy.sub(done_dy_cpmm).unwrap();
 
@@ -927,7 +922,7 @@ impl<'a> Pool<'a> {
         // portion of swap execution occurring within 2 consecutive active ticks
         // + no writing to state to occurs here, just calc and return to caller
         let (done_dy, end_t, end_rp, cross, hmm_adj_x, fee_y);
-        let mut done_dx;
+        let done_dx;
 
         if dy.is_negative() {
             panic!("can only handle Y being supplied to pool, dY>0");
@@ -980,7 +975,7 @@ impl<'a> Pool<'a> {
             }
         }
         // now figure out how much done_dX and hmm_adj_X
-        let mut done_dx_cpmm = Pool::dx_from_l_drp(liq, start_rp, end_rp);
+        let done_dx_cpmm = Pool::dx_from_l_drp(liq, start_rp, end_rp);
 
         if self.c.is_zero() || rp_oracle.is_zero() || rp_oracle.lte(start_rp).unwrap() {
             // also also rP_oracle is None (zero)
@@ -1007,11 +1002,6 @@ impl<'a> Pool<'a> {
             //we don't expect to hit this branch raise error if we do hit
             panic!("HMM adjstment: possibilities should have been exhausted by now");
         }
-
-        // adjust to prevent rounding issues
-        let adj_factor = Self::one().sub(Self::adj_whole_fill()).unwrap();
-        done_dx = done_dx.mul(adj_factor);
-        done_dx_cpmm = done_dx_cpmm.mul(adj_factor);
 
         hmm_adj_x = done_dx.sub(done_dx_cpmm).unwrap();
 

@@ -61,30 +61,28 @@ mod tests {
         // println!("{:#?}", pool.x_info());
         // println!("{:#?}", pool.y_info());
 
-        if Pool::adj_whole_fill().is_zero() {
-            // without liq flooring
-            assert_eq!(
-                rez.recv_amount(),
-                Decimal::new(2_449955017843, COMPUTE_SCALE, false)
-            ); // float 2.4499546960008143_f64, PN 2_449954700443
-            assert_eq!(
-                rez.send_amount(),
-                Decimal::new(3999_999999999996, COMPUTE_SCALE, true)
-            ); // float  -4000_f64, PN 3999_999999999998
-            assert_eq!(
-                x,
-                Decimal::new(1_999275813881, COMPUTE_SCALE, false) // from preceding test
-                    .add(rez.recv_amount())
-                    .unwrap()
-            );
-            assert_eq!(
-                y,
-                Decimal::new(3999_999999999996, COMPUTE_SCALE, false) // from preceding test
-                    .add(rez.send_amount())
-                    .unwrap()
-            );
-            assert!(y.is_zero()); // entire amount of y in pool swapped
-        }
+        // without liq flooring
+        assert_eq!(
+            rez.recv_amount(),
+            Decimal::new(2_449955017843, COMPUTE_SCALE, false)
+        ); // float 2.4499546960008143_f64, PN 2_449954700443
+        assert_eq!(
+            rez.send_amount(),
+            Decimal::new(3999_999999999996, COMPUTE_SCALE, true)
+        ); // float  -4000_f64, PN 3999_999999999998
+        assert_eq!(
+            x,
+            Decimal::new(1_999275813881, COMPUTE_SCALE, false) // from preceding test
+                .add(rez.recv_amount())
+                .unwrap()
+        );
+        assert_eq!(
+            y,
+            Decimal::new(3999_999999999996, COMPUTE_SCALE, false) // from preceding test
+                .add(rez.send_amount())
+                .unwrap()
+        );
+        assert!(y.is_zero()); // entire amount of y in pool swapped
 
         assert_eq!(x_adj, zero);
         assert_eq!(x_fee, zero);
@@ -262,30 +260,28 @@ mod tests {
         let (x, x_adj, x_fee) = pool.x_info();
         let (y, y_adj, y_fee) = pool.y_info();
 
-        if Pool::adj_whole_fill().is_zero() {
-            // without liquidity 'flooring' during deposit
-            assert_eq!(
-                rez.send_amount(),
-                Decimal::new(1_999275813881, COMPUTE_SCALE, true)
-            ); // PN 1_999275547735
-            assert_eq!(
-                rez.recv_amount(),
-                Decimal::new(4896_836737493549, COMPUTE_SCALE, false)
-            ); // PN 4896_836754800713
-            assert_eq!(
-                x,
-                Decimal::new(1_999275813881, COMPUTE_SCALE, false) // from previous test
-                    .add(rez.send_amount())
-                    .unwrap()
-            );
-            assert_eq!(
-                y,
-                Decimal::new(3999_999999999996, COMPUTE_SCALE, false) // from previous test
-                    .add(rez.recv_amount())
-                    .unwrap()
-            );
-            assert!(x.is_zero()); // entire amount of X in pool swapped out
-        }
+        // without liquidity 'flooring' during deposit
+        assert_eq!(
+            rez.send_amount(),
+            Decimal::new(1_999275813881, COMPUTE_SCALE, true)
+        ); // PN 1_999275547735
+        assert_eq!(
+            rez.recv_amount(),
+            Decimal::new(4896_836737493549, COMPUTE_SCALE, false)
+        ); // PN 4896_836754800713
+        assert_eq!(
+            x,
+            Decimal::new(1_999275813881, COMPUTE_SCALE, false) // from previous test
+                .add(rez.send_amount())
+                .unwrap()
+        );
+        assert_eq!(
+            y,
+            Decimal::new(3999_999999999996, COMPUTE_SCALE, false) // from previous test
+                .add(rez.recv_amount())
+                .unwrap()
+        );
+        assert!(x.is_zero()); // entire amount of X in pool swapped out
 
         assert!(x_adj.is_zero());
         assert!(x_fee.is_zero());

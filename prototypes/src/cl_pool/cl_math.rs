@@ -8,10 +8,6 @@ pub trait PoolMath {
 
     const FLOOR_LIQ: bool = false; //* no longer needed in PreciseNumber setting
 
-    fn adj_whole_fill() -> Decimal {
-        //* no longer needed in PreciseNumber setting
-        Decimal::new(0, 12, false).to_compute_scale()
-    }
     fn adj_withdrawal() -> Decimal {
         //* still NEEDED for rounding down withdrawals, avoid out_qty > reserve by tiny amt
         Decimal::new(1, 12, false).to_compute_scale()
