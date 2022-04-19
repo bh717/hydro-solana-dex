@@ -17,6 +17,7 @@ import {
 } from "@solana/wallet-adapter-wallets";
 // import { clusterApiUrl } from '@solana/web3.js';
 
+import { HydraClientProvider } from "./components/hydraClientProvider";
 import { SvgGradient } from "./components/icons";
 import Sidebar from "./components/sidebar";
 import { WalletButton, WalletModal } from "./components/wallet";
@@ -128,58 +129,60 @@ function App() {
 
   return (
     <ConnectionProvider endpoint={"http://127.0.0.1:8899"}>
-      <WalletProvider wallets={wallets}>
-        <div className="layout">
-          <SvgGradient />
-          <Sidebar
-            openWalletModal={() => setOpenWalletModal(true)}
-            address={address}
-            rpc={currentRPC}
-            changeRPC={setCurrentRPC}
-            networks={networks}
-          />
-          <Box component="main" className="container">
-            <Box className={classes.walletWrapper}>
-              <WalletButton
-                openWalletModal={() => setOpenWalletModal(true)}
-                updateAddress={setAddress}
-              />
+      <WalletProvider wallets={wallets} autoConnect>
+        <HydraClientProvider>
+          <div className="layout">
+            <SvgGradient />
+            <Sidebar
+              openWalletModal={() => setOpenWalletModal(true)}
+              address={address}
+              rpc={currentRPC}
+              changeRPC={setCurrentRPC}
+              networks={networks}
+            />
+            <Box component="main" className="container">
+              <Box className={classes.walletWrapper}>
+                <WalletButton
+                  openWalletModal={() => setOpenWalletModal(true)}
+                  updateAddress={setAddress}
+                />
+              </Box>
+              <Box className={classes.contentWrapper}>
+                <Routes>
+                  {Config.swap_enabled && (
+                    <Route
+                      path="/swap"
+                      element={
+                        <Swap
+                          openWalletConnect={() => setOpenWalletModal(true)}
+                        />
+                      }
+                    />
+                  )}
+                  {Config.pools_enabled && (
+                    <Route path="/pools" element={<Pools />} />
+                  )}
+                  {Config.stake_enabled && (
+                    <Route
+                      path="/stake"
+                      element={
+                        <Stake
+                          openWalletConnect={() => setOpenWalletModal(true)}
+                        />
+                      }
+                    />
+                  )}
+                  <Route path="*" element={<Navigate replace to="/swap" />} />
+                </Routes>
+              </Box>
             </Box>
-            <Box className={classes.contentWrapper}>
-              <Routes>
-                {Config.swap_enabled && (
-                  <Route
-                    path="/swap"
-                    element={
-                      <Swap
-                        openWalletConnect={() => setOpenWalletModal(true)}
-                      />
-                    }
-                  />
-                )}
-                {Config.pools_enabled && (
-                  <Route path="/pools" element={<Pools />} />
-                )}
-                {Config.stake_enabled && (
-                  <Route
-                    path="/stake"
-                    element={
-                      <Stake
-                        openWalletConnect={() => setOpenWalletModal(true)}
-                      />
-                    }
-                  />
-                )}
-                <Route path="*" element={<Navigate replace to="/swap" />} />
-              </Routes>
-            </Box>
-          </Box>
-          <WalletModal
-            open={openWalletModal}
-            onClose={() => setOpenWalletModal(false)}
-            address={address}
-          />
-        </div>
+            <WalletModal
+              open={openWalletModal}
+              onClose={() => setOpenWalletModal(false)}
+              address={address}
+            />
+          </div>
+        </HydraClientProvider>
       </WalletProvider>
     </ConnectionProvider>
   );

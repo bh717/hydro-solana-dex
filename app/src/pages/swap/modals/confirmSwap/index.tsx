@@ -1,17 +1,15 @@
 import { FC } from "react";
 import Modal from "../../../../components/modal";
 import Content from "./content";
-import { Asset } from "../../../../interfaces";
+import { Asset } from "../../../../types";
 
 interface ConfirmSwapModalProps {
   open: boolean;
   onClose(): void;
   fromAsset: Asset;
-  fromAmount: number;
+  fromAmount: bigint;
   toAsset: Asset;
-  toAmount: number;
-  swapRate: number;
-  slippage: string;
+  toAmount: bigint;
   onApprove(): void;
 }
 
@@ -22,8 +20,6 @@ const ConfirmSwapModal: FC<ConfirmSwapModalProps> = ({
   fromAmount,
   toAsset,
   toAmount,
-  swapRate,
-  slippage,
   onApprove,
 }) => (
   <Modal
@@ -33,8 +29,6 @@ const ConfirmSwapModal: FC<ConfirmSwapModalProps> = ({
         fromAmount={fromAmount}
         toAsset={toAsset}
         toAmount={toAmount}
-        swapRate={swapRate}
-        slippage={slippage}
         onApprove={onApprove}
       />
     }
