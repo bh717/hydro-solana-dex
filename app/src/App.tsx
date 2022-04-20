@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { makeStyles } from "@mui/styles";
 import { Box } from "@mui/material";
@@ -6,16 +6,28 @@ import {
   ConnectionProvider,
   WalletProvider,
 } from "@solana/wallet-adapter-react";
-// import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
+import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import {
   LedgerWalletAdapter,
   PhantomWalletAdapter,
-  // SolletExtensionWalletAdapter,
-  // SolletWalletAdapter
+  SolletExtensionWalletAdapter,
+  SolletWalletAdapter,
   SolongWalletAdapter,
   BloctoWalletAdapter,
+  BitKeepWalletAdapter,
+  BitpieWalletAdapter,
+  CloverWalletAdapter,
+  Coin98WalletAdapter,
+  CoinhubWalletAdapter,
+  MathWalletAdapter,
+  GlowWalletAdapter,
+  SafePalWalletAdapter,
+  SlopeWalletAdapter,
+  SolflareWalletAdapter,
+  TokenPocketWalletAdapter,
+  TorusWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
-// import { clusterApiUrl } from '@solana/web3.js';
+import { clusterApiUrl } from "@solana/web3.js";
 
 import { HydraClientProvider } from "./components/hydraClientProvider";
 import { SvgGradient } from "./components/icons";
@@ -96,39 +108,55 @@ const networks = [
 function App() {
   const classes = useStyles();
 
+  const [address, setAddress] = useState("");
+  const [currentRPC, setCurrentRPC] = useState<RPC>({
+    name: "LocalNet RPC",
+    url: "http://localhost:8899",
+  });
+  const [openWalletModal, setOpenWalletModal] = useState(false);
+
   // Can be set to 'devnet', 'testnet', or 'mainnet-beta'
-  // const network = WalletAdapterNetwork.Devnet;
+  let network: any = undefined;
+  if (currentRPC.name === "LocalNet RPC") {
+    network = "localnet";
+  } else {
+    network = WalletAdapterNetwork.Devnet;
+  }
 
   // You can also provide a custom RPC endpoint
-  // const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+  const endpoint = useMemo(
+    () => (network === "localnet" ? currentRPC.url : clusterApiUrl(network)),
+    [currentRPC, network]
+  );
 
-  // @solana/wallet-adapter-wallets includes all the adapters but supports tree shaking --
+  // @solana/wallet-adapter-wallets LedgerWalletAdapterincludes all the adapters but supports tree shaking --
   // Only the wallets you configure here will be compiled into your application
   const wallets = useMemo(
     () => [
       new LedgerWalletAdapter(),
       new PhantomWalletAdapter(),
-      // new SolletExtensionWalletAdapter({ network }),
-      // new SolletWalletAdapter({ network })
+      new SolletExtensionWalletAdapter({ network }),
+      new SolletWalletAdapter({ network }),
       new SolongWalletAdapter(),
-      new BloctoWalletAdapter(),
+      new BloctoWalletAdapter({ network }),
+      new BitKeepWalletAdapter(),
+      new BitpieWalletAdapter(),
+      new CloverWalletAdapter(),
+      new Coin98WalletAdapter(),
+      new CoinhubWalletAdapter(),
+      new MathWalletAdapter(),
+      new GlowWalletAdapter(),
+      new SafePalWalletAdapter(),
+      new SlopeWalletAdapter(),
+      new SolflareWalletAdapter({ network }),
+      new TokenPocketWalletAdapter(),
+      new TorusWalletAdapter(),
     ],
-    []
+    [network]
   );
 
-  const [address, setAddress] = useState("");
-  const [currentRPC, setCurrentRPC] = useState<RPC>({
-    name: "",
-    url: "",
-  });
-  const [openWalletModal, setOpenWalletModal] = useState(false);
-
-  useEffect(() => {
-    setCurrentRPC(networks[4]);
-  }, []);
-
   return (
-    <ConnectionProvider endpoint={"http://127.0.0.1:8899"}>
+    <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>
         <HydraClientProvider>
           <div className="layout">
