@@ -1,5 +1,6 @@
 import React from "react";
 import { ConnectionProvider } from "@solana/wallet-adapter-react";
+import Cookies from "js-cookie";
 
 export enum Network {
   LOCALNET = "localnet",
@@ -24,7 +25,17 @@ export type NetworkLookupType = { [n in Network]: NetworkMeta };
 
 // Config
 const allowedNetworks = [Network.LOCALNET, Network.DEVNET];
-const defaultNetwork = allowedNetworks[0];
+
+function ensureAllowedNetwork(network?: string) {
+  if (!Object.values(Network).includes(network as Network)) {
+    throw new Error(`Network ${network} not supported`);
+  }
+  return network as Network;
+}
+
+const defaultNetwork = ensureAllowedNetwork(
+  Cookies.get("_hyd_network") ?? allowedNetworks[0]
+);
 
 // Map
 const NetworkLookup: NetworkLookupType = {
@@ -69,11 +80,19 @@ const NetworkProviderContext = React.createContext<NetworkApi>(defaultApi);
 export function NetworkProvider({ children }: { children: React.ReactNode }) {
   const [network, setNetwork] = React.useState(defaultNetwork);
 
-  const currentNetwork = React.useMemo(
-    () => createNetworkApi(network, setNetwork),
-    [network, setNetwork]
+  const handleNetworkSelected = React.useCallback(
+    (newNetwork: Network) => {
+      setNetwork(newNetwork);
+      Cookies.set("_hyd_network", newNetwork);
+    },
+    [setNetwork]
   );
-  console.log(currentNetwork);
+
+  const currentNetwork = React.useMemo(
+    () => createNetworkApi(network, handleNetworkSelected),
+    [network, handleNetworkSelected]
+  );
+
   return (
     <NetworkProviderContext.Provider value={currentNetwork}>
       <ConnectionProvider endpoint={currentNetwork.meta.endpoint}>
