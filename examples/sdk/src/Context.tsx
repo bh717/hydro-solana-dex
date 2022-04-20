@@ -5,7 +5,6 @@ import {
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import {
   PhantomWalletAdapter,
-  // SolletWalletAdapter,
   SolletExtensionWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 
