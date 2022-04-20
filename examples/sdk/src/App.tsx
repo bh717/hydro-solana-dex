@@ -19,7 +19,7 @@ import { TabPanel } from "./components/TabPanel";
 import { AddLiquidity } from "./pages/AddLiquidity";
 import { RemoveLiquidity } from "./pages/RemoveLiquidity";
 import { Pools } from "./pages/Pools";
-import { NetworkSelector } from "./components/NetworkSelector";
+import { NetworkDropdown } from "./components/NetworkDropdown";
 require("@solana/wallet-adapter-react-ui/styles.css");
 
 function App() {
@@ -60,7 +60,7 @@ function App() {
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
               Demo
             </Typography>
-            <NetworkSelector sx={{ flexGrow: 1 }} />
+            <NetworkDropdown />
             <WalletMultiButton />
           </Toolbar>
         </AppBar>

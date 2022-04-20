@@ -7,7 +7,7 @@ import {
 } from "@mui/material";
 import { Network, useNetworkProvider } from "./NetworkProvider";
 
-export function NetworkSelector(props: any) {
+export function NetworkDropdown(props: any) {
   const { networks, setNetwork, network } = useNetworkProvider();
 
   const handleChange = (event: SelectChangeEvent) => {
@@ -20,15 +20,8 @@ export function NetworkSelector(props: any) {
       sx={{ m: 1, minWidth: 120, background: "white" }}
       size="small"
     >
-      <InputLabel id="demo-select-small">Network</InputLabel>
-      <Select
-        {...props}
-        labelId="demo-simple-select-label"
-        id="demo-simple-select"
-        value={network}
-        label="Network"
-        onChange={handleChange}
-      >
+      <InputLabel>Network</InputLabel>
+      <Select value={network} label="Network" onChange={handleChange}>
         {networks.map(({ name, network }) => (
           <MenuItem key={network} value={network}>
             {name}
