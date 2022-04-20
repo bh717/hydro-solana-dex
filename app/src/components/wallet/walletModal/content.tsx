@@ -292,8 +292,8 @@ interface ContentProps {
 const Content: FC<ContentProps> = ({ address }) => {
   const classes = useStyles();
 
-  const { wallets, select, wallet, connected } = useWallet();
-  const [status, setStatus] = useState("");
+  const { wallets, select, wallet, connected, connecting } = useWallet();
+  const [changeWallet, setChangeWallet] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   useEffect(() => {
@@ -306,18 +306,11 @@ const Content: FC<ContentProps> = ({ address }) => {
         adapter.readyState === "Installed" ||
         adapter.readyState === "Loadable"
       ) {
-        setStatus("connecting");
-        adapter.connect().catch((error) => {
-          console.log(error);
-        });
-      } else {
-        setStatus("install");
+        setChangeWallet(false);
       }
     }
 
     if (connected) {
-      setStatus("connected");
-
       const tempTransactions = [
         {
           title: "Swap exactly 2 HYSD for 20.9120 SOL",
@@ -342,9 +335,8 @@ const Content: FC<ContentProps> = ({ address }) => {
     }
   };
 
-  const resetStatus = () => {
+  const resetWallet = () => {
     select("" as WalletName);
-    setStatus("");
   };
 
   const copyAddress = () => {
@@ -359,28 +351,19 @@ const Content: FC<ContentProps> = ({ address }) => {
     if (wallet) {
       const adapter = wallet.adapter;
 
-      adapter
-        .disconnect()
-        .then(() => {
-          setStatus("");
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+      adapter.disconnect().catch((error) => {
+        console.log(error);
+      });
     }
-  };
-
-  const changeWallet = () => {
-    setStatus("");
   };
 
   return (
     <Box
       className={cn(classes.content, {
-        [classes.accountContent]: wallet && status === "connected",
+        [classes.accountContent]: wallet && connected && !changeWallet,
       })}
     >
-      {status === "" && (
+      {(!wallet || changeWallet) && (
         <>
           <Typography className={classes.selectTitle}>
             Select a Wallet
@@ -402,7 +385,7 @@ const Content: FC<ContentProps> = ({ address }) => {
           </Box>
         </>
       )}
-      {wallet && status === "connecting" && (
+      {wallet && connecting && (
         <>
           <Typography className={classes.connectTitle}>Connecting</Typography>
           <Typography className={classes.connectSubTitle}>
@@ -417,11 +400,11 @@ const Content: FC<ContentProps> = ({ address }) => {
           </Box>
           <Box className={classes.contentFooter}>
             <span>Having trouble?</span>{" "}
-            <span onClick={() => resetStatus()}>Go back</span>
+            <span onClick={() => resetWallet()}>Go back</span>
           </Box>
         </>
       )}
-      {wallet && status === "install" && (
+      {wallet && wallet.readyState === "NotDetected" && (
         <>
           <Typography className={classes.installTitle}>
             Wallet is not installed
@@ -444,11 +427,11 @@ const Content: FC<ContentProps> = ({ address }) => {
           </Box>
           <Box className={classes.contentFooter}>
             <span>Having trouble?</span>{" "}
-            <span onClick={() => resetStatus()}>Go back</span>
+            <span onClick={() => resetWallet()}>Go back</span>
           </Box>
         </>
       )}
-      {wallet && status === "connected" && (
+      {wallet && connected && !changeWallet && (
         <>
           <Box className={classes.accountContainer}>
             <Typography className={classes.accountTitle}>Account</Typography>
@@ -470,7 +453,9 @@ const Content: FC<ContentProps> = ({ address }) => {
               </Box>
               <Box className={classes.accountActions}>
                 <Button onClick={disconnectWallet}>Disconnect</Button>
-                <Button onClick={changeWallet}>Change wallet</Button>
+                <Button onClick={() => setChangeWallet(true)}>
+                  Change wallet
+                </Button>
               </Box>
             </Box>
           </Box>
