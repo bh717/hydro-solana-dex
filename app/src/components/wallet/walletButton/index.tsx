@@ -302,7 +302,7 @@ const WalletButton: FC<WalletButtonProps> = ({
               <Typography>Your Tokens</Typography>
               <Box className={classes.tokensList}>
                 {balances.map((balance: Asset) => (
-                  <Box className={classes.tokenItem}>
+                  <Box className={classes.tokenItem} key={balance.symbol}>
                     <span className={classes.tokenImgWrapper}>
                       <img
                         src={
