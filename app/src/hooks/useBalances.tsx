@@ -12,7 +12,7 @@ export function useBalances(assetList: Asset[]) {
       console.log("mapping...");
       return client.accountLoaders
         .associatedToken(new PublicKey(asset.address))
-        .stream()
+        .changes()
         .pipe(map((account) => account?.account?.data?.amount ?? 0n));
     });
     return combineLatest(streamList$);
