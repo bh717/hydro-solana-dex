@@ -2,8 +2,10 @@ import { AccountInfo, Commitment, PublicKey } from "@solana/web3.js";
 import { Ctx } from "../../types";
 import { Parser, IAccountLoader, AccountData } from "./types";
 import { concat, from, Observable, share, tap } from "rxjs";
+import { cache } from "./cache";
 
 // TODO: maintain a list of streams by public key to avoid setting up too many streams
+const streamStore = new Map<string, Observable<any>>();
 
 // InternalAccountLoader
 // Returns an account loader that is already initialized with a key
@@ -51,42 +53,40 @@ export function InternalAccountLoader<T>(
   }
 
   function stream(commitment?: Commitment) {
-    const currentData$ = from(getAccountData(commitment));
-    const changes$ = new Observable<AccountData<T>>((subscriber) => {
-      // Listen for account change events
-      // Send events to stream
-      const id = _ctx.connection.onAccountChange(
-        _key,
-        (rawAccount: AccountInfo<Buffer> | null) => {
-          if (rawAccount) {
-            const account = {
-              ...rawAccount,
-              data: accountParser(rawAccount),
-            };
-            subscriber.next({ pubkey: _key, account });
-          } else {
-            subscriber.next();
-          }
-        },
-        commitment
-      );
+    return cache(streamStore, _key, () => {
+      // first send current data then changes
+      const currentData$ = from(getAccountData(commitment));
+      const changes$ = new Observable<AccountData<T>>((subscriber) => {
+        // Listen for account change events
+        // Send events to stream
+        const id = _ctx.connection.onAccountChange(
+          _key,
+          (rawAccount: AccountInfo<Buffer> | null) => {
+            if (rawAccount) {
+              const account = {
+                ...rawAccount,
+                data: accountParser(rawAccount),
+              };
+              subscriber.next({ pubkey: _key, account });
+            } else {
+              subscriber.next();
+            }
+          },
+          commitment
+        );
 
-      return () => {
-        _ctx.connection.removeAccountChangeListener(id);
-      };
+        return () => {
+          _ctx.connection.removeAccountChangeListener(id);
+        };
+      });
+      return concat(currentData$, changes$);
     });
-
-    // XXX: Need to cache this Observable so it is a singleton property of this instance
-    // first send current data then changes
-    return concat(currentData$, changes$);
   }
 
   function onChange(callback: (info: T) => void, commitment: Commitment) {
-    const subscription = stream(commitment).subscribe(
+    return stream(commitment).subscribe(
       (info) => info && callback(info.account.data)
-    );
-
-    return subscription.unsubscribe;
+    ).unsubscribe;
   }
 
   function ready() {

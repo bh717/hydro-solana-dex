@@ -6,6 +6,9 @@ import { mergeMap } from "rxjs/operators";
 import { Parser, IAccountLoader } from "./types";
 import { KeyOrGetter } from "./index";
 import { InternalAccountLoader } from "./internal-account-loader";
+import { cache } from "./cache";
+
+const loaderStore = new Map<string, IAccountLoader<any>>();
 
 // AccountLoader
 // Wrapper to handle all the issues arrising from requiring async keys
@@ -42,8 +45,10 @@ export function AccountLoader<T>(
     }
 
     const __key = await key();
-    _accountLoader = InternalAccountLoader(_ctx, __key, accountParser);
-    return _accountLoader;
+    _accountLoader = cache(loaderStore, __key, () =>
+      InternalAccountLoader(_ctx, __key, accountParser)
+    );
+    return _accountLoader!;
   }
 
   function stream(commitment?: Commitment) {
@@ -68,11 +73,9 @@ export function AccountLoader<T>(
   }
 
   function onChange(callback: (info: T) => void, commitment?: Commitment) {
-    const subscription = stream(commitment).subscribe(
+    return stream(commitment).subscribe(
       (info) => info && callback(info.account.data)
-    );
-
-    return subscription.unsubscribe;
+    ).unsubscribe;
   }
 
   return {
