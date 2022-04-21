@@ -68,16 +68,11 @@ export function AccountLoader<T>(
   }
 
   function onChange(callback: (info: T) => void, commitment?: Commitment) {
-    const loaderProm = getAccountLoader();
-    let unsub: () => void | undefined;
-    loaderProm.then((loader) => {
-      unsub = loader.onChange(callback, commitment);
-    });
-    return () => {
-      loaderProm.then(() => {
-        if (unsub) unsub();
-      });
-    };
+    const subscription = stream(commitment).subscribe(
+      (info) => info && callback(info.account.data)
+    );
+
+    return subscription.unsubscribe;
   }
 
   return {
