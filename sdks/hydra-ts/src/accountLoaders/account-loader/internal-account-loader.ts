@@ -4,9 +4,9 @@ import { Parser, IAccountLoader, AccountData } from "./types";
 import { concat, from, Observable, share, tap } from "rxjs";
 
 // TODO: maintain a list of streams by public key to avoid setting up too many streams
+
 // InternalAccountLoader
 // Returns an account loader that is already initialized with a key
-
 export function InternalAccountLoader<T>(
   _ctx: Ctx,
   _key: PublicKey,
@@ -96,12 +96,8 @@ export function InternalAccountLoader<T>(
     });
 
     // XXX: Need to cache this Observable so it is a singleton property of this instance
-    return concat(
-      // first send current data
-      currentData$,
-      // then send changes
-      changes$
-    );
+    // first send current data then changes
+    return concat(currentData$, changes$);
   }
 
   function ready() {

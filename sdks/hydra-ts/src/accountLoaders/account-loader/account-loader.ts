@@ -8,8 +8,7 @@ import { KeyOrGetter } from "./index";
 import { InternalAccountLoader } from "./internal-account-loader";
 
 // AccountLoader
-// Wrapper to handle all the issues arrising from requiring
-// Async keys
+// Wrapper to handle all the issues arrising from requiring async keys
 export function AccountLoader<T>(
   _ctx: Ctx,
   getter: KeyOrGetter,
