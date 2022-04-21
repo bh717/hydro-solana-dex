@@ -5,7 +5,7 @@ import Cookies from "js-cookie";
 export enum Network {
   LOCALNET = "localnet",
   DEVNET = "devnet",
-  MAINNET = "mainnet",
+  MAINNET_BETA = "mainnet-beta",
 }
 
 export type NetworkMeta = {
@@ -18,6 +18,7 @@ export type NetworkApi = {
   network: Network;
   meta: NetworkMeta;
   setNetwork: (n: Network) => void;
+  endpoint: string;
   networks: NetworkMeta[];
 };
 
@@ -49,8 +50,8 @@ const NetworkLookup: NetworkLookupType = {
     endpoint: "https://api.devnet.solana.com",
     name: "Devnet",
   },
-  [Network.MAINNET]: {
-    network: Network.MAINNET,
+  [Network.MAINNET_BETA]: {
+    network: Network.MAINNET_BETA,
     endpoint: "https://api.mainnet-beta.solana.com",
     name: "Mainnet Beta",
   },
@@ -65,10 +66,12 @@ function createNetworkApi(
   network: Network,
   setNetwork: (n: Network) => void = () => {}
 ): NetworkApi {
+  const meta = getNetworkMeta(network);
   return {
     network,
-    meta: getNetworkMeta(network),
+    meta,
     setNetwork,
+    endpoint: meta.endpoint,
     networks: allowedNetworks.map(getNetworkMeta),
   };
 }

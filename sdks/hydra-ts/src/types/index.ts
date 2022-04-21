@@ -19,7 +19,7 @@ export type ProgramIds = {
 
 export type Ctx = ReturnType<typeof createCtxAnchor>;
 
-export type Network = "mainnet" | "testnet" | "devnet" | "localnet";
+export type Network = "mainnet-beta" | "testnet" | "devnet" | "localnet";
 
 export type NetworkConfig = {
   programIds: ProgramIds;
