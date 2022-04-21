@@ -5,9 +5,9 @@ import * as TokenAccount from "../../types/token-account";
 import * as TokenMint from "../../types/token-mint";
 import { withBump, withTokenMethods } from "./utils";
 import { Getter, Parser } from "./types";
-import { AccountLoader } from "./account-loader";
+import { AsyncKeyAccountLoader } from "./async-key-account-loader";
 
-export { AccountLoader };
+export const AccountLoader = AsyncKeyAccountLoader;
 
 export * from "./types";
 

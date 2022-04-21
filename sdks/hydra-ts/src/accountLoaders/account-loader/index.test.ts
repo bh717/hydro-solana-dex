@@ -1,11 +1,9 @@
 import { Ctx } from "../..";
-import { AccountLoader } from "./account-loader";
+import { AccountLoader } from ".";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import { IAccountLoader } from "./types";
 import { merge } from "lodash";
-import { sleep } from "@project-serum/common";
-import { buffer, take, toArray } from "rxjs";
-import { AccountData } from ".";
+import { take, toArray } from "rxjs";
 
 function getMockCtx(override?: any) {
   const base = {

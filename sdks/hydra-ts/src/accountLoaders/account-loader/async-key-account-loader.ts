@@ -12,7 +12,7 @@ const loaderStore = new Map<string, IAccountLoader<any>>();
 
 // AccountLoader
 // Wrapper to handle all the issues arrising from requiring async keys
-export function AccountLoader<T>(
+export function AsyncKeyAccountLoader<T>(
   _ctx: Ctx,
   getter: KeyOrGetter,
   accountParser: Parser<T>
@@ -39,7 +39,6 @@ export function AccountLoader<T>(
   }
 
   async function getAccountLoader() {
-    // XXX: Need to cache these account loaders by publickey
     if (typeof _accountLoader !== "undefined") {
       return _accountLoader;
     }
