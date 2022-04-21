@@ -5,8 +5,9 @@ import {
   SolletExtensionWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import React, { useMemo } from "react";
-import { Network, useNetworkProvider } from "./components/NetworkProvider";
+import { useNetworkProvider } from "./components/NetworkProvider";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
+import { Network } from "hydra-ts";
 
 function toWalletAdaptorNetwork(
   network: Network

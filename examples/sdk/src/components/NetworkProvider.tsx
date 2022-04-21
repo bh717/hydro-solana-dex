@@ -1,12 +1,7 @@
 import React from "react";
 import { ConnectionProvider } from "@solana/wallet-adapter-react";
 import Cookies from "js-cookie";
-
-export enum Network {
-  LOCALNET = "localnet",
-  DEVNET = "devnet",
-  MAINNET_BETA = "mainnet-beta",
-}
+import { Network } from "hydra-ts";
 
 export type NetworkMeta = {
   network: Network;
@@ -54,6 +49,11 @@ const NetworkLookup: NetworkLookupType = {
     network: Network.MAINNET_BETA,
     endpoint: "https://api.mainnet-beta.solana.com",
     name: "Mainnet Beta",
+  },
+  [Network.TESTNET]: {
+    network: Network.MAINNET_BETA,
+    endpoint: "https://api.testnet.solana.com",
+    name: "Testnet",
   },
 };
 
