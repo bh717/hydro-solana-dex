@@ -42,7 +42,7 @@ describe("HydraSDK", () => {
     assert.strictEqual(`${data.owner}`, `${provider.wallet.publicKey}`);
   });
 
-  describe("accountLoader.changes()", () => {
+  describe("accountLoader.stream()", () => {
     async function setup() {
       const mint = Keypair.generate();
       const vault = Keypair.generate();
@@ -61,7 +61,7 @@ describe("HydraSDK", () => {
       const [val] = await new Promise<
         (AccountLoader.AccountData<TokenAccount> | undefined)[]
       >((resolve) => {
-        account.changes().pipe(take(1), toArray()).subscribe(resolve);
+        account.stream().pipe(take(1), toArray()).subscribe(resolve);
       });
       assert.strictEqual(`${val?.pubkey}`, `${await account.key()}`);
       assert.strictEqual(`${val?.account.data.amount}`, `0`);
@@ -75,7 +75,7 @@ describe("HydraSDK", () => {
       const [val1, val2] = await new Promise<
         (AccountLoader.AccountData<TokenAccount> | undefined)[]
       >((resolve) => {
-        account.changes().pipe(take(2), toArray()).subscribe(resolve);
+        account.stream().pipe(take(2), toArray()).subscribe(resolve);
 
         sdk.common.transfer(vault.publicKey, token, 1000);
       });

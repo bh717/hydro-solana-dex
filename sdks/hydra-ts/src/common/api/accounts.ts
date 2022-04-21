@@ -23,5 +23,5 @@ export function toTokenAccountLoader(ctx: Ctx) {
 
 export function toStream(_: Ctx) {
   return <T extends AccountLoader.IAccountLoader<any>>(loader: T) =>
-    loader.changes();
+    loader.stream();
 }

@@ -18,7 +18,7 @@ export type IAccountLoader<T> = {
   isInitialized(): Promise<boolean>;
   parser(): Parser<T>;
   ctx(): Ctx;
-  changes(commitment?: Commitment): Observable<AccountData<T> | undefined>;
+  stream(commitment?: Commitment): Observable<AccountData<T> | undefined>;
   onChange(callback: (info: T) => void, commitment?: Commitment): Unsubscriber;
 };
 

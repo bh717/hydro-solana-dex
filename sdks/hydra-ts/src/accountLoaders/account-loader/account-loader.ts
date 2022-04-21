@@ -64,7 +64,7 @@ export function AccountLoader<T>(
     return _accountLoader;
   }
 
-  function changes(commitment?: Commitment) {
+  function stream(commitment?: Commitment) {
     async function getAccountDataInfo(loader: IAccountLoader<T>) {
       try {
         const [info, key] = await Promise.all([
@@ -94,7 +94,7 @@ export function AccountLoader<T>(
           // first send info
           from(getAccountDataInfo(loader)),
           // then send changes
-          loader.changes()
+          loader.stream()
         )
       )
     );
@@ -135,7 +135,7 @@ export function AccountLoader<T>(
     ready,
     isInitialized,
     parser,
-    changes,
+    stream,
     onChange,
   };
 }

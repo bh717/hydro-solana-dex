@@ -8,7 +8,7 @@ export function useAccountStream<T>(loader?: IAccountLoader<T>) {
   // 2. Deliver the current latest value of the stream synchronously
   // 3. Continue to deliver values as they come in
   const memoizedStream = useMemo(() => {
-    return maybeStream(loader?.changes());
+    return maybeStream(loader?.stream());
   }, [loader]);
 
   return useObservable(memoizedStream);

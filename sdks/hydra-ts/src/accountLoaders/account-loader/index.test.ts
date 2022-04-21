@@ -103,7 +103,7 @@ describe("AccountLoader", () => {
     expect(events).toEqual([1, 2]);
   });
 
-  describe("loader.changes()", () => {
+  describe("loader.stream()", () => {
     let emit: any;
     let onChange: any;
     beforeEach(() => {
@@ -124,7 +124,7 @@ describe("AccountLoader", () => {
     });
 
     it("should return the info as the first event", async () => {
-      const stream = loader.changes();
+      const stream = loader.stream();
       const events = await new Promise((resolve) =>
         stream.pipe(take(1), toArray()).subscribe(resolve)
       );
@@ -132,7 +132,7 @@ describe("AccountLoader", () => {
     });
 
     it("should stream other events", async () => {
-      const stream = loader.changes();
+      const stream = loader.stream();
 
       // stream starts with account info
       emit(2);

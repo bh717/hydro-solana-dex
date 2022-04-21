@@ -10,7 +10,7 @@ import { PromiseVal } from "../../../types";
 function useAccountStream<T>(loader?: IAccountLoader<T>) {
   const memoizedStream = useMemo(() => {
     // @ts-ignore:next-line
-    return maybeStream(loader?.changes());
+    return maybeStream(loader?.stream());
   }, [loader]);
 
   return useObservable(memoizedStream);

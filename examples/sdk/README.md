@@ -60,7 +60,7 @@ export const userRedeemable = (ctx: Ctx) => {
 ```ts
 // Use observables in React like so to get a stream of re-rendering flat values
 const userFrom = useObservable(
-  useMemo(() => sdk.staking.accounts.userToken.changes(), [sdk])
+  useMemo(() => sdk.staking.accounts.userToken.stream(), [sdk])
 );
 
 userFrom?.pubkey; // PUblicKey
@@ -73,10 +73,8 @@ One advantage of streams is that they are highly composable:
 const { userFromBal, redeemableTo } = useObservable(
   useMemo(() =>
     combineLatest({
-      userFromBal: sdk.staking.accounts.userToken
-        .changes()
-        .pipe(map(toBalance)),
-      redeemableTo: sdk.staking.accounts.redeemableTo.changes(),
+      userFromBal: sdk.staking.accounts.userToken.stream().pipe(map(toBalance)),
+      redeemableTo: sdk.staking.accounts.redeemableTo.stream(),
     })
   )
 );

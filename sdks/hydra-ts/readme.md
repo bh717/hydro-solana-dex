@@ -31,7 +31,7 @@ await accounts.tokenVault.balance(); // returns tokenBalance
 await accounts.poolState.info();
 
 // Stream of account info values
-const userToken$ = sdk.staking.accounts.userToken.changes();
+const userToken$ = sdk.staking.accounts.userToken.stream();
 
 const unsub = accounts.poolState.onChange(callback, commitment); // callback (commitment is optional)
 

@@ -173,15 +173,15 @@ const Stake: FC<StakeProps> = ({ openWalletConnect }) => {
   );
 
   const userFrom = useObservable(
-    useMemo(() => sdk.staking.accounts.userToken.changes(), [sdk])
+    useMemo(() => sdk.staking.accounts.userToken.stream(), [sdk])
   );
 
   const userRedeemable = useObservable(
-    useMemo(() => sdk.staking.accounts.userRedeemable.changes(), [sdk])
+    useMemo(() => sdk.staking.accounts.userRedeemable.stream(), [sdk])
   );
 
   const tokenVault = useObservable(
-    useMemo(() => sdk.staking.accounts.tokenVault.changes(), [sdk])
+    useMemo(() => sdk.staking.accounts.tokenVault.stream(), [sdk])
   );
 
   const stake = async (amount: string) => {

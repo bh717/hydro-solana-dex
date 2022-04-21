@@ -11,7 +11,7 @@ export function useBalances(assetList: Asset[]) {
     const streamList$ = assetList.map((asset) => {
       return client.accountLoaders
         .associatedToken(new PublicKey(asset.address))
-        .changes()
+        .stream()
         .pipe(
           tap((account) =>
             console.log(

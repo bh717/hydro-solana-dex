@@ -53,7 +53,7 @@ export function InternalAccountLoader<T>(
     };
   }
 
-  function changes(commitment?: Commitment) {
+  function stream(commitment?: Commitment) {
     // XXX: Need to cache this Observable so it is a singleton property of this instance
 
     return new Observable<AccountData<T>>((subscriber) => {
@@ -96,7 +96,7 @@ export function InternalAccountLoader<T>(
     info,
     isInitialized,
     onChange,
-    changes,
+    stream,
     ready,
     parser,
     ctx,
