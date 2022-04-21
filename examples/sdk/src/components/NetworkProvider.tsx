@@ -51,7 +51,7 @@ const NetworkLookup: NetworkLookupType = {
     name: "Mainnet Beta",
   },
   [Network.TESTNET]: {
-    network: Network.MAINNET_BETA,
+    network: Network.TESTNET,
     endpoint: "https://api.testnet.solana.com",
     name: "Testnet",
   },
