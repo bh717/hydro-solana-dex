@@ -2,50 +2,14 @@ import { Ctx } from "../..";
 import { AccountLoader } from ".";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import { IAccountLoader } from "./types";
-import { merge } from "lodash";
 import { take, toArray } from "rxjs";
-
-function getMockCtx(override?: any) {
-  const base = {
-    connection: {
-      getAccountInfo() {
-        return null;
-      },
-    },
-  };
-  return merge(base, override) as any as Ctx;
-}
+import { fakeEventHandler } from "../../utils/fakeEventHandler";
+import { getMockCtx } from "../../utils/getMockCtx";
 
 async function waitForEvents<T>(loader: IAccountLoader<T>, count: number) {
   await new Promise((resolve) =>
     loader.stream().pipe(take(count), toArray()).subscribe(resolve)
   );
-}
-
-function fakeEventHandler(options?: { buffer: boolean }) {
-  const isBuffer = options?.buffer;
-  const buffer: any[] = [];
-  type Callback = (info: any) => void;
-  let _callback: Callback = (event) => {
-    if (!isBuffer) {
-      throw new Error("emit called before listener");
-    }
-
-    if (isBuffer) {
-      buffer.push(event);
-    }
-  };
-  function onChange(key: any, callback: (event: any) => void, commitment: any) {
-    _callback = callback;
-    if (buffer.length) {
-      buffer.forEach(_callback);
-    }
-  }
-
-  function emit(event: any) {
-    _callback(event);
-  }
-  return [onChange, emit] as [typeof onChange, typeof emit];
 }
 
 describe("AccountLoader", () => {
@@ -55,7 +19,6 @@ describe("AccountLoader", () => {
 
   beforeEach(() => {
     mockCtx = getMockCtx();
-
     pubKey = Keypair.generate().publicKey;
   });
 
