@@ -1,9 +1,7 @@
 import * as anchor from "@project-serum/anchor";
-import { AccountInfo, Keypair } from "@solana/web3.js";
+import { Keypair } from "@solana/web3.js";
 import assert from "assert";
-import { HydraSDK } from "hydra-ts";
-import { TokenAccount } from "hydra-ts/src/types/token-account";
-import * as AccountLoader from "hydra-ts/src/utils/account-loader";
+import { HydraSDK, TokenAccount, AccountLoader } from "hydra-ts";
 import { take, toArray } from "rxjs/operators";
 
 describe("HydraSDK", () => {
@@ -44,7 +42,7 @@ describe("HydraSDK", () => {
     assert.strictEqual(`${data.owner}`, `${provider.wallet.publicKey}`);
   });
 
-  describe("accountLoader.stream()", () => {
+  describe("accountLoader.changes()", () => {
     async function setup() {
       const mint = Keypair.generate();
       const vault = Keypair.generate();
@@ -61,29 +59,29 @@ describe("HydraSDK", () => {
     it("should emit a value on subscription", async () => {
       const { account, mint, owner } = await setup();
       const [val] = await new Promise<
-        AccountLoader.AccountData<TokenAccount>[]
+        (AccountLoader.AccountData<TokenAccount> | undefined)[]
       >((resolve) => {
-        account.stream().pipe(take(1), toArray()).subscribe(resolve);
+        account.changes().pipe(take(1), toArray()).subscribe(resolve);
       });
-      assert.strictEqual(`${val.pubkey}`, `${await account.key()}`);
-      assert.strictEqual(`${val.account.data.amount}`, `0`);
-      assert.strictEqual(`${val.account.data.mint}`, `${mint.publicKey}`);
-      assert.strictEqual(`${val.account.data.owner}`, `${owner}`);
+      assert.strictEqual(`${val?.pubkey}`, `${await account.key()}`);
+      assert.strictEqual(`${val?.account.data.amount}`, `0`);
+      assert.strictEqual(`${val?.account.data.mint}`, `${mint.publicKey}`);
+      assert.strictEqual(`${val?.account.data.owner}`, `${owner}`);
     });
 
     it("should emit a value when updated", async () => {
       const { account, vault, token } = await setup();
 
       const [val1, val2] = await new Promise<
-        AccountLoader.AccountData<TokenAccount>[]
+        (AccountLoader.AccountData<TokenAccount> | undefined)[]
       >((resolve) => {
-        account.stream().pipe(take(2), toArray()).subscribe(resolve);
+        account.changes().pipe(take(2), toArray()).subscribe(resolve);
 
         sdk.common.transfer(vault.publicKey, token, 1000);
       });
 
-      assert.strictEqual(`${val1.account.data.amount}`, `0`);
-      assert.strictEqual(`${val2.account.data.amount}`, `1000`);
+      assert.strictEqual(`${val1?.account.data.amount}`, `0`);
+      assert.strictEqual(`${val2?.account.data.amount}`, `1000`);
     });
   });
 

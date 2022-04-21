@@ -8,7 +8,7 @@ import * as SPLToken from "@solana/spl-token";
 import { web3 } from "@project-serum/anchor";
 import * as wasm from "hydra-math-rs";
 import { loadWasm } from "wasm-loader-ts";
-import * as AccountLoader from "../../utils/account-loader";
+import * as AccountLoader from "../../accountLoaders/account-loader";
 import { TokenMint } from "../../types/token-mint";
 const hydraMath = loadWasm(wasm);
 

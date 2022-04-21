@@ -7,7 +7,7 @@ import {
 } from "../config/constants";
 import { PoolState } from "./types";
 import { Ctx } from "../types";
-import * as AccountLoader from "../utils/account-loader";
+import * as AccountLoader from "../accountLoaders/account-loader";
 import { inject } from "../utils/meta-utils";
 
 export const getAccountLoaders =

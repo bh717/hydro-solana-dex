@@ -1,6 +1,6 @@
 import { POOL_STATE_SEED, TOKEN_VAULT_SEED } from "../config/constants";
 import { Ctx } from "../types";
-import * as AccountLoader from "../utils/account-loader";
+import * as AccountLoader from "../accountLoaders/account-loader";
 import { PoolState } from "./types/pool-state";
 
 export const tokenMint = (ctx: Ctx) => {

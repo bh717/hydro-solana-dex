@@ -1,6 +1,6 @@
 import { PublicKey, AccountInfo } from "@solana/web3.js";
 import { Ctx } from "../..";
-import * as AccountLoader from "../../utils/account-loader";
+import * as AccountLoader from "../../accountLoaders/account-loader";
 
 type Parser<T> = (info: AccountInfo<Buffer>) => T;
 export function toAccountLoader<T>(ctx: Ctx) {
@@ -23,5 +23,5 @@ export function toTokenAccountLoader(ctx: Ctx) {
 
 export function toStream(_: Ctx) {
   return <T extends AccountLoader.IAccountLoader<any>>(loader: T) =>
-    loader.stream();
+    loader.changes();
 }

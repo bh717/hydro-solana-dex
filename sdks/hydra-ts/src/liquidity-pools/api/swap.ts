@@ -3,7 +3,7 @@ import { Ctx } from "../../types";
 import * as accs from "../accounts";
 import { toBN } from "../../utils";
 import { inject } from "../../utils/meta-utils";
-import { Token } from "../../utils/account-loader";
+import { Token } from "../../accountLoaders/account-loader";
 import { web3 } from "@project-serum/anchor";
 import { SystemProgram } from "@solana/web3.js";
 import * as SPLToken from "@solana/spl-token";
