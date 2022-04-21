@@ -2,7 +2,7 @@ import { FC, useState, useMemo } from "react";
 import { makeStyles } from "@mui/styles";
 import { Box, Typography } from "@mui/material";
 import { useConnection, useAnchorWallet } from "@solana/wallet-adapter-react";
-import { HydraSDK } from "hydra-ts";
+import { HydraSDK, Network } from "hydra-ts";
 import { useObservable } from "react-use";
 import { toast } from "react-toastify";
 
@@ -166,8 +166,9 @@ const Stake: FC<StakeProps> = ({ openWalletConnect }) => {
   const [staking, setStaking] = useState(false);
   const [unstaking, setUnstaking] = useState(false);
 
+  // TODO: Replace with useHydraClient()
   const sdk = useMemo(
-    () => HydraSDK.create("localnet", connection, wallet),
+    () => HydraSDK.create(Network.LOCALNET, connection, wallet),
     [connection, wallet]
   );
 
