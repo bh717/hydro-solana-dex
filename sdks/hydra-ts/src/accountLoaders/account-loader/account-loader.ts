@@ -1,25 +1,9 @@
 import { Commitment, PublicKey } from "@solana/web3.js";
 import { Ctx } from "../../types";
-import {
-  BehaviorSubject,
-  from,
-  Observable,
-  merge,
-  Subject,
-  concat,
-} from "rxjs";
-import {
-  tap,
-  map,
-  mergeMap,
-  mergeAll,
-  switchMap,
-  concatMap,
-  filter,
-} from "rxjs/operators";
-import { AccountInfo } from "@solana/web3.js";
+import { from } from "rxjs";
+import { mergeMap } from "rxjs/operators";
 
-import { Parser, IAccountLoader, AccountData } from "./types";
+import { Parser, IAccountLoader } from "./types";
 import { KeyOrGetter } from "./index";
 import { InternalAccountLoader } from "./internal-account-loader";
 
@@ -53,7 +37,6 @@ export function AccountLoader<T>(
   }
 
   async function getAccountLoader() {
-    console.log("getAccountLoader");
     // XXX: Need to cache these account loaders by publickey
     if (typeof _accountLoader !== "undefined") {
       return _accountLoader;
@@ -65,38 +48,8 @@ export function AccountLoader<T>(
   }
 
   function stream(commitment?: Commitment) {
-    async function getAccountDataInfo(loader: IAccountLoader<T>) {
-      try {
-        const [info, key] = await Promise.all([
-          loader.info(commitment),
-          loader.key(),
-        ]);
-        // Send the info down the subject
-        return {
-          account: info,
-          pubkey: key,
-        };
-      } catch (err) {
-        return {
-          account: { data: {} } as AccountInfo<T>,
-          pubkey: await loader.key(),
-        };
-      }
-    }
-
-    // start with stream that returns a loader as a value
     return from(getAccountLoader()).pipe(
-      mergeMap((loader) =>
-        // convert from loader as stream value to a stream
-        // mergeMap will flatten values from the resulting stream
-
-        concat(
-          // first send info
-          from(getAccountDataInfo(loader)),
-          // then send changes
-          loader.stream()
-        )
-      )
+      mergeMap((loader) => loader.stream(commitment))
     );
   }
 

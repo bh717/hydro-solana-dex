@@ -1,7 +1,7 @@
 import { AccountInfo, Commitment, PublicKey } from "@solana/web3.js";
 import { Ctx } from "../../types";
 import { Parser, IAccountLoader, AccountData } from "./types";
-import { Observable, share, tap } from "rxjs";
+import { concat, from, Observable, share, tap } from "rxjs";
 
 // TODO: maintain a list of streams by public key to avoid setting up too many streams
 // InternalAccountLoader
@@ -53,10 +53,25 @@ export function InternalAccountLoader<T>(
     };
   }
 
-  function stream(commitment?: Commitment) {
-    // XXX: Need to cache this Observable so it is a singleton property of this instance
+  async function getAccountData(
+    commitment?: Commitment
+  ): Promise<AccountData<T>> {
+    let account: AccountInfo<T>;
+    try {
+      account = await info(commitment);
+    } catch (err) {
+      account = { data: {} } as AccountInfo<T>;
+    }
 
-    return new Observable<AccountData<T>>((subscriber) => {
+    return {
+      account,
+      pubkey: _key,
+    };
+  }
+
+  function stream(commitment?: Commitment) {
+    const currentData$ = from(getAccountData(commitment));
+    const changes$ = new Observable<AccountData<T>>((subscriber) => {
       // Listen for account change events
       // Send events to stream
       const id = _ctx.connection.onAccountChange(
@@ -79,6 +94,14 @@ export function InternalAccountLoader<T>(
         _ctx.connection.removeAccountChangeListener(id);
       };
     });
+
+    // XXX: Need to cache this Observable so it is a singleton property of this instance
+    return concat(
+      // first send current data
+      currentData$,
+      // then send changes
+      changes$
+    );
   }
 
   function ready() {
