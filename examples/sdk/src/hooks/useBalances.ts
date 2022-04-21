@@ -12,21 +12,7 @@ export function useBalances(assetList: Asset[]) {
       return client.accountLoaders
         .associatedToken(new PublicKey(asset.address))
         .stream()
-        .pipe(
-          tap((account) =>
-            console.log(
-              `useBalances: ${asset.symbol}:`,
-              account?.account.data.amount
-            )
-          ),
-          map((account) => {
-            // console.log(
-            //   `balance out:${asset.address}`,
-            //   account?.account.data.amount
-            // );
-            return account?.account.data.amount ?? 0n;
-          })
-        );
+        .pipe(map((account) => account?.account.data.amount ?? 0n));
     });
     return combineLatest(streamList$);
   }, [assetList, client]);
