@@ -34,33 +34,14 @@ export function InternalAccountLoader<T>(
     }
   }
 
-  function onChange(callback: (info: T) => void, commitment: Commitment) {
-    let id: number;
-
-    // Hold connection in the closure
-    const { connection } = _ctx;
-
-    id = connection.onAccountChange(
-      _key,
-      (info) => {
-        callback(accountParser(info));
-      },
-      commitment
-    );
-
-    return () => {
-      if (typeof id !== "undefined") connection.removeAccountChangeListener(id);
-    };
-  }
-
   async function getAccountData(
     commitment?: Commitment
-  ): Promise<AccountData<T>> {
+  ): Promise<AccountData<T> | undefined> {
     let account: AccountInfo<T>;
     try {
       account = await info(commitment);
     } catch (err) {
-      account = { data: {} } as AccountInfo<T>;
+      return;
     }
 
     return {
@@ -98,6 +79,14 @@ export function InternalAccountLoader<T>(
     // XXX: Need to cache this Observable so it is a singleton property of this instance
     // first send current data then changes
     return concat(currentData$, changes$);
+  }
+
+  function onChange(callback: (info: T) => void, commitment: Commitment) {
+    const subscription = stream(commitment).subscribe(
+      (info) => info && callback(info.account.data)
+    );
+
+    return subscription.unsubscribe;
   }
 
   function ready() {

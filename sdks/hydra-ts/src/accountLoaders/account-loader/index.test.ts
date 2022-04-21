@@ -11,11 +11,17 @@ function getMockCtx(override?: any) {
   const base = {
     connection: {
       getAccountInfo() {
-        return {};
+        return null;
       },
     },
   };
   return merge(base, override) as any as Ctx;
+}
+
+async function waitForEvents<T>(loader: IAccountLoader<T>, count: number) {
+  await new Promise((resolve) =>
+    loader.stream().pipe(take(count), toArray()).subscribe(resolve)
+  );
 }
 
 function fakeEventHandler(options?: { buffer: boolean }) {
@@ -61,7 +67,17 @@ describe("AccountLoader", () => {
   });
 
   it("should have the correct info", async () => {
-    loader = AccountLoader(mockCtx, pubKey, () => "hello");
+    loader = AccountLoader(
+      getMockCtx({
+        connection: {
+          getAccountInfo() {
+            return 0;
+          },
+        },
+      }),
+      pubKey,
+      () => "hello"
+    );
     expect(await loader.info()).toEqual({ data: "hello" });
     expect(await loader.isInitialized()).toBe(true);
   });
@@ -82,7 +98,7 @@ describe("AccountLoader", () => {
   });
 
   it("should listen to change events", async () => {
-    const [onChange, emit] = fakeEventHandler();
+    const [onChange, emit] = fakeEventHandler({ buffer: true });
 
     loader = AccountLoader(
       getMockCtx({
@@ -93,13 +109,17 @@ describe("AccountLoader", () => {
       pubKey,
       (a) => a
     );
+
     const events: any[] = [];
+
     loader.onChange((info) => {
       events.push(info);
     }, "finalized");
-    await loader.ready(); // need to wait until we have the key before can listen to events
+
     emit(1);
     emit(2);
+
+    await waitForEvents(loader, 2);
     expect(events).toEqual([1, 2]);
   });
 
