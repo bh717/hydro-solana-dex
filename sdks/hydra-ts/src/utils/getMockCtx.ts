@@ -1,4 +1,4 @@
-import { Ctx } from "../..";
+import { Ctx } from "..";
 import { merge } from "lodash";
 
 export function getMockCtx(override?: any) {
