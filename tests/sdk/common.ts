@@ -2,7 +2,7 @@ import * as anchor from "@project-serum/anchor";
 import { Keypair } from "@solana/web3.js";
 import assert from "assert";
 import { HydraSDK, TokenAccount, AccountLoader } from "hydra-ts";
-import { take, toArray } from "rxjs/operators";
+import { take, toArray, filter } from "rxjs/operators";
 
 describe("HydraSDK", () => {
   const provider = anchor.Provider.env();
@@ -59,29 +59,35 @@ describe("HydraSDK", () => {
     it("should emit a value on subscription", async () => {
       const { account, mint, owner } = await setup();
       const [val] = await new Promise<
-        (AccountLoader.AccountData<TokenAccount> | undefined)[]
+        AccountLoader.AccountData<TokenAccount>[]
       >((resolve) => {
-        account.stream().pipe(take(1), toArray()).subscribe(resolve);
+        account
+          .stream()
+          .pipe(filter(Boolean), take(1), toArray())
+          .subscribe(resolve);
       });
-      assert.strictEqual(`${val?.pubkey}`, `${await account.key()}`);
-      assert.strictEqual(`${val?.account.data.amount}`, `0`);
-      assert.strictEqual(`${val?.account.data.mint}`, `${mint.publicKey}`);
-      assert.strictEqual(`${val?.account.data.owner}`, `${owner}`);
+      assert.strictEqual(`${val.pubkey}`, `${await account.key()}`);
+      assert.strictEqual(`${val.account.data.amount}`, `0`);
+      assert.strictEqual(`${val.account.data.mint}`, `${mint.publicKey}`);
+      assert.strictEqual(`${val.account.data.owner}`, `${owner}`);
     });
 
     it("should emit a value when updated", async () => {
       const { account, vault, token } = await setup();
 
       const [val1, val2] = await new Promise<
-        (AccountLoader.AccountData<TokenAccount> | undefined)[]
+        AccountLoader.AccountData<TokenAccount>[]
       >((resolve) => {
-        account.stream().pipe(take(2), toArray()).subscribe(resolve);
+        account
+          .stream()
+          .pipe(filter(Boolean), take(2), toArray())
+          .subscribe(resolve);
 
         sdk.common.transfer(vault.publicKey, token, 1000);
       });
 
-      assert.strictEqual(`${val1?.account.data.amount}`, `0`);
-      assert.strictEqual(`${val2?.account.data.amount}`, `1000`);
+      assert.strictEqual(`${val1.account.data.amount}`, `0`);
+      assert.strictEqual(`${val2.account.data.amount}`, `1000`);
     });
   });
 
