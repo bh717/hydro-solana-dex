@@ -11,7 +11,7 @@
     "test": "yarn build-test && jest"
   },
   "author": "",
-  "license": "ISC",
+  "license": "UNLICENSED",
   "devDependencies": {
     "@types/jest": "^27.4.0",
     "config-ts": "*",

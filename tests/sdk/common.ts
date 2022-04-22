@@ -1,7 +1,7 @@
 import * as anchor from "@project-serum/anchor";
 import { Keypair } from "@solana/web3.js";
 import assert from "assert";
-import { HydraSDK, TokenAccount, AccountLoader } from "hydra-ts";
+import { HydraSDK, TokenAccount, AccountLoader, Network } from "hydra-ts";
 import { take, toArray, filter } from "rxjs/operators";
 
 describe("HydraSDK", () => {
@@ -10,7 +10,7 @@ describe("HydraSDK", () => {
 
   let sdk: HydraSDK;
   beforeEach(() => {
-    sdk = HydraSDK.createFromAnchorProvider(provider, "localnet");
+    sdk = HydraSDK.createFromAnchorProvider(provider, Network.LOCALNET);
   });
 
   it("should get accounts", async () => {

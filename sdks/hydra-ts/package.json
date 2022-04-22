@@ -16,7 +16,7 @@
     "clean": "rm -rf dist"
   },
   "author": "",
-  "license": "ISC",
+  "license": "UNLICENSED",
   "devDependencies": {
     "@types/jest": "^27.4.0",
     "config-ts": "*",
