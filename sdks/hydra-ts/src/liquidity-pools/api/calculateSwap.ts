@@ -1,5 +1,5 @@
 import { Ctx } from "../../types";
-import { AccountData } from "../../utils/account-loader";
+import { AccountData } from "../../libs/account-loader";
 import { TokenAccount } from "../../types/token-account";
 import { TokenMint } from "../../types/token-mint";
 import * as wasm from "hydra-math-rs";

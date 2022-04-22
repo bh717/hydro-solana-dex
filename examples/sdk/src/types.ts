@@ -1,6 +1,6 @@
 import { HydraSDK } from "hydra-ts";
 import { TokenMint } from "hydra-ts/src/types/token-mint";
-import { IAccountLoader } from "hydra-ts/src/utils/account-loader";
+import { IAccountLoader } from "hydra-ts";
 
 export type PromiseVal<T> = T extends Promise<infer J> ? J : never;
 // From token-list

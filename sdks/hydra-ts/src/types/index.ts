@@ -1,5 +1,7 @@
 import { Transaction, PublicKey } from "@solana/web3.js";
 import { createCtxAnchor } from "../ctx";
+export type { TokenAccount } from "./token-account";
+export type { TokenMint } from "./token-mint";
 
 export type Wallet = {
   signTransaction(tx: Transaction): Promise<Transaction>;

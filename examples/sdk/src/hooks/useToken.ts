@@ -5,7 +5,6 @@ import { Asset } from "../types";
 export type TokenField = ReturnType<typeof useToken>;
 
 export function useToken(initAsset?: Asset) {
-  console.log({ initAsset });
   const [amount, setAmount] = useState(0n);
   const [asset, setInternalAsset] = useState<Asset | undefined>(initAsset);
 

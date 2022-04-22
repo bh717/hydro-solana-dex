@@ -1,8 +1,7 @@
-import { IAccountLoader } from "hydra-ts/src/utils/account-loader";
+import { IAccountLoader } from "hydra-ts";
 import { useMemo } from "react";
 import { useObservable } from "./useObservable";
 import { maybeStream } from "../utils/maybeStream";
-
 export function useAccountStream<T>(loader?: IAccountLoader<T>) {
   // Plan here is that this hook will in the near future:
   // 1. Synchronously find the given stream from a set of memoized streams or add a stream to the set
