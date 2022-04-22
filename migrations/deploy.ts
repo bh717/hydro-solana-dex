@@ -2,11 +2,9 @@
 import * as anchor from "@project-serum/anchor";
 import config from "config-ts/global-config.json";
 import * as staking from "types-ts/codegen/types/hydra_staking";
-// import * as liquidityPools from "types-ts/codegen/types/hydra_liquidity_pools";
 import { tokens as localnetTokens } from "config-ts/tokens/localnet.json";
-import { loadKey } from "hydra-ts/node"; // these should be moved out of test
-import { HydraSDK } from "hydra-ts";
-import { Keypair } from "@solana/web3.js";
+import { loadKey } from "hydra-ts/src/node"; // these should be moved out of test
+import { HydraSDK, Network } from "hydra-ts";
 import NodeWallet from "@project-serum/anchor/dist/cjs/nodewallet";
 
 type Token = {
@@ -110,7 +108,7 @@ function getAsset(symbol: string) {
 async function setupLiquidityPoolState(provider: anchor.Provider, tokens: any) {
   // The idea here is we use the provider.wallet as "god" mint tokens to them
   // and then transfer those tokens to to a "trader" account
-  const sdk = HydraSDK.createFromAnchorProvider(provider, "localnet");
+  const sdk = HydraSDK.createFromAnchorProvider(provider, Network.LOCALNET);
 
   // 1. create and distribute tokens to the god wallet
   const list = [
