@@ -1,5 +1,7 @@
 import { Transaction, PublicKey } from "@solana/web3.js";
 import { createCtxAnchor } from "../ctx";
+export type { TokenAccount } from "./token-account";
+export type { TokenMint } from "./token-mint";
 
 export type Wallet = {
   signTransaction(tx: Transaction): Promise<Transaction>;
@@ -19,7 +21,12 @@ export type ProgramIds = {
 
 export type Ctx = ReturnType<typeof createCtxAnchor>;
 
-export type Network = "mainnet" | "testnet" | "devnet" | "localnet";
+export enum Network {
+  MAINNET_BETA = "mainnet-beta",
+  TESTNET = "testnet",
+  DEVNET = "devnet",
+  LOCALNET = "localnet",
+}
 
 export type NetworkConfig = {
   programIds: ProgramIds;

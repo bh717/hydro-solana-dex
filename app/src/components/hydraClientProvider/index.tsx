@@ -1,5 +1,5 @@
 import { useConnection, useAnchorWallet } from "@solana/wallet-adapter-react";
-import { HydraSDK } from "hydra-ts";
+import { HydraSDK, Network } from "hydra-ts";
 import React, { useMemo } from "react";
 import { useContext } from "react";
 
@@ -11,7 +11,7 @@ export function HydraClientProvider(p: { children: React.ReactNode }) {
 
   const client = useMemo(() => {
     console.log("creating new client...");
-    return HydraSDK.create("localnet", connection, wallet);
+    return HydraSDK.create(Network.LOCALNET, connection, wallet);
   }, [connection, wallet]);
 
   return (

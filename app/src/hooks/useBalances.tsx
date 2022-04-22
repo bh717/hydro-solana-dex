@@ -9,7 +9,6 @@ export function useBalances(assetList: Asset[]) {
   const client = useHydraClient();
   return useMemo(() => {
     const streamList$ = assetList.map((asset) => {
-      console.log("mapping...");
       return client.accountLoaders
         .associatedToken(new PublicKey(asset.address))
         .stream()

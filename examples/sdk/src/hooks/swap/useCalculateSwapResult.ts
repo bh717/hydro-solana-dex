@@ -3,8 +3,7 @@ import { useCallback, useEffect } from "react";
 import { HydraSDK } from "hydra-ts";
 import { Asset } from "../../types";
 import { useToken } from "../useToken";
-import { AccountData } from "hydra-ts/src/utils/account-loader";
-import { TokenMint } from "hydra-ts/src/types/token-mint";
+import { AccountData, TokenMint } from "hydra-ts";
 
 export function getDirection(
   tokenXMint: AccountData<TokenMint>,

@@ -89,7 +89,7 @@ If you need other accounts not defined as part of the anchor prject you might wa
 import { AccountLoader } from "hydra-ts";
 import { Keypair } from "@solana/web3.js";
 const myAccount = Keypair.generate();
-const sdk = HydraSDK.create("localnet", connection, wallet);
+const sdk = HydraSDK.create(Network.LOCALNET, connection, wallet);
 
 // Get a mint loader
 const mintLoader = AccountLoader.Mint(ctx, ctx.getKey("tokenMint"));
