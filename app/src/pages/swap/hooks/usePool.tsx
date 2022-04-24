@@ -1,4 +1,4 @@
-import { IAccountLoader } from "hydra-ts/src/utils/account-loader";
+import { IAccountLoader } from "hydra-ts";
 import { useEffect, useMemo, useState } from "react";
 import { useObservable } from "../../../hooks/useObservable";
 import { maybeStream } from "../../../utils/maybeStream";

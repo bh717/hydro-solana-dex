@@ -16,7 +16,7 @@
     "clean": "rm -rf dist"
   },
   "author": "",
-  "license": "ISC",
+  "license": "UNLICENSED",
   "devDependencies": {
     "@types/jest": "^27.4.0",
     "config-ts": "*",
@@ -31,6 +31,7 @@
     "@solana/spl-token": "^0.2.0",
     "concurrently": "^7.0.0",
     "hydra-math-rs": "*",
+    "lodash": "^4.17.21",
     "rxjs": "^7.5.4",
     "target": "*",
     "wasm-loader-ts": "*"

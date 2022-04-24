@@ -1,6 +1,6 @@
 import { PublicKey, AccountInfo } from "@solana/web3.js";
 import { Ctx } from "../..";
-import * as AccountLoader from "../../utils/account-loader";
+import * as AccountLoader from "../../libs/account-loader";
 
 type Parser<T> = (info: AccountInfo<Buffer>) => T;
 export function toAccountLoader<T>(ctx: Ctx) {

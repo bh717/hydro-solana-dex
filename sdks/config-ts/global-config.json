@@ -10,7 +10,7 @@
     }
   },
 
-  "mainnet": {
+  "mainnet-beta": {
     "programIds": {
       "hydraBenchmarks": "",
       "hydraFarming": "",

@@ -1,10 +1,8 @@
 import * as anchor from "@project-serum/anchor";
-import { AccountInfo, Keypair } from "@solana/web3.js";
+import { Keypair } from "@solana/web3.js";
 import assert from "assert";
-import { HydraSDK } from "hydra-ts";
-import { TokenAccount } from "hydra-ts/src/types/token-account";
-import * as AccountLoader from "hydra-ts/src/utils/account-loader";
-import { take, toArray } from "rxjs/operators";
+import { HydraSDK, TokenAccount, AccountLoader, Network } from "hydra-ts";
+import { take, toArray, filter } from "rxjs/operators";
 
 describe("HydraSDK", () => {
   const provider = anchor.Provider.env();
@@ -12,7 +10,7 @@ describe("HydraSDK", () => {
 
   let sdk: HydraSDK;
   beforeEach(() => {
-    sdk = HydraSDK.createFromAnchorProvider(provider, "localnet");
+    sdk = HydraSDK.createFromAnchorProvider(provider, Network.LOCALNET);
   });
 
   it("should get accounts", async () => {
@@ -63,7 +61,10 @@ describe("HydraSDK", () => {
       const [val] = await new Promise<
         AccountLoader.AccountData<TokenAccount>[]
       >((resolve) => {
-        account.stream().pipe(take(1), toArray()).subscribe(resolve);
+        account
+          .stream()
+          .pipe(filter(Boolean), take(1), toArray())
+          .subscribe(resolve);
       });
       assert.strictEqual(`${val.pubkey}`, `${await account.key()}`);
       assert.strictEqual(`${val.account.data.amount}`, `0`);
@@ -77,7 +78,10 @@ describe("HydraSDK", () => {
       const [val1, val2] = await new Promise<
         AccountLoader.AccountData<TokenAccount>[]
       >((resolve) => {
-        account.stream().pipe(take(2), toArray()).subscribe(resolve);
+        account
+          .stream()
+          .pipe(filter(Boolean), take(2), toArray())
+          .subscribe(resolve);
 
         sdk.common.transfer(vault.publicKey, token, 1000);
       });

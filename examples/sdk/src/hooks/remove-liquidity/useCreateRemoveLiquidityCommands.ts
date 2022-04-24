@@ -1,7 +1,5 @@
 import { PublicKey } from "@solana/web3.js";
-import { HydraSDK } from "hydra-ts";
-import { TokenAccount } from "hydra-ts/src/types/token-account";
-import { AccountData } from "hydra-ts/src/utils/account-loader";
+import { HydraSDK, TokenAccount, AccountData } from "hydra-ts";
 
 export function useCreateRemoveLiquidityCommands(
   sdk: HydraSDK,
