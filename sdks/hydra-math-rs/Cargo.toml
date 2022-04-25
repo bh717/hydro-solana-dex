@@ -12,10 +12,13 @@ production = []
 wasm-bindgen = "0.2.79"
 ndarray = "0.15.4"
 thiserror = "1.0.24"
+derive_builder = "0.11.1"
 
 [dev-dependencies]
 proptest = { version = "1.0.0" }
 hydra-math-simulator-rs = { version = "0.1.0", path = "../hydra-math-simulator-rs" }
+csv = "1.1"
+indoc = "1.0"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

@@ -11,7 +11,7 @@ pub const COMPUTE_SCALE: u8 = 12;
 
 /// Error codes related to [Decimal].
 #[derive(Error, Debug)]
-pub enum ErrorCode {
+pub enum DecimalError {
     #[error("Unable to parse input")]
     ParseError,
     #[error("Unable to parse empty input")]
@@ -30,7 +30,7 @@ pub enum ErrorCode {
 
 /// [Decimal] representation of a number with a value, scale (precision in terms of number of decimal places
 /// and a negative boolean to handle signed arithmetic.
-#[derive(Clone, Copy, PartialEq, Debug, Error)]
+#[derive(Clone, Copy, PartialEq, PartialOrd, Debug, Error)]
 pub struct Decimal {
     pub value: u128,
     pub scale: u8,
@@ -56,6 +56,10 @@ impl Decimal {
             scale,
             negative,
         }
+    }
+
+    pub fn zero() -> Decimal {
+        Decimal::from_u64(0).to_compute_scale()
     }
 
     pub fn one() -> Decimal {
@@ -193,9 +197,9 @@ impl Decimal {
     /// Leading and trailing whitespace represent an error.
     /// Digits are a subset of these characters, depending on radix.
     /// This function panics if radix is not in the range base 10.
-    fn from_str_radix(s: &str, radix: u32) -> Result<Decimal, ErrorCode> {
+    fn from_str_radix(s: &str, radix: u32) -> Result<Decimal, DecimalError> {
         if radix != 10 {
-            return Err(ErrorCode::ParseErrorBase10.into());
+            return Err(DecimalError::ParseErrorBase10.into());
         }
 
         let exp_separator: &[_] = &['e', 'E'];
@@ -214,7 +218,7 @@ impl Decimal {
         };
 
         if base == "" {
-            return Err(ErrorCode::ParseErrorEmpty.into());
+            return Err(DecimalError::ParseErrorEmpty.into());
         }
 
         // look for signed (negative) decimals
@@ -226,7 +230,7 @@ impl Decimal {
                     (String::from(&base[1..]), true)
                 } else {
                     // negative sign not in the first position
-                    return Err(ErrorCode::ParseError.into());
+                    return Err(DecimalError::ParseError.into());
                 }
             }
         };
@@ -323,9 +327,9 @@ impl MulUp<Decimal> for Decimal {
 
 /// Add another [Decimal] value to itself, including signed addition.
 impl Add<Decimal> for Decimal {
-    fn add(self, rhs: Decimal) -> Result<Self, ErrorCode> {
+    fn add(self, rhs: Decimal) -> Result<Self, DecimalError> {
         if !(self.scale == rhs.scale) {
-            return Err(ErrorCode::DifferentScale.into());
+            return Err(DecimalError::DifferentScale.into());
         } else {
             if self.negative == rhs.negative {
                 // covers when both positive, and both negative.
@@ -369,7 +373,7 @@ impl Add<Decimal> for Decimal {
 
 /// Subtract another [Decimal] value from itself, including signed subtraction.
 impl Sub<Decimal> for Decimal {
-    fn sub(self, rhs: Decimal) -> Result<Self, ErrorCode> {
+    fn sub(self, rhs: Decimal) -> Result<Self, DecimalError> {
         // as a - b is always a + (-b) ; let add handle it
         // simplify: flip b's sign and let Add handle it
         let new_rhs = Decimal {
@@ -497,11 +501,7 @@ impl Pow<Decimal> for Decimal {
 /// Calculate the power of a [Decimal] with an unsigned integer as the exponent.
 impl Pow<u128> for Decimal {
     fn pow(self, exp: u128) -> Self {
-        let one = Decimal {
-            value: self.denominator(),
-            scale: self.scale,
-            negative: self.negative,
-        };
+        let one = Decimal::one().to_scale(self.scale);
 
         if exp == 0 {
             return one;
@@ -563,18 +563,23 @@ impl Into<i32> for Decimal {
 /// Compare two [Decimal] values/scale with comparison query operators.
 impl Compare<Decimal> for Decimal {
     /// Show if two [Decimal] values equal each other
-    fn eq(self, other: Decimal) -> Result<bool, ErrorCode> {
+    fn eq(self, other: Decimal) -> Result<bool, DecimalError> {
         if !(self.scale == other.scale) {
-            return Err(ErrorCode::DifferentScale.into());
+            return Err(DecimalError::DifferentScale.into());
         } else {
             Ok(self.value == other.value && self.negative == other.negative)
         }
     }
 
+    fn almost_eq(self, other: Decimal, precision: u128) -> Result<bool, DecimalError> {
+        let difference = self.value.saturating_sub(other.value);
+        Ok(difference.lt(&precision))
+    }
+
     /// Show if one [Decimal] value is less than another.
-    fn lt(self, other: Decimal) -> Result<bool, ErrorCode> {
+    fn lt(self, other: Decimal) -> Result<bool, DecimalError> {
         if !(self.scale == other.scale) {
-            return Err(ErrorCode::DifferentScale.into());
+            return Err(DecimalError::DifferentScale.into());
         } else {
             if self.negative && other.negative {
                 Ok(self.value > other.value)
@@ -589,9 +594,9 @@ impl Compare<Decimal> for Decimal {
     }
 
     /// Show if one [Decimal] value is greater than another.
-    fn gt(self, other: Decimal) -> Result<bool, ErrorCode> {
+    fn gt(self, other: Decimal) -> Result<bool, DecimalError> {
         if !(self.scale == other.scale) {
-            return Err(ErrorCode::DifferentScale.into());
+            return Err(DecimalError::DifferentScale.into());
         } else {
             if self.negative && other.negative {
                 Ok(self.value < other.value)
@@ -606,9 +611,9 @@ impl Compare<Decimal> for Decimal {
     }
 
     /// Show if one [Decimal] value is greater than or equal to another.
-    fn gte(self, other: Decimal) -> Result<bool, ErrorCode> {
+    fn gte(self, other: Decimal) -> Result<bool, DecimalError> {
         if !(self.scale == other.scale) {
-            return Err(ErrorCode::DifferentScale.into());
+            return Err(DecimalError::DifferentScale.into());
         } else {
             if self.negative && other.negative {
                 Ok(self.value <= other.value)
@@ -623,9 +628,9 @@ impl Compare<Decimal> for Decimal {
     }
 
     /// Show if one [Decimal] value is less than or equal to another.
-    fn lte(self, other: Decimal) -> Result<bool, ErrorCode> {
+    fn lte(self, other: Decimal) -> Result<bool, DecimalError> {
         if !(self.scale == other.scale) {
-            return Err(ErrorCode::DifferentScale.into());
+            return Err(DecimalError::DifferentScale.into());
         } else {
             if self.negative && other.negative {
                 Ok(self.value >= other.value)
@@ -679,10 +684,10 @@ impl Neg for Decimal {
 }
 
 impl FromStr for Decimal {
-    type Err = ErrorCode;
+    type Err = DecimalError;
 
     #[inline]
-    fn from_str(s: &str) -> Result<Decimal, ErrorCode> {
+    fn from_str(s: &str) -> Result<Decimal, DecimalError> {
         Decimal::from_str_radix(s, 10)
     }
 }
@@ -902,9 +907,9 @@ fn log_table_value(
 /// Function that determines the bit length of a positive [Decimal]
 /// based on the formula: int(log(value)/log(2))
 impl BitLength<Decimal> for Decimal {
-    fn bit_length(self) -> Result<Self, ErrorCode> {
+    fn bit_length(self) -> Result<Self, DecimalError> {
         if self.is_negative() {
-            return Err(ErrorCode::SignedDecimalsNotSupported.into());
+            return Err(DecimalError::SignedDecimalsNotSupported.into());
         } else {
             if self.is_zero() {
                 Ok(Decimal::from_u64(0))
@@ -932,9 +937,9 @@ impl BitLength<Decimal> for Decimal {
 /// Calculate the natural logarithm of a [Decimal] value. For full algorithm please refer to:
 // https://docs.google.com/spreadsheets/d/19mgYjGQlpsuaTk1zXujn-yCSdbAL25sP/edit?pli=1#gid=2070648638
 impl Ln<Decimal> for Decimal {
-    fn ln(self) -> Result<Self, ErrorCode> {
+    fn ln(self) -> Result<Self, DecimalError> {
         if self.is_negative() {
-            return Err(ErrorCode::SignedDecimalsNotSupported.into());
+            return Err(DecimalError::SignedDecimalsNotSupported.into());
         }
 
         let scaled_out = self.to_compute_scale();
@@ -993,12 +998,12 @@ impl Ln<Decimal> for Decimal {
 /// Calculate the square root of a [Decimal] value. For full algorithm please refer to:
 // https://docs.google.com/spreadsheets/d/1dw7HaR_YsgvT7iA_4kv2rgWb-EvSyQGM/edit#gid=432909162
 impl Sqrt<Decimal> for Decimal {
-    fn sqrt(self) -> Result<Self, ErrorCode> {
+    fn sqrt(self) -> Result<Self, DecimalError> {
         let zero = Decimal::new(0, self.scale, false);
         let one = Decimal::from_u128(1).to_scale(self.scale);
 
         if self.value.lt(&0u128) || self.value.gt(&u128::MAX) {
-            return Err(ErrorCode::ExceedsRange.into());
+            return Err(DecimalError::ExceedsRange.into());
         }
 
         if self.eq(zero).unwrap() || self.eq(one).unwrap() {
@@ -1008,7 +1013,7 @@ impl Sqrt<Decimal> for Decimal {
         let value = self.value;
         let value_scaled = match value.checked_mul(self.denominator()) {
             Some(x) => x,
-            None => return Err(ErrorCode::ExceedsPrecisionRange.into()),
+            None => return Err(DecimalError::ExceedsPrecisionRange.into()),
         };
         let value_scaled_bit_length = 128u32
             .checked_sub(value_scaled.leading_zeros())
@@ -1048,11 +1053,11 @@ impl Sqrt<Decimal> for Decimal {
 }
 
 pub trait Sub<T>: Sized {
-    fn sub(self, rhs: T) -> Result<Self, ErrorCode>;
+    fn sub(self, rhs: T) -> Result<Self, DecimalError>;
 }
 
 pub trait Add<T>: Sized {
-    fn add(self, rhs: T) -> Result<Self, ErrorCode>;
+    fn add(self, rhs: T) -> Result<Self, DecimalError>;
 }
 
 pub trait Div<T>: Sized {
@@ -1076,7 +1081,7 @@ pub trait MulUp<T>: Sized {
 }
 
 pub trait Ln<T>: Sized {
-    fn ln(self) -> Result<Self, ErrorCode>;
+    fn ln(self) -> Result<Self, DecimalError>;
 }
 
 pub trait Pow<T>: Sized {
@@ -1084,19 +1089,20 @@ pub trait Pow<T>: Sized {
 }
 
 pub trait Sqrt<T>: Sized {
-    fn sqrt(self) -> Result<Self, ErrorCode>;
+    fn sqrt(self) -> Result<Self, DecimalError>;
 }
 
 pub trait BitLength<T>: Sized {
-    fn bit_length(self) -> Result<Self, ErrorCode>;
+    fn bit_length(self) -> Result<Self, DecimalError>;
 }
 
 pub trait Compare<T>: Sized {
-    fn eq(self, rhs: T) -> Result<bool, ErrorCode>;
-    fn lt(self, rhs: T) -> Result<bool, ErrorCode>;
-    fn gt(self, rhs: T) -> Result<bool, ErrorCode>;
-    fn gte(self, rhs: T) -> Result<bool, ErrorCode>;
-    fn lte(self, rhs: T) -> Result<bool, ErrorCode>;
+    fn eq(self, rhs: T) -> Result<bool, DecimalError>;
+    fn almost_eq(self, rhs: T, precision: u128) -> Result<bool, DecimalError>;
+    fn lt(self, rhs: T) -> Result<bool, DecimalError>;
+    fn gt(self, rhs: T) -> Result<bool, DecimalError>;
+    fn gte(self, rhs: T) -> Result<bool, DecimalError>;
+    fn lte(self, rhs: T) -> Result<bool, DecimalError>;
     fn min(self, rhs: T) -> Self;
     fn max(self, rhs: T) -> Self;
 }
@@ -2242,6 +2248,27 @@ mod test {
             let exp: u128 = 18;
             let result = base.pow(exp);
             let expected = Decimal::from_u64(262_144).to_scale(scale);
+            assert_eq!(result, expected);
+        }
+
+        // (-0.001459854015)**2 = 0.000002131174
+        {
+            let base = Decimal::from_str("-0.001459854015").unwrap();
+            let exp: u128 = 2;
+            let result = base.pow(exp);
+            let expected = Decimal::from_str("0.000002131173").unwrap();
+            assert_eq!(result, expected);
+        }
+
+        // (3420/3425-1)**2 = 0.000002131174
+        {
+            let mut base = Decimal::from_u64(3420)
+                .to_compute_scale()
+                .div(Decimal::from_u64(3425).to_compute_scale());
+            base = base.sub(Decimal::one()).unwrap();
+            let exp: u128 = 2;
+            let result = base.pow(exp);
+            let expected = Decimal::from_str("0.000002131173").unwrap();
             assert_eq!(result, expected);
         }
 
