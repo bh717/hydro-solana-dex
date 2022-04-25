@@ -58,6 +58,8 @@
     "packages": [
       "target",
       "sdks/*",
+      "migrations",
+      "scripts",
       "sdks/wasm-loader-ts/wasm-test",
       "examples/*",
       "app"
