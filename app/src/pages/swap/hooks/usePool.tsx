@@ -4,7 +4,7 @@ import { useObservable } from "../../../hooks/useObservable";
 import { maybeStream } from "../../../utils/maybeStream";
 import { HydraSDK } from "hydra-ts";
 import { PublicKey } from "@solana/web3.js";
-import { TokenMint } from "hydra-ts/src/types/token-mint";
+import { TokenMint } from "hydra-ts";
 import { PromiseVal } from "../../../types";
 
 function useAccountStream<T>(loader?: IAccountLoader<T>) {

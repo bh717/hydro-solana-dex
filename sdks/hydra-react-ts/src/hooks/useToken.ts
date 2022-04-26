@@ -1,6 +1,6 @@
 import { PublicKey } from "@solana/web3.js";
 import { useCallback, useMemo, useState } from "react";
-import { Asset } from "../types";
+import { Asset } from "hydra-ts";
 
 export type TokenField = ReturnType<typeof useToken>;
 

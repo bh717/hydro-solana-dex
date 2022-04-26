@@ -1,5 +1,5 @@
 import { HydraSDK } from "hydra-ts";
-import { sortMintSelector } from "../../utils/sortMints";
+import { sortMintSelector } from "hydra-ts";
 import { TokenField } from "../useToken";
 
 export function useCreateAddLiquidityCommands(

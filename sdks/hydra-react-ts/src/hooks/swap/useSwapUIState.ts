@@ -2,7 +2,7 @@ import { assign, createMachine } from "xstate";
 import { useMachine } from "@xstate/react";
 import { useCallback } from "react";
 
-export enum States {
+export enum SwapState {
   EDIT = "edit",
   PREVIEW = "preview",
   PROCESS = "process",
@@ -42,8 +42,8 @@ type XTypestate =
       context: XContext;
     };
 
-export const machine = createMachine<XContext, XEvents, XTypestate>({
-  id: "remove_liquidity_flow",
+export const swapMachine = createMachine<XContext, XEvents, XTypestate>({
+  id: "swap_flow",
   initial: "edit",
   context: {},
   states: {
@@ -59,7 +59,7 @@ export const machine = createMachine<XContext, XEvents, XTypestate>({
       },
     },
     process: {
-      entry: ["removeLiquidity"],
+      entry: ["swap"],
       on: {
         SUCCESS: "done",
         FAIL: "error",
@@ -80,14 +80,12 @@ export const machine = createMachine<XContext, XEvents, XTypestate>({
 });
 
 // take commands and return controls for a statemachine that represents the flow of the UI
-export function useRemoveLiquidityUIState(impl: {
-  executeRemoveLiquidity: () => Promise<void>;
-}) {
-  const [state, send] = useMachine(machine, {
+export function useSwapUIState(impl: { executeSwap: () => Promise<void> }) {
+  const [state, send] = useMachine(swapMachine, {
     actions: {
-      async removeLiquidity() {
+      async swap() {
         try {
-          await impl.executeRemoveLiquidity();
+          await impl.executeSwap();
           send("SUCCESS");
         } catch (error) {
           send("FAIL", { error: `${error}` });

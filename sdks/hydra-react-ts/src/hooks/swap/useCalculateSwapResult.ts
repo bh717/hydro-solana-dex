@@ -1,7 +1,7 @@
 import { usePoolStream } from "../usePoolStream";
 import { useCallback, useEffect } from "react";
 import { HydraSDK } from "hydra-ts";
-import { Asset } from "../../types";
+import { Asset } from "hydra-ts";
 import { useToken } from "../useToken";
 import { AccountData, TokenMint } from "hydra-ts";
 

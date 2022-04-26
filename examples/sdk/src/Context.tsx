@@ -1,14 +1,19 @@
 import React from "react";
-import { HydraClientProvider } from "./components/HydraClientProvider";
-import { NetworkProvider } from "./components/NetworkProvider";
-import { Wallets } from "./Wallets";
+import {
+  HydraClientProvider,
+  NetworkProvider,
+  WalletProvider,
+  WalletModalProvider,
+} from "hydra-react-ts";
 
 export function Context({ children }: { children: React.ReactNode }) {
   return (
     <NetworkProvider>
-      <Wallets>
-        <HydraClientProvider>{children}</HydraClientProvider>
-      </Wallets>
+      <WalletProvider>
+        <WalletModalProvider>
+          <HydraClientProvider>{children}</HydraClientProvider>
+        </WalletModalProvider>
+      </WalletProvider>
     </NetworkProvider>
   );
 }

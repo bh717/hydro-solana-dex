@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Asset } from "../types";
+import { Asset } from "hydra-ts";
 
 export function useCombineAssetBalances(
   assetList: Asset[],

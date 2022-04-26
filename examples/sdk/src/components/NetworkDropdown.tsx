@@ -6,7 +6,7 @@ import {
   SelectChangeEvent,
 } from "@mui/material";
 import { Network } from "hydra-ts";
-import { useNetworkProvider } from "./NetworkProvider";
+import { useNetworkProvider } from "hydra-react-ts";
 
 export function NetworkDropdown(props: any) {
   const { networks, setNetwork, network } = useNetworkProvider();

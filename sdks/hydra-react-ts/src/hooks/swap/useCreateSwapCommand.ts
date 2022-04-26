@@ -1,6 +1,6 @@
 import { HydraSDK } from "hydra-ts";
 import { TokenField } from "../useToken";
-import { sortMints } from "../../utils/sortMints";
+import { sortMints } from "hydra-ts";
 
 // take token form state and create swap commands
 export function useCreateSwapCommand(

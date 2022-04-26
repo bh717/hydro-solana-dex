@@ -1,4 +1,4 @@
-import { useHydraClient } from "../../components/HydraClientProvider";
+import { useHydraClient } from "../../HydraClientProvider";
 import { usePoolStream } from "../usePoolStream";
 import { useTokenForm } from "../useTokenForm";
 import { useAddLiquidityUIState } from "./useAddLiquidityUIState";

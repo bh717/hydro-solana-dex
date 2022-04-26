@@ -1,7 +1,7 @@
 import { useToken } from "./useToken";
 import { useCallback, useMemo, useState } from "react";
 import { useAssetList } from "./useAssetList";
-import { Asset } from "../types";
+import { Asset } from "hydra-ts";
 
 export function useSlippage() {
   const [slippage, setSlippage] = useState(100n); // 1.0% / 10000 basis points

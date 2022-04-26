@@ -1,4 +1,4 @@
-import { useHydraClient } from "../../components/HydraClientProvider";
+import { useHydraClient } from "../../HydraClientProvider";
 import { useRemoveLiquidityUIState } from "./useRemoveLiquidityUIState";
 import { useCreateRemoveLiquidityCommands } from "./useCreateRemoveLiquidityCommands";
 import { useState } from "react";

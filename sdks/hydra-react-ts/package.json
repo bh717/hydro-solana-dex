@@ -1,5 +1,6 @@
 {
-  "name": "wasm-loader-ts",
+  "name": "hydra-react-ts",
+  "private": true,
   "version": "0.0.0",
   "description": "",
   "main": "dist/index.js",
@@ -7,8 +8,8 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch",
-    "build-test": "cd wasm-test && yarn build",
-    "test": "yarn build-test && jest"
+    "test": "jest",
+    "clean": "rm -rf dist"
   },
   "author": "",
   "license": "UNLICENSED",
@@ -17,11 +18,17 @@
     "config-ts": "*",
     "jest": "^27.5.1",
     "ts-jest": "^27.1.3",
-    "typescript": "^4.5.5",
-    "wasm-test": "*"
+    "typescript": "^4.5.5"
   },
   "dependencies": {
+    "@xstate/react": "^3.0.0",
+    "config-ts": "*",
     "hydra-math-rs": "*",
-    "typescript": "^4.5.5"
+    "hydra-ts": "*",
+    "rxjs": "7.5.5",
+    "react": "17.0.2",
+    "@solana/wallet-adapter-base": "^0.9.3",
+    "@solana/wallet-adapter-react": "^0.15.3",
+    "@solana/wallet-adapter-wallets": "^0.15.3"
   }
 }

@@ -1,8 +1,16 @@
 import { PublicKey } from "@solana/web3.js";
-import { HydraSDK } from "hydra-ts";
+import { HydraSDK, IAccountLoader, TokenMint } from "hydra-ts";
 import { useEffect, useState } from "react";
-import { LiquidityPoolAccounts } from "../types";
-import { sortMints } from "../utils/sortMints";
+import { sortMints } from "hydra-ts";
+
+// TODO: Export these types from hydra-ts
+export type PromiseVal<T> = T extends Promise<infer J> ? J : never;
+export type LiquidityPoolAccounts = PromiseVal<
+  ReturnType<HydraSDK["liquidityPools"]["accounts"]["getAccountLoaders"]>
+> & {
+  tokenXMint: IAccountLoader<TokenMint>;
+  tokenYMint: IAccountLoader<TokenMint>;
+};
 
 export function usePoolAccounts(
   client: HydraSDK,

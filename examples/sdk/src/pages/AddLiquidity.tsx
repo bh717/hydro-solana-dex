@@ -1,15 +1,15 @@
 import { Paper, Stack, Typography, Button, Alert } from "@mui/material";
 import PlusIcon from "@mui/icons-material/Add";
 import { TokenField } from "../components/TokenField";
-import { useAddLiquidity } from "../hooks/add-liquidity/useAddLiquidity";
+import { useAddLiquidity } from "hydra-react-ts";
 import { AddLiquidityPreviewModal } from "../components/add-liquidity/AddLiquidityPreviewModal";
 import { AddLiquidityProcessModal } from "../components/add-liquidity/AddLiquidityProcessModal";
 import { AddLiquidityErrorModal } from "../components/add-liquidity/AddLiquidityErrorModal";
 import { AddLiquiditySuccessModal } from "../components/add-liquidity/AddLiquiditySuccessModal";
 import { Box } from "@mui/system";
 import { Balances } from "./Balances";
-import { States } from "../hooks/add-liquidity/useAddLiquidityUIState";
-import { useSlippage } from "../hooks/useTokenForm";
+import { AddLiquidityState } from "hydra-react-ts";
+import { useSlippage } from "hydra-react-ts";
 import { SlippageSelector } from "../components/SlippageSelector";
 
 type AddLiquidityProps = {
@@ -101,7 +101,7 @@ export function AddLiquidity({ tokenAInit, tokenBInit }: AddLiquidityProps) {
       {/* modals */}
       {tokenA.asset && tokenB.asset && (
         <AddLiquidityPreviewModal
-          open={state.matches(States.PREVIEW)}
+          open={state.matches(AddLiquidityState.PREVIEW)}
           tokenAAmount={tokenA.amount}
           tokenAAsset={tokenA.asset}
           tokenBAmount={tokenB.amount}
@@ -110,14 +110,18 @@ export function AddLiquidity({ tokenAInit, tokenBInit }: AddLiquidityProps) {
           handleSubmit={onSendSubmit}
         />
       )}
-      <AddLiquidityProcessModal open={state.matches(States.PROCESS)} />
+      <AddLiquidityProcessModal
+        open={state.matches(AddLiquidityState.PROCESS)}
+      />
       <AddLiquidityErrorModal
-        error={state.matches(States.ERROR) ? state.context.error : ""}
-        open={state.matches(States.ERROR)}
+        error={
+          state.matches(AddLiquidityState.ERROR) ? state.context.error : ""
+        }
+        open={state.matches(AddLiquidityState.ERROR)}
         onClose={onSendCancel}
       />
       <AddLiquiditySuccessModal
-        open={state.matches(States.DONE)}
+        open={state.matches(AddLiquidityState.DONE)}
         onClose={onSendCancel}
       />
     </>

@@ -2,7 +2,7 @@ import { useTokenForm } from "./useTokenForm";
 import { usePool } from "./usePool";
 import { useHydraClient } from "../../../components/hydraClientProvider";
 import { AccountData } from "hydra-ts";
-import { TokenMint } from "hydra-ts/src/types/token-mint";
+import { TokenMint } from "hydra-ts";
 import { useCreateSwapCommand } from "./useCreateSwapCommand";
 import { useCalculateSwapResult } from "./useCalculateSwapResult";
 import { useSwapUIState } from "./useSwapUIState";

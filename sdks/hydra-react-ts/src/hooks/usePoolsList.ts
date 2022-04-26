@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Asset } from "../types";
+import { Asset } from "hydra-ts";
 import { useAssetList } from "./useAssetList";
 
 // This is just to get a list of all pools for now UNORDERED

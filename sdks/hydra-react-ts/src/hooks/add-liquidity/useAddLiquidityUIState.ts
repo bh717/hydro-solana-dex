@@ -2,7 +2,7 @@ import { assign, createMachine } from "xstate";
 import { useMachine } from "@xstate/react";
 import { useCallback } from "react";
 
-export enum States {
+export enum AddLiquidityState {
   EDIT = "edit",
   PREVIEW = "preview",
   PROCESS = "process",
@@ -42,8 +42,8 @@ type XTypestate =
       context: XContext;
     };
 
-export const swapMachine = createMachine<XContext, XEvents, XTypestate>({
-  id: "swap_flow",
+export const machine = createMachine<XContext, XEvents, XTypestate>({
+  id: "add_liquidity_flow",
   initial: "edit",
   context: {},
   states: {
@@ -59,7 +59,7 @@ export const swapMachine = createMachine<XContext, XEvents, XTypestate>({
       },
     },
     process: {
-      entry: ["swap"],
+      entry: ["addLiquidity"],
       on: {
         SUCCESS: "done",
         FAIL: "error",
@@ -80,12 +80,14 @@ export const swapMachine = createMachine<XContext, XEvents, XTypestate>({
 });
 
 // take commands and return controls for a statemachine that represents the flow of the UI
-export function useSwapUIState(impl: { executeSwap: () => Promise<void> }) {
-  const [state, send] = useMachine(swapMachine, {
+export function useAddLiquidityUIState(impl: {
+  executeAddLiquidity: () => Promise<void>;
+}) {
+  const [state, send] = useMachine(machine, {
     actions: {
-      async swap() {
+      async addLiquidity() {
         try {
-          await impl.executeSwap();
+          await impl.executeAddLiquidity();
           send("SUCCESS");
         } catch (error) {
           send("FAIL", { error: `${error}` });

@@ -1,7 +1,7 @@
-import { useHydraClient } from "../components/HydraClientProvider";
+import { useHydraClient } from "../HydraClientProvider";
 import { PublicKey } from "@solana/web3.js";
 import { useMemo } from "react";
-import { Asset } from "../types";
+import { Asset } from "hydra-ts";
 import { combineLatest } from "rxjs";
 import { map } from "rxjs/operators";
 

@@ -1,13 +1,20 @@
-import { useConnection, useAnchorWallet } from "@solana/wallet-adapter-react";
+import {
+  useConnection,
+  AnchorWallet,
+  useAnchorWallet,
+} from "@solana/wallet-adapter-react";
 import { HydraSDK } from "hydra-ts";
 import React, { useMemo } from "react";
 import { useContext } from "react";
 import { useNetworkProvider } from "./NetworkProvider";
 export const HydraClientContext = React.createContext({} as HydraSDK);
 
-export function HydraClientProvider(p: { children: React.ReactNode }) {
+export function HydraClientProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const wallet = useAnchorWallet();
-
   const { connection } = useConnection();
   const { network } = useNetworkProvider();
 
@@ -18,7 +25,7 @@ export function HydraClientProvider(p: { children: React.ReactNode }) {
 
   return (
     <HydraClientContext.Provider value={client}>
-      {p.children}
+      {children}
     </HydraClientContext.Provider>
   );
 }

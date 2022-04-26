@@ -1,13 +1,12 @@
 import { useTokenForm } from "../useTokenForm";
 import { usePoolStream } from "../usePoolStream";
-import { useHydraClient } from "../../components/HydraClientProvider";
+import { useHydraClient } from "../../HydraClientProvider";
 import { useCreateSwapCommand } from "./useCreateSwapCommand";
 import { useCalculateSwapResult } from "./useCalculateSwapResult";
 import { useSwapUIState } from "./useSwapUIState";
 
 export function useSwap(slippage: bigint) {
   const sdk = useHydraClient();
-
   // get form data and controls
   const {
     assetsTokenA: assetsTokenFrom,
