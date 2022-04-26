@@ -136,7 +136,7 @@ impl<'info> RemoveLiquidity<'info> {
     pub fn burn_lp_tokens(&self) -> CpiContext<'_, '_, '_, 'info, Burn<'info>> {
         let cpi_accounts = Burn {
             mint: self.lp_token_mint.to_account_info(),
-            to: self.user_redeemable_lp_tokens.to_account_info(),
+            from: self.user_redeemable_lp_tokens.to_account_info(),
             authority: self.user.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();

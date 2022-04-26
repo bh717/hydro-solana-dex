@@ -67,7 +67,7 @@ impl<'info> UnStake<'info> {
     pub fn into_burn_redeemable(&self) -> CpiContext<'_, '_, '_, 'info, Burn<'info>> {
         let cpi_accounts = Burn {
             mint: self.redeemable_mint.to_account_info(),
-            to: self.redeemable_from.to_account_info(),
+            from: self.redeemable_from.to_account_info(),
             authority: self.redeemable_from_authority.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();
