@@ -56,7 +56,7 @@ Direction can be found [here](https://nodejs.org/en/)
 
 ```
 $ node --version
-v17.7.2
+v16.14.2
 ```
 
 #### Installing yarn
