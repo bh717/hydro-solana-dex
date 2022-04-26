@@ -1,15 +1,17 @@
 import { Paper, Stack, Typography, Button, Alert } from "@mui/material";
 import PlusIcon from "@mui/icons-material/Add";
 import { TokenField } from "../components/TokenField";
-import { useAddLiquidity } from "hydra-react-ts";
 import { AddLiquidityPreviewModal } from "../components/add-liquidity/AddLiquidityPreviewModal";
 import { AddLiquidityProcessModal } from "../components/add-liquidity/AddLiquidityProcessModal";
 import { AddLiquidityErrorModal } from "../components/add-liquidity/AddLiquidityErrorModal";
 import { AddLiquiditySuccessModal } from "../components/add-liquidity/AddLiquiditySuccessModal";
 import { Box } from "@mui/system";
 import { Balances } from "./Balances";
-import { AddLiquidityState } from "hydra-react-ts";
-import { useSlippage } from "hydra-react-ts";
+import {
+  useAddLiquidity,
+  AddLiquidityState,
+  useSlippage,
+} from "hydra-react-ts";
 import { SlippageSelector } from "../components/SlippageSelector";
 
 type AddLiquidityProps = {
