@@ -1,6 +1,6 @@
 name: react-build
 env:
-  cache-id: react-20220305a
+  cache-id: react-20220427
   CARGO_TERM_COLOR: always
 on:
   push:
