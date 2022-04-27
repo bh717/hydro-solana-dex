@@ -22,17 +22,20 @@ pub fn calculate_k(x: u64, x_scale: u8, y: u64, y_scale: u8) -> Option<u64> {
     )
 }
 
-/// calculate a and b tokens (x/y) from lp_tokens (k)
+/// calculate x and y from k
 pub fn calculate_x_y(
     lp_tokens: u64,
-    tokens_a_total: u64,
-    tokens_b_total: u64,
+    lp_tokens_scale: u8,
+    x: u64,
+    x_scale: u8,
+    y: u64,
+    y_scale: u8,
     lp_tokens_total: u64,
 ) -> (u64, u64) {
-    let x_total = Decimal::from_u64(tokens_a_total);
-    let y_total = Decimal::from_u64(tokens_b_total);
-    let lp_total = Decimal::from_u64(lp_tokens_total);
-    let lp_tokens_to_mint = Decimal::from_u64(lp_tokens);
+    let x_total = Decimal::from_scaled_amount(x, x_scale);
+    let y_total = Decimal::from_scaled_amount(y, y_scale);
+    let lp_total = Decimal::from_scaled_amount(lp_tokens_total, lp_tokens_scale);
+    let lp_tokens_to_mint = Decimal::from_scaled_amount(lp_tokens, lp_tokens_scale);
 
     // div up (ceiling) as we are receiving these amounts
     let x_debited = lp_tokens_to_mint.mul(x_total).div_up(lp_total).to_u64();
