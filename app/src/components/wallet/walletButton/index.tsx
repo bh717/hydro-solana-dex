@@ -1,12 +1,11 @@
 import React, { FC, useState, useEffect } from "react";
 import { Box, Menu, IconButton, Typography } from "@mui/material";
 import { makeStyles } from "@mui/styles";
-import { useWallet } from "@solana/wallet-adapter-react";
 import cn from "classnames";
 
 import { CaretDown, Wallet as WalletSVG, User } from "../../icons";
 import HYSD from "../../../assets/images/symbols/hysd.png";
-import { useAssetBalances } from "hydra-react-ts";
+import { useAssetBalances, useWallet } from "hydra-react-ts";
 import { toFormat } from "../../../utils/toFormat";
 import { normalizeAddress } from "../../../helpers/normalize";
 import { Asset } from "../../../types";

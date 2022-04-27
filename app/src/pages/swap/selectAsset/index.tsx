@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { makeStyles } from "@mui/styles";
 import { Box, Button } from "@mui/material";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useWallet } from "hydra-react-ts";
 import cn from "classnames";
 
 import HYSD from "../../../assets/images/symbols/hysd.png";
