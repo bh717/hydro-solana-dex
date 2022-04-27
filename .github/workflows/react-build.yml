@@ -1,6 +1,6 @@
 name: react-build
 env:
-  cache-id: react-20220427
+  cache-id: react-20220427a
   CARGO_TERM_COLOR: always
 on:
   push:
@@ -41,7 +41,7 @@ jobs:
         if: steps.cache-cli-deps.outputs.cache-hit != 'true'
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: 1.60.0
 
       - id: install-solana-tools
         name: install-solana-tools
