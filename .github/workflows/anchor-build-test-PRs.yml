@@ -38,7 +38,7 @@ jobs:
         if: steps.cache-cli-deps.outputs.cache-hit != 'true'
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: 1.60.0
 
       - id: install-wasm-pack
         name: install-wasm-pack
