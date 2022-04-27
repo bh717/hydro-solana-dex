@@ -4,7 +4,7 @@ import {
   SolletExtensionWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import React, { useMemo } from "react";
-import { useNetworkProvider } from "./NetworkProvider";
+import { useNetworkProvider } from "./HydraNetworkProvider";
 import {
   WalletAdapter,
   WalletAdapterNetwork,
@@ -19,19 +19,16 @@ function toWalletAdaptorNetwork(
     : undefined) as any as WalletAdapterNetwork;
 }
 
-function initWallets(
-  network: WalletAdapterNetwork | undefined
-): WalletAdapter[] {
-  return [
-    new PhantomWalletAdapter(),
-    new SolletExtensionWalletAdapter({ network }),
-  ];
-}
-
-export function WalletProvider({ children }: { children: React.ReactNode }) {
+export function HydraWalletProvider({
+  children,
+  wallets: fetchWallets,
+}: {
+  children: React.ReactNode;
+  wallets: (network?: WalletAdapterNetwork) => WalletAdapter[];
+}) {
   const networkInfo = useNetworkProvider();
   const network = toWalletAdaptorNetwork(networkInfo.network);
-  const wallets = useMemo(() => initWallets(network), [network]);
+  const wallets = useMemo(() => fetchWallets(network), [network, fetchWallets]);
   return (
     <SolanaWalletProvider wallets={wallets} autoConnect>
       {children}

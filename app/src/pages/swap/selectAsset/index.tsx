@@ -6,7 +6,7 @@ import cn from "classnames";
 
 import HYSD from "../../../assets/images/symbols/hysd.png";
 import { CaretDown } from "../../../components/icons";
-import { TokenField } from "../hooks/useToken";
+import { TokenField } from "hydra-react-ts";
 
 const useStyles = makeStyles({
   assetContainer: {

@@ -1,12 +1,8 @@
-import {
-  useConnection,
-  AnchorWallet,
-  useAnchorWallet,
-} from "@solana/wallet-adapter-react";
+import { useConnection, useAnchorWallet } from "@solana/wallet-adapter-react";
 import { HydraSDK } from "hydra-ts";
 import React, { useMemo } from "react";
 import { useContext } from "react";
-import { useNetworkProvider } from "./NetworkProvider";
+import { useNetworkProvider } from "./HydraNetworkProvider";
 export const HydraClientContext = React.createContext({} as HydraSDK);
 
 export function HydraClientProvider({

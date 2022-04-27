@@ -1,19 +1,29 @@
 import React from "react";
 import {
   HydraClientProvider,
-  NetworkProvider,
-  WalletProvider,
+  HydraNetworkProvider,
+  HydraWalletProvider,
   WalletModalProvider,
 } from "hydra-react-ts";
+import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
+import {
+  PhantomWalletAdapter,
+  SolletExtensionWalletAdapter,
+} from "@solana/wallet-adapter-wallets";
+
+const getWallets = (network?: WalletAdapterNetwork) => [
+  new PhantomWalletAdapter(),
+  new SolletExtensionWalletAdapter({ network }),
+];
 
 export function Context({ children }: { children: React.ReactNode }) {
   return (
-    <NetworkProvider>
-      <WalletProvider>
+    <HydraNetworkProvider>
+      <HydraWalletProvider wallets={getWallets}>
         <WalletModalProvider>
           <HydraClientProvider>{children}</HydraClientProvider>
         </WalletModalProvider>
-      </WalletProvider>
-    </NetworkProvider>
+      </HydraWalletProvider>
+    </HydraNetworkProvider>
   );
 }

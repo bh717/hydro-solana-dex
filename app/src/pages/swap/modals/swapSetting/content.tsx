@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState, useCallback } from "react";
+import React, { FC, useCallback, ReactNode } from "react";
 import { makeStyles } from "@mui/styles";
 import {
   Box,
@@ -6,9 +6,10 @@ import {
   Button,
   TextField,
   InputAdornment,
+  TextFieldProps,
 } from "@mui/material";
 import cn from "classnames";
-import debounce from "lodash.debounce";
+import { useNumericField } from "hydra-react-ts";
 
 const useStyles = makeStyles({
   contentTitle: {
@@ -138,31 +139,63 @@ const useStyles = makeStyles({
   },
 });
 
-interface ContentProps {
-  slippage: string;
-  setSlippage(value: string): void;
+// This should be deduped...
+export type NumericFieldProps = Omit<
+  TextFieldProps,
+  "onFocus" | "value" | "onChange"
+> & {
+  onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
+  value: number;
+  onChange?: (value: number) => void;
+};
+
+export function NumericField({
+  value,
+  onFocus,
+  onChange,
+  fullWidth = true,
+  ...props
+}: NumericFieldProps) {
+  const numericProps = useNumericField({ value, onFocus, onChange });
+  return <TextField {...props} fullWidth={fullWidth} {...numericProps} />;
 }
-// XXX: convert to using bigint slippage (10_000n)
+
+interface ContentProps {
+  slippage: bigint;
+  setSlippage(value: bigint): void;
+}
+
+function SlippageButton({
+  children,
+  className,
+  amount,
+  onClick,
+}: {
+  amount: bigint;
+  className?: string;
+  children: ReactNode;
+  onClick?: (amount: bigint) => void;
+}) {
+  const handleClick = useCallback(() => {
+    onClick && onClick(amount);
+  }, [onClick, amount]);
+  return (
+    <Button className={className} onClick={handleClick}>
+      {children}
+    </Button>
+  );
+}
+
 const Content: FC<ContentProps> = ({ slippage, setSlippage }) => {
   const classes = useStyles();
-  const [tempSlippage, setTempSlippage] = useState("");
 
-  useEffect(() => {
-    if ([0.1, 0.5, 1].indexOf(parseFloat(slippage)) < 0)
-      setTempSlippage(slippage);
-    else setTempSlippage("");
-  }, [slippage]);
-
-  // eslint-disable-next-line
-  const debouncedSet = useCallback(
-    debounce((value) => setSlippage(value), 1000),
-    []
+  const isError = slippage < 1n;
+  const handleSlippageButtonClicked = useCallback(
+    (amount: bigint) => {
+      setSlippage(amount);
+    },
+    [setSlippage]
   );
-
-  const handleChangeValue = (value: string) => {
-    setTempSlippage(value);
-    debouncedSet(value);
-  };
 
   return (
     <>
@@ -172,47 +205,47 @@ const Content: FC<ContentProps> = ({ slippage, setSlippage }) => {
           Slippage Tolerance
         </Typography>
         <Box className={classes.optionWrapper}>
-          <Button
+          <SlippageButton
             className={cn({
-              [classes.optionActive]: parseFloat(slippage) === 0.1,
+              [classes.optionActive]: slippage === 10n,
             })}
-            onClick={() => setSlippage("0.1")}
+            amount={10n}
+            onClick={handleSlippageButtonClicked}
           >
             0.1%
-          </Button>
-          <Button
+          </SlippageButton>
+          <SlippageButton
             className={cn({
-              [classes.optionActive]: parseFloat(slippage) === 0.5,
+              [classes.optionActive]: slippage === 50n,
             })}
-            onClick={() => setSlippage("0.5")}
+            amount={50n}
+            onClick={handleSlippageButtonClicked}
           >
             0.5%
-          </Button>
-          <Button
+          </SlippageButton>
+          <SlippageButton
             className={cn({
-              [classes.optionActive]: parseFloat(slippage) === 1,
+              [classes.optionActive]: slippage === 100n,
             })}
-            onClick={() => setSlippage("1")}
+            amount={100n}
+            onClick={handleSlippageButtonClicked}
           >
             1.0%
-          </Button>
-          <TextField
+          </SlippageButton>
+          <NumericField
             className={cn(classes.optionInput, {
-              [classes.inputError]: parseFloat(slippage) < 0.01,
-              [classes.inputActive]: parseFloat(tempSlippage) >= 0.01,
+              [classes.inputError]: isError,
+              [classes.inputActive]: !isError,
             })}
             hiddenLabel
-            type="number"
             InputProps={{
               endAdornment: <InputAdornment position="end">%</InputAdornment>,
             }}
-            value={tempSlippage}
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-              handleChangeValue(event.target.value)
-            }
+            value={Number(slippage) / 100}
+            onChange={(value) => setSlippage(BigInt(value * 100))}
           />
         </Box>
-        {parseFloat(slippage) <= 0.01 && (
+        {isError && (
           <Typography className={classes.error}>
             Enter a valid slippage percentage
           </Typography>

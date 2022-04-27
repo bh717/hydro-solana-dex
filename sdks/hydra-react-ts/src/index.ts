@@ -1,7 +1,7 @@
 export * from "./hooks/swap/useSwap";
 export * from "./hooks/add-liquidity/useAddLiquidity";
 export * from "./hooks/remove-liquidity/useRemoveLiquidity";
-export * from "./NetworkProvider";
+export * from "./HydraNetworkProvider";
 export * from "./HydraClientProvider";
 export { AddLiquidityState } from "./hooks/add-liquidity/useAddLiquidityUIState";
 export { RemoveLiquidityState } from "./hooks/remove-liquidity/useRemoveLiquidityUIState";
@@ -11,7 +11,7 @@ export * from "./hooks/useToken";
 export * from "./hooks/useAssetBalances";
 export * from "./hooks/useNumericField";
 export * from "./hooks/usePools";
-export * from "./WalletProvider";
+export * from "./HydraWalletProvider";
 
 // TODO: For some reason within our monorepo not pulling this
 //       package from here causes incompatabilities when attempting
@@ -19,3 +19,4 @@ export * from "./WalletProvider";
 //       the buttons within the exampole interface. Example app is likely
 //       temporary anyway
 export * from "@solana/wallet-adapter-react-ui";
+export * from "@solana/wallet-adapter-react";

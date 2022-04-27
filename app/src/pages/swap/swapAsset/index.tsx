@@ -7,7 +7,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { Exchange, Warning } from "../../../components/icons";
 import NumericField from "../../../components/numericField";
 import SelectAsset from "../selectAsset";
-import { TokenField } from "../hooks/useToken";
+import { TokenField } from "hydra-react-ts";
 import { Asset, AssetBalance } from "../../../types";
 import { toFormat } from "../../../utils/toFormat";
 import { fromFormat } from "../../../utils/fromFormat";

@@ -6,7 +6,7 @@ import cn from "classnames";
 
 import { CaretDown, Wallet as WalletSVG, User } from "../../icons";
 import HYSD from "../../../assets/images/symbols/hysd.png";
-import { useAssetBalances } from "../../../hooks/useAssetBalances";
+import { useAssetBalances } from "hydra-react-ts";
 import { toFormat } from "../../../utils/toFormat";
 import { normalizeAddress } from "../../../helpers/normalize";
 import { Asset } from "../../../types";

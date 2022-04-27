@@ -3,18 +3,19 @@ import React, { useCallback, useState } from "react";
 export type NumericFieldProps = {
   onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
   value: number;
-  onChange?: (value: number) => void;
+  onChange?: (inputValue: number) => void;
 };
+
 export function useNumericField({
-  value,
-  onFocus,
-  onChange,
+  value: inputValue,
+  onFocus: inputOnFocus,
+  onChange: inputOnChange,
 }: NumericFieldProps) {
   const [draftMode, setDraftMode] = useState(false);
   const [localState, setLocalState] = useState("0");
-  const [error, setError] = useState("");
+  const [internalError, setError] = useState("");
 
-  const handleChange = useCallback(
+  const onChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setError("");
 
@@ -23,42 +24,42 @@ export function useNumericField({
       setLocalState(allowedString);
       const num = Number(allowedString);
       if (!isNaN(num)) {
-        onChange && onChange(num);
+        inputOnChange && inputOnChange(num);
       }
     },
-    [onChange]
+    [inputOnChange]
   );
 
-  const handleBlur = useCallback(
+  const onBlur = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
       const num = Number(localState);
       if (isNaN(num)) {
         setError("Number is not valid");
         return;
       }
-      onChange && onChange(num);
+      inputOnChange && inputOnChange(num);
       setDraftMode(false);
-      setLocalState(value.toString());
+      setLocalState(inputValue.toString());
     },
-    [localState, value, onChange]
+    [localState, inputValue, inputOnChange]
   );
 
-  const handleFocus = useCallback(
+  const onFocus = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
       setDraftMode(true);
-      if (!error) setLocalState(`${value}`);
-      onFocus && onFocus(e);
+      if (!internalError) setLocalState(`${inputValue}`);
+      inputOnFocus && inputOnFocus(e);
     },
-    [value, onFocus, error]
+    [inputValue, inputOnFocus, internalError]
   );
 
-  const fieldValue = draftMode ? localState : value.toString();
-  const fieldError = !!error;
+  const value = draftMode ? localState : inputValue.toString();
+  const error = !!internalError;
   return {
-    fieldError,
-    fieldValue,
-    handleChange,
-    handleBlur,
-    handleFocus,
+    error,
+    value,
+    onChange,
+    onBlur,
+    onFocus,
   };
 }

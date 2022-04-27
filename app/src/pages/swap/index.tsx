@@ -3,12 +3,13 @@ import { makeStyles } from "@mui/styles";
 import { Box, IconButton } from "@mui/material";
 
 import { Gear } from "../../components/icons";
-import { Asset, AssetBalance } from "../../types";
+import { AssetBalance } from "../../types";
 import SwapAsset from "./swapAsset";
 import SwapSettingModal from "./modals/swapSetting";
 import AssetListModal from "./modals/assetList";
 import ConfirmSwapModal from "./modals/confirmSwap";
 import SwapStatus from "./modals/swapStatus";
+import { Asset } from "hydra-ts";
 import { useSwap, useAssetBalances, useSlippage } from "hydra-react-ts";
 // import { useSwap } from "./hooks/useSwap";
 // import { useAssetBalances } from "../../hooks/useAssetBalances";
@@ -126,7 +127,7 @@ const Swap: FC<SwapProps> = ({ openWalletConnect }) => {
   useEffect(() => {
     let tempBalances: AssetBalance = {};
 
-    balances.forEach((balance: Asset) => {
+    balances.forEach((balance) => {
       let tempBalance = balance.balance || 0n;
       tempBalances[balance["address"]] = toFormat(
         tempBalance,

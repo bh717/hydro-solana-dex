@@ -80,7 +80,11 @@ const defaultApi = createNetworkApi(defaultNetwork);
 
 const NetworkProviderContext = React.createContext<NetworkApi>(defaultApi);
 
-export function NetworkProvider({ children }: { children: React.ReactNode }) {
+export function HydraNetworkProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [network, setNetwork] = React.useState(defaultNetwork);
 
   const handleNetworkSelected = React.useCallback(

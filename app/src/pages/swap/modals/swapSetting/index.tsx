@@ -5,8 +5,8 @@ import Content from "./content";
 interface SwapSettingModalProps {
   open: boolean;
   onClose(): void;
-  slippage: string;
-  setSlippage(value: string): void;
+  slippage: bigint;
+  setSlippage(value: bigint): void;
 }
 
 const SwapSettingModal: FC<SwapSettingModalProps> = ({
