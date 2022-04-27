@@ -1,6 +1,6 @@
 name: example-app-build
 env:
-  cache-id: example-app-20220427
+  cache-id: example-app-20220427b
   CARGO_TERM_COLOR: always
 on:
   push:
@@ -42,7 +42,7 @@ jobs:
         if: steps.cache-cli-deps.outputs.cache-hit != 'true'
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: 1.60.0
 
       - run: echo "PATH=$HOME/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_ENV
 
