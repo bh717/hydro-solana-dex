@@ -9,8 +9,9 @@ import SwapSettingModal from "./modals/swapSetting";
 import AssetListModal from "./modals/assetList";
 import ConfirmSwapModal from "./modals/confirmSwap";
 import SwapStatus from "./modals/swapStatus";
-import { useSwap } from "./hooks/useSwap";
-import { useAssetBalances } from "../../hooks/useAssetBalances";
+import { useSwap, useAssetBalances, useSlippage } from "hydra-react-ts";
+// import { useSwap } from "./hooks/useSwap";
+// import { useAssetBalances } from "../../hooks/useAssetBalances";
 import { toFormat } from "../../utils/toFormat";
 
 const useStyles = makeStyles({
@@ -94,6 +95,8 @@ interface SwapProps {
 
 const Swap: FC<SwapProps> = ({ openWalletConnect }) => {
   const classes = useStyles();
+  // TODO: Extract slippage to global config
+  const { slippage, setSlippage } = useSlippage();
 
   const {
     tokenFrom,
@@ -103,19 +106,18 @@ const Swap: FC<SwapProps> = ({ openWalletConnect }) => {
     toggleFields,
     poolExists,
     poolPairSelected,
-    canSwap,
+    isSubmitDisabled,
     setFocus,
     onSendSubmit,
     state,
     onSendCancel,
-  } = useSwap();
+  } = useSwap(slippage);
   const balances = useAssetBalances();
 
   // const [swapRate, setSwapRate] = useState(0);
   const [activeAsset, setActiveAsset] = useState("");
   const [assetList, setAssetList] = useState<Asset[]>([]);
   const [assetsBalance, setAssetsBalance] = useState<AssetBalance>({});
-  const [slippage, setSlippage] = useState("1.0");
   const [openSettingModal, setOpenSettingModal] = useState(false);
   const [openAssetListModal, setOpenAssetListModal] = useState(false);
   const [openConfirmSwapModal, setOpenConfirmSwapModal] = useState(false);
@@ -144,7 +146,7 @@ const Swap: FC<SwapProps> = ({ openWalletConnect }) => {
   }, [state]);
 
   const handleSettingModal = () => {
-    if (parseFloat(slippage) > 0) setOpenSettingModal(false);
+    if (slippage > 0n) setOpenSettingModal(false);
   };
 
   const handleChangeAsset = (type: string) => {
@@ -201,7 +203,7 @@ const Swap: FC<SwapProps> = ({ openWalletConnect }) => {
             balances={assetsBalance}
             assetFocus={setFocus}
             exchangeAsset={toggleFields}
-            canSwap={canSwap}
+            canSwap={!isSubmitDisabled}
             poolExits={poolExists}
             poolPairSelected={poolPairSelected}
             confirmSwap={handleOpenConfirmSwap}

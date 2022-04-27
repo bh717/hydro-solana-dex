@@ -142,7 +142,7 @@ interface ContentProps {
   slippage: string;
   setSlippage(value: string): void;
 }
-
+// XXX: convert to using bigint slippage (10_000n)
 const Content: FC<ContentProps> = ({ slippage, setSlippage }) => {
   const classes = useStyles();
   const [tempSlippage, setTempSlippage] = useState("");
@@ -207,7 +207,7 @@ const Content: FC<ContentProps> = ({ slippage, setSlippage }) => {
               endAdornment: <InputAdornment position="end">%</InputAdornment>,
             }}
             value={tempSlippage}
-            onChangeCapture={(event: React.ChangeEvent<HTMLInputElement>) =>
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
               handleChangeValue(event.target.value)
             }
           />

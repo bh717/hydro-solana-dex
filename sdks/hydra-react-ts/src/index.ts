@@ -9,6 +9,7 @@ export { SwapState } from "./hooks/swap/useSwapUIState";
 export * from "./hooks/useTokenForm";
 export * from "./hooks/useToken";
 export * from "./hooks/useAssetBalances";
+export * from "./hooks/useNumericField";
 export * from "./hooks/usePools";
 export * from "./WalletProvider";
 
