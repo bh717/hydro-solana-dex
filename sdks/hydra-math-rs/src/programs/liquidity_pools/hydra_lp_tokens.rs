@@ -38,8 +38,14 @@ pub fn calculate_x_y(
     let lp_tokens_to_mint = Decimal::from_scaled_amount(lp_tokens, lp_tokens_scale);
 
     // div up (ceiling) as we are receiving these amounts
-    let x_debited = lp_tokens_to_mint.mul(x_total).div_up(lp_total).to_u64();
-    let y_debited = lp_tokens_to_mint.mul(y_total).div_up(lp_total).to_u64();
+    let x_debited = lp_tokens_to_mint
+        .mul(x_total)
+        .div_up(lp_total)
+        .to_scaled_amount(x_scale);
+    let y_debited = lp_tokens_to_mint
+        .mul(y_total)
+        .div_up(lp_total)
+        .to_scaled_amount(y_scale);
 
     (x_debited, y_debited)
 }
