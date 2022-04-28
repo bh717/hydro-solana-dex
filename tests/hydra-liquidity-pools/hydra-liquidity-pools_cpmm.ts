@@ -131,22 +131,6 @@ describe("hydra-liquidity-pool-cpmm", () => {
     assert.equal(poolStateAccount.tokenYVaultBump, tokenYVaultBump);
   });
 
-  // it.skip("should not add-liquidity to pool with the wrong instruction for the first time", async () => {
-  //   try {
-  //     await sdk.liquidityPools.addLiquidity(
-  //       btcdMint,
-  //       usddMint,
-  //       6_000_000n,
-  //       255_575_287_200n,
-  //       0n
-  //     );
-  //     assert.ok(false);
-  //   } catch (err: any) {
-  //     const errMsg = "PoolNotFunded";
-  //     assert(err.toString().includes(errMsg));
-  //   }
-  // });
-
   it("should add-first-liquidity to the initialized empty pool", async () => {
     await sdk.liquidityPools.addLiquidity(
       btcdMint,
@@ -180,21 +164,6 @@ describe("hydra-liquidity-pool-cpmm", () => {
     assert.strictEqual(await accounts.tokenXVault.balance(), 6000000n);
     assert.strictEqual(await accounts.tokenYVault.balance(), 255575287200n);
   });
-
-  // it("should not add-first-liquidity to a funded pool", async () => {
-  //   try {
-  //     await sdk.liquidityPools.addLiquidity(
-  //       btcdMint,
-  //       usddMint,
-  //       6_000_000n,
-  //       255_575_287_200n
-  //     );
-  //     assert.ok(false);
-  //   } catch (err: any) {
-  //     const errMsg = "PoolAlreadyFunded";
-  //     assert(err.toString().includes(errMsg));
-  //   }
-  // });
 
   it("should add-liquidity to pool for the second time", async () => {
     await sdk.liquidityPools.addLiquidity(
