@@ -47,6 +47,10 @@ jobs:
       #        with:
       #          version: "v0.10.2"
 
+      - id: install-wasm-target
+        name: install-wasm-target
+        run: rustup target add wasm32-unknown-unknown
+
       - run: echo "PATH=$HOME/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_ENV
 
       - id: install-solana-tools
@@ -65,7 +69,7 @@ jobs:
 
   build-anchor-stack:
     runs-on: ubuntu-latest
-    needs: [build-anchor-deps]
+    needs: [ build-anchor-deps ]
     steps:
       - id: cache-cli-deps
         name: cache-cli-deps
