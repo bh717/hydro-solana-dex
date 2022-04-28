@@ -44,10 +44,6 @@ jobs:
         name: install-wasm-pack
         run: make install_wasm_pack
 
-      - id: install-wasm-target
-        name: install-wasm-target
-        run: rustup target add wasm32-unknown-unknown
-
       - run: echo "PATH=$HOME/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_ENV
 
       - id: install-solana-tools
@@ -105,9 +101,9 @@ jobs:
           path: "**/.turbo"
           key: ${{ runner.os }}-turbo-files
 
-      - run: rustup target list
-
-      - run: rustup target add wasm32-unknown-unknown
+      - id: install-wasm-target
+        name: install-wasm-target
+        run: rustup target add wasm32-unknown-unknown
 
       - run: make anchor-ci
 
