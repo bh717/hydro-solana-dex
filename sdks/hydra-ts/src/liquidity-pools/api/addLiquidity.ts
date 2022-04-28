@@ -9,7 +9,7 @@ import { web3 } from "@project-serum/anchor";
 import * as wasm from "hydra-math-rs";
 import { loadWasm } from "wasm-loader-ts";
 import * as AccountLoader from "../../libs/account-loader";
-import { TokenMint } from "../../types/token-mint";
+import { TokenMint } from "../../types";
 const hydraMath = loadWasm(wasm);
 
 async function calculateK(
@@ -115,6 +115,8 @@ export function addLiquidity(ctx: Ctx) {
       toBN(expectedLpTokens),
       {
         accounts: {
+          tokenXMint,
+          tokenYMint,
           poolState: await poolState.key(),
           lpTokenMint: await lpTokenMint.key(),
           userTokenX: await userTokenX.key(),
