@@ -105,6 +105,10 @@ jobs:
           path: "**/.turbo"
           key: ${{ runner.os }}-turbo-files
 
+      - run: rustup target list
+
+      - run: rustup target add wasm32-unknown-unknown
+
       - run: make anchor-ci
 
       - name: Notify slask success
