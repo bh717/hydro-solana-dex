@@ -46,7 +46,7 @@ jobs:
 
       - id: install-wasm-pack
         name: install-wasm-pack
-        run: install_wasm_pack
+        run: make install_wasm_pack
 
       - run: echo "PATH=$HOME/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_ENV
 
