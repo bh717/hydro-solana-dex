@@ -1,6 +1,6 @@
 name: anchor-build
 env:
-  cache-id: anchor-20220428a
+  cache-id: anchor-20220428b
   CARGO_TERM_COLOR: always
 on:
   pull_request:
