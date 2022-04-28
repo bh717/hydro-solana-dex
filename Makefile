@@ -33,8 +33,7 @@ install_anchor:
 # used in ci
 install_solana:
 	solana-install update || sh -c "$$(curl -sSfL https://release.solana.com/v${SOLANA_VERSION}/install)"
-# Commenting the following out as in CI solana is not yet available
-# solana -V
+	solana -V
 
 install_wasm_pack:
 	wasm-pack -V || cargo install wasm-pack
