@@ -1,9 +1,8 @@
-import React, { FC } from "react";
 import { makeStyles } from "@mui/styles";
 import { Box, Typography, Button } from "@mui/material";
 
 import { Check } from "../../../icons";
-import { RPC } from "../../../../interfaces";
+import { useNetworkProvider } from "hydra-react-ts";
 
 const useStyles = makeStyles({
   contentTitle: {
@@ -43,14 +42,10 @@ const useStyles = makeStyles({
   },
 });
 
-interface ContentProps {
-  data: RPC;
-  setData(value: RPC): void;
-  networks: Array<RPC>;
-}
-
-const Content: FC<ContentProps> = ({ data, setData, networks }) => {
+const Content = () => {
   const classes = useStyles();
+
+  const { meta, setNetwork, networks } = useNetworkProvider();
 
   return (
     <>
@@ -58,10 +53,10 @@ const Content: FC<ContentProps> = ({ data, setData, networks }) => {
         Select Environment
       </Typography>
       <Box className={classes.contentWrapper}>
-        {networks.map((network, index) => (
-          <Button key={index} onClick={() => setData(network)}>
-            <span>{network.name}</span>
-            {data.url === network.url && <Check />}
+        {networks.map(({ network, name, endpoint }, index) => (
+          <Button key={index} onClick={() => setNetwork(network)}>
+            <span>{name}</span>
+            {meta.endpoint === endpoint && <Check />}
           </Button>
         ))}
       </Box>

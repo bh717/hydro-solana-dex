@@ -1,13 +1,12 @@
 import React, { FC } from "react";
 import { makeStyles } from "@mui/styles";
 import { Box, Button, IconButton, Typography } from "@mui/material";
-import { useWallet } from "@solana/wallet-adapter-react";
 // import cn from "classnames";
 
 import { Exchange, Warning } from "../../../components/icons";
 import NumericField from "../../../components/numericField";
 import SelectAsset from "../selectAsset";
-import { TokenField } from "../hooks/useToken";
+import { useWallet, TokenField } from "hydra-react-ts";
 import { Asset, AssetBalance } from "../../../types";
 import { toFormat } from "../../../utils/toFormat";
 import { fromFormat } from "../../../utils/fromFormat";

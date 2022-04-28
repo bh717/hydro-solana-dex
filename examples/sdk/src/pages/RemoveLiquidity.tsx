@@ -1,14 +1,16 @@
 import { Paper, Stack, Typography, Button } from "@mui/material";
 import { Box } from "@mui/system";
 import { Balances } from "./Balances";
-import { States } from "../hooks/add-liquidity/useAddLiquidityUIState";
-import { useSlippage } from "../hooks/useTokenForm";
+import {
+  RemoveLiquidityState,
+  useSlippage,
+  useRemoveLiquidity,
+} from "hydra-react-ts";
 import { SlippageSelector } from "../components/SlippageSelector";
 import { RemoveLiquidityPreviewModal } from "../components/remove-liquidity/RemoveLiquidityPreviewModal";
 import { RemoveLiquidityProcessModal } from "../components/remove-liquidity/RemoveLiquidityProcessModal";
 import { RemoveLiquidityErrorModal } from "../components/remove-liquidity/RemoveLiquidityErrorModal";
 import { RemoveLiquiditySuccessModal } from "../components/remove-liquidity/RemoveLiquiditySuccessModal";
-import { useRemoveLiquidity } from "../hooks/remove-liquidity/useRemoveLiquidity";
 import { AssetSelector } from "../components/AssetSelector";
 import { NumericField } from "../components/NumericField";
 
@@ -104,7 +106,7 @@ export function RemoveLiquidity({
       {/* modals */}
       {tokenA.asset && tokenB.asset && (
         <RemoveLiquidityPreviewModal
-          open={state.matches(States.PREVIEW)}
+          open={state.matches(RemoveLiquidityState.PREVIEW)}
           tokenAAsset={tokenA.asset}
           tokenBAsset={tokenB.asset}
           percent={percent}
@@ -112,14 +114,18 @@ export function RemoveLiquidity({
           handleSubmit={onSendSubmit}
         />
       )}
-      <RemoveLiquidityProcessModal open={state.matches(States.PROCESS)} />
+      <RemoveLiquidityProcessModal
+        open={state.matches(RemoveLiquidityState.PROCESS)}
+      />
       <RemoveLiquidityErrorModal
-        error={state.matches(States.ERROR) ? state.context.error : ""}
-        open={state.matches(States.ERROR)}
+        error={
+          state.matches(RemoveLiquidityState.ERROR) ? state.context.error : ""
+        }
+        open={state.matches(RemoveLiquidityState.ERROR)}
         onClose={onSendCancel}
       />
       <RemoveLiquiditySuccessModal
-        open={state.matches(States.DONE)}
+        open={state.matches(RemoveLiquidityState.DONE)}
         onClose={onSendCancel}
       />
     </>

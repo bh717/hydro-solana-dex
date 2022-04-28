@@ -1,4 +1,4 @@
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { WalletMultiButton } from "hydra-react-ts";
 import { useState } from "react";
 import {
   AppBar,

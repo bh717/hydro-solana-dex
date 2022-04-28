@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from "react";
+import React, { FC, useState, useEffect } from "react";
 import { makeStyles } from "@mui/styles";
 import MuiDrawer from "@mui/material/Drawer";
 import {
@@ -38,8 +38,8 @@ import {
 import ListItem from "./listItem";
 import { WalletButton } from "../wallet";
 import SelectRPCModal from "./modals/selectRPC";
-import { RPC } from "../../interfaces";
 import Config from "../../config";
+import { useNetworkProvider } from "hydra-react-ts";
 
 const useStyles = makeStyles({
   drawer: {
@@ -331,20 +331,12 @@ const SidebarItems = [
 
 interface SidebarProps {
   openWalletModal(): void;
-  address: string;
-  rpc: RPC;
-  changeRPC(value: RPC): void;
-  networks: Array<RPC>;
 }
 
-const Sidebar: FC<SidebarProps> = ({
-  openWalletModal,
-  address,
-  rpc,
-  changeRPC,
-  networks,
-}) => {
+const Sidebar: FC<SidebarProps> = ({ openWalletModal }) => {
   const classes = useStyles();
+
+  const { meta } = useNetworkProvider();
   const [open, setOpen] = useState(true);
   const [mobile, setMobile] = useState(false);
   const [openRPCModal, setOpenRPCModal] = useState(false);
@@ -420,13 +412,13 @@ const Sidebar: FC<SidebarProps> = ({
                 />
               );
 
-            return <></>;
+            return <React.Fragment key={index}></React.Fragment>;
           })}
           {mobile && (
             <Box className={classes.bottomLinks}>
               <ListItem
                 icon={<Network />}
-                name={rpc.name}
+                name={meta.name}
                 onClick={() => setOpenRPCModal(true)}
               />
               <ListItem icon={<Doc />} name="Test Guide" />
@@ -462,7 +454,7 @@ const Sidebar: FC<SidebarProps> = ({
               >
                 <Network />
                 <Typography variant="body2" component="span">
-                  {rpc.name}
+                  {meta.name}
                 </Typography>
               </Link>
             </Box>
@@ -532,9 +524,6 @@ const Sidebar: FC<SidebarProps> = ({
       <SelectRPCModal
         open={openRPCModal}
         onClose={() => setOpenRPCModal(false)}
-        rpc={rpc}
-        changeRPC={changeRPC}
-        networks={networks}
       />
     </>
   );

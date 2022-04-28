@@ -1,7 +1,7 @@
 import { AccountLoader } from "hydra-ts";
 import React from "react";
 import { TableCell, TableRow } from "@mui/material";
-import { TokenAccount } from "hydra-ts/src/types/token-account";
+import { TokenAccount } from "hydra-ts";
 import { trunc } from "../utils/trunc";
 
 export function DisplayToken({

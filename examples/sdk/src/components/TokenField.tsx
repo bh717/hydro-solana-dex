@@ -1,5 +1,5 @@
 import { NumericField } from "./NumericField";
-import { TokenField as TokenFieldData } from "../hooks/useToken";
+import { TokenField as TokenFieldData } from "hydra-react-ts";
 import { Asset } from "../types";
 import { toFormat } from "../utils/toFormat";
 import { fromFormat } from "../utils/fromFormat";

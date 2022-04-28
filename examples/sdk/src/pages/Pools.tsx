@@ -4,14 +4,11 @@
 // - click on a pool to add liquidity
 
 import { PublicKey } from "@solana/web3.js";
-import { HydraSDK } from "hydra-ts";
+import { sortMints, HydraSDK } from "hydra-ts";
 import { useCallback, useEffect, useState } from "react";
-import { useHydraClient } from "../components/HydraClientProvider";
-
-import { usePools } from "../hooks/usePools";
+import { useHydraClient, usePools } from "hydra-react-ts";
 import { Asset } from "../types";
 import { Button } from "@mui/material";
-import { sortMints } from "../utils/sortMints";
 
 async function hasLpTokenBalanceOrNull(
   client: HydraSDK,
