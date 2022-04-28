@@ -1,7 +1,8 @@
 import { useToken } from "./useToken";
 import { useCallback, useMemo, useState } from "react";
 import { useAssetList } from "./useAssetList";
-import { Asset } from "hydra-ts";
+import { Asset, Network } from "hydra-ts";
+import { useNetworkProvider } from "hydra-react-ts";
 
 export function useSlippage() {
   const [slippage, setSlippage] = useState(100n); // 1.0% / 10000 basis points
@@ -20,10 +21,11 @@ function excludeAsset(assets: Asset[], address?: string) {
 
 export function useTokenForm(props?: {
   tokenAInit?: string;
-  tokenBInit?: string /*network*/;
+  tokenBInit?: string;
 }) {
   const { tokenAInit, tokenBInit } = props ?? {};
-  const assets = useAssetList(/* network */);
+  const { network } = useNetworkProvider();
+  const assets = useAssetList(network);
 
   const tokenA = useToken(findAsset(assets, tokenAInit));
   const tokenB = useToken(findAsset(assets, tokenBInit));

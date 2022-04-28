@@ -1,11 +1,9 @@
-// This is not run with anchor migrate
 import * as anchor from "@project-serum/anchor";
-import config from "config-ts/global-config.json";
-import * as staking from "types-ts/codegen/types/hydra_staking";
-import { tokens as localnetTokens } from "config-ts/tokens/localnet.json";
-import { loadKey } from "hydra-ts/node"; // these should be moved out of test
+import TokensMap from "config-ts/tokens.json";
+import { loadKey } from "hydra-ts/src/node"; // these should be moved out of test
 import { HydraSDK, Network } from "hydra-ts";
 import NodeWallet from "@project-serum/anchor/dist/cjs/nodewallet";
+import NetworkMap from "config-ts/network-map.json";
 
 type Token = {
   chainId: number;
@@ -15,8 +13,10 @@ type Token = {
   symbol: string;
   logoURI: string;
 };
-// type Lookup<T> = Record<keyof T, Keypair>;
-async function loadTokens(tokens: typeof localnetTokens) {
+
+export async function loadTokens(network: Network) {
+  // select tokens from
+  const tokens = TokensMap[network] as Token[];
   let out: any = {};
   let entries = Object.entries(tokens) as Array<[string, Token]>;
   for (let [, { address, symbol }] of entries) {
@@ -27,30 +27,37 @@ async function loadTokens(tokens: typeof localnetTokens) {
   return out;
 }
 
-// type LocalTokens = Record<keyof typeof localnetTokens, Keypair>;
+export function getNetworkFromUrl(url: string) {
+  const [network] = Object.entries(NetworkMap).find(([k, v]) => v === url) ?? [
+    null,
+  ];
+  if (!network) throw new Error("Invalid Network");
+  return network as Network;
+}
 
-async function setupStakingState(provider: anchor.Provider, tokens: any) {
-  const hydraStaking = new anchor.web3.PublicKey(
-    config.localnet.programIds.hydraStaking
-  );
+export function getNetworkFromProvider(provider: anchor.Provider) {
+  const url = (provider.connection as any)._rpcEndpoint;
 
-  const program = new anchor.Program<staking.HydraStaking>(
-    staking.IDL,
-    hydraStaking
-  );
+  return getNetworkFromUrl(url);
+}
+
+export async function setupStakingState(
+  provider: anchor.Provider,
+  network: Network,
+  tokens: any
+) {
+  // const hydraStaking = new anchor.web3.PublicKey(
+  //   config.localnet.programIds.hydraStaking
+  // );
+
+  // const program = new anchor.Program<staking.HydraStaking>(
+  //   staking.IDL,
+  //   hydraStaking
+  // );
   const redeemableMint = tokens["xhyd"];
   const tokenMint = tokens["hyd"];
 
-  const programMap = {
-    hydraStaking: program.programId.toString(),
-    redeemableMint: redeemableMint.publicKey.toString(),
-    tokenMint: tokenMint.publicKey.toString(),
-  };
-
-  const sdk = HydraSDK.createFromAnchorProvider(provider, {
-    ...config.localnet.programIds,
-    ...programMap,
-  });
+  const sdk = HydraSDK.createFromAnchorProvider(provider, network);
 
   console.log("Creating mint and vault...");
 
@@ -68,7 +75,7 @@ async function setupStakingState(provider: anchor.Provider, tokens: any) {
 
   console.log("Initializing...");
   console.log(`
-deployingAs:\t${sdk.ctx.provider.wallet.publicKey}
+deployingAs:\t\t${sdk.ctx.provider.wallet.publicKey}
 poolStatePubkey:\t${poolStatePubkey}
 tokenVaultPubkey:\t${await sdk.staking.accounts.tokenVault.key()}
 tokenMint:\t\t${tokenMint.publicKey}
@@ -78,11 +85,9 @@ redeemableMint:\t\t${redeemableMint.publicKey}
   await sdk.staking.initialize(tokenVaultBump, poolStateBump);
 }
 
-type Asset = typeof localnetTokens[0];
-
-async function createMintAssociatedVaultFromAsset(
+export async function createMintAssociatedVaultFromAsset(
   sdk: HydraSDK,
-  asset: Asset | undefined,
+  asset: Token | undefined,
   amount: bigint
 ) {
   if (!asset) throw new Error("Asset not provided!");
@@ -99,23 +104,27 @@ async function createMintAssociatedVaultFromAsset(
   return ata;
 }
 
-function getAsset(symbol: string) {
-  return localnetTokens.find(
-    (asset) => asset.symbol.toLowerCase() === symbol.toLowerCase()
+export function getAsset(symbol: string, network: Network) {
+  return TokensMap[network].find(
+    (asset: Token) => asset.symbol.toLowerCase() === symbol.toLowerCase()
   );
 }
 
-async function setupLiquidityPoolState(provider: anchor.Provider, tokens: any) {
+export async function setupLiquidityPoolState(
+  provider: anchor.Provider,
+  network: Network,
+  tokens: any
+) {
   // The idea here is we use the provider.wallet as "god" mint tokens to them
   // and then transfer those tokens to to a "trader" account
-  const sdk = HydraSDK.createFromAnchorProvider(provider, Network.LOCALNET);
+  const sdk = HydraSDK.createFromAnchorProvider(provider, network);
 
   // 1. create and distribute tokens to the god wallet
   const list = [
-    { asset: getAsset("usdc"), amount: 100_000_000_000000n }, // 100,000,000.000000
-    { asset: getAsset("wbtc"), amount: 100_000_000n * 100_000_000n },
-    { asset: getAsset("weth"), amount: 100_000_000_000000000n }, // 100,000,000.000000000
-    { asset: getAsset("sol"), amount: 100_000_000n * 1_000_000_000n },
+    { asset: getAsset("usdc", network), amount: 100_000_000_000000n }, // 100,000,000.000000
+    { asset: getAsset("wbtc", network), amount: 100_000_000n * 100_000_000n },
+    { asset: getAsset("weth", network), amount: 100_000_000_000000000n }, // 100,000,000.000000000
+    { asset: getAsset("wsol", network), amount: 100_000_000n * 1_000_000_000n },
   ];
 
   let atas = [];
@@ -206,11 +215,4 @@ async function setupLiquidityPoolState(provider: anchor.Provider, tokens: any) {
 
   // yarn private-key ./keys/users/usrQpqgkvUjPgAVnGm8Dk3HmX3qXr1w4gLJMazLNyiW.json
   // yarn private-key ~/.config/solana/id.json
-}
-
-export default async function (provider: anchor.Provider) {
-  anchor.setProvider(provider);
-  const tokens = await loadTokens(localnetTokens);
-  await setupStakingState(provider, tokens);
-  await setupLiquidityPoolState(provider, tokens);
 }

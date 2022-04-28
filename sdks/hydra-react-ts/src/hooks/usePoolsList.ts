@@ -1,13 +1,14 @@
 import { useMemo } from "react";
 import { Asset } from "hydra-ts";
 import { useAssetList } from "./useAssetList";
-
+import { useNetworkProvider } from "hydra-react-ts";
 // This is just to get a list of all pools for now UNORDERED
 // We will likely refactor at a point to pull this
 // from some kind of analytic service to sort by
 // volume or some other metric.
 export function usePoolsList() {
-  const assets = useAssetList();
+  const { network } = useNetworkProvider();
+  const assets = useAssetList(network);
   return useMemo(() => {
     const pools = new Map<string, [Asset, Asset]>();
     for (let firstasset of assets) {

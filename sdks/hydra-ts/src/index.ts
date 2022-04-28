@@ -5,3 +5,4 @@ export * as AccountLoader from "./libs/account-loader";
 export * from "./libs/account-loader/types";
 export * from "./utils/maybeStream";
 export * from "./utils/sortMints";
+export * from "./utils/getTokenList";
