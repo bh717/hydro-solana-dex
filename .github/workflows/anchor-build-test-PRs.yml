@@ -1,6 +1,6 @@
 name: anchor-build
 env:
-  cache-id: anchor-20220427a
+  cache-id: anchor-20220428a
   CARGO_TERM_COLOR: always
 on:
   pull_request:
@@ -38,7 +38,7 @@ jobs:
         if: steps.cache-cli-deps.outputs.cache-hit != 'true'
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: 1.60.0
+          toolchain: stable
 
       - id: install-wasm-pack
         name: install-wasm-pack
