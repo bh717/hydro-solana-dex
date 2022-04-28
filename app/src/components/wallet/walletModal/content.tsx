@@ -1,7 +1,7 @@
 import React, { FC, useState, useEffect } from "react";
 import { makeStyles } from "@mui/styles";
 import { Box, Typography, Button, IconButton, Link } from "@mui/material";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useWallet } from "hydra-react-ts";
 import { WalletName } from "@solana/wallet-adapter-base";
 import cn from "classnames";
 

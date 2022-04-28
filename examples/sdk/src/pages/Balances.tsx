@@ -8,8 +8,7 @@ import {
 } from "@mui/material";
 import { toFormat } from "../utils/toFormat";
 import { Box } from "@mui/system";
-import { useHydraClient } from "../components/HydraClientProvider";
-import { useAssetBalances } from "../hooks/useAssetBalances";
+import { useHydraClient, useAssetBalances } from "hydra-react-ts";
 
 export function Balances() {
   const client = useHydraClient();

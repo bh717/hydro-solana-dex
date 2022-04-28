@@ -3,7 +3,7 @@ import * as anchor from "@project-serum/anchor";
 import config from "config-ts/global-config.json";
 import * as staking from "types-ts/codegen/types/hydra_staking";
 import { tokens as localnetTokens } from "config-ts/tokens/localnet.json";
-import { loadKey } from "hydra-ts/src/node"; // these should be moved out of test
+import { loadKey } from "hydra-ts/node"; // these should be moved out of test
 import { HydraSDK, Network } from "hydra-ts";
 import NodeWallet from "@project-serum/anchor/dist/cjs/nodewallet";
 

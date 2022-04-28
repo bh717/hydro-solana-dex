@@ -39,13 +39,15 @@ jobs:
         if: steps.cache-cli-deps.outputs.cache-hit != 'true'
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: 1.60.0
 
       - id: install-wasm-pack
         name: install-wasm-pack
-        uses: jetli/wasm-pack-action@v0.3.0
-        with:
-          version: "v0.10.2"
+        run: make install_wasm_pack
+
+      - id: install-wasm-target
+        name: install-wasm-target
+        run: rustup target add wasm32-unknown-unknown
 
       - run: echo "PATH=$HOME/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_ENV
 

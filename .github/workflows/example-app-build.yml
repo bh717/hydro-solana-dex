@@ -1,6 +1,6 @@
 name: example-app-build
 env:
-  cache-id: example-app-20220405
+  cache-id: example-app-20220427b
   CARGO_TERM_COLOR: always
 on:
   push:
@@ -42,7 +42,7 @@ jobs:
         if: steps.cache-cli-deps.outputs.cache-hit != 'true'
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: 1.60.0
 
       - run: echo "PATH=$HOME/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_ENV
 
@@ -96,9 +96,11 @@ jobs:
 
       - id: install-wasm-pack
         name: install-wasm-pack
-        uses: jetli/wasm-pack-action@v0.3.0
-        with:
-          version: "v0.10.2"
+        run: install_wasm_pack
+
+      - id: install-wasm-target
+        name: install-wasm-target
+        run: rustup target add wasm32-unknown-unknown
 
       # https://dev.to/mpocock1/how-to-cache-nodemodules-in-github-actions-with-yarn-24eh
       - id: cache-node-modules

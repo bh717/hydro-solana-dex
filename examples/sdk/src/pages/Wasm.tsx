@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
 import { Button, Paper, Stack, Typography } from "@mui/material";
-import { useHydraClient } from "../components/HydraClientProvider";
+import { useHydraClient } from "hydra-react-ts";
 
 export function Wasm() {
   const sdk = useHydraClient();

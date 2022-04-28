@@ -1,6 +1,6 @@
 name: react-build
 env:
-  cache-id: react-20220305a
+  cache-id: react-20220427a
   CARGO_TERM_COLOR: always
 on:
   push:
@@ -41,14 +41,14 @@ jobs:
         if: steps.cache-cli-deps.outputs.cache-hit != 'true'
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: 1.60.0
+
+      - run: echo "PATH=$HOME/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_ENV
 
       - id: install-solana-tools
         name: install-solana-tools
         if: steps.cache-cli-deps.outputs.cache-hit != 'true'
         run: make install_solana
-
-      - run: echo "PATH=$HOME/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_ENV
 
       - id: install-anchor-cli
         name: install-anchor-cli

@@ -2,15 +2,13 @@ import { Paper, Stack, Typography, Button, Alert } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
 import SwapVertIcon from "@mui/icons-material/SwapVert";
 import { TokenField } from "../components/TokenField";
-import { useSwap } from "../hooks/swap/useSwap";
+import { useSwap, SwapState, useSlippage } from "hydra-react-ts";
 import { SwapPreviewModal } from "../components/swap-modal/SwapPreviewModal";
 import { SwapProcessModal } from "../components/swap-modal/SwapProcessModal";
 import { SwapErrorModal } from "../components/swap-modal/SwapErrorModal";
 import { SwapSuccessModal } from "../components/swap-modal/SwapSuccessModal";
 import { Box } from "@mui/system";
 import { Balances } from "./Balances";
-import { States } from "../hooks/swap/useSwapUIState";
-import { useSlippage } from "../hooks/useTokenForm";
 import { SlippageSelector } from "../components/SlippageSelector";
 
 export function Swap() {
@@ -106,7 +104,7 @@ export function Swap() {
       {/* modals */}
       {tokenFrom.asset && tokenTo.asset && (
         <SwapPreviewModal
-          open={state.value === States.PREVIEW}
+          open={state.value === SwapState.PREVIEW}
           fromAmount={tokenFrom.amount}
           fromAsset={tokenFrom.asset}
           toAmount={tokenTo.amount}
@@ -116,14 +114,14 @@ export function Swap() {
           minimumAmountOut={minimumAmountOut}
         />
       )}
-      <SwapProcessModal open={state.matches(States.PROCESS)} />
+      <SwapProcessModal open={state.matches(SwapState.PROCESS)} />
       <SwapErrorModal
-        error={state.matches(States.ERROR) ? state.context.error : ""}
-        open={state.matches(States.ERROR)}
+        error={state.matches(SwapState.ERROR) ? state.context.error : ""}
+        open={state.matches(SwapState.ERROR)}
         onClose={onSendCancel}
       />
       <SwapSuccessModal
-        open={state.matches(States.DONE)}
+        open={state.matches(SwapState.DONE)}
         onClose={onSendCancel}
       />
     </>

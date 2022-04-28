@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import { useObservable } from "react-use";
 import { Box } from "@mui/system";
-import { useHydraClient } from "../components/HydraClientProvider";
+import { useHydraClient } from "hydra-react-ts";
 import { DisplayToken } from "../components/DisplayToken";
 
 export function Staking() {
