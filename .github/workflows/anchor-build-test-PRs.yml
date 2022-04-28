@@ -43,9 +43,6 @@ jobs:
       - id: install-wasm-pack
         name: install-wasm-pack
         run: make install_wasm_pack
-      #        uses: jetli/wasm-pack-action@v0.3.0
-      #        with:
-      #          version: "v0.10.2"
 
       - id: install-wasm-target
         name: install-wasm-target
