@@ -16,7 +16,7 @@
  
  export async function saveKey(keypair: anchor.web3.Keypair): Promise<void> {
    const name = keypair.publicKey.toString();
-   const path = `keys/localnet/staking/${name}.json`;
+   const path = `keys/tokens/${name}.json`;
    const file  = JSON.stringify(Array.from(keypair.secretKey));
    fs.writeFileSync(path, Buffer.from(file));
  }

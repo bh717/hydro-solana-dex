@@ -1,9 +1,11 @@
 import * as anchor from "@project-serum/anchor";
-import TokensMap from "config-ts/tokens.json";
-import { loadKey } from "hydra-ts/src/node"; // these should be moved out of test
-import { HydraSDK, Network } from "hydra-ts";
+import TM from "config-ts/tokens.json";
+import { loadKey, saveKey } from "hydra-ts/src/node"; // these should be moved out of test
+import { HydraSDK, Network, PromiseVal } from "hydra-ts";
 import NodeWallet from "@project-serum/anchor/dist/cjs/nodewallet";
 import NetworkMap from "config-ts/network-map.json";
+import { Keypair } from "@solana/web3.js";
+import fs from "fs";
 
 type Token = {
   chainId: number;
@@ -14,14 +16,20 @@ type Token = {
   logoURI: string;
 };
 
-export async function loadTokens(network: Network) {
+type NetworkedTokenMap = {
+  [n in Network]: Token[];
+};
+
+const TokensStore = TM as NetworkedTokenMap;
+
+export async function loadKeypairsFromFiles(network: Network) {
   // select tokens from
-  const tokens = TokensMap[network] as Token[];
-  let out: any = {};
+  const tokens = TokensStore[network] as Token[];
+  let out = new Map<string, Keypair>();
   let entries = Object.entries(tokens) as Array<[string, Token]>;
   for (let [, { address, symbol }] of entries) {
-    const keypair = await loadKey(`keys/localnet/tokens/${address}.json`);
-    out[symbol.toLowerCase()] = keypair;
+    const keypair = await loadKey(`keys/tokens/${address}.json`);
+    out.set(symbol.toLowerCase(), keypair);
   }
 
   return out;
@@ -44,7 +52,7 @@ export function getNetworkFromProvider(provider: anchor.Provider) {
 export async function setupStakingState(
   provider: anchor.Provider,
   network: Network,
-  tokens: any
+  tokens: Tokens
 ) {
   // const hydraStaking = new anchor.web3.PublicKey(
   //   config.localnet.programIds.hydraStaking
@@ -54,8 +62,8 @@ export async function setupStakingState(
   //   staking.IDL,
   //   hydraStaking
   // );
-  const redeemableMint = tokens["xhyd"];
-  const tokenMint = tokens["hyd"];
+  const redeemableMint = tokens.getKey("xhyd");
+  const tokenMint = tokens.getKey("hyd");
 
   const sdk = HydraSDK.createFromAnchorProvider(provider, network);
 
@@ -92,7 +100,7 @@ export async function createMintAssociatedVaultFromAsset(
 ) {
   if (!asset) throw new Error("Asset not provided!");
   console.log("Creating " + asset.name);
-  const keypair = await loadKey(`keys/localnet/tokens/${asset.address}.json`);
+  const keypair = await loadKey(`keys/tokens/${asset.address}.json`);
 
   const [, ata] = await sdk.common.createMintAndAssociatedVault(
     keypair,
@@ -105,7 +113,7 @@ export async function createMintAssociatedVaultFromAsset(
 }
 
 export function getAsset(symbol: string, network: Network) {
-  return TokensMap[network].find(
+  return TokensStore[network].find(
     (asset: Token) => asset.symbol.toLowerCase() === symbol.toLowerCase()
   );
 }
@@ -113,7 +121,7 @@ export function getAsset(symbol: string, network: Network) {
 export async function setupLiquidityPoolState(
   provider: anchor.Provider,
   network: Network,
-  tokens: any
+  tokens: Tokens
 ) {
   // The idea here is we use the provider.wallet as "god" mint tokens to them
   // and then transfer those tokens to to a "trader" account
@@ -147,33 +155,34 @@ export async function setupLiquidityPoolState(
 
   // Create the wbtc usdc pool
   await sdk.liquidityPools.initialize(
-    tokens.wbtc.publicKey,
-    tokens.usdc.publicKey,
+    tokens.getKey("wbtc").publicKey,
+    tokens.getKey("usdc").publicKey,
     fees
   );
 
   await sdk.liquidityPools.addLiquidity(
-    tokens.wbtc.publicKey,
-    tokens.usdc.publicKey,
+    tokens.getKey("wbtc").publicKey,
+    tokens.getKey("usdc").publicKey,
     1_000n * 1_000_000_000n,
     45_166_800n * 1_000_000n
   );
 
   // Create the weth usdc pool
   await sdk.liquidityPools.initialize(
-    tokens.weth.publicKey,
-    tokens.usdc.publicKey,
+    tokens.getKey("weth").publicKey,
+    tokens.getKey("usdc").publicKey,
     fees
   );
   await sdk.liquidityPools.addLiquidity(
-    tokens.weth.publicKey,
-    tokens.usdc.publicKey,
+    tokens.getKey("weth").publicKey,
+    tokens.getKey("usdc").publicKey,
     1_000n * 1_000_000_000n,
     3_281_000n * 1_000_000n
   );
+
   // Load up a trader account
   const trader = await loadKey(
-    `keys/localnet/users/usrQpqgkvUjPgAVnGm8Dk3HmX3qXr1w4gLJMazLNyiW.json`
+    `keys/users/usrQpqgkvUjPgAVnGm8Dk3HmX3qXr1w4gLJMazLNyiW.json`
   );
 
   await provider.connection.confirmTransaction(
@@ -183,28 +192,28 @@ export async function setupLiquidityPoolState(
 
   // 3. Transfer some funds to the trader account
   const traderUsdc = await sdk.common.createAssociatedAccount(
-    tokens.usdc.publicKey,
+    tokens.getKey("usdc").publicKey,
     trader,
     (provider.wallet as NodeWallet).payer
   );
   await sdk.common.transfer(atas[0], traderUsdc, 100n * 1_000_000n);
 
   const traderBtc = await sdk.common.createAssociatedAccount(
-    tokens.wbtc.publicKey,
+    tokens.getKey("wbtc").publicKey,
     trader,
     (provider.wallet as NodeWallet).payer
   );
   await sdk.common.transfer(atas[1], traderBtc, 100n * 1_000_000n);
 
   const traderEth = await sdk.common.createAssociatedAccount(
-    tokens.weth.publicKey,
+    tokens.getKey("weth").publicKey,
     trader,
     (provider.wallet as NodeWallet).payer
   );
   await sdk.common.transfer(atas[2], traderEth, 100n * 1_000_000n);
 
   const traderSol = await sdk.common.createAssociatedAccount(
-    tokens.sol.publicKey,
+    tokens.getKey("sol").publicKey,
     trader,
     (provider.wallet as NodeWallet).payer
   );
@@ -216,3 +225,91 @@ export async function setupLiquidityPoolState(
   // yarn private-key ./keys/users/usrQpqgkvUjPgAVnGm8Dk3HmX3qXr1w4gLJMazLNyiW.json
   // yarn private-key ~/.config/solana/id.json
 }
+
+async function generateTokens(network: Network, keys: Map<string, Keypair>) {
+  // generate keys from scratch
+  // return Map<string, Token>
+  const tokens = TokensStore[network];
+
+  const map = new Map<string, Token>();
+  for (let token of tokens) {
+    const key = keys.get(token.symbol);
+    if (!key) throw new Error("Symbol not found");
+    const address = key.publicKey.toString();
+    map.set(token.symbol, {
+      ...token,
+      address,
+    });
+  }
+  return map;
+}
+
+async function generateTokenKeys(network: Network) {
+  const tokens = TokensStore[network];
+
+  const keys = new Map<string, Keypair>();
+  for (let token of tokens) {
+    const keypair = Keypair.generate();
+    keys.set(token.symbol, keypair);
+  }
+  return keys;
+}
+
+async function loadTokensFromStore(network: Network) {
+  // load keys from file
+  const tokens = TokensStore[network];
+
+  const map = new Map<string, Token>();
+  for (let token of tokens) {
+    map.set(token.symbol, token);
+  }
+  return map;
+}
+
+async function saveTokenKeysMeta(
+  keys: Map<string, Keypair>,
+  tokens: Map<string, Token>,
+  network: Network
+) {
+  for (const [, key] of keys) {
+    await saveKey(key);
+  }
+  const tokenPath = "sdks/config-ts/tokens.json";
+  const tokensObject = JSON.parse(
+    JSON.stringify(TokensStore)
+  ) as NetworkedTokenMap;
+
+  tokensObject[network] = [...tokens.values()];
+  fs.writeFileSync(tokenPath, JSON.stringify(tokensObject, null, 2));
+}
+
+async function createToken(network: Network, generate: boolean) {
+  let keys: Map<string, Keypair>;
+  let tokens: Map<string, Token>;
+  if (generate) {
+    keys = await generateTokenKeys(network);
+    tokens = await generateTokens(network, keys);
+  } else {
+    tokens = await loadTokensFromStore(network);
+    keys = await loadKeypairsFromFiles(network);
+  }
+
+  return {
+    get(symbol: string) {
+      return tokens.get(symbol);
+    },
+    getKey(symbol: string) {
+      return keys.get(symbol);
+    },
+    // save
+    async save() {
+      await saveTokenKeysMeta(keys, tokens, network);
+    },
+  };
+}
+
+type Tokens = PromiseVal<ReturnType<typeof createToken>>;
+
+export const Tokens = {
+  create: createToken,
+};

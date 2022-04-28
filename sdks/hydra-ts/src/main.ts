@@ -58,8 +58,8 @@ export const HydraSDK = {
         ? new Connection(connectionOrEndpoint)
         : connectionOrEndpoint;
     const ctx = wallet
-      ? createCtx(wallet, connection, programIds)
-      : createReadonlyCtx(connection, programIds);
+      ? createCtx(wallet, connection, programIds, network)
+      : createReadonlyCtx(connection, programIds, network);
     const api = createApi(ctx);
     return api;
   },
@@ -77,7 +77,10 @@ export const HydraSDK = {
     const programIds = isNetwork(programIdsOrNetwork)
       ? getProgramIds(programIdsOrNetwork)
       : programIdsOrNetwork;
-    const ctx = createCtxAnchor(provider, programIds);
+    const network = isNetwork(programIdsOrNetwork)
+      ? programIdsOrNetwork
+      : undefined;
+    const ctx = createCtxAnchor(provider, programIds, network);
     return createApi(ctx);
   },
 };

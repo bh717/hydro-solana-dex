@@ -7,10 +7,11 @@ import NodeWallet from "@project-serum/anchor/dist/cjs/nodewallet";
 import toml from "toml";
 import NetworkMap from "config-ts/network-map.json";
 
-type MigrationFn = (p: anchor.Provider) => Promise<void>;
+type MigrationFn = (p: anchor.Provider, g?: boolean) => Promise<void>;
 
 const args = arg({
   "--features": String,
+  "--generate": String,
 });
 
 // messy script to run our deploy scripts in
@@ -18,6 +19,8 @@ const args = arg({
 // we can customise this for other environments to point to other files.
 async function main() {
   const feature = args["--features"] || "localnet";
+  const generate = Boolean(args["--generate"]) || false;
+
   if (!Object.keys(NetworkMap).includes(feature)) {
     console.log("Invalid feature");
     process.exit(1);
@@ -47,7 +50,7 @@ async function main() {
   });
 
   // Run userScript with provider
-  await userScript(provider);
+  await userScript(provider, generate);
   console.log("Finished running script");
 }
 
