@@ -1,6 +1,6 @@
 name: example-app-build
 env:
-  cache-id: example-app-20220427b
+  cache-id: example-app-20220428a
   CARGO_TERM_COLOR: always
 on:
   push:
