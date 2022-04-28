@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, FC } from "react";
 import { makeStyles } from "@mui/styles";
 import { Box, Typography, InputBase, Button } from "@mui/material";
+
+import { Asset } from "../../../../../types";
 
 const useStyles = makeStyles({
   title: {
@@ -98,7 +100,12 @@ const useStyles = makeStyles({
   },
 });
 
-const Content = () => {
+interface ContentProps {
+  tokenA: Asset;
+  tokenB: Asset;
+}
+
+const Content: FC<ContentProps> = ({ tokenA, tokenB }) => {
   const classes = useStyles();
   const [search, setSearch] = useState("");
 

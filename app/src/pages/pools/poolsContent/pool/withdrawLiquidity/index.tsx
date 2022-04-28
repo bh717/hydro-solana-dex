@@ -2,15 +2,26 @@ import { FC } from "react";
 
 import Modal from "../../../../../components/modal";
 import Content from "./content";
+import { Asset } from "../../../../../types";
 
 interface WithdrawLiquidityModalProps {
   open: boolean;
   onClose(): void;
+  tokenA: Asset;
+  tokenB: Asset;
 }
 
 const WithdrawLiquidityModal: FC<WithdrawLiquidityModalProps> = ({
   open,
   onClose,
-}) => <Modal content={<Content />} open={open} onClose={onClose} />;
+  tokenA,
+  tokenB,
+}) => (
+  <Modal
+    content={<Content tokenA={tokenA} tokenB={tokenB} />}
+    open={open}
+    onClose={onClose}
+  />
+);
 
 export default WithdrawLiquidityModal;

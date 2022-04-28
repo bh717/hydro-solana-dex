@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, FC } from "react";
 import { makeStyles } from "@mui/styles";
 import {
   Box,
@@ -13,6 +13,7 @@ import {
 import USDC from "../../../../../assets/images/symbols/usdc.png";
 import HYSD from "../../../../../assets/images/symbols/hysd.png";
 import { Plus, Compare, Refresh, Minus } from "../../../../../components/icons";
+import { Asset } from "../../../../../types";
 
 const useStyles = makeStyles({
   title: {
@@ -350,7 +351,12 @@ const useStyles = makeStyles({
   },
 });
 
-const Content = () => {
+interface ContentProps {
+  tokenA: Asset;
+  tokenB: Asset;
+}
+
+const Content: FC<ContentProps> = ({ tokenA, tokenB }) => {
   const classes = useStyles();
 
   const [priceRange, setPriceRange] = useState(true);
