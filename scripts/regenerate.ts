@@ -18,7 +18,7 @@ function writeTokens(network: Network, newTokens: Asset[]) {
   };
   fs.writeFileSync(
     "sdks/config-ts/tokens.json",
-    JSON.stringify(newTokenStore, null, 2)
+    JSON.stringify(newTokenStore, null, 2) + "\n"
   );
 }
 

@@ -15,7 +15,7 @@ export async function initializeTrader(
   const { connection } = sdk.ctx;
   await connection.confirmTransaction(
     await connection.requestAirdrop(trader.publicKey, 10000000000),
-    "confirmed"
+    "finalized"
   );
 
   const payer = (sdk.ctx.provider.wallet as any as NodeWallet).payer;

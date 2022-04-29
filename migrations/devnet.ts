@@ -48,7 +48,7 @@ export default async function (provider: anchor.Provider) {
         { symbol: "weth", amount: 100n * 1000000n },
         { symbol: "wsol", amount: 100n * 1000000n },
       ],
-      traderKey: "usrQpqgkvUjPgAVnGm8Dk3HmX3qXr1w4gLJMazLNyiW",
+      traderKey: "usrrVFViwYXQXzEgWouVV7kEJp6bEaNtiWyU8877GGV",
     },
   });
 }
