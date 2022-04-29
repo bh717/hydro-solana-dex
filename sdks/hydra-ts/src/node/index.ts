@@ -14,9 +14,9 @@
    return anchor.web3.Keypair.fromSecretKey(new Uint8Array(keydata));
  }
  
- export async function saveKey(keypair: anchor.web3.Keypair): Promise<void> {
+ export async function saveKey(keypair: anchor.web3.Keypair, type:'tokens' | 'users' = 'tokens'): Promise<void> {
    const name = keypair.publicKey.toString();
-   const path = `keys/tokens/${name}.json`;
+   const path = `keys/${type}/${name}.json`;
    const file  = JSON.stringify(Array.from(keypair.secretKey));
    fs.writeFileSync(path, Buffer.from(file));
  }

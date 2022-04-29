@@ -2,6 +2,7 @@
 import * as anchor from "@project-serum/anchor";
 import { Network } from "hydra-ts";
 import { initialize } from "./libs/initialize";
+import { account } from "./devnet.trader.json";
 
 export default async function (provider: anchor.Provider) {
   const fees = {
@@ -48,7 +49,7 @@ export default async function (provider: anchor.Provider) {
         { symbol: "weth", amount: 100n * 1000000n },
         { symbol: "wsol", amount: 100n * 1000000n },
       ],
-      traderKey: "usrQpqgkvUjPgAVnGm8Dk3HmX3qXr1w4gLJMazLNyiW",
+      traderKey: account,
     },
   });
 }

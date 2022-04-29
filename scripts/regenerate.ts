@@ -22,6 +22,15 @@ function writeTokens(network: Network, newTokens: Asset[]) {
   );
 }
 
+async function writeTrader(network: Network, keypair: Keypair) {
+  await saveKey(keypair, "users");
+
+  fs.writeFileSync(
+    `migrations/${network}.trader.json`,
+    JSON.stringify({ account: keypair.publicKey }, null, 2) + "\n"
+  );
+}
+
 async function regenerate(network: Network) {
   // Regenerate the keys within the list targeting specific clusters writing their keys to the repo
   // pull list of tokens from config-ts/tokens.json[network]
@@ -46,6 +55,11 @@ async function regenerate(network: Network) {
 
   // update the list of tokens with the new publickeys config-ts/tokens.json[network]
   writeTokens(network, newTokens);
+
+  // regenerate trader key
+  const traderKeys = Keypair.generate();
+
+  await writeTrader(network, traderKeys);
 }
 
 function isNetwork(value: any): value is Network {

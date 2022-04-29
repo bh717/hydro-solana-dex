@@ -1,12 +1,12 @@
 import { InitializePoolConfig } from "./libs";
-import { HydraSDK } from "hydra-ts";
+import { HydraSDK, sortMints } from "hydra-ts";
 import { PoolConfig, getMintKeyFromSymbol } from "./libs";
 
 export async function initializePool(sdk: HydraSDK, pool: PoolConfig) {
-  const tokenXKey = getMintKeyFromSymbol(pool.tokenX, sdk.ctx.network);
-  const tokenYKey = getMintKeyFromSymbol(pool.tokenY, sdk.ctx.network);
+  const tokenAKey = getMintKeyFromSymbol(pool.tokenX, sdk.ctx.network);
+  const tokenBKey = getMintKeyFromSymbol(pool.tokenY, sdk.ctx.network);
+  const [tokenXKey, tokenYKey] = sortMints(tokenAKey, tokenBKey);
   await sdk.liquidityPools.initialize(tokenXKey, tokenYKey, pool.fees);
-
   await sdk.liquidityPools.addLiquidity(
     tokenXKey,
     tokenYKey,
