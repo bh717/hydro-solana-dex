@@ -2,7 +2,7 @@ import { HydraSDK } from "hydra-ts";
 import { PublicKey } from "@solana/web3.js";
 import { loadKey } from "hydra-ts/node";
 import NodeWallet from "@project-serum/anchor/dist/cjs/nodewallet";
-import { InitializeTraderConfig, getMintKeyFromSymbol } from "./initialize";
+import { InitializeTraderConfig, getMintKeyFromSymbol } from "./libs";
 
 export async function initializeTrader(
   sdk: HydraSDK,

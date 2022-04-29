@@ -1,4 +1,4 @@
-import { HydraSDK, Network } from "hydra-ts";
+import { Network } from "hydra-ts";
 import { getAsset } from "./getAsset";
 import { PublicKey } from "@solana/web3.js";
 import { PoolFees } from "hydra-ts/src/liquidity-pools/types";
@@ -11,7 +11,7 @@ export type InitializeConfig = {
 
 export type InitializeTokensConfig = Array<{ symbol: string; amount: bigint }>;
 
-type PoolConfig = {
+export type PoolConfig = {
   tokenX: string;
   tokenY: string;
   tokenXAmount: bigint;
@@ -19,32 +19,10 @@ type PoolConfig = {
   fees: PoolFees;
 };
 export type InitializePoolConfig = Array<PoolConfig>;
-export async function initializePools(
-  sdk: HydraSDK,
-  config: InitializePoolConfig
-) {
-  for (const pool of config) {
-    await initializePool(sdk, pool);
-  }
-}
-
 export function getMintKeyFromSymbol(symbol: string, network: Network) {
   const asset = getAsset(symbol, network);
   if (!asset.address) throw new Error("asset.adderss cannot be found!");
   return new PublicKey(asset.address);
-}
-
-export async function initializePool(sdk: HydraSDK, pool: PoolConfig) {
-  const tokenXKey = getMintKeyFromSymbol(pool.tokenX, sdk.ctx.network);
-  const tokenYKey = getMintKeyFromSymbol(pool.tokenY, sdk.ctx.network);
-  await sdk.liquidityPools.initialize(tokenXKey, tokenYKey, pool.fees);
-
-  await sdk.liquidityPools.addLiquidity(
-    tokenXKey,
-    tokenYKey,
-    pool.tokenXAmount,
-    pool.tokenYAmount
-  );
 }
 
 export type InitializeTraderConfig = {

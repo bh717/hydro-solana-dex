@@ -1,4 +1,4 @@
-import { loadKey } from "hydra-ts/src/node";
+import { loadKey } from "hydra-ts/node";
 import { Asset, HydraSDK } from "hydra-ts";
 
 export async function createMintAssociatedVaultFromAsset(

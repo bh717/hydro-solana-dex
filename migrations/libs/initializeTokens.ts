@@ -2,7 +2,7 @@ import { HydraSDK } from "hydra-ts";
 import { getAsset } from "./getAsset";
 import { createMintAssociatedVaultFromAsset } from "./createMintAssociatedVaultFromAsset";
 import { PublicKey } from "@solana/web3.js";
-import { InitializeTokensConfig } from "./initialize";
+import { InitializeTokensConfig } from "./libs";
 
 export async function initializeTokens(
   sdk: HydraSDK,

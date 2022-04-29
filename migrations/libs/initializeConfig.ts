@@ -1,5 +1,5 @@
 import { Network } from "hydra-ts";
-import { InitializeConfig } from "./initialize";
+import { InitializeConfig } from "./libs";
 
 export function initializeConfig(network: Network): InitializeConfig {
   const fees = {

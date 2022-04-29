@@ -2,7 +2,7 @@
 import * as anchor from "@project-serum/anchor";
 import { HydraSDK, Network } from "hydra-ts";
 import { quitOnError } from "./libs/quitOnError";
-import { initializePools } from "./libs/initialize";
+import { initializePools } from "./libs/initializePools";
 import { initializeTrader } from "./libs/initializeTrader";
 import { initializeTokens } from "./libs/initializeTokens";
 import { initializeConfig } from "./libs/initializeConfig";
