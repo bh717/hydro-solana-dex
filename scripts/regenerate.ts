@@ -1,10 +1,11 @@
 import { Asset, Network } from "hydra-ts";
 
 import { Keypair } from "@solana/web3.js";
-import { getAssets, getTokenStore } from "hydra-ts";
+import { getAssets, getTokenStore, NetworkedTokenMap } from "hydra-ts";
 import { saveKey } from "hydra-ts/node";
 import fs from "fs";
 import arg from "arg";
+// import { NetworkLookupType } from "hydra-react-ts";
 
 const args = arg({
   "--network": String,
@@ -60,6 +61,31 @@ async function regenerate(network: Network) {
   const traderKeys = Keypair.generate();
 
   await writeTrader(network, traderKeys);
+
+  await tidyUpTokens();
+}
+
+async function tidyUpTokens() {
+  const map = JSON.parse(
+    fs.readFileSync("sdks/config-ts/tokens.json").toString()
+  ) as NetworkedTokenMap;
+
+  const allowedTokenAddresses: string[] = [];
+  for (const net of Object.values(Network)) {
+    const tokens = map[net] ?? [];
+    for (const token of tokens) {
+      allowedTokenAddresses.push(token.address);
+    }
+  }
+
+  const keysToRemove = fs
+    .readdirSync("keys/tokens")
+    .map((tokenJson) => tokenJson.replace(/\.json$/, ""))
+    .filter((key) => !allowedTokenAddresses.includes(key));
+
+  for (const key of keysToRemove) {
+    fs.unlinkSync(`keys/tokens/${key}.json`);
+  }
 }
 
 function isNetwork(value: any): value is Network {

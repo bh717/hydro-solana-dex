@@ -9,7 +9,7 @@ export type Token = {
   logoURI: string;
 };
 
-type NetworkedTokenMap = {
+export type NetworkedTokenMap = {
   [n in Network]: Token[];
 };
 
