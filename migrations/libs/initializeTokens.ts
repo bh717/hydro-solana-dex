@@ -11,7 +11,7 @@ export async function initializeTokens(
   let isInitialized = false;
   for (const { symbol } of config) {
     const asset = getAsset(symbol, sdk.ctx.network);
-    if (!asset) throw new Error("Asset not found");
+    if (!asset) throw new Error("Asset not found" + symbol);
     // Will throw error is mint does not exist
     isInitialized &&= await sdk.accountLoaders
       .mint(new PublicKey(asset.address))
@@ -25,7 +25,7 @@ export async function initializeTokens(
     const asset = getAsset(symbol, sdk.ctx.network);
     if (!asset) throw new Error("No Aset");
     atas.set(
-      asset.symbol,
+      asset.symbol.toLowerCase(),
       await createMintAssociatedVaultFromAsset(sdk, asset, amount)
     );
   }

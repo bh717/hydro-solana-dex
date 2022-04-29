@@ -30,6 +30,7 @@ export async function initializePools(
 
 export function getMintKeyFromSymbol(symbol: string, network: Network) {
   const asset = getAsset(symbol, network);
+  if (!asset.address) throw new Error("asset.adderss cannot be found!");
   return new PublicKey(asset.address);
 }
 
@@ -39,7 +40,7 @@ export async function initializePool(sdk: HydraSDK, pool: PoolConfig) {
   await sdk.liquidityPools.initialize(tokenXKey, tokenYKey, pool.fees);
 
   await sdk.liquidityPools.addLiquidity(
-    tokenYKey,
+    tokenXKey,
     tokenYKey,
     pool.tokenXAmount,
     pool.tokenYAmount

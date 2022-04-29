@@ -1,10 +1,9 @@
 import { loadKey } from "hydra-ts/src/node";
-import { HydraSDK } from "hydra-ts";
-import { Token } from "./index";
+import { Asset, HydraSDK } from "hydra-ts";
 
 export async function createMintAssociatedVaultFromAsset(
   sdk: HydraSDK,
-  asset: Token | undefined,
+  asset: Asset | undefined,
   amount: bigint
 ) {
   if (!asset) throw new Error("Asset not provided!");

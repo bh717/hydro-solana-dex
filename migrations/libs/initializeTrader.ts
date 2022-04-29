@@ -23,6 +23,7 @@ export async function initializeTrader(
   for (const { symbol, amount } of config.tokens) {
     const mintKey = getMintKeyFromSymbol(symbol, sdk.ctx.network);
     const srcKey = srcAccounts.get(symbol);
+    if (!srcKey) throw new Error("srcKey not found for symbol: " + symbol);
     const traderAta = await sdk.common.createAssociatedAccount(
       mintKey,
       trader,

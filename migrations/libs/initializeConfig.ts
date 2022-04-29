@@ -43,7 +43,7 @@ export function initializeConfig(network: Network): InitializeConfig {
         { symbol: "usdc", amount: 100n * 1000000n },
         { symbol: "wbtc", amount: 100n * 1000000n },
         { symbol: "weth", amount: 100n * 1000000n },
-        { symbol: "sol", amount: 100n * 1000000n },
+        { symbol: "wsol", amount: 100n * 1000000n },
       ],
       traderKey: "usrQpqgkvUjPgAVnGm8Dk3HmX3qXr1w4gLJMazLNyiW",
     },

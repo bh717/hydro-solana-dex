@@ -19,9 +19,11 @@ export function getAssets(network: Network) {
   return TokensStore[network];
 }
 export function getAsset(symbol: string, network: Network) {
-  return TokensStore[network].find(
+  const found = TokensStore[network].find(
     (asset: Token) => asset.symbol.toLowerCase() === symbol.toLowerCase()
   );
+  if (!found) throw new Error("Token not found: " + symbol);
+  return found;
 }
 
 export function getTokenStore() {

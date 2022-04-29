@@ -1,4 +1,4 @@
-import { Task } from "./index";
+type Task<T> = () => Promise<T>;
 
 export async function quitOnError<T>(task: Task<T>, msg: string = "") {
   try {
