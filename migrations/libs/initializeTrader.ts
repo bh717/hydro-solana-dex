@@ -13,10 +13,13 @@ export async function initializeTrader(
   const trader = await loadKey(`keys/users/${config.traderKey}.json`);
 
   const { connection } = sdk.ctx;
+
+  console.log(`Requesting airdrop for trader...`);
   await connection.confirmTransaction(
-    await connection.requestAirdrop(trader.publicKey, 10000000000),
+    await connection.requestAirdrop(trader.publicKey, 10 * 1_000_000),
     "confirmed"
   );
+  console.log(`Finished requesting airdrop`);
 
   const payer = (sdk.ctx.provider.wallet as any as NodeWallet).payer;
   if (!payer) throw new Error("Payer was not defined");
