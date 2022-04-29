@@ -10,7 +10,7 @@ import NetworkMap from "config-ts/network-map.json";
 type MigrationFn = (p: anchor.Provider, g?: boolean) => Promise<void>;
 
 const args = arg({
-  "--features": String,
+  "--network": String,
   "--generate": String,
 });
 
@@ -19,6 +19,8 @@ const args = arg({
 // we can customise this for other environments to point to other files.
 async function main() {
   const feature = args["--features"] || "localnet";
+
+  // XXX: Remove this will use a separate script
   const generate = Boolean(args["--generate"]) || false;
 
   if (!Object.keys(NetworkMap).includes(feature)) {
