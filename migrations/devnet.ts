@@ -1,14 +1,35 @@
 // This is not run with anchor migrate
 import * as anchor from "@project-serum/anchor";
 import { HydraSDK, Network } from "hydra-ts";
-import { setupPools } from "./libs/setup_pools";
+import { quitOnError } from "./libs";
+import {
+  initializeConfig,
+  initializePools,
+  initializeTokens,
+  initializeTrader,
+} from "./libs/initialize";
 
 export default async function (provider: anchor.Provider) {
   anchor.setProvider(provider);
 
-  const sdk = HydraSDK.createFromAnchorProvider(provider, Network.DEVNET);
+  // Hydra SDK has the god wallet in it's provider
+  const sdk = HydraSDK.createFromAnchorProvider(provider, Network.LOCALNET);
 
-  await setupPools(sdk);
+  // Get the config
+  // Amounts and wallets are different based on network
+  const config = initializeConfig(sdk.ctx.network);
+
+  // Mint/initialize new independent test tokens for specific amounts to given cluster based on a given list to the god address
+  const srcAccounts = await quitOnError(
+    () => initializeTokens(sdk, config.tokens),
+    "You may need to run regenerate"
+  );
+
+  // Initialize independent pools per cluster with specific balances
+  await quitOnError(() => initializePools(sdk, config.pools));
+
+  // Initialize a trader account with specific amounts of spendable tokens
+  await quitOnError(() => initializeTrader(sdk, config.trader, srcAccounts));
 
   // // Generate or load tokens to memory
   // // if --generate was passed in

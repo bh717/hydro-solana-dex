@@ -20,9 +20,6 @@ const args = arg({
 async function main() {
   const feature = args["--features"] || "localnet";
 
-  // XXX: Remove this will use a separate script
-  const generate = Boolean(args["--generate"]) || false;
-
   if (!Object.keys(NetworkMap).includes(feature)) {
     console.log("Invalid feature");
     process.exit(1);
@@ -52,7 +49,7 @@ async function main() {
   });
 
   // Run userScript with provider
-  await userScript(provider, generate);
+  await userScript(provider);
   console.log("Finished running script");
 }
 

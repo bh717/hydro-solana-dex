@@ -5,13 +5,13 @@ import { PoolFees } from "hydra-ts/src/liquidity-pools/types";
 import { loadKey } from "hydra-ts/node"; // these should be moved out of test
 import NodeWallet from "@project-serum/anchor/dist/cjs/nodewallet";
 
-type InitializeConfig = {
+export type InitializeConfig = {
   tokens: InitializeTokensConfig;
   pools: InitializePoolConfig;
   trader: InitializeTraderConfig;
 };
 
-function initializeConfig(network: Network): InitializeConfig {
+export function initializeConfig(network: Network): InitializeConfig {
   const fees = {
     swapFeeNumerator: 1n,
     swapFeeDenominator: 500n,
@@ -60,9 +60,12 @@ function initializeConfig(network: Network): InitializeConfig {
   };
 }
 
-type InitializeTokensConfig = Array<{ symbol: string; amount: bigint }>;
+export type InitializeTokensConfig = Array<{ symbol: string; amount: bigint }>;
 
-async function initializeTokens(sdk: HydraSDK, config: InitializeTokensConfig) {
+export async function initializeTokens(
+  sdk: HydraSDK,
+  config: InitializeTokensConfig
+) {
   let isInitialized = false;
   for (const { symbol } of config) {
     const asset = getAsset(symbol, sdk.ctx.network);
@@ -92,8 +95,11 @@ type PoolConfig = {
   tokenYAmount: bigint;
   fees: PoolFees;
 };
-type InitializePoolConfig = Array<PoolConfig>;
-async function initializePools(sdk: HydraSDK, config: InitializePoolConfig) {
+export type InitializePoolConfig = Array<PoolConfig>;
+export async function initializePools(
+  sdk: HydraSDK,
+  config: InitializePoolConfig
+) {
   for (const pool of config) {
     await initializePool(sdk, pool);
   }
@@ -104,7 +110,7 @@ function getMintKeyFromSymbol(symbol: string, network: Network) {
   return new PublicKey(asset.address);
 }
 
-async function initializePool(sdk: HydraSDK, pool: PoolConfig) {
+export async function initializePool(sdk: HydraSDK, pool: PoolConfig) {
   const tokenXKey = getMintKeyFromSymbol(pool.tokenX, sdk.ctx.network);
   const tokenYKey = getMintKeyFromSymbol(pool.tokenY, sdk.ctx.network);
   await sdk.liquidityPools.initialize(tokenXKey, tokenYKey, pool.fees);
@@ -117,11 +123,11 @@ async function initializePool(sdk: HydraSDK, pool: PoolConfig) {
   );
 }
 
-type InitializeTraderConfig = {
+export type InitializeTraderConfig = {
   traderKey: string;
   tokens: Array<{ symbol: string; amount: bigint }>;
 };
-async function initializeTrader(
+export async function initializeTrader(
   sdk: HydraSDK,
   config: InitializeTraderConfig,
   srcAccounts: Map<string, PublicKey>
@@ -147,29 +153,4 @@ async function initializeTrader(
     );
     await sdk.common.transfer(srcKey, traderAta, amount);
   }
-}
-
-// Amounts and wallets are different based on network
-// Hydra SDK has the god wallet in it's provider
-export async function setupPools(sdk: HydraSDK) {
-  // Get the config
-  const config = initializeConfig(sdk.ctx.network);
-
-  // Mint/initialize new independent test tokens for specific amounts to given cluster based on a given list to the god address
-  const srcAccounts = await quitOnError(
-    () => initializeTokens(sdk, config.tokens),
-    "You may need to run regenerate"
-  );
-
-  // Initialize independent pools per cluster with specific balances
-  await quitOnError(() => initializePools(sdk, config.pools));
-
-  // Initialize a trader account with specific amounts of spendable tokens
-  await quitOnError(() => initializeTrader(sdk, config.trader, srcAccounts));
-
-  // Ok so now if you load up the private keys for both god and the
-  // trader in your test wallet, you should be able to play around with the app on localhost:
-
-  // yarn private-key ./keys/users/usrQpqgkvUjPgAVnGm8Dk3HmX3qXr1w4gLJMazLNyiW.json
-  // yarn private-key ~/.config/solana/id.json
 }
