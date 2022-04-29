@@ -47,7 +47,7 @@ async function main() {
   const wallet = NodeWallet.local();
   const provider = new anchor.Provider(connection, wallet, {
     preflightCommitment,
-    commitment: "recent",
+    commitment: "confirmed",
   });
 
   // Run userScript with provider

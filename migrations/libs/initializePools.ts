@@ -8,6 +8,8 @@ export async function initializePool(sdk: HydraSDK, pool: PoolConfig) {
   const [tokenXKey, tokenYKey] = sortMints(tokenAKey, tokenBKey);
   console.log(`Initializing pool (${pool.tokenX},${pool.tokenY})...`);
   await sdk.liquidityPools.initialize(tokenXKey, tokenYKey, pool.fees);
+  console.log(`Done`);
+  console.log(`Adding liquidity (${pool.tokenX},${pool.tokenY})...`);
   await sdk.liquidityPools.addLiquidity(
     tokenXKey,
     tokenYKey,

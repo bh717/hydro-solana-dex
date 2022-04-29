@@ -78,6 +78,6 @@ export function initialize(ctx: Ctx) {
           ])
         : initializeBase;
 
-    await instruction.rpc();
+    await instruction.rpc({ commitment: "confirmed" });
   };
 }
