@@ -1,20 +1,17 @@
 // This is not run with anchor migrate
 import * as anchor from "@project-serum/anchor";
 import { HydraSDK, Network } from "hydra-ts";
-import { quitOnError } from "./libs";
-import {
-  initializeConfig,
-  initializePools,
-  initializeTokens,
-  initializeTrader,
-} from "./libs/initialize";
+import { quitOnError } from "./libs/quitOnError";
+import { initializePools } from "./libs/initialize";
+import { initializeTrader } from "./libs/initializeTrader";
+import { initializeTokens } from "./libs/initializeTokens";
+import { initializeConfig } from "./libs/initializeConfig";
 
 export default async function (provider: anchor.Provider) {
   anchor.setProvider(provider);
 
   // Hydra SDK has the god wallet in it's provider
   const sdk = HydraSDK.createFromAnchorProvider(provider, Network.LOCALNET);
-
   // Get the config
   // Amounts and wallets are different based on network
   const config = initializeConfig(sdk.ctx.network);

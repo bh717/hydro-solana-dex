@@ -1,13 +1,10 @@
 // This is not run with anchor migrate
 import * as anchor from "@project-serum/anchor";
 import { HydraSDK, Network } from "hydra-ts";
-import { quitOnError } from "./libs";
-import {
-  initializeConfig,
-  initializePools,
-  initializeTokens,
-  initializeTrader,
-} from "./libs/initialize";
+import { quitOnError } from "./quitOnError";
+import { initializePools, initializeTrader } from "./libs/initialize";
+import { initializeTokens } from "./libs/initializeTokens";
+import { initializeConfig } from "./libs/initializeConfig";
 
 export default async function (provider: anchor.Provider) {
   anchor.setProvider(provider);

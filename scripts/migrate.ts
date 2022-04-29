@@ -7,11 +7,10 @@ import NodeWallet from "@project-serum/anchor/dist/cjs/nodewallet";
 import toml from "toml";
 import NetworkMap from "config-ts/network-map.json";
 
-type MigrationFn = (p: anchor.Provider, g?: boolean) => Promise<void>;
+type MigrationFn = (p: anchor.Provider) => Promise<void>;
 
 const args = arg({
-  "--network": String,
-  "--generate": String,
+  "--features": String,
 });
 
 // messy script to run our deploy scripts in
@@ -37,7 +36,10 @@ async function main() {
 
   // load user script
   const script = resolve(__dirname, `../migrations/${feature}.ts`);
+
+  console.log("Loading script:" + script);
   const userScript = (await import(script)).default as MigrationFn;
+  console.log("Loaded!");
 
   // Setup provider
   const preflightCommitment = "recent";
