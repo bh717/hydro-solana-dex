@@ -18,7 +18,7 @@ const DepositLiquidityModal: FC<DepositLiquidityModalProps> = ({
   tokenB,
 }) => (
   <Modal
-    content={<Content tokenA={tokenA} tokenB={tokenB} />}
+    content={<Content tokenAInit={tokenA} tokenBInit={tokenB} />}
     open={open}
     onClose={onClose}
     size="lg"
