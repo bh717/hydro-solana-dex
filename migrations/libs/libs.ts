@@ -1,5 +1,4 @@
-import { Network } from "hydra-ts";
-import { getAsset } from "./getAsset";
+import { Network, getAsset } from "hydra-ts";
 import { PublicKey } from "@solana/web3.js";
 import { PoolFees } from "hydra-ts/src/liquidity-pools/types";
 
