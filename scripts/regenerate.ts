@@ -86,6 +86,24 @@ async function tidyUpTokens() {
   for (const key of keysToRemove) {
     fs.unlinkSync(`keys/tokens/${key}.json`);
   }
+
+  // Load
+  const { account: devnetaccount } = JSON.parse(
+    fs.readFileSync("migrations/devnet.trader.json").toString()
+  ) as { account: string };
+
+  const { account: localaccount } = JSON.parse(
+    fs.readFileSync("migrations/localnet.trader.json").toString()
+  ) as { account: string };
+
+  const usersToRemove = fs
+    .readdirSync("keys/users")
+    .map((tokenJson) => tokenJson.replace(/\.json$/, ""))
+    .filter((key) => ![devnetaccount, localaccount].includes(key));
+
+  for (const key of usersToRemove) {
+    fs.unlinkSync(`keys/users/${key}.json`);
+  }
 }
 
 function isNetwork(value: any): value is Network {
