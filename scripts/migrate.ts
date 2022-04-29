@@ -48,6 +48,7 @@ async function main() {
   const provider = new anchor.Provider(connection, wallet, {
     preflightCommitment,
     commitment: "confirmed",
+    maxRetries: 10,
   });
 
   // Run userScript with provider
