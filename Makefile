@@ -99,6 +99,12 @@ migrate-devnet:
 migrate-testnet:
 	yarn ts-node scripts/migrate.ts --features testnet
 
+regenerate-localnet:
+	yarn ts-node scripts/regenerate.ts --network localnet
+
+regenerate-devnet:
+	yarn ts-node scripts/regenerate.ts --network devnet
+
 watch-anchor-test: build
 	cargo watch -c -- anchor test -- --features "localnet"
 
