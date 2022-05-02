@@ -131,22 +131,6 @@ describe("hydra-liquidity-pool-cpmm", () => {
     assert.equal(poolStateAccount.tokenYVaultBump, tokenYVaultBump);
   });
 
-  // it.skip("should not add-liquidity to pool with the wrong instruction for the first time", async () => {
-  //   try {
-  //     await sdk.liquidityPools.addLiquidity(
-  //       btcdMint,
-  //       usddMint,
-  //       6_000_000n,
-  //       255_575_287_200n,
-  //       0n
-  //     );
-  //     assert.ok(false);
-  //   } catch (err: any) {
-  //     const errMsg = "PoolNotFunded";
-  //     assert(err.toString().includes(errMsg));
-  //   }
-  // });
-
   it("should add-first-liquidity to the initialized empty pool", async () => {
     await sdk.liquidityPools.addLiquidity(
       btcdMint,
@@ -181,21 +165,6 @@ describe("hydra-liquidity-pool-cpmm", () => {
     assert.strictEqual(await accounts.tokenYVault.balance(), 255575287200n);
   });
 
-  // it("should not add-first-liquidity to a funded pool", async () => {
-  //   try {
-  //     await sdk.liquidityPools.addLiquidity(
-  //       btcdMint,
-  //       usddMint,
-  //       6_000_000n,
-  //       255_575_287_200n
-  //     );
-  //     assert.ok(false);
-  //   } catch (err: any) {
-  //     const errMsg = "PoolAlreadyFunded";
-  //     assert(err.toString().includes(errMsg));
-  //   }
-  // });
-
   it("should add-liquidity to pool for the second time", async () => {
     await sdk.liquidityPools.addLiquidity(
       btcdMint,
@@ -219,23 +188,23 @@ describe("hydra-liquidity-pool-cpmm", () => {
 
     assert.strictEqual(
       await accounts.userTokenX.balance(),
-      BTCD_MINT_AMOUNT - 6_000_000n - 16_000_000n, // first add - second add
+      BTCD_MINT_AMOUNT - 6_000_000n - 16_000_000n + 1n, // first add - second add
       "userTokenX balance is incorrect"
     );
 
     assert.strictEqual(
       await accounts.userTokenY.balance(),
-      USDD_MINT_AMOUNT - 255_575_287_200n - (681_534_099146n + 7n), // first add - second add (+slippage) // TODO: reviewer please check this is correct
+      USDD_MINT_AMOUNT - 255_575_287_200n - (681_534_099146n + 6n),
       "userTokenY balance is incorrect"
     );
     assert.strictEqual(await accounts.lpTokenVault.balance(), 100n); // no change
     assert.strictEqual(
       await accounts.tokenXVault.balance(),
-      6000000n + 16_000_000n
+      6000000n + 16_000_000n - 1n
     );
     assert.strictEqual(
       await accounts.tokenYVault.balance(),
-      255575287200n + (681_534_099146n + 7n) // (second add+slippage) // TODO: reviewer please check this is correct
+      255575287200n + (681_534_099146n + 6n) // (second add+slippage) // TODO: reviewer please check this is correct
     );
   });
 
@@ -459,6 +428,6 @@ describe("hydra-liquidity-pool-cpmm", () => {
 
     assert.strictEqual(await accounts.tokenXVault.balance(), 0n);
 
-    assert.strictEqual(await accounts.tokenYVault.balance(), 19n);
+    assert.strictEqual(await accounts.tokenYVault.balance(), 20n);
   });
 });

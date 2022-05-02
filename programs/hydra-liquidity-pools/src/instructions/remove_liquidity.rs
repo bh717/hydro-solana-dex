@@ -149,8 +149,11 @@ impl<'info> RemoveLiquidity<'info> {
     ) -> (u64, u64) {
         calculate_x_y(
             lp_tokens_to_burn,
+            self.lp_token_mint.decimals,
             self.token_x_vault.amount,
+            self.token_x_mint.decimals,
             self.token_y_vault.amount,
+            self.token_y_mint.decimals,
             self.lp_token_mint.supply,
         )
     }
