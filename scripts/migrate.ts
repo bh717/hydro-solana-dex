@@ -5,6 +5,7 @@ import expandTilde from "expand-tilde";
 import fs from "fs";
 import NodeWallet from "@project-serum/anchor/dist/cjs/nodewallet";
 import toml from "toml";
+import NetworkMap from "config-ts/network-map.json";
 
 type MigrationFn = (p: anchor.Provider) => Promise<void>;
 
@@ -16,24 +17,15 @@ const args = arg({
 // light of anchor migrate not working
 // we can customise this for other environments to point to other files.
 async function main() {
-  // Not sure if these should be configurable but they will
-  // allow us to switch between deployment networks
-  const urlMap = {
-    localnet: "http://127.0.0.1:8899",
-    devnet: "https://api.devnet.solana.com",
-    testnet: "https://api.testnet.solana.com",
-    mainnet: "https://api.mainnet-beta.solana.com",
-  };
-
   const feature = args["--features"] || "localnet";
 
-  if (!Object.keys(urlMap).includes(feature)) {
+  if (!Object.keys(NetworkMap).includes(feature)) {
     console.log("Invalid feature");
     process.exit(1);
   }
 
   // Get the url from the feature
-  const url = urlMap[feature as keyof typeof urlMap];
+  const url = NetworkMap[feature as keyof typeof NetworkMap];
   console.log("url: ", url);
 
   // set anchor wallet on env
@@ -43,8 +35,11 @@ async function main() {
   process.env.ANCHOR_WALLET = expandTilde(config.provider.wallet);
 
   // load user script
-  const script = resolve(__dirname, "../migrations/deploy.ts");
+  const script = resolve(__dirname, `../migrations/${feature}.ts`);
+
+  console.log("Loading script:" + script);
   const userScript = (await import(script)).default as MigrationFn;
+  console.log("Loaded!");
 
   // Setup provider
   const preflightCommitment = "recent";
@@ -52,7 +47,8 @@ async function main() {
   const wallet = NodeWallet.local();
   const provider = new anchor.Provider(connection, wallet, {
     preflightCommitment,
-    commitment: "recent",
+    commitment: "confirmed",
+    maxRetries: 10,
   });
 
   // Run userScript with provider
