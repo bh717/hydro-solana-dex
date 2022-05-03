@@ -1,6 +1,7 @@
-import React, { useCallback, useState, FC } from "react";
+import React from "react";
 import { makeStyles } from "@mui/styles";
-import { TextField } from "@mui/material";
+import { TextField, TextFieldProps } from "@mui/material";
+import { useNumericField } from "hydra-react-ts";
 
 const useStyles = makeStyles({
   textField: {
@@ -19,69 +20,33 @@ const useStyles = makeStyles({
   },
 });
 
-interface NumericFieldProps {
+type NumericFieldProps = Omit<
+  TextFieldProps,
+  "onFocus" | "value" | "onChange"
+> & {
+  onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
   value: number;
-  onFocus(event: React.FocusEvent<HTMLInputElement>): void;
-  onChange(value: number): void;
-}
+  onChange?: (value: number) => void;
+};
 
-const NumericField: FC<NumericFieldProps> = ({ value, onFocus, onChange }) => {
+function NumericField({
+  value,
+  onFocus,
+  onChange,
+  fullWidth = true,
+  ...props
+}: NumericFieldProps) {
   const classes = useStyles();
-
-  const [draftMode, setDraftMode] = useState(false);
-  const [localState, setLocalState] = useState("0");
-  const [error, setError] = useState("");
-
-  const handleChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setError("");
-
-      const rawValue = e.target.value;
-      const allowedString = rawValue.replace(/[^0-9\\.]/, "");
-      setLocalState(allowedString);
-      const num = Number(allowedString);
-      console.log(isNaN(num));
-      if (!isNaN(num)) {
-        onChange(num);
-      }
-    },
-    [onChange]
-  );
-
-  const handleBlur = useCallback(
-    (e: React.FocusEvent<HTMLInputElement>) => {
-      const num = Number(localState);
-      console.log(isNaN(num));
-      if (isNaN(num)) {
-        setError("Number is not valid");
-        return;
-      }
-      onChange(num);
-      setDraftMode(false);
-      setLocalState(value.toString());
-    },
-    [localState, value, onChange]
-  );
-
-  const handleFocus = useCallback(
-    (e: React.FocusEvent<HTMLInputElement>) => {
-      setDraftMode(true);
-      if (!error) setLocalState(`${value}`);
-      onFocus(e);
-    },
-    [value, onFocus, error]
-  );
+  const numericProps = useNumericField({ value, onFocus, onChange });
 
   return (
     <TextField
       className={classes.textField}
-      fullWidth
-      value={draftMode ? localState : value.toString()}
-      onChange={handleChange}
-      onBlur={handleBlur}
-      onFocus={handleFocus}
+      fullWidth={fullWidth}
+      {...numericProps}
+      {...props}
     />
   );
-};
+}
 
 export default NumericField;

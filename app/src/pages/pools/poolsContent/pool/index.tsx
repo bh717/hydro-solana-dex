@@ -5,7 +5,7 @@ import cn from "classnames";
 
 import { View, List, ChevronRight } from "../../../../components/icons";
 import HYSD from "../../../../assets/images/symbols/hysd.png";
-import USDC from "../../../../assets/images/symbols/usdc.png";
+import { Asset } from "../../../../types";
 import DepositLiquidityModal from "./depositLiquidity";
 import WithdrawLiquidityModal from "./withdrawLiquidity";
 
@@ -58,7 +58,7 @@ const useStyles = makeStyles({
     },
   },
   poolWrapper: {
-    background: "#FFFFFF0A",
+    background: "#282C3A",
     borderRadius: "6px",
     display: "flex",
     alignItems: "center",
@@ -170,6 +170,7 @@ const useStyles = makeStyles({
       fontSize: "20px",
       lineHeight: "24px",
       margin: "0 3px 0 12px",
+      flexGrow: 1,
     },
     "& p": {
       color: "#FFFFFFA6",
@@ -192,13 +193,22 @@ const useStyles = makeStyles({
     width: "51px",
     height: "32px",
     position: "relative",
+  },
+  logoWrapper: {
+    position: "absolute",
+    width: "32px",
+    height: "32px",
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "#282C3A",
     "& img": {
-      position: "absolute",
-      width: "32px",
-      height: "32px",
-      "&:last-of-type": {
-        right: 0,
-      },
+      maxWidth: "100%",
+      maxHeight: "100%",
+    },
+    "&:last-of-type": {
+      right: 0,
     },
   },
   emptyLogo: {
@@ -371,6 +381,8 @@ const useStyles = makeStyles({
 
 interface PoolProps {
   type?: string;
+  tokenA: Asset;
+  tokenB: Asset;
   isDoubleDip?: boolean;
   hasWithdraw?: boolean;
   isDisable?: boolean;
@@ -380,6 +392,8 @@ interface PoolProps {
 
 const Pool: FC<PoolProps> = ({
   type,
+  tokenA,
+  tokenB,
   isDoubleDip,
   hasWithdraw,
   isDisable,
@@ -409,12 +423,22 @@ const Pool: FC<PoolProps> = ({
       >
         {type === "all" && (
           <>
-            <Box className={classes.assetsContainer} style={{ width: "215px" }}>
+            <Box className={classes.assetsContainer} style={{ width: "250px" }}>
               <Box className={classes.assetsLogo}>
-                <img src={HYSD} alt="Coin" />
-                <img src={USDC} alt="Coin" />
+                <Box className={classes.logoWrapper}>
+                  <img
+                    src={tokenA.symbol.includes("HYD") ? HYSD : tokenA.logoURI}
+                    alt="Coin"
+                  />
+                </Box>
+                <Box className={classes.logoWrapper}>
+                  <img
+                    src={tokenB.symbol.includes("HYD") ? HYSD : tokenB.logoURI}
+                    alt="Coin"
+                  />
+                </Box>
               </Box>
-              <Typography variant="caption">SOL-USDC</Typography>
+              <Typography variant="caption">{`${tokenA.symbol}-${tokenB.symbol}`}</Typography>
               <IconButton>
                 <View />
               </IconButton>
@@ -465,10 +489,24 @@ const Pool: FC<PoolProps> = ({
             <Box className={classes.poolContent}>
               <Box className={classes.assetsContainer}>
                 <Box className={classes.assetsLogo}>
-                  <img src={HYSD} alt="Coin" />
-                  <img src={USDC} alt="Coin" />
+                  <Box className={classes.logoWrapper}>
+                    <img
+                      src={
+                        tokenA.symbol.includes("HYD") ? HYSD : tokenA.logoURI
+                      }
+                      alt="Coin"
+                    />
+                  </Box>
+                  <Box className={classes.logoWrapper}>
+                    <img
+                      src={
+                        tokenB.symbol.includes("HYD") ? HYSD : tokenB.logoURI
+                      }
+                      alt="Coin"
+                    />
+                  </Box>
                 </Box>
-                <Typography variant="caption">SOL-USDC</Typography>
+                <Typography variant="caption">{`${tokenA.symbol}-${tokenB.symbol}`}</Typography>
                 <IconButton>
                   <View />
                 </IconButton>
@@ -570,11 +608,21 @@ const Pool: FC<PoolProps> = ({
           <>
             <Box className={classes.assetsContainer}>
               <Box className={classes.assetsLogo}>
-                <Box className={classes.emptyLogo} />
-                <img src={USDC} alt="Coin" />
+                <Box className={classes.logoWrapper}>
+                  <img
+                    src={tokenA.symbol.includes("HYD") ? HYSD : tokenA.logoURI}
+                    alt="Coin"
+                  />
+                </Box>
+                <Box className={classes.logoWrapper}>
+                  <img
+                    src={tokenB.symbol.includes("HYD") ? HYSD : tokenB.logoURI}
+                    alt="Coin"
+                  />
+                </Box>
               </Box>
               <Box>
-                <Typography variant="caption">SOL-USDC</Typography>
+                <Typography variant="caption">{`${tokenA.symbol}-${tokenB.symbol}`}</Typography>
                 <Typography>384M Ray • 2021/24 - 2022/23</Typography>
               </Box>
             </Box>
@@ -611,10 +659,20 @@ const Pool: FC<PoolProps> = ({
           <>
             <Box className={classes.assetsContainer}>
               <Box className={classes.assetsLogo}>
-                <Box className={classes.emptyLogo} />
-                <img src={USDC} alt="Coin" />
+                <Box className={classes.logoWrapper}>
+                  <img
+                    src={tokenA.symbol.includes("HYD") ? HYSD : tokenA.logoURI}
+                    alt="Coin"
+                  />
+                </Box>
+                <Box className={classes.logoWrapper}>
+                  <img
+                    src={tokenB.symbol.includes("HYD") ? HYSD : tokenB.logoURI}
+                    alt="Coin"
+                  />
+                </Box>
               </Box>
-              <Typography variant="caption">SOL-USDC</Typography>
+              <Typography variant="caption">{`${tokenA.symbol}-${tokenB.symbol}`}</Typography>
             </Box>
             <Box style={{ width: "70px" }}>
               <Typography className={classes.itemLabel}>
@@ -647,10 +705,14 @@ const Pool: FC<PoolProps> = ({
       <DepositLiquidityModal
         open={showDepositModal}
         onClose={() => setShowDepositModal(false)}
+        tokenA={tokenA}
+        tokenB={tokenB}
       />
       <WithdrawLiquidityModal
         open={showWithdrawModal}
         onClose={() => setShowWithdrawModal(false)}
+        tokenA={tokenA}
+        tokenB={tokenB}
       />
     </Box>
   );

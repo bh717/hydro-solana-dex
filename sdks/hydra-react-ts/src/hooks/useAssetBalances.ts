@@ -1,11 +1,12 @@
 import { useObservable } from "./useObservable";
 import { useBalances } from "./useBalances";
 import { useCombineAssetBalances } from "./useCombineAssetBalances";
-import tokens from "config-ts/tokens/localnet.json";
-
-export const assets = tokens.tokens;
+import { getTokenList } from "hydra-ts";
+import { useNetworkProvider } from "hydra-react-ts";
 
 export function useAssetBalances() {
+  const { network } = useNetworkProvider();
+  const assets = getTokenList(network);
   const balances$ = useBalances(assets);
   const balances = useObservable(balances$);
 
