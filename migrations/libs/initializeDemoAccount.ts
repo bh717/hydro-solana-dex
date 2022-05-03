@@ -4,19 +4,19 @@ import { loadKey } from "hydra-ts/node";
 import NodeWallet from "@project-serum/anchor/dist/cjs/nodewallet";
 import { InitializeTraderConfig, getMintKeyFromSymbol } from "./libs";
 
-export async function initializeTrader(
+export async function initializeDemoAccount(
   sdk: HydraSDK,
   config: InitializeTraderConfig,
   srcAccounts: Map<string, PublicKey>
 ) {
-  // Load up a trader account
-  const trader = await loadKey(`keys/users/${config.traderKey}.json`);
-
+  // Load up a demoAccount account
+  const demoAccount = await loadKey(`keys/users/${config.demoAccountKey}.json`);
+  console.log(`Using demoAccount: ${demoAccount.publicKey}`);
   const { connection } = sdk.ctx;
 
-  console.log(`Requesting airdrop for trader...`);
+  console.log(`Requesting airdrop for demoAccount...`);
   await connection.confirmTransaction(
-    await connection.requestAirdrop(trader.publicKey, 10 * 1_000_000),
+    await connection.requestAirdrop(demoAccount.publicKey, 10 * 1_000_000),
     "confirmed"
   );
   console.log(`Finished requesting airdrop`);
@@ -27,11 +27,15 @@ export async function initializeTrader(
     const mintKey = getMintKeyFromSymbol(symbol, sdk.ctx.network);
     const srcKey = srcAccounts.get(symbol);
     if (!srcKey) throw new Error("srcKey not found for symbol: " + symbol);
-    const traderAta = await sdk.common.createAssociatedAccount(
+
+    console.log(`Creating associated account for mint: "${mintKey}"`);
+    const demoAccountAta = await sdk.common.createAssociatedAccount(
       mintKey,
-      trader,
+      demoAccount,
       payer
     );
-    await sdk.common.transfer(srcKey, traderAta, amount);
+    console.log(`Transferring amount: "${amount}"`);
+    await sdk.common.transfer(srcKey, demoAccountAta, amount);
+    console.log(`Done`);
   }
 }

@@ -2,7 +2,7 @@
 import * as anchor from "@project-serum/anchor";
 import { Network } from "hydra-ts";
 import { initialize } from "./libs/initialize";
-import { account } from "./devnet.trader.json";
+import { account } from "./localnet.demo.json";
 
 export default async function (provider: anchor.Provider) {
   const fees = {
@@ -42,14 +42,14 @@ export default async function (provider: anchor.Provider) {
         fees,
       },
     ],
-    trader: {
+    demoAccount: {
       tokens: [
         { symbol: "usdc", amount: 100n * 1000000n },
         { symbol: "wbtc", amount: 100n * 1000000n },
         { symbol: "weth", amount: 100n * 1000000n },
         { symbol: "wsol", amount: 100n * 1000000n },
       ],
-      traderKey: account,
+      demoAccountKey: account,
     },
   });
 }
