@@ -1,9 +1,8 @@
-import React from "react";
 import { makeStyles } from "@mui/styles";
 import { Box } from "@mui/material";
 
 import Filter from "../../filter";
-import Pool from "../../pool";
+// import Pool from "../../pool";
 
 const useStyles = makeStyles({
   tabContainer: {
@@ -20,8 +19,10 @@ const DoubleDipTab = () => {
     <Box className={classes.tabContainer}>
       <Filter />
       <Box className={classes.tabContent}>
+        {/*
         <Pool type="doubleDip" isDisable={true} />
         <Pool type="doubleDip" hasUndip={true} />
+        */}
       </Box>
     </Box>
   );

@@ -1,6 +1,10 @@
-import React, { useState } from "react";
+import { FC } from "react";
 import { makeStyles } from "@mui/styles";
-import { Box, Typography, InputBase, Button } from "@mui/material";
+import { Box, Typography, Button } from "@mui/material";
+import { useRemoveLiquidity } from "hydra-react-ts";
+
+import { Asset } from "../../../../../types";
+import NumericField from "../../../../../components/numericField";
 
 const useStyles = makeStyles({
   title: {
@@ -22,16 +26,21 @@ const useStyles = makeStyles({
       marginBottom: "16px",
     },
   },
-  inputBase: {
-    border: "1px solid #FFFFFF0A",
-    borderRadius: "6px",
-    marginBottom: "8px",
-    "& input": {
-      color: "#FFF",
-      fontSize: "20px",
-      lineHeight: "24px",
-      height: "24px",
-      padding: "16px",
+  numericField: {
+    "& > .MuiInputBase-root": {
+      border: "1px solid #FFFFFF0A",
+      borderRadius: "6px",
+      marginBottom: "8px",
+      "& input": {
+        color: "#FFF",
+        fontSize: "20px",
+        lineHeight: "24px",
+        height: "24px",
+        padding: "16px",
+      },
+      "& fieldset": {
+        display: "none",
+      },
     },
   },
   amountOptions: {
@@ -98,28 +107,34 @@ const useStyles = makeStyles({
   },
 });
 
-const Content = () => {
+interface ContentProps {
+  tokenAInit: Asset;
+  tokenBInit: Asset;
+}
+
+const Content: FC<ContentProps> = ({ tokenAInit, tokenBInit }) => {
   const classes = useStyles();
-  const [search, setSearch] = useState("");
+
+  const { onSendSubmit, isSubmitDisabled, percent, setPercent } =
+    useRemoveLiquidity(tokenAInit.address, tokenBInit.address);
 
   return (
     <>
       <Typography className={classes.title}>Withdraw Liquidity</Typography>
       <Box className={classes.amountWrapper}>
         <label>Amount</label>
-        <InputBase
-          className={classes.inputBase}
-          value={search}
-          onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-            setSearch(event.target.value)
-          }
+        <NumericField
+          className={classes.numericField}
+          fullWidth={true}
+          value={Number(percent) / 100}
+          onChange={(num) => setPercent(BigInt(num * 100))}
         />
         <Typography>0.2033 FTT / USDC LP</Typography>
         <Box className={classes.amountOptions}>
-          <Button>25%</Button>
-          <Button>50%</Button>
-          <Button>75%</Button>
-          <Button>100%</Button>
+          <Button onClick={() => setPercent(2500n)}>25%</Button>
+          <Button onClick={() => setPercent(5000n)}>50%</Button>
+          <Button onClick={() => setPercent(7500n)}>75%</Button>
+          <Button onClick={() => setPercent(10000n)}>100%</Button>
         </Box>
       </Box>
       <Box className={classes.resultWrapper}>
@@ -136,7 +151,9 @@ const Content = () => {
         </Box>
       </Box>
       <Box className={classes.buttonWrapper}>
-        <Button>Withdraw</Button>
+        <Button onClick={onSendSubmit} disabled={isSubmitDisabled}>
+          Withdraw
+        </Button>
       </Box>
     </>
   );

@@ -140,7 +140,7 @@ const useStyles = makeStyles({
 });
 
 // This should be deduped...
-export type NumericFieldProps = Omit<
+type NumericFieldProps = Omit<
   TextFieldProps,
   "onFocus" | "value" | "onChange"
 > & {
@@ -149,7 +149,7 @@ export type NumericFieldProps = Omit<
   onChange?: (value: number) => void;
 };
 
-export function NumericField({
+function NumericField({
   value,
   onFocus,
   onChange,

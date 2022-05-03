@@ -1,18 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, FC } from "react";
 import { makeStyles } from "@mui/styles";
 import {
   Box,
   Typography,
-  InputBase,
   Button,
   IconButton,
   FormControlLabel,
   Switch,
 } from "@mui/material";
+import { useAddLiquidity } from "hydra-react-ts";
 
-import USDC from "../../../../../assets/images/symbols/usdc.png";
 import HYSD from "../../../../../assets/images/symbols/hysd.png";
 import { Plus, Compare, Refresh, Minus } from "../../../../../components/icons";
+import { Asset } from "../../../../../types";
+import NumericField from "../../../../../components/numericField";
+import { toFormat } from "../../../../../utils/toFormat";
+import { fromFormat } from "../../../../../utils/fromFormat";
 
 const useStyles = makeStyles({
   title: {
@@ -74,19 +77,19 @@ const useStyles = makeStyles({
   },
   amountInputWrapper: {
     position: "relative",
-  },
-  amountInput: {
-    background: "#FFFFFF0F",
-    borderRadius: "6px",
-    padding: "17px 100px 17px 16px",
-    width: "100%",
-    "& input": {
-      color: "#FFFFFFD9",
-      fontSize: "18px",
-      fontWeight: "500",
-      lineHeight: "22px",
-      height: "22px",
-      padding: 0,
+    "& .MuiInputBase-root": {
+      background: "#FFFFFF0F",
+      borderRadius: "6px",
+      padding: "17px 100px 17px 16px",
+      width: "100%",
+      "& input": {
+        color: "#FFFFFFD9",
+        fontSize: "18px",
+        fontWeight: "500",
+        lineHeight: "22px",
+        height: "22px",
+        padding: 0,
+      },
     },
   },
   amountAsset: {
@@ -350,10 +353,17 @@ const useStyles = makeStyles({
   },
 });
 
-const Content = () => {
+interface ContentProps {
+  tokenAInit: Asset;
+  tokenBInit: Asset;
+}
+
+const Content: FC<ContentProps> = ({ tokenAInit, tokenBInit }) => {
   const classes = useStyles();
 
-  const [priceRange, setPriceRange] = useState(true);
+  const { tokenA, tokenB, setFocus, isSubmitDisabled, onSendSubmit } =
+    useAddLiquidity(100n, tokenAInit.address, tokenBInit.address);
+  const [priceRange, setPriceRange] = useState(false);
 
   return (
     <>
@@ -368,10 +378,23 @@ const Content = () => {
               <Button>Max</Button>
             </Box>
             <Box className={classes.amountInputWrapper}>
-              <InputBase className={classes.amountInput} type="number" />
+              <NumericField
+                value={toFormat(tokenA.amount, tokenA.asset?.decimals)}
+                onChange={(value: number) => {
+                  tokenA.setAmount(fromFormat(value, tokenA.asset?.decimals));
+                }}
+                onFocus={() => setFocus("from")}
+              />
               <Box className={classes.amountAsset}>
-                <img src={USDC} alt="Coin" />
-                <Typography>USDC</Typography>
+                <img
+                  src={
+                    tokenAInit.symbol.includes("HYD")
+                      ? HYSD
+                      : tokenAInit.logoURI
+                  }
+                  alt="Coin"
+                />
+                <Typography>{tokenAInit.symbol}</Typography>
               </Box>
             </Box>
           </Box>
@@ -384,10 +407,23 @@ const Content = () => {
               <Button>Max</Button>
             </Box>
             <Box className={classes.amountInputWrapper}>
-              <InputBase className={classes.amountInput} type="number" />
+              <NumericField
+                value={toFormat(tokenB.amount, tokenB.asset?.decimals)}
+                onChange={(value: number) => {
+                  tokenB.setAmount(fromFormat(value, tokenB.asset?.decimals));
+                }}
+                onFocus={() => setFocus("to")}
+              />
               <Box className={classes.amountAsset}>
-                <img src={HYSD} alt="Coin" />
-                <Typography>HYSD</Typography>
+                <img
+                  src={
+                    tokenBInit.symbol.includes("HYD")
+                      ? HYSD
+                      : tokenBInit.logoURI
+                  }
+                  alt="Coin"
+                />
+                <Typography>{tokenBInit.symbol}</Typography>
               </Box>
             </Box>
           </Box>
@@ -485,8 +521,16 @@ const Content = () => {
             rewards!
           </Typography>
         </Box>
-        <Button className={classes.footerButton} disabled>
-          Enter an amount
+        <Button
+          className={classes.footerButton}
+          disabled={
+            tokenA.amount <= 0 || tokenB.amount <= 0 || isSubmitDisabled
+          }
+          onClick={onSendSubmit}
+        >
+          {tokenA.amount <= 0 || tokenB.amount <= 0
+            ? "Enter amounts"
+            : "Deposit"}
         </Button>
       </Box>
     </>

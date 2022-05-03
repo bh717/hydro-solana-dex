@@ -2,15 +2,27 @@ import { FC } from "react";
 
 import Modal from "../../../../../components/modal";
 import Content from "./content";
+import { Asset } from "../../../../../types";
 
 interface DepositLiquidityModalProps {
   open: boolean;
   onClose(): void;
+  tokenA: Asset;
+  tokenB: Asset;
 }
 
 const DepositLiquidityModal: FC<DepositLiquidityModalProps> = ({
   open,
   onClose,
-}) => <Modal content={<Content />} open={open} onClose={onClose} size="lg" />;
+  tokenA,
+  tokenB,
+}) => (
+  <Modal
+    content={<Content tokenAInit={tokenA} tokenBInit={tokenB} />}
+    open={open}
+    onClose={onClose}
+    size="lg"
+  />
+);
 
 export default DepositLiquidityModal;
