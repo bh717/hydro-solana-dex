@@ -16,13 +16,13 @@ const useStyles = makeStyles({
 const PoolsTab = () => {
   const classes = useStyles();
 
-  const existingPools = useExistingPools();
+  const pools = useExistingPools();
   return (
     <Box className={classes.tabContainer}>
       <Filter />
       <Box className={classes.tabContent}>
-        {existingPools.length > 0 ? (
-          existingPools.map(([tokenA, tokenB]) => {
+        {pools.length > 0 ? (
+          pools.map(([tokenA, tokenB]) => {
             return (
               <Pool
                 key={`${tokenA.address}-${tokenB.address}`}
