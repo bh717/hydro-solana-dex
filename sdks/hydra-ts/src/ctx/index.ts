@@ -1,4 +1,4 @@
-import { Wallet, ProgramIds, Ctx } from "../types";
+import { Wallet, ProgramIds, Ctx, Network } from "../types";
 import { AccountInfo, Connection, PublicKey } from "@solana/web3.js";
 import { Coder, Program, Provider } from "@project-serum/anchor";
 import * as staking from "types-ts/codegen/types/hydra_staking";
@@ -10,15 +10,17 @@ import * as utils from "../utils";
  * @param wallet An Anchor wallet like object
  * @param connection A connection
  * @param programIds A map of programIds for the SDK
+ * @param network The network the connection is attached to
  * @returns Ctx
  */
 export function createCtx(
   wallet: Wallet,
   connection: Connection,
-  programIds: ProgramIds
+  programIds: ProgramIds,
+  network: Network
 ): Ctx {
   const provider = new Provider(connection, wallet, {});
-  return createCtxAnchor(provider, programIds);
+  return createCtxAnchor(provider, programIds, network);
 }
 
 // create a fake wallet for when we are signed out.
@@ -39,19 +41,25 @@ function createFakeWallet(): Wallet {
 
 export function createReadonlyCtx(
   connection: Connection,
-  programIds: ProgramIds
+  programIds: ProgramIds,
+  network: Network
 ) {
   const provider = new Provider(connection, createFakeWallet(), {});
-  return createCtxAnchor(provider, programIds);
+  return createCtxAnchor(provider, programIds, network);
 }
 
 /**
  * Create context from within an anchor test
  * @param provider Anchor provider
  * @param programIds A map of programIds for the SDK
+ * @param network The network the connection is attached to
  * @returns Ctx
  */
-export function createCtxAnchor(provider: Provider, programIds: ProgramIds) {
+export function createCtxAnchor(
+  provider: Provider,
+  programIds: ProgramIds,
+  network: Network = Network.LOCALNET
+) {
   function isSignedIn() {
     return provider.wallet.publicKey !== PublicKey.default;
   }
@@ -99,6 +107,7 @@ export function createCtxAnchor(provider: Provider, programIds: ProgramIds) {
     getKey,
     getParser,
     isSignedIn,
+    network,
     utils,
   };
 }

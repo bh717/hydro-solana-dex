@@ -16,6 +16,16 @@ pub struct AddLiquidity<'info> {
     pub user: Signer<'info>,
 
     #[account(
+        constraint = token_x_mint.key() == pool_state.token_x_mint
+    )]
+    pub token_x_mint: Box<Account<'info, Mint>>,
+
+    #[account(
+        constraint = token_y_mint.key() == pool_state.token_y_mint
+    )]
+    pub token_y_mint: Box<Account<'info, Mint>>,
+
+    #[account(
         mut,
         seeds = [ POOL_STATE_SEED, pool_state.lp_token_mint.as_ref() ],
         bump = pool_state.pool_state_bump,
@@ -137,8 +147,11 @@ impl<'info> AddLiquidity<'info> {
     ) -> (u64, u64) {
         calculate_x_y(
             expected_lp_tokens_minted,
+            self.lp_token_mint.decimals,
             self.token_x_vault.amount,
+            self.token_x_mint.decimals,
             self.token_y_vault.amount,
+            self.token_y_mint.decimals,
             self.lp_token_mint.supply,
         )
     }

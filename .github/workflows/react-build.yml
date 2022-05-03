@@ -118,6 +118,10 @@ jobs:
         name: install-ipfs-deploy
         run: npm install -g ipfs-deploy
 
+      - id: install-wasm-pack
+        name: install-wasm-pack
+        run: make install_wasm_pack
+
       - id: install-wasm-target
         name: install-wasm-target
         run: rustup target add wasm32-unknown-unknown
