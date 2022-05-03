@@ -5,7 +5,7 @@ import { PoolFees } from "hydra-ts/src/liquidity-pools/types";
 export type InitializeConfig = {
   tokens: InitializeTokensConfig;
   pools: InitializePoolConfig;
-  trader: InitializeTraderConfig;
+  demoAccount: InitializeTraderConfig;
 };
 
 export type InitializeTokensConfig = Array<{ symbol: string; amount: bigint }>;
@@ -25,6 +25,6 @@ export function getMintKeyFromSymbol(symbol: string, network: Network) {
 }
 
 export type InitializeTraderConfig = {
-  traderKey: string;
+  demoAccountKey: string;
   tokens: Array<{ symbol: string; amount: bigint }>;
 };
