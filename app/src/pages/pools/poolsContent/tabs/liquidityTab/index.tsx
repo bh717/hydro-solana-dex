@@ -13,7 +13,7 @@ const useStyles = makeStyles({
   tabContent: {},
 });
 
-const PoolsTab = () => {
+const LiquidityTab = () => {
   const classes = useStyles();
 
   const pools = useMyPools();
@@ -43,4 +43,4 @@ const PoolsTab = () => {
   );
 };
 
-export default PoolsTab;
+export default LiquidityTab;
