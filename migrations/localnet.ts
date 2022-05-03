@@ -2,7 +2,7 @@
 import * as anchor from "@project-serum/anchor";
 import { Network } from "hydra-ts";
 import { initialize } from "./libs/initialize";
-import { account } from "./devnet.trader.json";
+import { account } from "./localnet.trader.json";
 
 export default async function (provider: anchor.Provider) {
   const fees = {
