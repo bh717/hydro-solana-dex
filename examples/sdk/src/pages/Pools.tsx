@@ -19,7 +19,6 @@ async function hasLpTokenBalanceOrNull(
   const accounts = await client.liquidityPools.accounts.getAccountLoaders(
     ...sortMints(new PublicKey(tokenA.address), new PublicKey(tokenB.address))
   );
-
   if (!(await accounts.lpTokenAssociatedAccount.isInitialized())) return null;
 
   const info = await accounts.lpTokenAssociatedAccount.info();
