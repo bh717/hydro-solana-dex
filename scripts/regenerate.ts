@@ -58,9 +58,9 @@ async function regenerate(network: Network) {
   writeTokens(network, newTokens);
 
   // regenerate trader key
-  const traderKeys = Keypair.generate();
+  const demoAccountKeys = Keypair.generate();
 
-  await writeTrader(network, traderKeys);
+  await writeTrader(network, demoAccountKeys);
 
   await tidyUpTokens();
 }

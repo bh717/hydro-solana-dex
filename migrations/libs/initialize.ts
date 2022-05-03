@@ -4,7 +4,7 @@ import { HydraSDK, Network } from "hydra-ts";
 import { quitOnError } from "./quitOnError";
 import { initializeTokens } from "./initializeTokens";
 import { initializePools } from "./initializePools";
-import { initializeTrader } from "./initializeTrader";
+import { initializeDemoAccount } from "./initializeDemoAccount";
 
 export async function initialize(
   provider: anchor.Provider,
@@ -27,11 +27,13 @@ export async function initialize(
   // Initialize independent pools per cluster with specific balances
   await quitOnError(() => initializePools(sdk, config.pools));
 
-  // Initialize a trader account with specific amounts of spendable tokens
-  await quitOnError(() => initializeTrader(sdk, config.trader, srcAccounts));
+  // Initialize a demo account with specific amounts of spendable tokens
+  await quitOnError(() =>
+    initializeDemoAccount(sdk, config.demoAccount, srcAccounts)
+  );
 
   // Ok so now if you load up the private keys for both god and the
-  // trader in your test wallet, you should be able to play around with the app on localhost:
+  // demo account in your test wallet, you should be able to play around with the app on localhost:
 
   // yarn private-key ./keys/users/usrQpqgkvUjPgAVnGm8Dk3HmX3qXr1w4gLJMazLNyiW.json
   // yarn private-key ~/.config/solana/id.json
