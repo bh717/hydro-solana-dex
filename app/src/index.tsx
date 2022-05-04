@@ -1,6 +1,6 @@
 import { Suspense, lazy } from "react";
 import ReactDOM from "react-dom";
-import { BrowserRouter } from "react-router-dom";
+import { HashRouter } from "react-router-dom";
 
 // ** Toast
 import { ToastContainer } from "react-toastify";
@@ -20,12 +20,12 @@ import reportWebVitals from "./reportWebVitals";
 const LazyApp = lazy(() => import("./App"));
 
 ReactDOM.render(
-  <BrowserRouter>
+  <HashRouter>
     <Suspense fallback={<FallbackSpinner />}>
       <LazyApp />
       <ToastContainer position="top-right" autoClose={5000} newestOnTop />
     </Suspense>
-  </BrowserRouter>,
+  </HashRouter>,
   document.getElementById("root")
 );
 
