@@ -1,8 +1,9 @@
 import { makeStyles } from "@mui/styles";
 import { Box } from "@mui/material";
+import { useMyPools } from "hydra-react-ts";
 
 import Filter from "../../filter";
-// import Pool from "../../pool";
+import Pool from "../../pool";
 
 const useStyles = makeStyles({
   tabContainer: {
@@ -15,20 +16,28 @@ const useStyles = makeStyles({
 const LiquidityTab = () => {
   const classes = useStyles();
 
+  const pools = useMyPools();
+
   return (
     <Box className={classes.tabContainer}>
       <Filter />
       <Box className={classes.tabContent}>
-        {/*
-        <Pool type="liquidity" hasWithdraw={true} inRange={true} />
-        <Pool type="liquidity" hasWithdraw={true} />
-        <Pool
-          type="liquidity"
-          isDoubleDip={true}
-          hasWithdraw={true}
-          inRange={false}
-        />
-        */}
+        {pools.length > 0 ? (
+          pools.map(([tokenA, tokenB]) => {
+            return (
+              <Pool
+                key={`${tokenA.address}-${tokenB.address}`}
+                type="all"
+                tokenA={tokenA}
+                tokenB={tokenB}
+                isDoubleDip={true}
+                hasWithdraw={true}
+              />
+            );
+          })
+        ) : (
+          <></>
+        )}
       </Box>
     </Box>
   );

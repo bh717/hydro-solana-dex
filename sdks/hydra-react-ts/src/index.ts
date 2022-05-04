@@ -11,6 +11,8 @@ export * from "./hooks/useToken";
 export * from "./hooks/useAssetBalances";
 export * from "./hooks/useNumericField";
 export * from "./hooks/usePools";
+export * from "./hooks/useMyPools";
+export * from "./hooks/useInitializedPools";
 export * from "./HydraWalletProvider";
 
 // TODO: For some reason within our monorepo not pulling this
