@@ -181,11 +181,11 @@ const useStyles = makeStyles({
           lineHeight: "17px !important",
           marginBottom: "4px",
         },
-        "&:last-of-type": {
-          color: "#FFFFFFA6",
-          fontSize: "12px !important",
-          lineHeight: "14px !important",
-        },
+        // "&:last-of-type": {
+        //   color: "#FFFFFFA6",
+        //   fontSize: "12px !important",
+        //   lineHeight: "14px !important",
+        // },
       },
     },
     "&:last-of-type": {
@@ -317,7 +317,7 @@ const WalletButton: FC<WalletButtonProps> = ({
                         {toFormat(balance.balance || 0n, balance.decimals)}{" "}
                         {balance.symbol}
                       </Typography>
-                      <Typography>$</Typography>
+                      {/* <Typography>$</Typography> */}
                     </Box>
                   </Box>
                 ))}
