@@ -35,9 +35,11 @@ const useStyles = makeStyles({
     },
   },
   tokensButton: {
+    backgroundColor: "#3F414C !important",
     borderRadius: "6px !important",
     padding: "14px 12px !important",
     "& > svg": {
+      position: "relative",
       "&:first-of-type": {
         fill: "#FFFFFFD9 !important",
         width: "21px",
@@ -50,6 +52,7 @@ const useStyles = makeStyles({
       },
     },
     "& > p": {
+      position: "relative",
       color: "#FFFFFFD9 !important",
       lineHeight: "19px !important",
       marginLeft: "17px",
@@ -58,22 +61,16 @@ const useStyles = makeStyles({
     "&::before": {
       content: "''",
       position: "absolute",
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
+      top: "1px",
+      right: "1px",
+      bottom: "1px",
+      left: "1px",
       borderRadius: "6px",
-      padding: "1px",
-      background: "#FFFFFF26",
-      "-webkit-mask":
-        "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-      "-webkit-mask-composite": "destination-out",
-      pointerEvents: "none",
+      background: "#1D202D",
     },
     "&:hover": {
-      "&::before": {
-        background: "linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%)",
-      },
+      background:
+        "linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%) !important",
     },
     "@media (max-width: 600px)": {
       padding: "7px 8px !important",
@@ -88,37 +85,31 @@ const useStyles = makeStyles({
     },
   },
   activeTokensButton: {
-    "&::before": {
-      background:
-        "linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%) !important",
-    },
+    background:
+      "linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%) !important",
   },
   walletButton: {
+    backgroundColor: "#3F414C !important",
     borderRadius: "6px !important",
     padding: "12px !important",
     marginRight: "8px !important",
     "& > svg": {
       fill: "#FFFFFFD9",
+      position: "relative",
     },
     "&::before": {
       content: "''",
       position: "absolute",
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
+      top: "1px",
+      right: "1px",
+      bottom: "1px",
+      left: "1px",
       borderRadius: "6px",
-      padding: "1px",
-      background: "#FFFFFF26",
-      "-webkit-mask":
-        "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-      "-webkit-mask-composite": "destination-out",
-      pointerEvents: "none",
+      background: "#1D202D",
     },
     "&:hover": {
-      "&::before": {
-        background: "linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%)",
-      },
+      background:
+        "linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%) !important",
     },
     "@media (max-width: 600px)": {
       padding: "8px 7px !important",

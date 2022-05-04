@@ -56,20 +56,14 @@ const useStyles = makeStyles({
     border: "none !important",
   },
   optionInput: {
+    background: "#656D7A",
+    borderRadius: "6px",
     marginTop: "12px !important",
     "& .MuiInputBase-root": {
       padding: "0 16px 0 0",
       height: "48px",
-      "&:hover": {
-        "& fieldset": {
-          background:
-            "linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%)",
-        },
-      },
-    },
-    "& .Mui-focused": {
       "& fieldset": {
-        background: "linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%)",
+        display: "none",
       },
     },
     "& input": {
@@ -87,15 +81,15 @@ const useStyles = makeStyles({
         lineHeight: "21px",
       },
     },
-    "& fieldset": {
-      border: "none",
-      borderRadius: "4px",
-      padding: "1px",
-      background: "#FFFFFF40",
-      "-webkit-mask":
-        "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-      "-webkit-mask-composite": "destination-out",
-      pointerEvents: "none",
+    "&::before": {
+      content: "''",
+      position: "absolute",
+      top: "1px",
+      right: "1px",
+      bottom: "1px",
+      left: "1px",
+      background: "#313C4E",
+      borderRadius: "6px",
     },
     "@media (max-width: 600px)": {
       order: "-1",
@@ -103,26 +97,10 @@ const useStyles = makeStyles({
     },
   },
   inputError: {
-    "& fieldset": {
-      background: "#F74949",
-    },
-    "& .MuiInputBase-root": {
-      "&:hover": {
-        "& fieldset": {
-          background: "#F74949",
-        },
-      },
-    },
-    "& .Mui-focused": {
-      "& fieldset": {
-        background: "#F74949",
-      },
-    },
+    background: "#F74949",
   },
   inputActive: {
-    "& fieldset": {
-      background: "linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%)",
-    },
+    background: "linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%)",
   },
   error: {
     color: "#F74949",

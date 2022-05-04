@@ -41,6 +41,9 @@ const useStyles = makeStyles({
     display: "flex",
     alignItems: "center",
     padding: "8px",
+    "& > .MuiTextField-root": {
+      width: "auto",
+    },
   },
   maxButton: {
     color: "#FFFFFFA6",

@@ -25,7 +25,7 @@ const useStyles = makeStyles({
     },
   },
   badge: {
-    background: "#19CE9D1A",
+    backgroundColor: "#21353c !important",
     backdropFilter: "blur(20px)",
     borderRadius: "4px",
     color: "#19CE9D",
@@ -36,23 +36,22 @@ const useStyles = makeStyles({
     padding: "6px 10px",
     position: "relative",
     marginRight: "6px",
-  },
-  doubleBadge: {
+    "& span": {
+      position: "relative",
+    },
     "&::before": {
       content: "''",
       position: "absolute",
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
+      top: "1px",
+      right: "1px",
+      bottom: "1px",
+      left: "1px",
+      background: "#21353c",
       borderRadius: "4px",
-      padding: "1px",
-      background: "linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%)",
-      "-webkit-mask":
-        "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-      "-webkit-mask-composite": "destination-out",
-      pointerEvents: "none",
     },
+  },
+  doubleBadge: {
+    background: "linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%)",
     "@media (max-width: 600px)": {
       marginBottom: "8px",
     },
@@ -303,21 +302,25 @@ const useStyles = makeStyles({
     color: "#FFF !important",
   },
   borderButton: {
+    background: "linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%)",
     color: "#19CE9D !important",
+    "& span": {
+      position: "relative",
+    },
     "&::before": {
       content: "''",
       position: "absolute",
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
+      top: "1px",
+      right: "1px",
+      bottom: "1px",
+      left: "1px",
       borderRadius: "6px",
-      padding: "1px",
-      background: "linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%)",
-      "-webkit-mask":
-        "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-      "-webkit-mask-composite": "destination-out",
-      pointerEvents: "none",
+      background: "#282C3A",
+    },
+    "&:hover": {
+      "&::before": {
+        background: "#272f40",
+      },
     },
   },
   rangeHint: {
@@ -409,11 +412,13 @@ const Pool: FC<PoolProps> = ({
     <Box className={classes.poolContainer}>
       <Box className={classes.badgeContainer}>
         {isDoubleDip && (
-          <span className={cn(classes.badge, classes.doubleBadge)}>
-            Support Double Dip
-          </span>
+          <Box className={cn(classes.badge, classes.doubleBadge)}>
+            <span>Support Double Dip</span>
+          </Box>
         )}
-        <span className={classes.badge}>10 HYSD per day for each $1000</span>
+        <Box className={classes.badge}>
+          <span>10 HYSD per day for each $1000</span>
+        </Box>
       </Box>
       <Box
         className={cn(classes.poolWrapper, {
@@ -470,7 +475,7 @@ const Pool: FC<PoolProps> = ({
                 className={classes.poolButton}
                 onClick={() => setShowDepositModal(true)}
               >
-                Deposit
+                <span>Deposit</span>
               </Button>
               {hasWithdraw && (
                 <Button
@@ -478,7 +483,7 @@ const Pool: FC<PoolProps> = ({
                   onClick={() => setShowWithdrawModal(true)}
                   style={{ marginLeft: "12px" }}
                 >
-                  Withdraw
+                  <span>Withdraw</span>
                 </Button>
               )}
             </Box>
