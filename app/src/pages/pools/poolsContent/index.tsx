@@ -4,8 +4,8 @@ import { Box, Tabs, Tab } from "@mui/material";
 
 import PoolsTab from "./tabs/poolsTab";
 import LiquidityTab from "./tabs/liquidityTab";
-import DoubleDipTab from "./tabs/doubleDipTab";
-import ClosedTab from "./tabs/closedTab";
+// import DoubleDipTab from "./tabs/doubleDipTab";
+// import ClosedTab from "./tabs/closedTab";
 
 const useStyles = makeStyles({
   poolsContent: {
@@ -86,13 +86,15 @@ const PoolsContent = () => {
       >
         <Tab label="Pools" />
         <Tab label="My liquidity" />
-        <Tab label="Double Dip" />
-        <Tab label="Closed" />
+        {/* Commenting out the following as they are features not yet available */}
+        {/* <Tab label="Double Dip" />
+        <Tab label="Closed" /> */}
       </Tabs>
       {tab === 0 && <PoolsTab />}
       {tab === 1 && <LiquidityTab />}
-      {tab === 2 && <DoubleDipTab />}
-      {tab === 3 && <ClosedTab />}
+      {/* Commenting out the following as they are features not yet available */}
+      {/* {tab === 2 && <DoubleDipTab />}
+      {tab === 3 && <ClosedTab />} */}
     </Box>
   );
 };

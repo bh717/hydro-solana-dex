@@ -1,15 +1,8 @@
 import React, { FC, useCallback, ReactNode } from "react";
 import { makeStyles } from "@mui/styles";
-import {
-  Box,
-  Typography,
-  Button,
-  TextField,
-  InputAdornment,
-  TextFieldProps,
-} from "@mui/material";
+import { Box, Typography, Button, InputAdornment } from "@mui/material";
 import cn from "classnames";
-import { useNumericField } from "hydra-react-ts";
+import NumericField from "../../../../components/numericField";
 
 const useStyles = makeStyles({
   contentTitle: {
@@ -138,27 +131,6 @@ const useStyles = makeStyles({
     marginTop: "16px !important",
   },
 });
-
-// This should be deduped...
-type NumericFieldProps = Omit<
-  TextFieldProps,
-  "onFocus" | "value" | "onChange"
-> & {
-  onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
-  value: number;
-  onChange?: (value: number) => void;
-};
-
-function NumericField({
-  value,
-  onFocus,
-  onChange,
-  fullWidth = true,
-  ...props
-}: NumericFieldProps) {
-  const numericProps = useNumericField({ value, onFocus, onChange });
-  return <TextField {...props} fullWidth={fullWidth} {...numericProps} />;
-}
 
 interface ContentProps {
   slippage: bigint;
