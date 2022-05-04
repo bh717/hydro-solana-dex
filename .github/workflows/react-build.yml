@@ -156,7 +156,7 @@ jobs:
           service: infura
           path: ./app/build
 
-      - run: echo ${{steps.ipfs-deploy.outputs.cid}}
+      - run: echo https://ipfs.io/ipfs/${{steps.ipfs-deploy.outputs.cid}}
 
       - name: react-cd - Notify slask success
         if: success()
