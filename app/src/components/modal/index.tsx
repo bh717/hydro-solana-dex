@@ -70,6 +70,7 @@ const Modal: FC<ModalProps> = ({ content, open, onClose, size }) => {
     <Dialog
       className={cn(classes.dialog, { "dialog-large": size === "lg" })}
       open={open}
+      onClose={onClose}
     >
       <Box className={classes.contentWrapper}>
         <IconButton
