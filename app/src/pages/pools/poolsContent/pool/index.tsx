@@ -82,7 +82,7 @@ const useStyles = makeStyles({
         paddingTop: "48px",
       },
       "& > div": {
-        padding: "12px 16px 12px 0",
+        padding: "12px 0",
         "&:first-of-type": {
           paddingLeft: "16px",
         },
@@ -185,7 +185,7 @@ const useStyles = makeStyles({
     "@media (max-width: 600px)": {
       borderBottom: "1px solid #FFFFFF0A",
       marginBottom: "12px",
-      width: "calc(100% - 32px) !important",
+      width: "calc(100% - 16px) !important",
     },
   },
   assetsLogo: {
@@ -410,7 +410,7 @@ const Pool: FC<PoolProps> = ({
 
   return (
     <Box className={classes.poolContainer}>
-      <Box className={classes.badgeContainer}>
+      {/* <Box className={classes.badgeContainer}>
         {isDoubleDip && (
           <Box className={cn(classes.badge, classes.doubleBadge)}>
             <span>Support Double Dip</span>
@@ -419,10 +419,10 @@ const Pool: FC<PoolProps> = ({
         <Box className={classes.badge}>
           <span>10 HYSD per day for each $1000</span>
         </Box>
-      </Box>
+      </Box> */}
       <Box
         className={cn(classes.poolWrapper, {
-          hasDoubleDip: isDoubleDip,
+          // hasDoubleDip: isDoubleDip,
           alignTop: type === "liquidity",
         })}
       >
@@ -448,7 +448,7 @@ const Pool: FC<PoolProps> = ({
                 <View />
               </IconButton>
             </Box>
-            <Box style={{ width: "70px" }}>
+            {/* <Box style={{ width: "70px" }}>
               <Typography className={classes.itemLabel}>
                 <span>APR</span> <List />
               </Typography>
@@ -469,7 +469,7 @@ const Pool: FC<PoolProps> = ({
               <Typography className={classes.itemContent}>
                 520,369,789,123.0789
               </Typography>
-            </Box>
+            </Box> */}
             <Box className={classes.poolButtons}>
               <Button
                 className={classes.poolButton}

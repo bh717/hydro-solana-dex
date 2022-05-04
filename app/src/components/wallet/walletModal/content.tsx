@@ -9,10 +9,10 @@ import {
   Hydraswap,
   Copy,
   ExternalLink,
-  TransactionPending,
-  TransactionDone,
+  // TransactionPending,
+  // TransactionDone,
 } from "../../icons";
-import { Transaction } from "../../../interfaces";
+// import { Transaction } from "../../../interfaces";
 import { normalizeAddress } from "../../../helpers/normalize";
 
 const useStyles = makeStyles({
@@ -299,7 +299,7 @@ const Content: FC<ContentProps> = ({ address }) => {
 
   const { wallets, select, wallet, connected, connecting } = useWallet();
   const [changeWallet, setChangeWallet] = useState(false);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  // const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   useEffect(() => {
     if (wallet && !connected) {
@@ -315,23 +315,23 @@ const Content: FC<ContentProps> = ({ address }) => {
       }
     }
 
-    if (connected) {
-      const tempTransactions = [
-        {
-          title: "Swap exactly 2 HYSD for 20.9120 SOL",
-          status: "pending",
-        },
-        {
-          title: "Approve HYSD",
-          status: "pending",
-        },
-        {
-          title: "Remove 2.9120 HYSD 20.9120 SOL",
-          status: "done",
-        },
-      ];
-      setTransactions(tempTransactions);
-    }
+    // if (connected) {
+    //   const tempTransactions = [
+    //     {
+    //       title: "Swap exactly 2 HYSD for 20.9120 SOL",
+    //       status: "pending",
+    //     },
+    //     {
+    //       title: "Approve HYSD",
+    //       status: "pending",
+    //     },
+    //     {
+    //       title: "Remove 2.9120 HYSD 20.9120 SOL",
+    //       status: "done",
+    //     },
+    //   ];
+    //   setTransactions(tempTransactions);
+    // }
   }, [wallet, connected]);
 
   const handleWalletInstall = () => {
@@ -348,9 +348,9 @@ const Content: FC<ContentProps> = ({ address }) => {
     navigator.clipboard.writeText(address);
   };
 
-  const clearTransactions = () => {
-    setTransactions([]);
-  };
+  // const clearTransactions = () => {
+  //   setTransactions([]);
+  // };
 
   const disconnectWallet = () => {
     if (wallet) {
@@ -466,7 +466,7 @@ const Content: FC<ContentProps> = ({ address }) => {
               </Box>
             </Box>
           </Box>
-          <Box className={classes.transactionWrapper}>
+          {/* <Box className={classes.transactionWrapper}>
             {transactions.length === 0 && (
               <Typography className={classes.transactionLoading}>
                 Your transactions will appear here...
@@ -491,7 +491,7 @@ const Content: FC<ContentProps> = ({ address }) => {
                 ))}
               </>
             )}
-          </Box>
+          </Box> */}
         </>
       )}
     </Box>

@@ -1,13 +1,13 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { makeStyles } from "@mui/styles";
 import { Box, Typography } from "@mui/material";
-import cn from "classnames";
+// import cn from "classnames";
 
 import {
   Hydraswap,
-  Lock,
-  Volume,
-  Deposit,
+  // Lock,
+  // Volume,
+  // Deposit,
   CaretDown,
 } from "../../components/icons";
 import Banner from "../../assets/images/pools/banner.png";
@@ -244,7 +244,7 @@ const Pools = () => {
             </Typography>
           </Box>
         </Box>
-        <Box
+        {/* <Box
           className={cn(classes.bannerRight, {
             [classes.showStatus]: showPoolsStatus,
           })}
@@ -264,7 +264,7 @@ const Pools = () => {
             <Typography>Your Deposits</Typography>
             <Typography>$467,123.5201</Typography>
           </Box>
-        </Box>
+        </Box> */}
       </Box>
 
       <PoolsContent />
