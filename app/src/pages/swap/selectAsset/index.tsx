@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { makeStyles } from "@mui/styles";
-import { Box, Button } from "@mui/material";
+import { Button } from "@mui/material";
 import { useWallet } from "hydra-react-ts";
 import cn from "classnames";
 
@@ -34,23 +34,36 @@ const useStyles = makeStyles({
     },
   },
   assetButton: {
-    padding: "0 !important",
-    width: "100%",
-    "& img": {},
+    backgroundColor: "#424550 !important",
+    borderRadius: "6px !important",
+    flex: "0 0 120px",
+    padding: "8px 10px !important",
     "& span": {
       color: "#FFF",
       fontWeight: "400",
       lineHeight: "24px",
       flexGrow: 1,
       textAlign: "left",
+      position: "relative",
     },
     "& svg": {
       width: "12px",
       height: "8px",
       color: "#FFFFFF73",
+      position: "relative",
+    },
+    "&::before": {
+      content: "''",
+      position: "absolute",
+      top: "1px",
+      right: "1px",
+      bottom: "1px",
+      left: "1px",
+      background: "#424550",
+      borderRadius: "6px",
     },
     "&:hover": {
-      backgroundColor: "transparent !important",
+      background: "linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%)",
     },
   },
   buttonImgWrapper: {
@@ -67,6 +80,9 @@ const useStyles = makeStyles({
   },
   noAsset: {
     background: "linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%)",
+    "&::before": {
+      background: "transparent",
+    },
   },
   disabled: {
     background: "#FFFFFF40 !important",
@@ -92,38 +108,31 @@ const SelectAsset: FC<SelectAssetProps> = ({ type, asset, changeAsset }) => {
   const { connected } = useWallet();
 
   return (
-    <Box
-      className={cn(classes.assetContainer, {
+    <Button
+      className={cn(classes.assetButton, {
         [classes.noAsset]: !asset.asset,
-        [classes.disabled]: !connected,
       })}
+      disableRipple={true}
+      onClick={changeAsset}
+      disabled={!connected}
     >
-      <Button
-        className={classes.assetButton}
-        disableRipple={true}
-        onClick={changeAsset}
-        disabled={!connected}
-      >
-        {asset.asset ? (
-          <>
-            <span className={classes.buttonImgWrapper}>
-              <img
-                src={
-                  asset.asset.symbol.includes("HYD")
-                    ? HYSD
-                    : asset.asset.logoURI
-                }
-                alt="Asset"
-              />
-            </span>
-            <span>{asset.asset.symbol}</span>
-          </>
-        ) : (
-          <span>{"Select"}</span>
-        )}
-        <CaretDown />
-      </Button>
-    </Box>
+      {asset.asset ? (
+        <>
+          <span className={classes.buttonImgWrapper}>
+            <img
+              src={
+                asset.asset.symbol.includes("HYD") ? HYSD : asset.asset.logoURI
+              }
+              alt="Asset"
+            />
+          </span>
+          <span>{asset.asset.symbol}</span>
+        </>
+      ) : (
+        <span>{"Select"}</span>
+      )}
+      <CaretDown />
+    </Button>
   );
 };
 

@@ -230,31 +230,31 @@ const useStyles = makeStyles({
     },
   },
   harvestButton: {
+    background: "linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%)",
+    borderRadius: "6px !important",
     color: "#19CE9D !important",
     padding: "8px 16px !important",
     lineHeight: "24px !important",
     textTransform: "capitalize !important" as any,
     width: "107px",
+    "& span": {
+      position: "relative",
+    },
     "&::before": {
       content: "''",
       position: "absolute",
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
+      top: "1px",
+      right: "1px",
+      bottom: "1px",
+      left: "1px",
       borderRadius: "6px",
-      padding: "1px",
-      background: "linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%)",
-      "-webkit-mask":
-        "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-      "-webkit-mask-composite": "destination-out",
-      pointerEvents: "none",
+      background: "#1d202d",
     },
     "&:hover": {
+      background: "#19CE9D !important",
       color: "#FFF !important",
-      backgroundColor: "#19CE9D !important",
       "&::before": {
-        background: "#19CE9D",
+        background: "transparent",
       },
     },
   },
@@ -346,7 +346,9 @@ const Filter: FC<FilterProps> = ({ type }) => {
               <Hydraswap />
               <Typography>0.0</Typography>
             </Box>
-            <Button className={classes.harvestButton}>Harvest All</Button>
+            <Button className={classes.harvestButton}>
+              <span>Harvest All</span>
+            </Button>
             <IconButton className="refresh-btn">
               <Refresh />
             </IconButton>

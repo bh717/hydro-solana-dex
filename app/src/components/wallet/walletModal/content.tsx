@@ -1,4 +1,4 @@
-import React, { FC, useState, useEffect } from "react";
+import { FC, useState, useEffect } from "react";
 import { makeStyles } from "@mui/styles";
 import { Box, Typography, Button, IconButton, Link } from "@mui/material";
 import { useWallet } from "hydra-react-ts";
@@ -216,26 +216,31 @@ const useStyles = makeStyles({
     marginTop: "20px",
     width: "100%",
     "& .MuiButton-root": {
+      background: "linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%)",
+      borderRadius: "6px",
       color: "#19CE9D",
       padding: "12px 0 !important",
       fontSize: "16px !important",
       lineHeight: "24px !important",
       textTransform: "capitalize",
       width: "calc(50% - 8px)",
+      "& span": {
+        position: "relative",
+      },
       "&::before": {
         content: "''",
         position: "absolute",
-        top: 0,
-        right: 0,
-        bottom: 0,
-        left: 0,
+        top: "1px",
+        right: "1px",
+        bottom: "1px",
+        left: "1px",
         borderRadius: "6px",
-        padding: "1px",
-        background: "linear-gradient(88.14deg, #918EFF 16.49%, #19CE9D 86.39%)",
-        "-webkit-mask":
-          "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-        "-webkit-mask-composite": "destination-out",
-        pointerEvents: "none",
+        backgroundColor: "#313C4E",
+      },
+      "&:hover": {
+        "&::before": {
+          backgroundColor: "#303F53",
+        },
       },
     },
   },
@@ -452,9 +457,11 @@ const Content: FC<ContentProps> = ({ address }) => {
                 </Link>
               </Box>
               <Box className={classes.accountActions}>
-                <Button onClick={disconnectWallet}>Disconnect</Button>
+                <Button onClick={disconnectWallet}>
+                  <span>Disconnect</span>
+                </Button>
                 <Button onClick={() => setChangeWallet(true)}>
-                  Change wallet
+                  <span>Change wallet</span>
                 </Button>
               </Box>
             </Box>
