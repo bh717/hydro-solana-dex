@@ -2,6 +2,7 @@ import { useHydraClient } from "../../HydraClientProvider";
 import { usePoolStream } from "../usePoolStream";
 import { useTokenForm } from "../useTokenForm";
 import { useAddLiquidityUIState } from "./useAddLiquidityUIState";
+import { useCalculateAddLiquidityAmount } from "./useCalculateAddLIquidityAmount";
 import { useCreateAddLiquidityCommands } from "./useCreateAddLiquidtyCommands";
 
 export function useAddLiquidity(
@@ -16,6 +17,9 @@ export function useAddLiquidity(
 
   // get pool values
   const pool = usePoolStream(sdk, tokenA.mint, tokenB.mint);
+
+  useCalculateAddLiquidityAmount(sdk, pool, tokenA, tokenB, focus);
+
   const { isInitialized } = pool;
 
   // get modal state and handlers
