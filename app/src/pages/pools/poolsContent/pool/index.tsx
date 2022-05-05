@@ -1,18 +1,16 @@
 import { FC, useState } from "react";
 import { makeStyles } from "@mui/styles";
 import { Box, Button, IconButton, Typography, Tooltip } from "@mui/material";
-import {
-  useAddLiquidity,
-  // useRemoveLiquidity
-} from "hydra-react-ts";
+import { useAddLiquidity, useRemoveLiquidity } from "hydra-react-ts";
 import cn from "classnames";
 
 import { View, List, ChevronRight } from "../../../../components/icons";
 import HYSD from "../../../../assets/images/symbols/hysd.png";
 import { Asset } from "../../../../types";
 import DepositLiquidityModal from "./depositLiquidity";
-// import WithdrawLiquidityModal from "./withdrawLiquidity";
-import ConfirmPoolModal from "./confirmPool";
+import DepositConfirmModal from "./depositConfirm";
+import WithdrawLiquidityModal from "./withdrawLiquidity";
+import WithdrawConfirmModal from "./withdrawConfirm";
 import PoolStatusModal from "./poolStatus";
 
 const useStyles = makeStyles({
@@ -421,34 +419,65 @@ const Pool: FC<PoolProps> = ({
     state: depositState,
   } = useAddLiquidity(100n, tokenAInit.address, tokenBInit.address);
 
-  // const { isSubmitDisabled: isWithdrawSubmitDisabled, onSendSubmit: onWithdrawSubmit, percent, setPercent } =
-  //   useRemoveLiquidity(tokenAInit.address, tokenBInit.address);
+  const {
+    isSubmitDisabled: isWithdrawSubmitDisabled,
+    onSendSubmit: onWithdrawSubmit,
+    onSendCancel: onWithdrawCancel,
+    percent,
+    setPercent,
+    state: withdrawState,
+  } = useRemoveLiquidity(tokenAInit.address, tokenBInit.address);
 
   const [showDepositModal, setShowDepositModal] = useState(false);
-  // const [showWithdrawModal, setShowWithdrawModal] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showDepositConfirmModal, setShowDepositConfirmModal] = useState(false);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [showWithdrawConfirmModal, setShowWithdrawConfirmModal] =
+    useState(false);
+  const [status, setStatus] = useState("");
   const [showStatusModal, setShowStatusModal] = useState(false);
 
   const confirmDeposit = () => {
     onDepositSubmit();
     setShowDepositModal(false);
-    setShowConfirmModal(true);
+    setShowDepositConfirmModal(true);
   };
 
-  const handleCloseConfirmPool = () => {
+  const handleCloseDepositConfirm = () => {
     onDepositCancel();
-    setShowConfirmModal(false);
+    setShowDepositConfirmModal(false);
   };
 
-  const handlePoolApprove = () => {
+  const handleDepositApprove = () => {
     onDepositSubmit();
-    setShowConfirmModal(false);
+    setShowDepositConfirmModal(false);
+    setStatus("deposit");
     setShowStatusModal(true);
   };
 
   const handlePoolStatusClose = () => {
-    onDepositCancel();
+    if (status === "deposit") onDepositCancel();
+    if (status === "withdraw") onWithdrawCancel();
+
+    setStatus("");
     setShowStatusModal(false);
+  };
+
+  const confirmWithdraw = () => {
+    onWithdrawSubmit();
+    setShowWithdrawModal(false);
+    setShowWithdrawConfirmModal(true);
+  };
+
+  const handleCloseWithdrawConfirm = () => {
+    onWithdrawCancel();
+    setShowWithdrawConfirmModal(false);
+  };
+
+  const handleWithdrawApprove = () => {
+    onWithdrawSubmit();
+    setShowWithdrawConfirmModal(false);
+    setStatus("withdraw");
+    setShowStatusModal(true);
   };
 
   return (
@@ -531,7 +560,7 @@ const Pool: FC<PoolProps> = ({
               {hasWithdraw && (
                 <Button
                   className={classes.borderButton}
-                  // onClick={() => setShowWithdrawModal(true)}
+                  onClick={() => setShowWithdrawModal(true)}
                   style={{ marginLeft: "12px" }}
                 >
                   <span>Withdraw</span>
@@ -646,7 +675,7 @@ const Pool: FC<PoolProps> = ({
               {hasWithdraw && (
                 <Button
                   className={classes.borderButton}
-                  // onClick={() => setShowWithdrawModal(true)}
+                  onClick={() => setShowWithdrawModal(true)}
                   style={{ marginLeft: "12px" }}
                 >
                   Withdraw
@@ -787,29 +816,41 @@ const Pool: FC<PoolProps> = ({
         isSubmitDisabled={isDepositSubmitDisabled}
         onConfirm={confirmDeposit}
       />
-      {/* <WithdrawLiquidityModal
+      <WithdrawLiquidityModal
         open={showWithdrawModal}
         onClose={() => setShowWithdrawModal(false)}
-        tokenA={tokenA}
-        tokenB={tokenB}
-      /> */}
-      <ConfirmPoolModal
-        open={showConfirmModal}
-        onClose={handleCloseConfirmPool}
+        percent={percent}
+        setPercent={setPercent}
+        isSubmitDisabled={isWithdrawSubmitDisabled}
+        onConfirm={confirmWithdraw}
+      />
+      <DepositConfirmModal
+        open={showDepositConfirmModal}
+        onClose={handleCloseDepositConfirm}
         assetA={tokenA.asset}
         assetAAmount={tokenA.amount}
         assetB={tokenB.asset}
         assetBAmount={tokenB.amount}
-        onApprove={handlePoolApprove}
+        onApprove={handleDepositApprove}
+      />
+      <WithdrawConfirmModal
+        open={showWithdrawConfirmModal}
+        onClose={handleCloseWithdrawConfirm}
+        assetA={tokenAInit}
+        assetB={tokenBInit}
+        percent={percent}
+        onApprove={handleWithdrawApprove}
       />
       <PoolStatusModal
         open={showStatusModal}
         onClose={handlePoolStatusClose}
-        assetA={tokenA.asset}
-        assetAAmount={tokenA.amount}
-        assetB={tokenB.asset}
-        assetBAmount={tokenB.amount}
-        state={depositState.value}
+        assetA={status === "deposit" ? tokenA.asset : tokenAInit}
+        assetAAmount={status === "deposit" ? tokenA.amount : 0n}
+        assetB={status === "deposit" ? tokenB.asset : tokenBInit}
+        assetBAmount={status === "deposit" ? tokenB.amount : 0n}
+        state={status === "deposit" ? depositState.value : withdrawState.value}
+        percent={status === "deposit" ? 0n : percent}
+        status={status}
       />
     </Box>
   );
