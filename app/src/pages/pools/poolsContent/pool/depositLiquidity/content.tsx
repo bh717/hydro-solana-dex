@@ -8,7 +8,6 @@ import {
   // FormControlLabel,
   // Switch,
 } from "@mui/material";
-import { useAddLiquidity } from "hydra-react-ts";
 
 import HYSD from "../../../../../assets/images/symbols/hysd.png";
 import {
@@ -17,7 +16,7 @@ import {
   // Refresh,
   // Minus
 } from "../../../../../components/icons";
-import { Asset } from "../../../../../types";
+
 import NumericField from "../../../../../components/numericField";
 import { toFormat } from "../../../../../utils/toFormat";
 import { fromFormat } from "../../../../../utils/fromFormat";
@@ -359,16 +358,21 @@ const useStyles = makeStyles({
 });
 
 interface ContentProps {
-  tokenAInit: Asset;
-  tokenBInit: Asset;
+  tokenA: any;
+  tokenB: any;
+  setFocus(position: "from" | "to"): void;
+  isSubmitDisabled: boolean;
+  onConfirm(): void;
 }
 
-const Content: FC<ContentProps> = ({ tokenAInit, tokenBInit }) => {
+const Content: FC<ContentProps> = ({
+  tokenA,
+  tokenB,
+  setFocus,
+  isSubmitDisabled,
+  onConfirm,
+}) => {
   const classes = useStyles();
-
-  const { tokenA, tokenB, setFocus, isSubmitDisabled, onSendSubmit } =
-    useAddLiquidity(100n, tokenAInit.address, tokenBInit.address);
-  // const [priceRange, setPriceRange] = useState(false);
 
   return (
     <>
@@ -393,13 +397,13 @@ const Content: FC<ContentProps> = ({ tokenAInit, tokenBInit }) => {
               <Box className={classes.amountAsset}>
                 <img
                   src={
-                    tokenAInit.symbol.includes("HYD")
+                    tokenA.asset?.symbol.includes("HYD")
                       ? HYSD
-                      : tokenAInit.logoURI
+                      : tokenA.asset?.logoURI
                   }
                   alt="Coin"
                 />
-                <Typography>{tokenAInit.symbol}</Typography>
+                <Typography>{tokenA.asset?.symbol}</Typography>
               </Box>
             </Box>
           </Box>
@@ -422,13 +426,13 @@ const Content: FC<ContentProps> = ({ tokenAInit, tokenBInit }) => {
               <Box className={classes.amountAsset}>
                 <img
                   src={
-                    tokenBInit.symbol.includes("HYD")
+                    tokenB.asset?.symbol.includes("HYD")
                       ? HYSD
-                      : tokenBInit.logoURI
+                      : tokenB.asset?.logoURI
                   }
                   alt="Coin"
                 />
-                <Typography>{tokenBInit.symbol}</Typography>
+                <Typography>{tokenB.asset?.symbol}</Typography>
               </Box>
             </Box>
           </Box>
@@ -531,7 +535,7 @@ const Content: FC<ContentProps> = ({ tokenAInit, tokenBInit }) => {
           disabled={
             tokenA.amount <= 0 || tokenB.amount <= 0 || isSubmitDisabled
           }
-          onClick={onSendSubmit}
+          onClick={onConfirm}
         >
           {tokenA.amount <= 0 || tokenB.amount <= 0
             ? "Enter amounts"

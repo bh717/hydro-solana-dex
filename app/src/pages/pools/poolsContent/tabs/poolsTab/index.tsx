@@ -17,6 +17,7 @@ const PoolsTab = () => {
   const classes = useStyles();
 
   const pools = useExistingPools();
+
   return (
     <Box className={classes.tabContainer}>
       {/* <Filter /> */}
@@ -27,8 +28,8 @@ const PoolsTab = () => {
               <Pool
                 key={`${tokenA.address}-${tokenB.address}`}
                 type="all"
-                tokenA={tokenA}
-                tokenB={tokenB}
+                tokenAInit={tokenA}
+                tokenBInit={tokenB}
                 isDoubleDip={true}
                 hasWithdraw={true}
               />
