@@ -1,17 +1,22 @@
-import React, { useState, FC } from "react";
+import { FC } from "react";
 import { makeStyles } from "@mui/styles";
 import {
   Box,
   Typography,
   Button,
-  IconButton,
-  FormControlLabel,
-  Switch,
+  // IconButton,
+  // FormControlLabel,
+  // Switch,
 } from "@mui/material";
 import { useAddLiquidity } from "hydra-react-ts";
 
 import HYSD from "../../../../../assets/images/symbols/hysd.png";
-import { Plus, Compare, Refresh, Minus } from "../../../../../components/icons";
+import {
+  Plus,
+  // Compare,
+  // Refresh,
+  // Minus
+} from "../../../../../components/icons";
 import { Asset } from "../../../../../types";
 import NumericField from "../../../../../components/numericField";
 import { toFormat } from "../../../../../utils/toFormat";
@@ -337,7 +342,7 @@ const useStyles = makeStyles({
     flexGrow: 1,
     fontSize: "16px",
     lineHeight: "24px",
-    marginLeft: "60px !important",
+    // marginLeft: "60px !important",
     padding: "16px !important",
     textTransform: "capitalize",
     "&.Mui-disabled": {
@@ -363,7 +368,7 @@ const Content: FC<ContentProps> = ({ tokenAInit, tokenBInit }) => {
 
   const { tokenA, tokenB, setFocus, isSubmitDisabled, onSendSubmit } =
     useAddLiquidity(100n, tokenAInit.address, tokenBInit.address);
-  const [priceRange, setPriceRange] = useState(false);
+  // const [priceRange, setPriceRange] = useState(false);
 
   return (
     <>
@@ -371,12 +376,12 @@ const Content: FC<ContentProps> = ({ tokenAInit, tokenBInit }) => {
       <Box className={classes.depositWrapper}>
         <Box className={classes.depositBox}>
           <Box className={classes.depositAmount}>
-            <Box className={classes.amountDetail}>
+            {/* <Box className={classes.amountDetail}>
               <Typography>
                 Balance: <span>201,123,698.8091</span>
               </Typography>
               <Button>Max</Button>
-            </Box>
+            </Box> */}
             <Box className={classes.amountInputWrapper}>
               <NumericField
                 value={toFormat(tokenA.amount, tokenA.asset?.decimals)}
@@ -400,12 +405,12 @@ const Content: FC<ContentProps> = ({ tokenAInit, tokenBInit }) => {
           </Box>
           <Plus />
           <Box className={classes.depositAmount}>
-            <Box className={classes.amountDetail}>
+            {/* <Box className={classes.amountDetail}>
               <Typography>
                 Balance: <span>298.8091</span>
               </Typography>
               <Button>Max</Button>
-            </Box>
+            </Box> */}
             <Box className={classes.amountInputWrapper}>
               <NumericField
                 value={toFormat(tokenB.amount, tokenB.asset?.decimals)}
@@ -427,7 +432,7 @@ const Content: FC<ContentProps> = ({ tokenAInit, tokenBInit }) => {
               </Box>
             </Box>
           </Box>
-          <Box className={classes.depositItem}>
+          {/* <Box className={classes.depositItem}>
             <Typography>Total</Typography>
             <Box className={classes.itemLine} />
             <Typography>$200</Typography>
@@ -444,9 +449,9 @@ const Content: FC<ContentProps> = ({ tokenAInit, tokenBInit }) => {
             <Typography>Farm</Typography>
             <Box className={classes.itemLine} />
             <Typography>24% APR</Typography>
-          </Box>
+          </Box> */}
         </Box>
-        <Box className={classes.depositBox}>
+        {/* <Box className={classes.depositBox}>
           <Box className={classes.marketPrice}>
             <Typography>Markets Price: 200 USDC per SOL</Typography>
             <Compare />
@@ -508,10 +513,10 @@ const Content: FC<ContentProps> = ({ tokenAInit, tokenBInit }) => {
               </Typography>
             </Box>
           )}
-        </Box>
+        </Box> */}
       </Box>
       <Box className={classes.footer}>
-        <Box className={classes.supportDoubleDip}>
+        {/* <Box className={classes.supportDoubleDip}>
           <Box className={classes.supportTitle}>
             <Typography>Support Double Dip</Typography>
             <Typography>{"More>"}</Typography>
@@ -520,7 +525,7 @@ const Content: FC<ContentProps> = ({ tokenAInit, tokenBInit }) => {
             after depositing, pls move to "double-dip" for the project token
             rewards!
           </Typography>
-        </Box>
+        </Box> */}
         <Button
           className={classes.footerButton}
           disabled={
