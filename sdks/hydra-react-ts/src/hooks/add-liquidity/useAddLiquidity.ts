@@ -2,7 +2,7 @@ import { useHydraClient } from "../../HydraClientProvider";
 import { usePoolStream } from "../usePoolStream";
 import { useTokenForm } from "../useTokenForm";
 import { useAddLiquidityUIState } from "./useAddLiquidityUIState";
-import { useCalculateAddLiquidityAmount } from "./useCalculateAddLiquidityAmount";
+import { useCalculateSwapResult } from "../swap/useCalculateSwapResult";
 import { useCreateAddLiquidityCommands } from "./useCreateAddLiquidtyCommands";
 
 export function useAddLiquidity(
@@ -18,7 +18,10 @@ export function useAddLiquidity(
   // get pool values
   const pool = usePoolStream(sdk, tokenA.mint, tokenB.mint);
 
-  useCalculateAddLiquidityAmount(sdk, pool, tokenA, tokenB, focus);
+  // TODO:
+  // We will likely create a guided liquidity mode so this may need to be
+  // more extensibe
+  useCalculateSwapResult(sdk, pool, tokenA, tokenB, focus);
 
   const { isInitialized } = pool;
 
