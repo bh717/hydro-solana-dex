@@ -23,7 +23,7 @@ ReactDOM.render(
   <HashRouter>
     <Suspense fallback={<FallbackSpinner />}>
       <LazyApp />
-      <ToastContainer position="top-right" autoClose={5000} newestOnTop />
+      <ToastContainer position="bottom-right" autoClose={5000} newestOnTop />
     </Suspense>
   </HashRouter>,
   document.getElementById("root")
