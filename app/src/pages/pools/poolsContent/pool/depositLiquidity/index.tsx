@@ -21,7 +21,7 @@ const DepositLiquidityModal: FC<DepositLiquidityModalProps> = ({
     content={<Content tokenAInit={tokenA} tokenBInit={tokenB} />}
     open={open}
     onClose={onClose}
-    size="lg"
+    // size="lg"
   />
 );
 
