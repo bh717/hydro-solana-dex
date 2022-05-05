@@ -1,13 +1,19 @@
 import { FC, useState } from "react";
 import { makeStyles } from "@mui/styles";
 import { Box, Button, IconButton, Typography, Tooltip } from "@mui/material";
+import {
+  useAddLiquidity,
+  // useRemoveLiquidity
+} from "hydra-react-ts";
 import cn from "classnames";
 
 import { View, List, ChevronRight } from "../../../../components/icons";
 import HYSD from "../../../../assets/images/symbols/hysd.png";
 import { Asset } from "../../../../types";
 import DepositLiquidityModal from "./depositLiquidity";
-import WithdrawLiquidityModal from "./withdrawLiquidity";
+// import WithdrawLiquidityModal from "./withdrawLiquidity";
+import ConfirmPoolModal from "./confirmPool";
+import PoolStatusModal from "./poolStatus";
 
 const useStyles = makeStyles({
   poolContainer: {
@@ -384,8 +390,8 @@ const useStyles = makeStyles({
 
 interface PoolProps {
   type?: string;
-  tokenA: Asset;
-  tokenB: Asset;
+  tokenAInit: Asset;
+  tokenBInit: Asset;
   isDoubleDip?: boolean;
   hasWithdraw?: boolean;
   isDisable?: boolean;
@@ -395,8 +401,8 @@ interface PoolProps {
 
 const Pool: FC<PoolProps> = ({
   type,
-  tokenA,
-  tokenB,
+  tokenAInit,
+  tokenBInit,
   isDoubleDip,
   hasWithdraw,
   isDisable,
@@ -405,8 +411,45 @@ const Pool: FC<PoolProps> = ({
 }) => {
   const classes = useStyles();
 
+  const {
+    tokenA,
+    tokenB,
+    setFocus,
+    isSubmitDisabled: isDepositSubmitDisabled,
+    onSendSubmit: onDepositSubmit,
+    onSendCancel: onDepositCancel,
+    state: depositState,
+  } = useAddLiquidity(100n, tokenAInit.address, tokenBInit.address);
+
+  // const { isSubmitDisabled: isWithdrawSubmitDisabled, onSendSubmit: onWithdrawSubmit, percent, setPercent } =
+  //   useRemoveLiquidity(tokenAInit.address, tokenBInit.address);
+
   const [showDepositModal, setShowDepositModal] = useState(false);
-  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  // const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+
+  const confirmDeposit = () => {
+    onDepositSubmit();
+    setShowDepositModal(false);
+    setShowConfirmModal(true);
+  };
+
+  const handleCloseConfirmPool = () => {
+    onDepositCancel();
+    setShowConfirmModal(false);
+  };
+
+  const handlePoolApprove = () => {
+    onDepositSubmit();
+    setShowConfirmModal(false);
+    setShowStatusModal(true);
+  };
+
+  const handlePoolStatusClose = () => {
+    onDepositCancel();
+    setShowStatusModal(false);
+  };
 
   return (
     <Box className={classes.poolContainer}>
@@ -432,18 +475,26 @@ const Pool: FC<PoolProps> = ({
               <Box className={classes.assetsLogo}>
                 <Box className={classes.logoWrapper}>
                   <img
-                    src={tokenA.symbol.includes("HYD") ? HYSD : tokenA.logoURI}
+                    src={
+                      tokenAInit.symbol.includes("HYD")
+                        ? HYSD
+                        : tokenAInit.logoURI
+                    }
                     alt="Coin"
                   />
                 </Box>
                 <Box className={classes.logoWrapper}>
                   <img
-                    src={tokenB.symbol.includes("HYD") ? HYSD : tokenB.logoURI}
+                    src={
+                      tokenBInit.symbol.includes("HYD")
+                        ? HYSD
+                        : tokenBInit.logoURI
+                    }
                     alt="Coin"
                   />
                 </Box>
               </Box>
-              <Typography variant="caption">{`${tokenA.symbol}-${tokenB.symbol}`}</Typography>
+              <Typography variant="caption">{`${tokenAInit.symbol}-${tokenBInit.symbol}`}</Typography>
               <IconButton>
                 <View />
               </IconButton>
@@ -480,7 +531,7 @@ const Pool: FC<PoolProps> = ({
               {hasWithdraw && (
                 <Button
                   className={classes.borderButton}
-                  onClick={() => setShowWithdrawModal(true)}
+                  // onClick={() => setShowWithdrawModal(true)}
                   style={{ marginLeft: "12px" }}
                 >
                   <span>Withdraw</span>
@@ -497,7 +548,9 @@ const Pool: FC<PoolProps> = ({
                   <Box className={classes.logoWrapper}>
                     <img
                       src={
-                        tokenA.symbol.includes("HYD") ? HYSD : tokenA.logoURI
+                        tokenAInit.symbol.includes("HYD")
+                          ? HYSD
+                          : tokenAInit.logoURI
                       }
                       alt="Coin"
                     />
@@ -505,13 +558,15 @@ const Pool: FC<PoolProps> = ({
                   <Box className={classes.logoWrapper}>
                     <img
                       src={
-                        tokenB.symbol.includes("HYD") ? HYSD : tokenB.logoURI
+                        tokenBInit.symbol.includes("HYD")
+                          ? HYSD
+                          : tokenBInit.logoURI
                       }
                       alt="Coin"
                     />
                   </Box>
                 </Box>
-                <Typography variant="caption">{`${tokenA.symbol}-${tokenB.symbol}`}</Typography>
+                <Typography variant="caption">{`${tokenAInit.symbol}-${tokenBInit.symbol}`}</Typography>
                 <IconButton>
                   <View />
                 </IconButton>
@@ -591,7 +646,7 @@ const Pool: FC<PoolProps> = ({
               {hasWithdraw && (
                 <Button
                   className={classes.borderButton}
-                  onClick={() => setShowWithdrawModal(true)}
+                  // onClick={() => setShowWithdrawModal(true)}
                   style={{ marginLeft: "12px" }}
                 >
                   Withdraw
@@ -615,19 +670,27 @@ const Pool: FC<PoolProps> = ({
               <Box className={classes.assetsLogo}>
                 <Box className={classes.logoWrapper}>
                   <img
-                    src={tokenA.symbol.includes("HYD") ? HYSD : tokenA.logoURI}
+                    src={
+                      tokenAInit.symbol.includes("HYD")
+                        ? HYSD
+                        : tokenAInit.logoURI
+                    }
                     alt="Coin"
                   />
                 </Box>
                 <Box className={classes.logoWrapper}>
                   <img
-                    src={tokenB.symbol.includes("HYD") ? HYSD : tokenB.logoURI}
+                    src={
+                      tokenBInit.symbol.includes("HYD")
+                        ? HYSD
+                        : tokenBInit.logoURI
+                    }
                     alt="Coin"
                   />
                 </Box>
               </Box>
               <Box>
-                <Typography variant="caption">{`${tokenA.symbol}-${tokenB.symbol}`}</Typography>
+                <Typography variant="caption">{`${tokenAInit.symbol}-${tokenBInit.symbol}`}</Typography>
                 <Typography>384M Ray • 2021/24 - 2022/23</Typography>
               </Box>
             </Box>
@@ -666,18 +729,26 @@ const Pool: FC<PoolProps> = ({
               <Box className={classes.assetsLogo}>
                 <Box className={classes.logoWrapper}>
                   <img
-                    src={tokenA.symbol.includes("HYD") ? HYSD : tokenA.logoURI}
+                    src={
+                      tokenAInit.symbol.includes("HYD")
+                        ? HYSD
+                        : tokenAInit.logoURI
+                    }
                     alt="Coin"
                   />
                 </Box>
                 <Box className={classes.logoWrapper}>
                   <img
-                    src={tokenB.symbol.includes("HYD") ? HYSD : tokenB.logoURI}
+                    src={
+                      tokenBInit.symbol.includes("HYD")
+                        ? HYSD
+                        : tokenBInit.logoURI
+                    }
                     alt="Coin"
                   />
                 </Box>
               </Box>
-              <Typography variant="caption">{`${tokenA.symbol}-${tokenB.symbol}`}</Typography>
+              <Typography variant="caption">{`${tokenAInit.symbol}-${tokenBInit.symbol}`}</Typography>
             </Box>
             <Box style={{ width: "70px" }}>
               <Typography className={classes.itemLabel}>
@@ -712,12 +783,33 @@ const Pool: FC<PoolProps> = ({
         onClose={() => setShowDepositModal(false)}
         tokenA={tokenA}
         tokenB={tokenB}
+        setFocus={setFocus}
+        isSubmitDisabled={isDepositSubmitDisabled}
+        onConfirm={confirmDeposit}
       />
-      <WithdrawLiquidityModal
+      {/* <WithdrawLiquidityModal
         open={showWithdrawModal}
         onClose={() => setShowWithdrawModal(false)}
         tokenA={tokenA}
         tokenB={tokenB}
+      /> */}
+      <ConfirmPoolModal
+        open={showConfirmModal}
+        onClose={handleCloseConfirmPool}
+        assetA={tokenA.asset}
+        assetAAmount={tokenA.amount}
+        assetB={tokenB.asset}
+        assetBAmount={tokenB.amount}
+        onApprove={handlePoolApprove}
+      />
+      <PoolStatusModal
+        open={showStatusModal}
+        onClose={handlePoolStatusClose}
+        assetA={tokenA.asset}
+        assetAAmount={tokenA.amount}
+        assetB={tokenB.asset}
+        assetBAmount={tokenB.amount}
+        state={depositState.value}
       />
     </Box>
   );

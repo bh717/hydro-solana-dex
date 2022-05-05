@@ -28,8 +28,8 @@ const LiquidityTab = () => {
               <Pool
                 key={`${tokenA.address}-${tokenB.address}`}
                 type="all"
-                tokenA={tokenA}
-                tokenB={tokenB}
+                tokenAInit={tokenA}
+                tokenBInit={tokenB}
                 isDoubleDip={true}
                 hasWithdraw={true}
               />
