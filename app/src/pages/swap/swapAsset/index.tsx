@@ -196,6 +196,16 @@ const SwapAsset: FC<SwapAssetProps> = ({
   //   else setShowPriceDetail(false);
   // }, [fromAmount, toAmount]);
 
+  const setMaxBalance = () => {
+    fromAsset.setAmount(
+      fromFormat(
+        fromAsset.asset ? balances[fromAsset.asset.address] : 0,
+        fromAsset.asset?.decimals
+      )
+    );
+    assetFocus("from");
+  };
+
   const SwapButtonContent = () => {
     if (!fromAsset.asset || !toAsset.asset) return "Select a token";
     return "Approve";
@@ -223,7 +233,9 @@ const SwapAsset: FC<SwapAssetProps> = ({
                 }}
                 onFocus={() => assetFocus("from")}
               />
-              <span className={classes.maxButton}>Max</span>
+              <span className={classes.maxButton} onClick={setMaxBalance}>
+                Max
+              </span>
               <SelectAsset
                 asset={fromAsset}
                 changeAsset={() => changeAsset("From")}
