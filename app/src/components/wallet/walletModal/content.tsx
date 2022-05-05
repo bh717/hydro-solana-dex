@@ -1,8 +1,9 @@
 import { FC, useState, useEffect } from "react";
 import { makeStyles } from "@mui/styles";
 import { Box, Typography, Button, IconButton, Link } from "@mui/material";
-import { useWallet } from "hydra-react-ts";
+import { useWallet, useNetworkProvider } from "hydra-react-ts";
 import { WalletName } from "@solana/wallet-adapter-base";
+import { toast } from "react-toastify";
 import cn from "classnames";
 
 import {
@@ -297,6 +298,7 @@ interface ContentProps {
 const Content: FC<ContentProps> = ({ address }) => {
   const classes = useStyles();
 
+  const { meta } = useNetworkProvider();
   const { wallets, select, wallet, connected, connecting } = useWallet();
   const [changeWallet, setChangeWallet] = useState(false);
   // const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -346,6 +348,7 @@ const Content: FC<ContentProps> = ({ address }) => {
 
   const copyAddress = () => {
     navigator.clipboard.writeText(address);
+    toast("Successfully copied address!");
   };
 
   // const clearTransactions = () => {
@@ -452,7 +455,12 @@ const Content: FC<ContentProps> = ({ address }) => {
                 <Link component="button" onClick={copyAddress}>
                   <span>Copy Address</span> <Copy />
                 </Link>
-                <Link href={`https://solscan.io/${address}`} target="_blank">
+                <Link
+                  href={`https://explorer.solana.com/address/${address}?cluster=${
+                    meta.network === "localnet" ? "custom" : meta.network
+                  }`}
+                  target="_blank"
+                >
                   <span>View on explorer</span> <ExternalLink />
                 </Link>
               </Box>
