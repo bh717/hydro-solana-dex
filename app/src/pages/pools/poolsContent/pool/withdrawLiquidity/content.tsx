@@ -129,7 +129,7 @@ const Content: FC<ContentProps> = ({ tokenAInit, tokenBInit }) => {
           value={Number(percent) / 100}
           onChange={(num) => setPercent(BigInt(num * 100))}
         />
-        <Typography>0.2033 FTT / USDC LP</Typography>
+        {/* <Typography>0.2033 FTT / USDC LP</Typography> */}
         <Box className={classes.amountOptions}>
           <Button onClick={() => setPercent(2500n)}>25%</Button>
           <Button onClick={() => setPercent(5000n)}>50%</Button>
@@ -137,7 +137,7 @@ const Content: FC<ContentProps> = ({ tokenAInit, tokenBInit }) => {
           <Button onClick={() => setPercent(10000n)}>100%</Button>
         </Box>
       </Box>
-      <Box className={classes.resultWrapper}>
+      {/* <Box className={classes.resultWrapper}>
         <Typography>You'll receive</Typography>
         <Box className={classes.resultItem}>
           <Typography>FTF</Typography>
@@ -149,7 +149,7 @@ const Content: FC<ContentProps> = ({ tokenAInit, tokenBInit }) => {
           <Box className={classes.itemLine} />
           <Typography>0.1</Typography>
         </Box>
-      </Box>
+      </Box> */}
       <Box className={classes.buttonWrapper}>
         <Button onClick={onSendSubmit} disabled={isSubmitDisabled}>
           Withdraw
