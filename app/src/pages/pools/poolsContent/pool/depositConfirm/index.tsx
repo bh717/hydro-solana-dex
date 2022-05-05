@@ -1,43 +1,35 @@
 import { FC } from "react";
-import { StateValue } from "xstate";
 import Modal from "../../../../../components/modal";
 import Content from "./content";
 import { Asset } from "../../../../../types";
 
-interface PoolStatusModalProps {
+interface DepositConfirmModalProps {
   open: boolean;
   onClose(): void;
   assetA: Asset | undefined;
   assetAAmount: bigint;
   assetB: Asset | undefined;
   assetBAmount: bigint;
-  state: StateValue;
-  percent: bigint;
-  status: string;
+  onApprove(): void;
 }
 
-const PoolStatusModal: FC<PoolStatusModalProps> = ({
+const DepositConfirmModal: FC<DepositConfirmModalProps> = ({
   open,
   onClose,
   assetA,
   assetAAmount,
   assetB,
   assetBAmount,
-  state,
-  percent,
-  status,
+  onApprove,
 }) => (
   <Modal
     content={
       <Content
-        onClose={onClose}
         assetA={assetA}
         assetAAmount={assetAAmount}
         assetB={assetB}
         assetBAmount={assetBAmount}
-        state={state}
-        percent={percent}
-        status={status}
+        onApprove={onApprove}
       />
     }
     open={open}
@@ -45,4 +37,4 @@ const PoolStatusModal: FC<PoolStatusModalProps> = ({
   />
 );
 
-export default PoolStatusModal;
+export default DepositConfirmModal;

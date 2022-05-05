@@ -3,32 +3,29 @@ import Modal from "../../../../../components/modal";
 import Content from "./content";
 import { Asset } from "../../../../../types";
 
-interface ConfirmPoolModalProps {
+interface WithdrawConfirmModalProps {
   open: boolean;
   onClose(): void;
-  assetA: Asset | undefined;
-  assetAAmount: bigint;
-  assetB: Asset | undefined;
-  assetBAmount: bigint;
+  assetA: Asset;
+  assetB: Asset;
+  percent: bigint;
   onApprove(): void;
 }
 
-const ConfirmPoolModal: FC<ConfirmPoolModalProps> = ({
+const WithdrawConfirmModal: FC<WithdrawConfirmModalProps> = ({
   open,
   onClose,
   assetA,
-  assetAAmount,
   assetB,
-  assetBAmount,
+  percent,
   onApprove,
 }) => (
   <Modal
     content={
       <Content
         assetA={assetA}
-        assetAAmount={assetAAmount}
         assetB={assetB}
-        assetBAmount={assetBAmount}
+        percent={percent}
         onApprove={onApprove}
       />
     }
@@ -37,4 +34,4 @@ const ConfirmPoolModal: FC<ConfirmPoolModalProps> = ({
   />
 );
 
-export default ConfirmPoolModal;
+export default WithdrawConfirmModal;

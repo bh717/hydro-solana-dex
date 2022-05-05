@@ -134,6 +134,8 @@ interface ContentProps {
   assetB: Asset | undefined;
   assetBAmount: bigint;
   state: StateValue;
+  percent: bigint;
+  status: string;
 }
 
 const Content: FC<ContentProps> = ({
@@ -143,6 +145,8 @@ const Content: FC<ContentProps> = ({
   assetB,
   assetBAmount,
   state,
+  percent,
+  status,
 }) => {
   const classes = useStyles();
 
@@ -155,10 +159,18 @@ const Content: FC<ContentProps> = ({
             <span className={classes.loader} />
           </Box>
           <Typography>Waiting For Confirmation</Typography>
-          <Typography component="span">
-            Deposit {toFormat(assetAAmount, assetA?.decimals)} {assetA?.symbol}{" "}
-            and {toFormat(assetBAmount, assetB?.decimals)} {assetB?.symbol}
-          </Typography>
+          {status === "deposit" ? (
+            <Typography component="span">
+              Deposit {toFormat(assetAAmount, assetA?.decimals)}{" "}
+              {assetA?.symbol} and {toFormat(assetBAmount, assetB?.decimals)}{" "}
+              {assetB?.symbol}
+            </Typography>
+          ) : (
+            <Typography component="span">
+              Withdraw {Number(percent) / 100}% of Pool - {assetA?.symbol} and{" "}
+              {assetB?.symbol}
+            </Typography>
+          )}
           <Typography component="span">
             Confirm this transaction in your wallet
           </Typography>

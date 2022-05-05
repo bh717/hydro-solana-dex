@@ -1,9 +1,7 @@
 import { FC } from "react";
 import { makeStyles } from "@mui/styles";
 import { Box, Typography, Button } from "@mui/material";
-import { useRemoveLiquidity } from "hydra-react-ts";
 
-import { Asset } from "../../../../../types";
 import NumericField from "../../../../../components/numericField";
 
 const useStyles = makeStyles({
@@ -108,15 +106,19 @@ const useStyles = makeStyles({
 });
 
 interface ContentProps {
-  tokenAInit: Asset;
-  tokenBInit: Asset;
+  percent: bigint;
+  setPercent(value: bigint): void;
+  isSubmitDisabled: boolean;
+  onConfirm(): void;
 }
 
-const Content: FC<ContentProps> = ({ tokenAInit, tokenBInit }) => {
+const Content: FC<ContentProps> = ({
+  percent,
+  setPercent,
+  isSubmitDisabled,
+  onConfirm,
+}) => {
   const classes = useStyles();
-
-  const { onSendSubmit, isSubmitDisabled, percent, setPercent } =
-    useRemoveLiquidity(tokenAInit.address, tokenBInit.address);
 
   return (
     <>
@@ -151,7 +153,7 @@ const Content: FC<ContentProps> = ({ tokenAInit, tokenBInit }) => {
         </Box>
       </Box> */}
       <Box className={classes.buttonWrapper}>
-        <Button onClick={onSendSubmit} disabled={isSubmitDisabled}>
+        <Button onClick={onConfirm} disabled={isSubmitDisabled}>
           Withdraw
         </Button>
       </Box>
