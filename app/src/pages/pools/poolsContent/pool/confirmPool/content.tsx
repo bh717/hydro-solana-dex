@@ -175,7 +175,7 @@ const Content: FC<ContentProps> = ({
 
   return (
     <>
-      <Typography className={classes.title}>Confirm Liquidity</Typography>
+      <Typography className={classes.title}>Confirm Deposit</Typography>
       <Box className={classes.assetsWrapper}>
         <Box className={classes.assetRow}>
           <span className={classes.assetImgWrapper}>
@@ -200,7 +200,7 @@ const Content: FC<ContentProps> = ({
         </Box>
       </Box>
       <Button className={classes.confirmButton} onClick={onApprove}>
-        Confirm Swap
+        Deposit
       </Button>
     </>
   );
