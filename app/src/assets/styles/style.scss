@@ -124,6 +124,22 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 
+// Toastify
+.Toastify__toast {
+  background: #313c4e;
+  color: #fff;
+}
+
+.Toastify__close-button--light {
+  color: #fff;
+  opacity: 0.7;
+}
+
+.Toastify__progress-bar-theme--light {
+  background: linear-gradient(88.14deg, #918eff 16.49%, #19ce9d 86.39%);
+}
+
+// Custom Scrollbar
 @media screen and (min-width: 601px) {
   ::-webkit-scrollbar {
     width: 10px;
