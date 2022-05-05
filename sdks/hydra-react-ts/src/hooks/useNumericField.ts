@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 export type NumericFieldProps = {
   onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
@@ -46,12 +46,17 @@ export function useNumericField({
 
   const onFocus = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
-      setDraftMode(true);
-      if (!internalError) setLocalState(`${inputValue}`);
-      inputOnFocus && inputOnFocus(e);
+      setTimeout(() => {
+        setDraftMode(true);
+        inputOnFocus && inputOnFocus(e);
+      }, 100);
     },
     [inputValue, inputOnFocus, internalError]
   );
+
+  useEffect(() => {
+    if (!draftMode && !internalError) setLocalState(inputValue.toString());
+  }, [inputValue, draftMode, internalError]);
 
   const value = draftMode ? localState : inputValue.toString();
   const error = !!internalError;
