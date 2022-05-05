@@ -1,8 +1,9 @@
 import { usePoolStream } from "../usePoolStream";
 import { useCallback, useEffect } from "react";
-import { AccountData, HydraSDK, TokenMint } from "hydra-ts";
+import { HydraSDK } from "hydra-ts";
 import { Asset } from "hydra-ts";
 import { useToken } from "../useToken";
+import { AccountData, TokenMint } from "hydra-ts";
 
 export function getDirection(
   tokenXMint: AccountData<TokenMint>,
@@ -15,6 +16,7 @@ export function getDirection(
     ? "yx"
     : null;
 }
+
 // take the selected pool and token form data
 // set the appropriate fields based on user input
 // calculating swap estimates
@@ -27,8 +29,7 @@ export function useCalculateAddLiquidityAmount(
 ) {
   const { tokenXMint, tokenYMint, tokenXVault, tokenYVault, poolState } = pool;
 
-  // TODO the following is hack and should be tested
-  const calculateAddLiquidity = useCallback(
+  const calculateSwap = useCallback(
     async (amount: bigint, asset: Asset) => {
       if (
         !tokenXMint ||
@@ -43,21 +44,19 @@ export function useCalculateAddLiquidityAmount(
 
       if (!direction) throw new Error("Asset is not part of pool mints");
 
-      const ratio =
-        direction === "xy"
-          ? Number(tokenXVault.account.data.amount) /
-            Number(tokenYVault.account.data.amount)
-          : Number(tokenYVault.account.data.amount) /
-            Number(tokenXVault.account.data.amount);
+      const [, , deltaX, deltaY, fees] =
+        await client.liquidityPools.calculateSwap(
+          tokenXMint,
+          tokenYMint,
+          tokenXVault,
+          tokenYVault,
+          poolState,
+          amount,
+          direction
+        );
 
-      const scale =
-        direction === "xy"
-          ? tokenYMint.account.data.decimals
-          : tokenXMint.account.data.decimals;
-
-      const output = BigInt(ratio * Number(amount)) / 10n ** BigInt(scale);
-
-      return { amount: output };
+      const out = { amount: direction === "xy" ? deltaY : deltaX, fees };
+      return out;
     },
     [
       tokenXMint,
@@ -72,15 +71,14 @@ export function useCalculateAddLiquidityAmount(
   useEffect(() => {
     if (focus === "from") {
       if (!tokenFrom.asset) return;
-      calculateAddLiquidity(tokenFrom.amount, tokenFrom.asset).then(
-        (result) => {
-          tokenTo.setAmount(result.amount);
-        }
-      );
+      calculateSwap(tokenFrom.amount, tokenFrom.asset).then((result) => {
+        console.log("Set token amount", result.amount);
+        tokenTo.setAmount(result.amount);
+      });
     }
     if (focus === "to") {
       if (!tokenTo.asset) return;
-      calculateAddLiquidity(tokenTo.amount, tokenTo.asset).then((result) => {
+      calculateSwap(tokenTo.amount, tokenTo.asset).then((result) => {
         tokenFrom.setAmount(result.amount);
       });
     }
@@ -88,7 +86,7 @@ export function useCalculateAddLiquidityAmount(
   }, [
     // deliberately ignoring tokenTo and
     // tokenFrom changes to avoid re-rendering
-    calculateAddLiquidity,
+    calculateSwap,
     tokenFrom.asset,
     tokenFrom.amount,
     tokenTo.asset,

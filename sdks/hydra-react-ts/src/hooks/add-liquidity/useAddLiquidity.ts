@@ -2,7 +2,7 @@ import { useHydraClient } from "../../HydraClientProvider";
 import { usePoolStream } from "../usePoolStream";
 import { useTokenForm } from "../useTokenForm";
 import { useAddLiquidityUIState } from "./useAddLiquidityUIState";
-import { useCalculateAddLiquidityAmount } from "./useCalculateAddLIquidityAmount";
+import { useCalculateAddLiquidityAmount } from "./useCalculateAddLiquidityAmount";
 import { useCreateAddLiquidityCommands } from "./useCreateAddLiquidtyCommands";
 
 export function useAddLiquidity(
