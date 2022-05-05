@@ -34,7 +34,7 @@ const DepositLiquidityModal: FC<DepositLiquidityModalProps> = ({
     }
     open={open}
     onClose={onClose}
-    size="lg"
+    // size="lg"
   />
 );
 
